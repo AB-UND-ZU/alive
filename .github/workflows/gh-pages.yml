@@ -22,8 +22,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Lint
         run: npm run lint
-      - name: Run all tests with coverage
-        run: npm run test:coverage
+      - name: Run game and generation tests with coverage
+        run: npm run test:ci
       - name: Report coverage
         if: ${{ !cancelled() }}
         run: node scripts/coverage-summary.mjs >> "$GITHUB_STEP_SUMMARY"

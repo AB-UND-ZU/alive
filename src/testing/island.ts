@@ -1,7 +1,7 @@
 /**
  * Generate seeded islands and check with the game's pathfinding that all
  * waypoints are reachable from the spawn. Shared by the seeded
- * `island/generation-*.slow.test.ts` files so jest runs them in parallel.
+ * `island/island-*.generation.test.ts` files so jest runs them in parallel.
  */
 import { assertHero, createTestWorld } from "./harness";
 import { seedRandom } from "./env";

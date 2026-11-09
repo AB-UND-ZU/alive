@@ -26,7 +26,9 @@ Name the feature and its outcome: wading near land, blocking deep water, stoppin
 
 Gameplay feature tests live in `src/features/`, grouped by area with one file per feature, station, spell, skill or tool.
 
-Jest setup seeds randomness and records sound calls. Slow suites cover larger generated worlds and rendering. Run `npm run test:fast` while working and `npm run test:all` when the affected feature needs the wider coverage. `npm run test:coverage` runs all tests with a coverage report in `coverage/`; CI adds its summary to the job, uploads the HTML report and fails below the thresholds in `package.json`. Wiki site code is left out, as the Wiki browser tests cover it.
+Jest setup seeds randomness and records sound calls. Slow suites cover React integration and rendering. Run `npm run test:fast` while working and `npm run test:all` when the affected feature needs the wider coverage. These commands and `npm test` leave out generation suites.
+
+Generation suites use `.generation.test.ts`. Run `npm run test:generation` only when changing level generation or generation-dependent fixtures, including Island save snapshots, presets and Minimap exploration. CI uses `npm run test:ci` to run game and generation tests together with a coverage report in `coverage/`. It adds the summary to the job, uploads the HTML report and fails below the thresholds in `package.json`. Wiki site code is left out, as the Wiki browser tests cover it.
 
 Wiki browser tests check imported examples, focus and dialog controls, navigation, page errors and small-screen layout. See [wiki tools](../wiki/index.md).
 <!-- source-types -->

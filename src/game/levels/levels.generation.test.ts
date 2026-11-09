@@ -10,7 +10,7 @@ import { VIEWABLE } from "../../engine/components/viewable";
 import { getCellEntities } from "../../engine/systems/map";
 import { isWalkable } from "../../engine/systems/movement";
 
-// island is covered by seeded island/generation-*.slow.test.ts
+// island is covered by seeded island/island-*.generation.test.ts
 const levels: LevelName[] = ["LEVEL_MENU", "LEVEL_TUTORIAL"];
 
 describe.each(levels)("level %s", (level) => {

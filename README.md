@@ -36,7 +36,9 @@ npx playwright install chromium
 npm run wiki:test
 ```
 
-Fast checks cover types, lint, and small feature tests. The full suite includes generated levels and rendering. The wiki browser suite checks live examples, navigation, and responsive layout.
+Fast checks cover types, lint, and small feature tests. `test:all` also checks game integration and rendering. The wiki browser suite checks live examples, navigation, and responsive layout.
+
+Run `npm run test:generation` only when changing level generation or generation-dependent fixtures. CI uses `npm run test:ci` to run game and generation tests together, report coverage and enforce the thresholds in `package.json`.
 
 ## Title images
 
