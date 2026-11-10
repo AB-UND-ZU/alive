@@ -20,7 +20,17 @@ import {
   restoreGame,
   storeGame,
 } from "../../game/saves/storage";
+import { TEST_MODE } from "../../engine/utils";
+import { PLAYER } from "../../engine/components/player";
+import { POSITION } from "../../engine/components/position";
+import { submitChat } from "../../engine/systems/popup";
 import packageJson from "../../../package.json";
+
+declare global {
+  interface Window {
+    aliveChat?: (line?: string) => ReturnType<typeof submitChat>;
+  }
+}
 
 // encode package version as V<major>x<minor>[.<patch>], e.g. 0.2.0 -> V0x02
 const [major = 0, minor = 0, patch = 0] = packageJson.version
@@ -198,6 +208,18 @@ export default function World({
       console.error("Loading saves failed:", error)
     );
   }, [persistent]);
+
+  useEffect(() => {
+    if (!TEST_MODE) return;
+    const aliveChat = (line = "") => {
+      const hero = ecs.getEntities([PLAYER, POSITION])[0];
+      if (hero) return submitChat(ecs, hero, line);
+    };
+    window.aliveChat = aliveChat;
+    return () => {
+      if (window.aliveChat === aliveChat) delete window.aliveChat;
+    };
+  }, [ecs]);
 
   // expose utilities to world metadata
   useEffect(() => {

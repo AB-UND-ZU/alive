@@ -80,6 +80,7 @@ import { LEVEL } from "../components/level";
 import { REFERENCE } from "../components/reference";
 import {
   getKeyFromIndex,
+  getIndexFromKey,
   keyboardColumns,
   keyboardSize,
 } from "../../components/Keyboard";
@@ -183,6 +184,104 @@ export const popTabSelection = (world: World, popupEntity: Entity) => {
     popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex].pop();
   rerenderEntity(world, popupEntity);
   return value;
+};
+
+export const typeChat = (
+  world: World,
+  heroEntity: Entity,
+  keyIndex?: number
+) => {
+  const popup = world.getEntityByIdAndComponents(heroEntity[PLAYER]?.popup, [
+    POPUP,
+  ]);
+  if (!popup || getTab(world, popup) !== "chat") return;
+
+  const reference = world.assertByIdAndComponents(
+    heroEntity[MOVABLE].reference,
+    [REFERENCE]
+  )[REFERENCE];
+  reference.suspensionCounter =
+    reference.suspensionCounter === -1 ? -1 : reference.suspensionCounter + 1;
+  reference.suspended = false;
+
+  if (keyIndex !== undefined) {
+    pushTabSelection(world, popup, keyIndex);
+    play("type", { notes: 2, spacing: 16 });
+  } else {
+    popTabSelection(world, popup);
+    play("type", { notes: 2, spacing: 20, intensity: 2 });
+  }
+};
+
+export const submitChat = (
+  world: World,
+  heroEntity: Entity,
+  line: string | string[] = ""
+) => {
+  const keys = typeof line === "string" ? [...line] : line;
+  const popup = world.getEntityByIdAndComponents(heroEntity[PLAYER]?.popup, [
+    POPUP,
+  ]);
+  if (popup && getTab(world, popup) === "chat") {
+    setVerticalIndex(world, popup, 0);
+    closePopup(world, heroEntity, popup);
+  }
+  if (!keys.length) {
+    heroEntity[TOOLTIP].dialogs = [];
+    heroEntity[TOOLTIP].changed = true;
+    heroEntity[TOOLTIP].override = undefined;
+    heroEntity[TOOLTIP].enemy = false;
+    return;
+  }
+
+  const selections = keys.flatMap((key) => {
+    const index = getIndexFromKey(key);
+    return index
+      ? [
+          index.tab * keyboardSize +
+            index.offset * keyboardColumns +
+            index.content,
+        ]
+      : [];
+  });
+  heroEntity[PLAYER].chatHistory.unshift(selections);
+  play("confirm");
+
+  const command = parseCommand(keys.join(""));
+  const error = command
+    ? executeCommand(world, heroEntity, command)
+    : undefined;
+  const dialog = command
+    ? error
+      ? Array.isArray(error)
+        ? addBackground(
+            error.map((char) =>
+              recolorSprite(char, {
+                [colors.white]: colors.black,
+                [colors.black]: colors.red,
+              })
+            ),
+            colors.red
+          )
+        : createText(error, colors.black, colors.red)
+      : []
+    : keys.map((char) =>
+        recolorSprite(parseSprite(`\x0f█\x00${char}`), colors.white)
+      );
+
+  heroEntity[TOOLTIP].enemy = !!command;
+  heroEntity[TOOLTIP].dialogs = dialog.length
+    ? [
+        [
+          command ? shoutStart : dialogStart,
+          ...dialog,
+          command ? shoutEnd : dialogEnd,
+        ],
+      ]
+    : [];
+  heroEntity[TOOLTIP].changed = true;
+  heroEntity[TOOLTIP].override = dialog.length ? "visible" : undefined;
+  return error;
 };
 
 export const getDeal = (
@@ -981,23 +1080,19 @@ export default function setupPopup(world: World) {
         play("tab", { variant: backtab ? 2 : 1 });
       }
     } else if (heroEntity[PLAYER].actionTriggered === "type") {
-      if (
-        heroEntity[PLAYER].tabTriggered !== undefined &&
-        heroEntity[PLAYER].contentTriggered !== undefined &&
-        heroEntity[PLAYER].offsetTriggered !== undefined
-      ) {
-        // type new key
-        const keyIndex =
-          heroEntity[PLAYER].tabTriggered * keyboardSize +
-          heroEntity[PLAYER].offsetTriggered * keyboardColumns +
-          heroEntity[PLAYER].contentTriggered;
-        pushTabSelection(world, popupEntity, keyIndex);
-        play("type", { notes: 2, spacing: 16 });
-      } else {
-        // delete last char
-        popTabSelection(world, popupEntity);
-        play("type", { notes: 2, spacing: 20, intensity: 2 });
-      }
+      const { tabTriggered, offsetTriggered, contentTriggered } =
+        heroEntity[PLAYER];
+      typeChat(
+        world,
+        heroEntity,
+        tabTriggered !== undefined &&
+          offsetTriggered !== undefined &&
+          contentTriggered !== undefined
+          ? tabTriggered * keyboardSize +
+              offsetTriggered * keyboardColumns +
+              contentTriggered
+          : undefined
+      );
 
       heroEntity[PLAYER].actionTriggered = undefined;
       heroEntity[PLAYER].tabTriggered = undefined;
@@ -1451,59 +1546,7 @@ export default function setupPopup(world: World) {
         }
       } else if (tab === "chat") {
         if (TEST_MODE) {
-          if (selections.length > 0) {
-            const prompt = selections
-              .map((keyIndex) => getKeyFromIndex(keyIndex))
-              .join("");
-            const command = parseCommand(prompt);
-
-            heroEntity[PLAYER].chatHistory.unshift(selections);
-            play("confirm");
-            setVerticalIndex(world, popupEntity, 0);
-
-            let dialog = [];
-            let shout = false;
-            if (command) {
-              const error = executeCommand(world, heroEntity, command);
-              shout = true;
-              dialog = error
-                ? Array.isArray(error)
-                  ? addBackground(
-                      error.map((char) =>
-                        recolorSprite(char, {
-                          [colors.white]: colors.black,
-                          [colors.black]: colors.red,
-                        })
-                      ),
-                      colors.red
-                    )
-                  : createText(error, colors.black, colors.red)
-                : [];
-            } else {
-              dialog = selections
-                .map((keyIndex) => getKeyFromIndex(keyIndex))
-                .map((char) =>
-                  recolorSprite(
-                    parseSprite(`\x0f█\x00${char}`),
-                    shout ? colors.red : colors.white
-                  )
-                );
-            }
-
-            if (dialog.length > 0) {
-              heroEntity[TOOLTIP].enemy = shout;
-              heroEntity[TOOLTIP].dialogs = [
-                [
-                  shout ? shoutStart : dialogStart,
-                  ...dialog,
-                  shout ? shoutEnd : dialogEnd,
-                ],
-              ];
-              heroEntity[TOOLTIP].changed = true;
-              heroEntity[TOOLTIP].override = "visible";
-            }
-          }
-          closePopup(world, heroEntity, popupEntity);
+          submitChat(world, heroEntity, selections.map(getKeyFromIndex));
         }
       } else if (tab === "use") {
         if (addEntity && selections.length === 0) {

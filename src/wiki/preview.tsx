@@ -4,10 +4,9 @@ import { DemoFrame } from "./DemoFrame";
 import { muteAudio } from "../game/sound/resumable";
 import { findPath, relativeOrientations } from "../game/math/path";
 import { getIdentifierAndComponents } from "../engine/utils";
-import { getTab } from "../engine/systems/popup";
+import { getTab, submitChat } from "../engine/systems/popup";
 import { isInteractable } from "../engine/systems/freeze";
 import { getHero } from "../testing/harness";
-import { parseCommand, executeCommand } from "../game/assets/commands";
 import { Button } from "./visuals";
 import { createRoot } from "react-dom/client";
 import { useEffect } from "react";
@@ -199,11 +198,10 @@ function Bridge() {
       if (event.origin !== window.location.origin) return;
       const action = event.data?.type;
       if (action === "command" && ecs) {
-        const hero = getHero(ecs),
-          command = parseCommand(event.data.command);
+        const hero = getHero(ecs);
         const result =
-          hero && command
-            ? executeCommand(ecs, hero, command)
+          hero && typeof event.data.command === "string"
+            ? submitChat(ecs, hero, event.data.command)
             : "Invalid command";
         window.parent.postMessage(
           {

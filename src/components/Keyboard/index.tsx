@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { useHero, useWorld } from "../../bindings/hooks";
+import { useWorld } from "../../bindings/hooks";
 import {
   keyLeft,
   keyGap,
@@ -33,8 +33,9 @@ import {
 import Row from "../Row";
 import "./index.css";
 import { MOVABLE } from "../../engine/components/movable";
-import { REFERENCE } from "../../engine/components/reference";
 import { PLAYER } from "../../engine/components/player";
+import { POSITION } from "../../engine/components/position";
+import { typeChat } from "../../engine/systems/popup";
 import { useDimensions } from "../Dimensions";
 import { repeat } from "../../game/math/std";
 import { parseSprite } from "../../game/assets/ui";
@@ -109,7 +110,6 @@ export const getIndexFromKey = (key: string) => {
 
 export default function Keyboard() {
   const { ecs, paused } = useWorld();
-  const hero = useHero();
   const dimensions = useDimensions();
   const [shift, setShift] = useState(false);
   const [modifier, setModifier] = useState(false);
@@ -120,6 +120,7 @@ export default function Keyboard() {
     (event: TouchEvent | React.MouseEvent<HTMLElement, MouseEvent>) => {
       event.preventDefault();
       const div = event.currentTarget as HTMLElement | undefined;
+      const hero = ecs?.getEntity([PLAYER, POSITION]);
 
       if (
         !div ||
@@ -179,29 +180,15 @@ export default function Keyboard() {
         return;
       }
 
-      const reference = ecs.assertByIdAndComponents(hero[MOVABLE].reference, [
-        REFERENCE,
-      ])[REFERENCE];
-
-      hero[PLAYER].actionTriggered = "type";
-
-      if (rowIndex === 1 && columnIndex === keyboardColumns - 1) {
-        hero[PLAYER].tabTriggered = undefined;
-        hero[PLAYER].contentTriggered = undefined;
-        hero[PLAYER].offsetTriggered = undefined;
-      } else {
-        hero[PLAYER].tabTriggered = pageIndex;
-        hero[PLAYER].contentTriggered = columnIndex;
-        hero[PLAYER].offsetTriggered = rowIndex;
-      }
-
-      reference.suspensionCounter =
-        reference.suspensionCounter === -1
-          ? -1
-          : reference.suspensionCounter + 1;
-      reference.suspended = false;
+      typeChat(
+        ecs,
+        hero,
+        rowIndex === 1 && columnIndex === keyboardColumns - 1
+          ? undefined
+          : pageIndex * keyboardSize + rowIndex * keyboardColumns + columnIndex
+      );
     },
-    [hero, ecs, paused, setShift, setModifier, pageIndex]
+    [ecs, paused, setShift, setModifier, pageIndex]
   );
 
   const keyboardSprites = [

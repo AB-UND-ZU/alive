@@ -2,7 +2,7 @@ import { createAreaWorld } from "../../testing/harness";
 import { playedSounds, resetPlayedSounds } from "../../testing/env";
 import { PLAYER } from "../../engine/components/player";
 import { TOOLTIP } from "../../engine/components/tooltip";
-import { getTab, isInPopup } from "../../engine/systems/popup";
+import { getTab, isInPopup, submitChat } from "../../engine/systems/popup";
 import {
   act,
   backspace,
@@ -34,6 +34,31 @@ const setup = () => {
 };
 
 describe("chat", () => {
+  it("submits an imported line with the same bubble and history as chat", () => {
+    const { world, hero } = setup();
+    submitChat(world, hero, "hello there");
+    expect(getDialog(hero)).toEqual(["hello there"]);
+    openChat(world);
+    act(world, "up");
+    expect(getPrompt(world)).toBe("hello there");
+  });
+
+  it("executes imported commands and returns their errors", () => {
+    const { world, hero } = setup();
+    expect(submitChat(world, hero, "/give nothing")).toBe('No item "nothing"!');
+    expect(getDialog(hero)).toEqual(['No item "nothing"!']);
+    expect(hero[TOOLTIP].enemy).toBe(true);
+  });
+
+  it("closes an open chat when a line is submitted externally", () => {
+    const { world, hero } = setup();
+    openChat(world);
+    type(world, "draft");
+    submitChat(world, hero, "sent");
+    expect(isInPopup(world, hero)).toBeFalsy();
+    expect(getDialog(hero)).toEqual(["sent"]);
+  });
+
   it("opens an empty chat tab in the menu", () => {
     const { world, hero, menu } = setup();
 

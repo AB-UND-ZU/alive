@@ -1,5 +1,7 @@
 /* eslint-disable testing-library/no-node-access, testing-library/no-container -- keys are drawn as glyph spans over one touch area */
-import { fireEvent } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
+import { WorldProvider } from "../../bindings/hooks";
+import { createWorldContext } from "../../testing/render";
 import Keyboard, {
   getIndexFromKey,
   getKeyFromIndex,
@@ -34,12 +36,12 @@ const setup = (paused = false) => {
   Object.defineProperty(keyboard, "offsetHeight", { value: height });
 
   /** Tap a key by its row and its position among the keys of the row. */
-  const tap = (row: number, column: number) => {
+  const tap = (row: number, column: number, advance = true) => {
     fireEvent.click(keyboard, {
       clientX: columnWidth / 4 + (column + 0.5) * columnWidth,
       clientY: row * rowHeight + rowHeight * 0.375,
     });
-    view.tick(2);
+    if (advance) view.tick(2);
   };
 
   const tapAt = (clientX: number, clientY: number) => {
@@ -91,6 +93,32 @@ describe("on-screen keyboard", () => {
     tap(...(letter(1, 5) as [number, number]));
     tap(...(letter(0, 7) as [number, number]));
 
+    expect(typed()).toBe("hi");
+  });
+
+  it("accepts the first tap before a render notification arrives", () => {
+    const { world, unmount } = setup();
+    unmount();
+    const view = render(
+      <WorldProvider value={createWorldContext(world)}>
+        <Keyboard />
+      </WorldProvider>
+    );
+    const keyboard = view.container.querySelector("#keyboard") as HTMLElement;
+    Object.defineProperty(keyboard, "offsetWidth", { value: width });
+    Object.defineProperty(keyboard, "offsetHeight", { value: height });
+    fireEvent.click(keyboard, { clientX: 115, clientY: 55 });
+    expect(
+      getTabSelections(world, getMenu(world)).map(getKeyFromIndex).join("")
+    ).toBe("h");
+  });
+
+  it("keeps rapid taps and deletes before the next game update", () => {
+    const { tap, typed } = setup();
+    tap(1, 5, false);
+    tap(0, 7, false);
+    tap(0, 7, false);
+    tap(...deleteKey, false);
     expect(typed()).toBe("hi");
   });
 

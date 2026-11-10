@@ -1,8 +1,8 @@
 import { useState } from "react";
+import { submitChat } from "../engine/systems/popup";
 import {
   commandItems,
   commandSignatures,
-  executeCommand,
   parseCommand,
 } from "../game/assets/commands";
 import { assertHero, advance } from "../testing/harness";
@@ -83,7 +83,7 @@ export function CommandBuilder() {
   const run = () => {
     const command = parseCommand(value.trimEnd());
     if (!command) return;
-    const output = executeCommand(world, assertHero(world), command);
+    const output = submitChat(world, assertHero(world), value.trimEnd());
     advance(world, 100);
     setResult(output || "Done.");
     setRevision((n) => n + 1);

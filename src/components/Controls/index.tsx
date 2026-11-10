@@ -26,6 +26,7 @@ import Joystick from "../Joystick";
 import { canCast } from "../../engine/systems/magic";
 import {
   getTab,
+  typeChat,
   getTabSelections,
   getVerticalIndex,
   isInPopup,
@@ -58,7 +59,11 @@ import { IDENTIFIABLE } from "../../engine/components/identifiable";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
 import { getSequence } from "../../engine/systems/sequence";
 import { harvestConditions } from "../../game/balancing/harvesting";
-import Keyboard, { getIndexFromKey } from "../Keyboard";
+import Keyboard, {
+  getIndexFromKey,
+  keyboardColumns,
+  keyboardSize,
+} from "../Keyboard";
 import { TEST_MODE } from "../../engine/utils";
 import {
   createText,
@@ -645,19 +650,25 @@ export default function Controls({
       key: string
     ) => {
       event.preventDefault();
-      if (inMenu || !ecs || !hero || !isActionable(ecs, hero)) return;
+      if (inMenu || !ecs || !hero || paused || !isActionable(ecs, hero)) return;
 
       if (backspaceKeys.includes(key)) {
-        handleAction("type");
+        typeChat(ecs, hero);
         return;
       }
 
       const keyMap = getIndexFromKey(key);
       if (!keyMap) return;
 
-      handleAction("type", keyMap.content, keyMap.offset, keyMap.tab);
+      typeChat(
+        ecs,
+        hero,
+        keyMap.tab * keyboardSize +
+          keyMap.offset * keyboardColumns +
+          keyMap.content
+      );
     },
-    [handleAction, inMenu, ecs, hero]
+    [inMenu, ecs, hero, paused]
   );
 
   const handleMap = useCallback(
@@ -930,10 +941,17 @@ export default function Controls({
 
       // since macOS doesn't fire keyup when meta key is pressed, prevent it from moving.
       // still not working: arrow keydown -> meta keydown -> arrow keyup -> meta keyup
-      // also prevent repeat events
+      // repeat text input, but keep actions single-shot
       if (
         event.type === "keydown" &&
-        (event.altKey || event.metaKey || event.repeat)
+        (event.altKey ||
+          event.metaKey ||
+          (event.repeat &&
+            !(
+              TEST_MODE &&
+              popupTab === "chat" &&
+              (getIndexFromKey(event.key) || backspaceKeys.includes(event.key))
+            )))
       )
         return;
 
