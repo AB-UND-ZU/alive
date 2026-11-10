@@ -1,6 +1,3 @@
-import { Params, SoundEffect } from "jsfxr";
-import RIFFWAVE from "./riffwave";
-
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 const masterGain = audioContext.createGain();
 masterGain.gain.value = 1;
@@ -24,67 +21,34 @@ export const ensureAudio = () => {
 
 export const isPlaying = () => audioContext.state === "running";
 
-function ResumableSoundEffectFunction(this: SoundEffect, ps: Params) {
-  return SoundEffect.call(this, ps); // call parent constructor
-}
-
-export const ResumableSoundEffect =
-  ResumableSoundEffectFunction as unknown as new (ps: Params) => SoundEffect;
-
-// inherit prototype
-ResumableSoundEffect.prototype = Object.create(SoundEffect.prototype);
-ResumableSoundEffect.prototype.constructor = ResumableSoundEffect;
-
-ResumableSoundEffect.prototype.generate = function () {
-  var rendered = this.getRawBuffer();
-  var wave = new RIFFWAVE() as any;
-  wave.header.sampleRate = this.sampleRate;
-  wave.header.bitsPerSample = this.bitsPerChannel;
-  // skip encoding the base64 data URI (wave.Make), it is only used as a
-  // fallback without Web Audio, which is always present
-  wave.clipping = rendered.clipped;
-  wave.buffer = rendered.normalized;
-  wave.getAudio = this._resumable_sfxr_getAudioFn(wave);
-  return wave;
+export type SoundBuffer = {
+  play: (time: number, volume?: number) => void;
 };
 
-ResumableSoundEffect.prototype._resumable_sfxr_getAudioFn = function (
-  wave: any
-) {
-  return function () {
-    if (audioContext) {
-      var buff = audioContext.createBuffer(
-        1,
-        wave.buffer.length,
-        wave.header.sampleRate
-      );
-      var nowBuffering = buff.getChannelData(0);
-      for (var i = 0; i < wave.buffer.length; i++) {
-        nowBuffering[i] = wave.buffer[i];
-      }
-      var volume = 1.0;
-      var obj = {
-        setVolume: function (v: number) {
-          volume = v;
-          return obj;
-        },
-        play: function (delay = 0) {
-          var proc = audioContext.createBufferSource();
-          proc.buffer = buff;
-          var gainNode = audioContext.createGain();
-          gainNode.gain.value = volume;
-          gainNode.connect(masterGain);
-          proc.connect(gainNode);
-          // schedule on audio clock to keep timing when frames lag
-          proc.start(audioContext.currentTime + delay / 1000);
-          return proc;
-        },
-      };
-      return obj;
-    } else {
-      var audio = new Audio();
-      audio.src = wave.dataURI;
-      return audio;
-    }
+// audio clock time after a delay in milliseconds
+export const getAudioTime = (delay = 0) =>
+  audioContext.currentTime + delay / 1000;
+
+export const createSoundBuffer = (
+  samples: ArrayLike<number>,
+  sampleRate: number
+): SoundBuffer => {
+  const buffer = audioContext.createBuffer(
+    1,
+    Math.max(samples.length, 1),
+    sampleRate
+  );
+  buffer.getChannelData(0).set(samples);
+
+  return {
+    play: (time, volume = 1) => {
+      const source = audioContext.createBufferSource();
+      source.buffer = buffer;
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = volume;
+      gainNode.connect(masterGain);
+      source.connect(gainNode);
+      source.start(Math.max(time, audioContext.currentTime));
+    },
   };
 };

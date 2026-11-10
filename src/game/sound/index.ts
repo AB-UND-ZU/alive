@@ -1,11 +1,17 @@
 import { Consumable, Stackable } from "../../engine/components/item";
 import { NpcType } from "../../engine/components/npc";
 import { UnitStats } from "../../engine/components/stats";
+import {
+  createSoundBuffer,
+  getAudioTime,
+  isPlaying,
+  SoundBuffer,
+} from "./resumable";
+import { Params, SoundEffect, waveforms } from "jsfxr";
+import { createRng } from "../math/rng";
 import { random } from "../math/std";
-import { isPlaying, ResumableSoundEffect } from "./resumable";
-import { Params, sfxr, waveforms } from "jsfxr";
 
-export const npcVariants: Partial<Record<NpcType, number>> = {
+export const npcVariants: Partial<Record<NpcType, SoundVariant<"slide">>> = {
   golem: 1,
   wormBoss: 1,
   orb: 1,
@@ -21,7 +27,7 @@ export const npcVariants: Partial<Record<NpcType, number>> = {
 export const pickupOptions: Partial<
   Record<
     Stackable | Consumable | keyof UnitStats,
-    { intensity: number; variant: number }
+    { intensity: number; variant: SoundVariant<"pickup"> }
   >
 > = {
   // stats
@@ -52,22 +58,32 @@ export const pickupOptions: Partial<
   coin: { variant: 13, intensity: 4 },
 };
 
-function frnd(range: number) {
-  return Math.random() * range;
-}
+// a few seeds give each sound its random character while keeping them
+// few enough to be synthesized ahead of their first use
+const seeds = [0, 1, 2, 3] as const;
+type Seed = (typeof seeds)[number];
 
-export type SfxOptions = {
+let rng = createRng(0);
+const frnd = (range: number) => rng() * range;
+
+type SoundOptions = {
   delay?: number;
   intensity?: number;
   proximity?: number;
   variant?: number;
+  seed?: number;
   notes?: number;
   spacing?: number;
   pattern?: boolean[];
 };
 
+export type SfxOptions<P extends SoundPreset> = SoundOptions & {
+  variant?: SoundVariant<P>;
+  seed?: Seed;
+};
+
 class Presets extends Params {
-  move(options: SfxOptions) {
+  move(options: SoundOptions) {
     const intensity = (options.intensity || 350) / 1000;
     const proximity = options.proximity || 1;
     const variant = options.variant || 1;
@@ -84,7 +100,7 @@ class Presets extends Params {
     return this;
   }
 
-  slide(options: SfxOptions) {
+  slide(options: SoundOptions) {
     const proximity = options.proximity || 1;
     const variant = options.variant || 1;
     this.wave_type = waveforms.SQUARE;
@@ -106,7 +122,7 @@ class Presets extends Params {
     return this;
   }
 
-  hit(options: SfxOptions) {
+  hit(options: SoundOptions) {
     const intensity = Math.min(((options.intensity || 1) + 4) ** 0.7 - 2, 5);
     const proximity = options.proximity || 1;
     const variant = options.variant || 1;
@@ -123,7 +139,7 @@ class Presets extends Params {
     return this;
   }
 
-  magic(options: SfxOptions) {
+  magic(options: SoundOptions) {
     const intensity = Math.min(((options.intensity || 1) + 4) ** 0.7 - 2, 5);
     const proximity = options.proximity || 1;
     this.sound_vol = (Math.sqrt(intensity) / 32) * proximity ** 0.8;
@@ -141,7 +157,7 @@ class Presets extends Params {
     return this;
   }
 
-  pickup(options: SfxOptions) {
+  pickup(options: SoundOptions) {
     const variant = options.variant || 5;
     const intensity = options.intensity || -5;
     this.sound_vol = 1 / 32;
@@ -156,7 +172,7 @@ class Presets extends Params {
     return this;
   }
 
-  xp(options: SfxOptions) {
+  xp(options: SoundOptions) {
     this.sound_vol = 1 / 32;
     this.wave_type = waveforms.SAWTOOTH;
     this.p_base_freq = 1.1 + frnd(0.2);
@@ -167,7 +183,7 @@ class Presets extends Params {
     return this;
   }
 
-  die(options: SfxOptions) {
+  die(options: SoundOptions) {
     const variant = options.variant || 1;
     const intensity = (5 + (options.intensity || 1)) ** 0.3 - 1;
     this.sound_vol = 1 / 16;
@@ -188,7 +204,7 @@ class Presets extends Params {
     return this;
   }
 
-  bubble(options: SfxOptions) {
+  bubble(options: SoundOptions) {
     const proximity = options.proximity || 1;
     const variant = options.variant || 1;
     this.wave_type = waveforms.SINE;
@@ -199,7 +215,7 @@ class Presets extends Params {
     this.p_base_freq = 0.15 * variant ** 0.5 + frnd(0.05);
     this.p_freq_ramp = 0.25 * variant ** 0.1;
     this.p_freq_dramp = -0.16 * variant ** 0.3;
-    if (random(0, 1) === 0 && variant === 1) {
+    if (frnd(1) < 0.5 && variant === 1) {
       this.p_env_decay = 0.4;
       this.p_freq_ramp = 0.286;
       this.p_freq_dramp = -0.07;
@@ -213,7 +229,7 @@ class Presets extends Params {
     this.p_hpf_ramp = -1;
   }
 
-  rain(options: SfxOptions) {
+  rain(options: SoundOptions) {
     const proximity = options.proximity || 1;
     const intensity = options.intensity || 1;
     this.sound_vol = (1 / 128) * (proximity / 2) ** 0.5;
@@ -232,7 +248,7 @@ class Presets extends Params {
     return this;
   }
 
-  beam(options: SfxOptions) {
+  beam(options: SoundOptions) {
     const variant = options.variant || 1;
     this.sound_vol = (variant / 128) ** 0.5 / 6;
     this.wave_type = waveforms.SINE;
@@ -256,7 +272,7 @@ class Presets extends Params {
     return this;
   }
 
-  wave(options: SfxOptions) {
+  wave(options: SoundOptions) {
     const intensity = options.intensity || 1;
     this.sound_vol = 1 / 4;
     this.wave_type = waveforms.NOISE;
@@ -280,7 +296,7 @@ class Presets extends Params {
     return this;
   }
 
-  slash(options: SfxOptions) {
+  slash(options: SoundOptions) {
     this.sound_vol = 1 / 32;
     this.wave_type = waveforms.NOISE;
     this.p_env_attack = 0.4;
@@ -304,7 +320,7 @@ class Presets extends Params {
     return this;
   }
 
-  talk(options: SfxOptions) {
+  talk(options: SoundOptions) {
     const variant = options.variant || 1;
     this.sound_vol = variant / 32;
     this.wave_type = waveforms.SAWTOOTH;
@@ -333,7 +349,7 @@ class Presets extends Params {
     return this;
   }
 
-  fire(options: SfxOptions) {
+  fire(options: SoundOptions) {
     this.wave_type = waveforms.NOISE;
     const proximity = options.proximity || 1;
     this.sound_vol = proximity * 3;
@@ -364,7 +380,7 @@ class Presets extends Params {
     return this;
   }
 
-  crackle(options: SfxOptions) {
+  crackle(options: SoundOptions) {
     this.wave_type = waveforms.NOISE;
     const proximity = options.proximity || 1;
     const intensity = options.intensity || 1;
@@ -393,7 +409,7 @@ class Presets extends Params {
   }
 
   // abilities
-  danger(options: SfxOptions) {
+  danger(options: SoundOptions) {
     const variant = options.variant || 1;
     const intensity = options.intensity || 1;
     const proximity = options.proximity || 1;
@@ -413,7 +429,7 @@ class Presets extends Params {
     return this;
   }
 
-  arrow(options: SfxOptions) {
+  arrow(options: SoundOptions) {
     const variant = options.variant || 1;
     const proximity = options.proximity || 1;
     this.p_env_attack = 0;
@@ -469,7 +485,7 @@ class Presets extends Params {
     return this;
   }
 
-  spear(options: SfxOptions) {
+  spear(options: SoundOptions) {
     const proximity = options.proximity || 1;
     this.sound_vol = (1 / 40) * proximity;
     this.wave_type = waveforms.NOISE;
@@ -484,7 +500,7 @@ class Presets extends Params {
     return this;
   }
 
-  disc(options: SfxOptions) {
+  disc(options: SoundOptions) {
     const proximity = options.proximity || 1;
     this.sound_vol = (1 / 96) * proximity;
     this.wave_type = waveforms.SQUARE;
@@ -500,7 +516,7 @@ class Presets extends Params {
     return this;
   }
 
-  bolt(options: SfxOptions) {
+  bolt(options: SoundOptions) {
     const proximity = options.proximity || 1;
     this.sound_vol = (1 / 40) * proximity;
     this.wave_type = waveforms.SQUARE;
@@ -515,7 +531,7 @@ class Presets extends Params {
     return this;
   }
 
-  blast(options: SfxOptions) {
+  blast(options: SoundOptions) {
     const proximity = options.proximity || 1;
     this.sound_vol = (1 / 24) * proximity;
     this.wave_type = waveforms.NOISE;
@@ -530,7 +546,7 @@ class Presets extends Params {
     return this;
   }
 
-  trap(options: SfxOptions) {
+  trap(options: SoundOptions) {
     const variant = options.variant || 1;
     const intensity = options.intensity || 1;
     const proximity = options.proximity || 1;
@@ -571,7 +587,7 @@ class Presets extends Params {
     return this;
   }
 
-  dash(options: SfxOptions) {
+  dash(options: SoundOptions) {
     const variant = options.variant || 1;
     const intensity = options.intensity || 500;
     const proximity = options.proximity || 1;
@@ -605,7 +621,7 @@ class Presets extends Params {
     return this;
   }
 
-  zap(options: SfxOptions) {
+  zap(options: SoundOptions) {
     const variant = options.variant || 1;
     const proximity = options.proximity || 1;
     this.p_env_attack = 0;
@@ -655,7 +671,7 @@ class Presets extends Params {
     return this;
   }
 
-  spark(options: SfxOptions) {
+  spark(options: SoundOptions) {
     const variant = options.variant || 1;
     this.sound_vol = 1 / 40;
     this.wave_type = waveforms.NOISE;
@@ -672,7 +688,7 @@ class Presets extends Params {
     return this;
   }
 
-  block(options: SfxOptions) {
+  block(options: SoundOptions) {
     const variant = options.variant || 1;
     const proximity = options.proximity || 1;
 
@@ -725,7 +741,7 @@ class Presets extends Params {
     return this;
   }
 
-  totem(options: SfxOptions) {
+  totem(options: SoundOptions) {
     const variant = options.variant || 1;
     const proximity = options.proximity || 1;
     this.wave_type = waveforms.SINE;
@@ -757,7 +773,7 @@ class Presets extends Params {
   }
 
   // tools
-  tool(options: SfxOptions) {
+  tool(options: SoundOptions) {
     const variant = options.variant || 1;
     this.sound_vol = variant === 1 ? 1 / 56 : 1 / 64;
     this.wave_type = waveforms.NOISE;
@@ -773,7 +789,7 @@ class Presets extends Params {
     return this;
   }
 
-  harvest(options: SfxOptions) {
+  harvest(options: SoundOptions) {
     const variant = options.variant || 1;
     const proximity = options.proximity || 1;
     this.wave_type = waveforms.NOISE;
@@ -826,7 +842,7 @@ class Presets extends Params {
     return this;
   }
 
-  dig(options: SfxOptions) {
+  dig(options: SoundOptions) {
     this.sound_vol = 1 / 28;
     this.wave_type = waveforms.NOISE;
     this.p_env_attack = 0.03;
@@ -840,7 +856,7 @@ class Presets extends Params {
     return this;
   }
 
-  fish(options: SfxOptions) {
+  fish(options: SoundOptions) {
     const variant = options.variant || 1;
     this.p_env_attack = 0;
 
@@ -887,7 +903,7 @@ class Presets extends Params {
     return this;
   }
 
-  escape(options: SfxOptions) {
+  escape(options: SoundOptions) {
     const variant = options.variant || 1;
     this.sound_vol = (1 / 36) * 0.6 ** (variant - 1);
     this.wave_type = waveforms.SINE;
@@ -900,7 +916,7 @@ class Presets extends Params {
     return this;
   }
 
-  build(options: SfxOptions) {
+  build(options: SoundOptions) {
     const variant = options.variant || 1;
     const intensity = options.intensity || 1;
     this.p_env_attack = 0;
@@ -953,7 +969,7 @@ class Presets extends Params {
   }
 
   // ui
-  select(options: SfxOptions) {
+  select(options: SoundOptions) {
     const variant = options.variant || 1;
     this.sound_vol = 1 / 32;
     this.wave_type = waveforms.SQUARE;
@@ -966,7 +982,7 @@ class Presets extends Params {
     return this;
   }
 
-  tab(options: SfxOptions) {
+  tab(options: SoundOptions) {
     const variant = options.variant || 1;
     this.sound_vol = 1 / 48;
     this.wave_type = waveforms.SQUARE;
@@ -984,7 +1000,7 @@ class Presets extends Params {
     return this;
   }
 
-  prompt(options: SfxOptions) {
+  prompt(options: SoundOptions) {
     const variant = options.variant || 1;
     this.sound_vol = 1 / 64;
     this.wave_type = waveforms.SQUARE;
@@ -999,7 +1015,7 @@ class Presets extends Params {
     return this;
   }
 
-  open(options: SfxOptions) {
+  open(options: SoundOptions) {
     const intensity = options.intensity || 120;
     this.sound_vol = 1 / 48;
     this.wave_type = waveforms.SQUARE;
@@ -1013,7 +1029,7 @@ class Presets extends Params {
     return this;
   }
 
-  close(options: SfxOptions) {
+  close(options: SoundOptions) {
     this.sound_vol = 1 / 56;
     this.wave_type = waveforms.SQUARE;
     this.p_env_attack = 0.02;
@@ -1026,7 +1042,7 @@ class Presets extends Params {
     return this;
   }
 
-  confirm(options: SfxOptions) {
+  confirm(options: SoundOptions) {
     this.sound_vol = 1 / 48;
     this.wave_type = waveforms.SQUARE;
     this.p_env_attack = 0;
@@ -1043,7 +1059,7 @@ class Presets extends Params {
     return this;
   }
 
-  back(options: SfxOptions) {
+  back(options: SoundOptions) {
     this.sound_vol = 1 / 56;
     this.wave_type = waveforms.SQUARE;
     this.p_env_attack = 0;
@@ -1060,7 +1076,7 @@ class Presets extends Params {
     return this;
   }
 
-  deny(options: SfxOptions) {
+  deny(options: SoundOptions) {
     this.sound_vol = 1 / 40;
     this.wave_type = waveforms.SQUARE;
     this.p_env_attack = 0;
@@ -1077,7 +1093,7 @@ class Presets extends Params {
     return this;
   }
 
-  type(options: SfxOptions) {
+  type(options: SoundOptions) {
     const variant = options.variant || 1;
     const intensity = options.intensity || 1;
     this.wave_type = waveforms.NOISE;
@@ -1107,7 +1123,7 @@ class Presets extends Params {
     return this;
   }
 
-  text(options: SfxOptions) {
+  text(options: SoundOptions) {
     this.sound_vol = 1 / 64;
     this.wave_type = waveforms.SQUARE;
     this.p_env_attack = 0;
@@ -1120,7 +1136,7 @@ class Presets extends Params {
     return this;
   }
 
-  equip(options: SfxOptions) {
+  equip(options: SoundOptions) {
     const variant = options.variant || 1;
     this.sound_vol = 1 / 48;
     this.wave_type = waveforms.SQUARE;
@@ -1137,7 +1153,7 @@ class Presets extends Params {
     return this;
   }
 
-  anvil(options: SfxOptions) {
+  anvil(options: SoundOptions) {
     this.sound_vol = 1 / 48;
     this.wave_type = waveforms.NOISE;
     this.p_env_attack = 0;
@@ -1153,7 +1169,7 @@ class Presets extends Params {
     return this;
   }
 
-  cling(options: SfxOptions) {
+  cling(options: SoundOptions) {
     this.sound_vol = 1 / 40;
     this.wave_type = waveforms.SQUARE;
     this.p_env_attack = 0;
@@ -1173,7 +1189,7 @@ class Presets extends Params {
     return this;
   }
 
-  unlock(options: SfxOptions) {
+  unlock(options: SoundOptions) {
     const variant = options.variant || 1;
     this.sound_vol = 1 / 96;
     this.wave_type = waveforms.NOISE;
@@ -1189,7 +1205,7 @@ class Presets extends Params {
     return this;
   }
 
-  door(options: SfxOptions) {
+  door(options: SoundOptions) {
     this.sound_vol = 1 / 40;
     this.wave_type = waveforms.SQUARE;
     this.p_env_attack = 0.02;
@@ -1207,7 +1223,7 @@ class Presets extends Params {
     return this;
   }
 
-  lever(options: SfxOptions) {
+  lever(options: SoundOptions) {
     const intensity = options.intensity || 1;
     this.sound_vol = 1 / 48;
     this.wave_type = waveforms.NOISE;
@@ -1223,7 +1239,7 @@ class Presets extends Params {
     return this;
   }
 
-  snow(options: SfxOptions) {
+  snow(options: SoundOptions) {
     const proximity = options.proximity || 1;
     this.sound_vol = (1 / 40) * proximity;
     this.wave_type = waveforms.NOISE;
@@ -1238,7 +1254,7 @@ class Presets extends Params {
     return this;
   }
 
-  push(options: SfxOptions) {
+  push(options: SoundOptions) {
     this.sound_vol = 1 / 26;
     this.wave_type = waveforms.NOISE;
     this.p_env_attack = 0.18;
@@ -1251,7 +1267,7 @@ class Presets extends Params {
     return this;
   }
 
-  progress(options: SfxOptions) {
+  progress(options: SoundOptions) {
     const intensity = options.intensity || 1020;
     this.sound_vol = 1 / 96;
     this.wave_type = waveforms.NOISE;
@@ -1268,7 +1284,7 @@ class Presets extends Params {
     return this;
   }
 
-  level(options: SfxOptions) {
+  level(options: SoundOptions) {
     const variant = options.variant || 1;
     this.sound_vol = 1 / 48;
     this.wave_type = waveforms.SAWTOOTH;
@@ -1290,110 +1306,166 @@ class Presets extends Params {
 
 export const soundPresets = Object.getOwnPropertyNames(
   Presets.prototype
-).filter((name) => name !== "constructor") as (keyof Presets)[];
+).filter((name) => name !== "constructor") as SoundPreset[];
 
-const createParams = (preset: keyof Presets, options: SfxOptions) => {
-  const params = new Params();
+const range = (count: number) =>
+  Array.from({ length: count }, (_, index) => index + 1);
 
-  if (preset in params) return sfxr.generate(preset as keyof Params);
+// variants the game plays, including notes of melodies
+const soundVariants = {
+  move: [1, 2, 3],
+  slide: [1, 2, 3, 18],
+  hit: [1, 2],
+  magic: [],
+  pickup: [1, 2, 3, 4, 5, 6, 7, 10, 13],
+  xp: [],
+  die: [1, 2],
+  bubble: [1, 2],
+  rain: [2],
+  beam: [3],
+  wave: [],
+  slash: [],
+  talk: [0.5, 1, 2],
+  fire: [],
+  crackle: [],
+  danger: range(72),
+  arrow: [1, 2, 3, 4],
+  spear: [],
+  disc: [],
+  bolt: [],
+  blast: [],
+  trap: range(8),
+  dash: [1, 2],
+  zap: [1, 2, 3],
+  spark: range(4),
+  block: [1, 2, 3, 4],
+  totem: [2],
+  tool: [1, 2],
+  harvest: [1, 2, 3, 4],
+  dig: [],
+  fish: [1, 2, 3, 4, 6],
+  escape: range(4),
+  build: range(4),
+  select: [1, 2],
+  tab: [1, 2],
+  prompt: [1, 2],
+  open: [],
+  close: [],
+  confirm: [],
+  back: [],
+  deny: [],
+  type: [1, 2],
+  text: [],
+  equip: range(4),
+  anvil: [],
+  cling: [],
+  unlock: [1, 2],
+  door: [],
+  lever: [],
+  snow: [],
+  push: [],
+  progress: [],
+  level: range(12),
+} as const;
 
-  const presets = new Presets();
-  if (typeof presets[preset] === "function") {
-    (presets[preset] as Function)(options);
-    return presets;
-  }
+export type SoundPreset = Exclude<keyof Presets, keyof Params>;
 
+// every preset needs to list its variants
+const presetVariants: Record<SoundPreset, readonly number[]> = soundVariants;
+
+type SoundVariant<P extends SoundPreset> = (typeof soundVariants)[P][number];
+
+// slightly reduced quality halves the memory of synthesized sounds
+const sampleRate = 22050;
+// tails quieter than this fraction of the peak are cut off
+const silence = 1 / 1000;
+
+const createParams = (preset: SoundPreset, options: SoundOptions) => {
+  const params = new Presets();
+  rng = createRng(options.seed || 0);
+  params[preset](options);
+  params.sample_rate = sampleRate;
   return params;
 };
 
 // jsfxr scales every sample by this factor of the sound volume
 const getGain = (params: Params) => Math.exp(params.sound_vol) - 1;
 
-// Synthesizing a long sound takes several frames on phones, and rain or fires
-// play many per second. Replay a few synthesized variants of each sound at
-// the requested volume instead, as proximity only changes the volume.
-const poolVariants = 4;
-const poolSize = 32;
-const soundPool = new Map<string, { audio: any; gain: number }[]>();
-let pooledCount = 0;
+// sounds only differing in volume share one synthesized buffer
+const sounds = new Map<string, { sound: SoundBuffer; gain: number }>();
 
-const playPooled = (
-  preset: keyof Presets,
-  delay: number,
-  options: SfxOptions
-) => {
-  const params = createParams(preset, options);
-  const gain = getGain(params);
-  const { proximity, ...shape } = options;
-  const key = JSON.stringify([preset, shape]);
-  const variants = soundPool.get(key) || [];
+const getSound = (params: Params) => {
+  const key = JSON.stringify({ ...params, sound_vol: 0 });
+  let cached = sounds.get(key);
 
-  // keep recently played sounds last to drop the least recent ones first
-  soundPool.delete(key);
-  soundPool.set(key, variants);
+  if (!cached) {
+    const samples = new SoundEffect(params).getRawBuffer().normalized;
+    const peak = samples.reduce(
+      (max, sample) => Math.max(max, Math.abs(sample)),
+      0
+    );
+    let length = samples.length;
+    while (length > 0 && Math.abs(samples[length - 1]) <= peak * silence) {
+      length -= 1;
+    }
 
-  if (variants.length >= poolVariants) {
-    const variant = variants[random(0, variants.length - 1)];
-    variant.audio.setVolume(gain / variant.gain).play(delay);
-    return;
+    cached = {
+      sound: createSoundBuffer(samples.slice(0, length), params.sample_rate),
+      gain: getGain(params),
+    };
+    sounds.set(key, cached);
   }
 
-  const audio = new ResumableSoundEffect(params).generate().getAudio();
-  audio.play(delay);
-
-  if (gain === 0) return;
-
-  variants.push({ audio, gain });
-  pooledCount += 1;
-  for (const [pooledKey, pooled] of soundPool) {
-    if (pooledCount <= poolSize) break;
-    pooledCount -= pooled.length;
-    soundPool.delete(pooledKey);
-  }
+  return cached;
 };
 
-export const play = (
-  preset: keyof Presets,
-  { delay = 0, notes = 1, spacing = 0, pattern, ...options }: SfxOptions = {}
+let precomputing = false;
+
+// synthesize every variant and seed in the background, one per task
+const precomputeSounds = () => {
+  if (precomputing) return;
+  precomputing = true;
+
+  const pending = soundPresets.flatMap((preset) =>
+    [undefined, ...presetVariants[preset]].flatMap((variant) =>
+      seeds.map((seed) => createParams(preset, { variant, seed }))
+    )
+  );
+  const next = () => {
+    const entry = pending.shift();
+    if (!entry) return;
+
+    if (getGain(entry) > 0) getSound(entry);
+    setTimeout(next);
+  };
+  setTimeout(next);
+};
+
+export const play = <P extends SoundPreset>(
+  preset: P,
+  { delay = 0, notes = 1, spacing = 0, pattern, ...options }: SfxOptions<P> = {}
 ) => {
   if (!isPlaying()) return;
 
-  if (notes === 1 && !pattern) {
-    playPooled(preset, delay, options);
-    return;
-  }
+  precomputeSounds();
 
-  let wave: any;
-  let first = 1;
-
-  // render notes into one buffer to keep them in sequence when frames lag
   for (let note = 1; note <= notes; note += 1) {
     // leave out rests, e.g. empty chars
     if (pattern && !pattern[note - 1]) continue;
 
-    const params = createParams(
-      preset,
-      notes > 1 ? { ...options, variant: note } : options
-    );
-    const noteWave: any = new ResumableSoundEffect(params).generate();
+    const params = createParams(preset, {
+      ...options,
+      variant: notes > 1 ? note : options.variant,
+      seed: options.seed ?? seeds[random(0, seeds.length - 1)],
+    });
+    const gain = getGain(params);
+    if (gain === 0) continue;
 
-    if (!wave) {
-      wave = noteWave;
-      first = note;
-      continue;
-    }
-
-    const offset = Math.round(
-      ((note - first) * spacing * wave.header.sampleRate) / 1000
+    // schedule notes on the audio clock to keep them in sequence when frames lag
+    const cached = getSound(params);
+    cached.sound.play(
+      getAudioTime(delay + (note - 1) * spacing),
+      gain / cached.gain
     );
-    while (wave.buffer.length < offset) wave.buffer.push(0);
-    for (let index = 0; index < noteWave.buffer.length; index += 1) {
-      wave.buffer[offset + index] =
-        (wave.buffer[offset + index] || 0) + noteWave.buffer[index];
-    }
   }
-
-  if (!wave) return;
-
-  wave.getAudio().play(delay + (first - 1) * spacing);
 };

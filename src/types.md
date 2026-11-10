@@ -196,6 +196,7 @@
 | [SaveStatus](bindings/hooks.md#type-savestatus) | `src/bindings/hooks.ts` |
 | [SaveSummary](game/saves/index.md#type-savesummary) | `src/game/saves/index.ts` |
 | [SceneName](wiki/scenes.md#type-scenename) | `src/wiki/scenes.ts` |
+| [Seed](game/sound/index.md#type-seed) | `src/game/sound/index.ts` |
 | [Segment](components/Entity/Stack.md#type-segment) | `src/components/Entity/Stack.tsx` |
 | [Sequencable](engine/components/sequencable.md#type-sequencable) | `src/engine/components/sequencable.ts` |
 | [SequenceState](engine/components/sequencable.md#type-sequencestate) | `src/engine/components/sequencable.ts` |
@@ -207,6 +208,10 @@
 | [Slot](engine/components/equippable.md#type-slot) | `src/engine/components/equippable.ts` |
 | [SmokeSequence](engine/components/sequencable.md#type-smokesequence) | `src/engine/components/sequencable.ts` |
 | [Soul](engine/components/soul.md#type-soul) | `src/engine/components/soul.ts` |
+| [SoundBuffer](game/sound/resumable.md#type-soundbuffer) | `src/game/sound/resumable.ts` |
+| [SoundOptions](game/sound/index.md#type-soundoptions) | `src/game/sound/index.ts` |
+| [SoundPreset](game/sound/index.md#type-soundpreset) | `src/game/sound/index.ts` |
+| [SoundVariant](game/sound/index.md#type-soundvariant) | `src/game/sound/index.ts` |
 | [Spawnable](engine/components/spawnable.md#type-spawnable) | `src/engine/components/spawnable.ts` |
 | [SpellItem](features/spells/helpers.md#type-spellitem) | `src/features/spells/helpers.ts` |
 | [SpellSequence](engine/components/sequencable.md#type-spellsequence) | `src/engine/components/sequencable.ts` |

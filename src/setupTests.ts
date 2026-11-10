@@ -42,6 +42,7 @@ class FakeAudioContext {
   state = "suspended";
   destination = new FakeAudioNode();
   sampleRate = 44100;
+  currentTime = 0;
   createGain() {
     return new FakeAudioNode();
   }
@@ -61,9 +62,6 @@ class FakeAudioContext {
 (window as any).AudioContext = FakeAudioContext;
 
 // --- sound: record instead of synthesizing ---------------------------------
-
-// UMD wrapper relies on a browser global `this`, unused as sfx are not rendered
-jest.mock("./game/sound/riffwave", () => function RIFFWAVE() {});
 
 // synthesizing sfx is by far the slowest part of a tick, so only record calls
 jest.mock("./game/sound", () => {
