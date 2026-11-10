@@ -619,6 +619,9 @@ h1.Heading {
   width: 18px;
   height: 32px;
 }
+.NavHoveredLabel .ShadedText::before {
+  clip-path: inset(50% 0 0);
+}
 .NavHoverPointer,
 .NavHoveredLabel {
   display: none;
