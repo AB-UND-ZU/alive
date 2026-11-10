@@ -210,6 +210,11 @@ test("CSS navigation hover keeps the current solid highlight and moves only the 
   await touch.hover();
   await expect(current).toBeHidden();
   await expect(touch.locator(".NavHoverPointer")).toBeVisible();
+  expect(
+    await touch.locator(".ShadedText").evaluate((node) =>
+      getComputedStyle(node, "::before").clipPath
+    )
+  ).toBe("inset(50% 0px 0px)");
   await expect(solid).toBeVisible();
   expect(
     await solid.evaluate((node) => getComputedStyle(node, "::before").color)
