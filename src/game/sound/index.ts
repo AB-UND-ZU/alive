@@ -7,9 +7,11 @@ import {
   isPlaying,
   SoundBuffer,
 } from "./resumable";
-import { Params, SoundEffect, waveforms } from "jsfxr";
+import { Params, waveforms } from "jsfxr";
 import { createRng } from "../math/rng";
 import { random } from "../math/std";
+import { synthesizeSound } from "./synthesis";
+import { prewarmSounds } from "./prewarm";
 
 export const npcVariants: Partial<Record<NpcType, SoundVariant<"slide">>> = {
   golem: 1,
@@ -1391,8 +1393,6 @@ type SoundVariant<P extends SoundPreset> = (typeof soundVariants)[P][number];
 
 // slightly reduced quality halves the memory of synthesized sounds
 const sampleRate = 22050;
-// tails quieter than this fraction of the peak are cut off
-const silence = 1 / 1000;
 
 const createParams = (preset: SoundPreset, options: SoundOptions) => {
   const params = new Presets();
@@ -1408,23 +1408,17 @@ const getGain = (params: Params) => Math.exp(params.sound_vol) - 1;
 // sounds only differing in volume share one synthesized buffer
 const sounds = new Map<string, { sound: SoundBuffer; gain: number }>();
 
+const getSoundKey = (params: Params) =>
+  JSON.stringify({ ...params, sound_vol: 0 });
+
 const getSound = (params: Params) => {
-  const key = JSON.stringify({ ...params, sound_vol: 0 });
+  const key = getSoundKey(params);
   let cached = sounds.get(key);
 
   if (!cached) {
-    const samples = new SoundEffect(params).getRawBuffer().normalized;
-    const peak = samples.reduce(
-      (max, sample) => Math.max(max, Math.abs(sample)),
-      0
-    );
-    let length = samples.length;
-    while (length > 0 && Math.abs(samples[length - 1]) <= peak * silence) {
-      length -= 1;
-    }
-
+    const samples = synthesizeSound(params);
     cached = {
-      sound: createSoundBuffer(samples.slice(0, length), params.sample_rate),
+      sound: createSoundBuffer(samples, params.sample_rate),
       gain: getGain(params),
     };
     sounds.set(key, cached);
@@ -1435,7 +1429,7 @@ const getSound = (params: Params) => {
 
 let precomputing = false;
 
-// synthesize every variant and seed in the background, one per task
+// Warm the finite preset catalog without blocking game frames.
 const precomputeSounds = () => {
   if (precomputing) return;
   precomputing = true;
@@ -1445,14 +1439,16 @@ const precomputeSounds = () => {
       seeds.map((seed) => createParams(preset, { variant, seed }))
     )
   );
-  const next = () => {
-    const entry = pending.shift();
-    if (!entry) return;
-
-    if (getGain(entry) > 0) getSound(entry);
-    setTimeout(next);
-  };
-  setTimeout(next);
+  prewarmSounds(
+    pending.filter((params) => getGain(params) > 0),
+    (params) => sounds.has(getSoundKey(params)),
+    (params, samples) => {
+      sounds.set(getSoundKey(params), {
+        sound: createSoundBuffer(samples, params.sample_rate),
+        gain: getGain(params),
+      });
+    }
+  );
 };
 
 export const play = <P extends SoundPreset>(

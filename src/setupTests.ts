@@ -64,6 +64,11 @@ class FakeAudioContext {
 // --- sound: record instead of synthesizing ---------------------------------
 
 // synthesizing sfx is by far the slowest part of a tick, so only record calls
+// Jest has no browser worker or module URL; worker lifecycle is tested separately.
+jest.mock("./game/sound/createWorker", () => ({
+  createSoundWorker: jest.fn(() => undefined),
+}));
+
 jest.mock("./game/sound", () => {
   const actual = jest.requireActual("./game/sound");
   const env = jest.requireActual("./testing/env");

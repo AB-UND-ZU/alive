@@ -69,3 +69,81 @@ Logs and screenshots are under `results/performance/`. These checks cover repres
 ## Research
 
 Three.js explicitly supports disabling automatic local recomputation and calling `updateMatrix` after changes: [Matrix transformations](https://threejs.org/manual/pages/matrix-transformations.html). It distinguishes local and world matrix update flags in [Object3D](https://threejs.org/docs/pages/Object3D.html). The upload implementation uses documented [BufferAttribute update ranges](https://threejs.org/docs/pages/BufferAttribute.html) and [InstancedMesh buffer update requirements](https://threejs.org/docs/pages/InstancedMesh.html), checked against the installed Three.js implementation. No speculative GPU rewrite or global prototype override was needed.
+
+## Live gameplay investigation (follow-up)
+
+The follow-up starts at `8301359`, which preserves the four changes above, on top
+of local main `1954fd1`. It profiles the actual React game with normal engine,
+animation and audio clocks. See [live reproduction instructions](scripts/live-performance/README.md).
+The larger scene initializes 24 island regions before triggering the actual worm
+encounter, retaining roughly 39,000 ECS entities. This exercises the cost of an
+explored world without claiming a multi-hour human play session.
+
+### Candidate 1: background sound synthesis
+
+Main-thread CPU samples identified jsfxr's speculative catalog warming as a
+source of competing tasks during gameplay. The production implementation moves
+only this warming to a worker, transfers PCM buffers, and terminates the worker
+when complete. First-use playback still works immediately; unsupported or failed
+workers retain the previous task-by-task fallback. No audio quality setting changes.
+
+Three clean 390px / 4× CPU-throttled menu gameplay runs, with screenshots outside
+the measured interval:
+
+| Metric | Before (three runs) | After (three runs) |
+| --- | --- | --- |
+| Mean frame interval | 18.71 / 18.75 / 18.78 ms | 17.28 / 17.31 / 17.35 ms |
+| p95 frame interval | 26.6 / 27.1 / 27.5 ms | 19.5 / 19.5 / 19.3 ms |
+| p99 frame interval | 69.2 / 71.2 / 68.0 ms | 28.0 / 26.5 / 26.8 ms |
+| Long tasks | 13 / 13 / 13 | 1 / 1 / 2 |
+
+Median p99 improves 61%; mean frame interval improves 7.7%. This is a startup /
+catalog-warming benefit, not an assertion that already-cached audio speeds up.
+The actual production worker chunk completed 757 results and terminated; audio
+playback and pause/resume worked, including with Worker disabled. Desktop and
+390px screenshots were inspected. Exact PCM tests cover all four waveforms with
+controlled noise; lifecycle tests cover failures and cache races. All 183 fast
+suites (1,687 tests), six slow suites (36 tests), type checking, lint and production
+build passed before committing this candidate.
+
+### Investigated alternatives
+
+The baseline PoCs in `scripts/live-performance/pocs.cjs` preserve the investigation,
+including options that were rejected. Controlled simulation uses three alternating
+repetitions and checks the complete ECS-state hash after 600 ticks.
+
+| Candidate | Evidence and decision |
+| --- | --- |
+| Delay fog bookkeeping allocations | About 3% in the menu; insufficient busy-scene gain, rejected |
+| Remove tracing argument spreads | About 2%; rejected |
+| Cache cell visibility angles | Slightly slower; rejected |
+| Coalesce fog changes by cell | About 25% visibility savings in menu, but busy-world total CPU unchanged; deferred |
+| Disable additional world/animated matrix updates | No consistent live frame improvement; rejected |
+| Restrict box geometry faces | No convincing live frame improvement; rejected |
+| Reuse shadows during relative camera translation | Render submission fell, total frame improvement only about 2%; not accepted |
+| Skip healthy entities in final decay cleanup | About 31% drop-system / 7.4% total simulation saving in the initial busy-world PoC; verify production separately |
+| Reuse adjacent-cell entity arrays | About 22% action-system / 4.4% total simulation saving in initial PoC; verify production separately |
+| Combine four action predicates into a manual loop | More code, no improvement over simple array reuse; prefer array reuse |
+
+Renderer submission CPU is not GPU execution time. The available Chromium uses
+SwiftShader; these runs cannot certify low-end physical-phone GPU performance.
+No resolution, shadow, lighting, sprite, palette, health-bar or animation quality
+is reduced. No memory-leak claim is made from uncollected heap counters.
+
+### Research used to choose measurements
+
+- [Chrome's Performance panel reference](https://developer.chrome.com/docs/devtools/performance/reference): inspect real interactions, main-thread tasks and rendering rather than inferring cost from visual simplicity.
+- [Three.js renderer documentation](https://threejs.org/docs/pages/WebGLRenderer.html): use renderer statistics to distinguish draw work from scene/simulation CPU.
+- [Three.js shadows guide](https://threejs.org/manual/pages/shadows.html): shadow maps add rendering passes, especially point lights. Existing shadow caching was investigated before considering quality changes.
+- [Three.js matrix transformations](https://threejs.org/manual/pages/matrix-transformations.html): automatic transforms have CPU cost, but further caching must earn a measurable gain beyond existing optimizations.
+- [MDN web workers guide](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers): move independent synthesis off the UI thread and transfer sample buffers instead of cloning them.
+
+The audio-only candidate also improved the CPU-throttled live worm fight in an
+ABBA comparison: mean frame intervals 61.02 / 62.99 ms before versus 55.57 /
+53.20 ms after (12.3% lower mean across runs). p95 was 116.5 / 129.0 ms before
+versus 103.8 / 101.4 ms after. This demanding software-rendered/throttled case
+still stutters; it is evidence of improvement, not a 60fps claim.
+
+The [Three.js many-objects guide](https://threejs.org/manual/pages/optimize-lots-of-objects.html)
+also informed the draw-call review. Alive already batches opaque glyph instances;
+the guide's general batching advice is not an unimplemented fix for this game.

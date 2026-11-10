@@ -1,6 +1,8 @@
 import { SoundEffect } from "jsfxr";
 import { ensureAudio } from "./resumable";
 
+jest.mock("./createWorker", () => ({ createSoundWorker: () => undefined }));
+
 // render real sounds, the global test setup only records played names
 const { play } = jest.requireActual<typeof import(".")>(".");
 
