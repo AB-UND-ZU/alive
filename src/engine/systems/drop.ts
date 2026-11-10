@@ -615,12 +615,10 @@ export default function setupDrop(world: World) {
 
     // replace decayed entities, increase slay counter and evaporate unit
     for (const entity of world.getEntities([DROPPABLE, RENDERABLE, POSITION])) {
+      if (!isDecayed(world, entity)) continue;
       const rootEntity = getRoot(world, entity);
 
-      if (
-        (isDead(world, entity) || isDead(world, rootEntity)) &&
-        isDecayed(world, entity)
-      ) {
+      if (isDead(world, entity) || isDead(world, rootEntity)) {
         disposeEntity(world, entity, true, false);
         animateEvaporate(world, entity);
 

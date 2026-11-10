@@ -147,3 +147,38 @@ still stutters; it is evidence of improvement, not a 60fps claim.
 The [Three.js many-objects guide](https://threejs.org/manual/pages/optimize-lots-of-objects.html)
 also informed the draw-call review. Alive already batches opaque glyph instances;
 the guide's general batching advice is not an unimplemented fix for this game.
+
+### Candidate 2: skip healthy entities in final decay cleanup
+
+`setupDrop` queried every droppable resource and resolved its structure/death
+state before checking whether it had decayed. The final removal pass now rejects
+non-decayed entities first. Root lookup and death predicates are read-only; the
+same decayed entities reach the existing disposal, evaporation and kill counting.
+
+Against the committed audio-only build, three alternating controlled runs on
+38,709 entities retained the identical complete ECS hash `3077288707`:
+
+| Median CPU per tick | Audio-only | With decay guard | Reduction |
+| --- | ---: | ---: | ---: |
+| Drop system | 0.6448 ms | 0.4458 ms | 30.9% |
+| All simulation | 2.4607 ms | 2.2595 ms | 8.2% |
+
+The live loaded-island worm fight, in ABBA order, confirmed drop CPU of
+0.776 / 0.776 ms before versus 0.566 / 0.562 ms after (27.3% lower). Total ECS CPU
+was 3.586 / 3.605 ms before versus 3.370 / 3.410 ms after (5.7% lower). Mean frame
+intervals stayed near 25 ms; this is a significant simulation saving, not a claim
+of a comparable total-frame gain. The menu remained effectively unchanged.
+
+Live desktop (1280px) and narrow (390px) checks moved and attacked during the
+loaded-world boss encounter, paused/resumed, then drove the boss to zero HP to
+exercise the real death sequence. Both removed the boss and recorded exactly one
+worm-boss defeat, with no browser errors. Screenshots before and after death were
+inspected for body segments, lava/barriers, lighting/shadows, health bars, contextual
+READ controls and HUD layout. See `audio-drop-boss-check-*-{alive,dead}.png` and
+`audio-drop-boss-check.json` in the local results directory. These are browser-driven
+checks with visual inspection, not an exhaustive manual playthrough of every quest.
+
+Before committing the decay candidate, type checking, lint, all 183 fast suites
+(1,687 tests), all six slow suites (36 tests), and the production build passed.
+Existing feature coverage includes item drops, player death, harvest/destruction,
+worm tail decay and boss defeat, and golem limb removal/kill counting.
