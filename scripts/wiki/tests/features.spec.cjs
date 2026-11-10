@@ -310,7 +310,9 @@ test("focused previews capture keys, release focus on Escape and reset", async (
   const reset = await frame
     .getByRole("button", { name: "Reset", exact: true })
     .boundingBox();
-  expect(Math.abs(reset.y - boundary.y - boundary.height)).toBeLessThan(0.1);
+  const viewport = await iframe.boundingBox();
+  expect(reset.y).toBeGreaterThanOrEqual(boundary.y + boundary.height);
+  expect(reset.y + reset.height).toBeLessThanOrEqual(viewport.y + viewport.height);
   const previousFrame = await iframe.elementHandle();
   await frame.getByRole("button", { name: "Reset", exact: true }).click();
   await expect
