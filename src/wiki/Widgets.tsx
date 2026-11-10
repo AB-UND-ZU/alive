@@ -4,7 +4,6 @@ import { FarmingProgression } from "./FarmingProgression";
 import { Sounds } from "./Sounds";
 import { WarpMap, PortalPreview } from "./WarpMap";
 import { Literal, TableContext } from "./visuals";
-import { CommandBuilder } from "./CommandBuilder";
 import { Damage } from "./Damage";
 import { CellReference, HarvestTarget } from "./CellReference";
 import { Resource } from "../engine/components/harvestable";
@@ -778,7 +777,6 @@ export function Widget({ name }: { name: string }) {
   }
   if (name === "world-plants") return <WorldPlants />;
   if (name === "damage") return <Damage />;
-  if (name === "commands") return <CommandBuilder />;
   if (name === "classes") {
     const portraits = displayedClasses.map((key) =>
       mergeSprites(

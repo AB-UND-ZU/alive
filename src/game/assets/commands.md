@@ -38,4 +38,6 @@ export type CommandSignature = {
 };
 ```
 
-`completeCommand(world, input)` returns the suggested suffix and a trailing space. It reads accepted command arguments from the game data and current positioned identifiers from the world. Free-form numbers, coordinates and new pin names have no suggestions. Typing a longer prefix narrows the suggested word.
+`completeCommand(world, input, selection = 0)` returns the suggested suffix and a trailing space. It reads accepted command arguments from the game data and current positioned identifiers from the world. Give suggests an amount of 10, and New suggests one cell. Coordinates and new pin names remain free-form. Give variants must have an actual item sprite; missing combinations are omitted. Typing a longer prefix narrows the suggested word. The selection wraps through matching words in both directions.
+
+Submitted lines are trimmed. `/new air [num] [dir]` clears cells; `/new` without a cell only shows its usage.

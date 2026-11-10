@@ -1024,6 +1024,54 @@ export const deleteSocketRight: Sprite = {
   ],
 };
 
+export const keyPressed: Sprite = {
+  name: "key_pressed",
+  layers: [
+    { char: "█", color: colors.white },
+    { char: "▀", color: colors.grey },
+  ],
+};
+
+export const keySocketPressed: Sprite = {
+  name: "key_socket_pressed",
+  layers: [
+    { char: "█", color: colors.white },
+    { char: "▄", color: colors.black },
+  ],
+};
+
+export const modifierPressed: Sprite = {
+  name: "modifier_pressed",
+  layers: [
+    { char: "█", color: colors.lime },
+    { char: "▀", color: colors.grey },
+  ],
+};
+
+export const modifierSocketPressed: Sprite = {
+  name: "modifier_socket_pressed",
+  layers: [
+    { char: "█", color: colors.lime },
+    { char: "▄", color: colors.black },
+  ],
+};
+
+export const deletePressed: Sprite = {
+  name: "delete_pressed",
+  layers: [
+    { char: "█", color: colors.red },
+    { char: "▀", color: colors.grey },
+  ],
+};
+
+export const deleteSocketPressed: Sprite = {
+  name: "delete_socket_pressed",
+  layers: [
+    { char: "█", color: colors.red },
+    { char: "▄", color: colors.black },
+  ],
+};
+
 export const popupBackground: Sprite = {
   name: "popup_background",
   layers: [{ char: "█", color: colors.black }],

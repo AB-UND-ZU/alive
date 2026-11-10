@@ -532,7 +532,7 @@ test("the damage tool keeps fractional health with distinct attacker and defende
   );
 });
 
-test("command reference and completion use a persistent isolated game world", async ({
+test("command reference and chat preview use native game commands", async ({
   page,
 }) => {
   await page.goto("/game-design/interactions/chat.html");
@@ -559,34 +559,32 @@ test("command reference and completion use a persistent isolated game world", as
   const usages = await rows.locator('[data-column="0"]').allTextContents();
   expect(usages).toContain("/list│/help [cmd]/h");
   expect(usages).toContain("/give <item> [num] [mat] [ele]/g");
-  await expect(page.locator("[data-scene=chat]")).toHaveCount(0);
-  const tool = page.locator("[data-widget=commands]"),
-    input = tool.getByRole("textbox", { name: "Command", exact: true });
-  await input.fill("/gi");
-  await expect(input).toHaveValue("/gi");
-  await expectColor(input.locator(".."), "rgb(128, 128, 128)");
-  await input.press("Tab");
-  await expect(input).toHaveValue("/give ");
-  await tool
-    .getByRole("textbox", { name: "Search items", exact: true })
-    .fill("potion");
-  await tool
-    .getByRole("listbox", { name: "Items", exact: true })
-    .getByRole("option", { name: "potion", exact: true })
-    .click();
-  await expect(input).toHaveValue("/give potion ");
-  await input.fill("/stat hp 12");
-  await tool.getByRole("button", { name: "Run", exact: true }).click();
-  await expect(tool).toHaveAttribute("data-hp", "12");
-  await expect(tool.getByLabel("Command world", { exact: true })).toBeVisible();
-  await input.fill("/pin wiki-test 4,4");
-  await input.press("Enter");
-  await input.fill("/tp wiki-test");
-  await tool.getByRole("button", { name: "Run", exact: true }).click();
-  await expect(tool.locator('[aria-label="Command result"]')).toContainText(
-    "4,4"
-  );
-  await expect(tool).toHaveAttribute("data-hp", "12");
+  const preview = page.locator('[data-scene="chat"]');
+  await preview.scrollIntoViewIfNeeded();
+  const iframe = preview.locator("iframe");
+  await expect(iframe).toHaveAttribute("src", /preview\.html\?test#chat$/);
+  const frame = await (await iframe.elementHandle()).contentFrame();
+  await expect(frame.locator("canvas")).toBeVisible();
+  await frame.locator(".Terminal").click({ position: { x: 4, y: 4 } });
+  await expect(preview).toHaveClass(/active/);
+  await expect(frame.locator("#keyboard")).toBeVisible();
+  const initialHp = await iframe.getAttribute("data-hp");
+  await page.keyboard.type("/st");
+  await page.keyboard.press("Tab");
+  await page.keyboard.type("hp 12");
+  await page.keyboard.press("Enter");
+  await expect(iframe).toHaveAttribute("data-hp", "12");
+  await expect(frame.locator("#keyboard")).toHaveCount(0);
+  await frame.evaluate(() => window.location.reload());
+  await expect(iframe).toHaveAttribute("data-hp", initialHp);
+  await expect(frame.locator("#keyboard")).toBeVisible();
+  await frame.locator(".Terminal").click({ position: { x: 4, y: 4 } });
+  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("Enter");
+  await expect(iframe).toHaveAttribute("data-hp", "12");
+
+  await expect(page.getByRole("textbox", { name: "Search items" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Run", exact: true })).toHaveCount(0);
 });
 
 test("the Interface diagram is static, labels controls and places text underneath", async ({

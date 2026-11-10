@@ -1,6 +1,7 @@
 import { completeCommand } from "../../game/assets/commands";
 import {
   completeChat,
+  navigateChat,
   getTabSelections,
   submitChat,
 } from "../../engine/systems/popup";
@@ -9,7 +10,7 @@ import { getSequence } from "../../engine/systems/sequence";
 import { colors } from "../../game/assets/colors";
 import { createAreaWorld } from "../../testing/harness";
 import { getMenu, getPrompt, openChat, setupHero, type } from "./helpers";
-import { unitStats } from "../../engine/components/stats";
+import { composeCharacterPixels } from "../../components/Row/characters";
 
 jest.mock("../../engine/utils", () => ({
   ...jest.requireActual("../../engine/utils"),
@@ -31,7 +32,13 @@ it.each([
   ["/new water_d", "eep "],
   ["hello", ""],
   ["/unknown x", ""],
-  ["/give sword ", ""],
+  ["/give sword ", "10 "],
+  ["/new rock ", "1 "],
+  ["/give sword 10 d", "iamond "],
+  ["/give sword 10 def", ""],
+  ["/give potion 10 r", ""],
+  ["/give potion 10 wood h", "p "],
+  ["/give potion 10 wood max", ""],
   ["/stat hp ", ""],
   ["/tp 4,", ""],
   ["/pin new", ""],
@@ -42,10 +49,31 @@ it.each([
   expect(completeCommand(world, input)).toBe(expected);
 });
 
-it("offers every valid potion stat", () => {
+it("cycles only through visible item variants and supported potion stats", () => {
   const { world } = setup();
-  for (const stat of unitStats)
-    expect(completeCommand(world, `/give potion 1 wood ${stat}`)).toBe(" ");
+  expect(completeCommand(world, "/give potion 10 wood ", 0)).toBe("hp ");
+  expect(completeCommand(world, "/give potion 10 wood ", 1)).toBe("mp ");
+  expect(completeCommand(world, "/give potion 10 wood ", 2)).toBe("hp ");
+  expect(completeCommand(world, "/give sword 10 default ")).toBe("air ");
+  expect(completeCommand(world, "/give compass 10 iron ")).toBe("");
+});
+
+it("cycles suggestions without changing the draft and accepts the chosen value", () => {
+  const { world, hero } = setup();
+  openChat(world);
+  type(world, "/give s");
+  navigateChat(world, hero, 1);
+  expect(getPrompt(world)).toBe("/give s");
+  const selected = completeCommand(world, "/give s", 1);
+  expect(selected).not.toBe(completeCommand(world, "/give s", 0));
+  completeChat(world, hero);
+  expect(getPrompt(world)).toBe("/give s" + selected);
+});
+
+it("wraps the suggestion index in both directions", () => {
+  const { world } = setup();
+  expect(completeCommand(world, "/give potion 10 wood ", -1)).toBe("mp ");
+  expect(completeCommand(world, "/give potion 10 wood ", 2)).toBe("hp ");
 });
 
 it("completes identifiers that actually exist on the current map", () => {
@@ -96,6 +124,28 @@ it("wraps gray suggestions inside the chat and leaves the caret at the typed pos
     color: colors.white,
   });
   expect(getPrompt(world)).toBe("/give sword 1 iron f");
+});
+
+it("keeps every gray suggestion pixel visible in both caret phases", () => {
+  const { world } = setup();
+  openChat(world);
+  type(world, "/give sword 1 iron f");
+  const menu = getMenu(world);
+  const sequence = getSequence(world, menu, "popup")!;
+  const phases = [2, 3].map((generation) => {
+    world.metadata.gameEntity.RENDERABLE.generation = generation;
+    displayChat(world, menu, sequence);
+    const sprite = world.assertByIdAndComponents(
+      sequence.particles["popup-content-1-3"],
+      ["SPRITE"]
+    ).SPRITE;
+    return composeCharacterPixels(sprite.layers);
+  });
+  const grayPixels = (pixels: (string | undefined)[]) =>
+    pixels.flatMap((color, index) => (color === colors.grey ? [index] : []));
+  expect(grayPixels(phases[0])).not.toEqual([]);
+  expect(grayPixels(phases[0])).toEqual(grayPixels(phases[1]));
+  expect(phases[0]).not.toEqual(phases[1]);
 });
 
 it("keeps the typing position visible when a command exceeds the four chat rows", () => {

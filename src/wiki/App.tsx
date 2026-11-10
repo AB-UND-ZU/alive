@@ -1,7 +1,7 @@
 import { underlineImage } from "./underline";
 import { JoystickReference } from "./TouchControls";
 import { DialogSnapshot } from "./DialogSnapshot";
-import { CommandReference } from "./CommandBuilder";
+import { CommandReference } from "./CommandReference";
 import { Literal } from "./visuals";
 import {
   itemPage,

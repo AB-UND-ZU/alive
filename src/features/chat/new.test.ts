@@ -73,17 +73,40 @@ describe("new command", () => {
     const { world, hero } = setup();
     face(world, "up");
 
-    say(world, "/new");
+    say(world, "/new air");
 
     expect(getCell(world, 1, 0)).toBe("air");
     expect(getEntitiesAt(world, { x: 1, y: 0 })).toEqual([]);
     expect(getEntitiesAt(world, hero[POSITION])).toContain(hero);
   });
 
+  it.each(["/new", "/new ", "  /new   "])(
+    "requires an explicit cell for %p",
+    (command) => {
+      const { world, hero } = setup();
+      const before = getCell(world, 1, 0);
+      const entities = getEntitiesAt(world, { x: 1, y: 0 });
+      say(world, command);
+      expect(getDialog(hero)).toEqual(["/new <cell> [num] [dir]"]);
+      expect(getCell(world, 1, 0)).toBe(before);
+      expect(getEntitiesAt(world, { x: 1, y: 0 })).toEqual(entities);
+    }
+  );
+
+  it("clears a row with air and keeps the hero when the row wraps", () => {
+    const { world, hero } = setup();
+    say(world, "/new rock 2 right");
+    say(world, "  /new air 8 right  ");
+    expect(getCell(world, 2, 1)).toBe("air");
+    expect(getCell(world, 3, 1)).toBe("air");
+    expect(getEntitiesAt(world, { x: 2, y: 1 })).toEqual([]);
+    expect(getEntitiesAt(world, hero[POSITION])).toContain(hero);
+  });
+
   it.each([
     ["/new lava", 'No cell "lava"!'],
     ["/new rock many", 'No number "many"!'],
-    ["/new rock 1 right more", "/new [cell] [num] [dir]"],
+    ["/new rock 1 right more", "/new <cell> [num] [dir]"],
   ])("rejects %s", (command, error) => {
     const { world, hero } = setup();
 

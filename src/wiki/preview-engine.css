@@ -110,3 +110,14 @@ body {
 .preview-interface {
   pointer-events: none;
 }
+
+.preview-chat .Controls {
+  z-index: 3;
+}
+.preview-chat .KeyboardOverlay {
+  bottom: var(--cell-height);
+}
+.preview-chat .DemoActions {
+  top: auto;
+  bottom: 0;
+}

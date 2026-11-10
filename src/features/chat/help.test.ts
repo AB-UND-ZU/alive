@@ -27,7 +27,7 @@ describe("help command", () => {
     ["/help", "/list│/help [cmd]"],
     ["/h", "/list│/help [cmd]"],
     ["/help give", "/give <item> [num] [mat] [ele]"],
-    ["/help n", "/new [cell] [num] [dir]"],
+    ["/help n", "/new <cell> [num] [dir]"],
     ["/help fly", 'No command "fly"!'],
     ["/fly", "/list│/help [cmd]"],
     ["/help give stat", "/list│/help [cmd]"],

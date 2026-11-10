@@ -204,6 +204,33 @@ export const buttonPalettes: Record<
 
 export type Palette = keyof typeof buttonPalettes;
 
+export const getPressedKeyEdge = (
+  sprite: Sprite,
+  color: string,
+  side: "left" | "right",
+  socket = false
+): Sprite => {
+  const otherHalf = side === "left" ? "▐" : "▌";
+  const otherColor =
+    sprite.layers
+      .filter((layer) => layer.char === "█" || layer.char === otherHalf)
+      .slice(-1)[0]?.color || colors.black;
+  return {
+    name: `${sprite.name}_pressed_${side}`,
+    layers: [
+      { char: "█", color },
+      ...(!socket ? [{ char: "▀", color: colors.grey }] : []),
+      { char: otherHalf, color: otherColor },
+      ...sprite.layers.filter(
+        (layer) =>
+          ["│", "║"].includes(layer.char) ||
+          (["▌", "▐"].includes(layer.char) && layer.color === colors.black)
+      ),
+      ...(socket ? [{ char: "▄", color: colors.black }] : []),
+    ],
+  };
+};
+
 export const getButton = (palette: Palette): Sprite => ({
   name: "button_empty",
   layers: [{ char: "█", color: buttonPalettes[palette].background }],

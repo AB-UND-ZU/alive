@@ -8,7 +8,7 @@ import { spawnArea } from "../game/levels/island/areas";
 import { createPopup } from "../engine/systems/popup";
 import { purchasableItems, getItemBuyPrice } from "../game/balancing/trading";
 import { commandItems } from "../game/assets/commands";
-import { createAreaWorld, assertHero } from "../testing/harness";
+import { createAreaWorld, assertHero, act } from "../testing/harness";
 import {
   createCell,
   populateInventory,
@@ -142,7 +142,7 @@ export const sceneDefinitions = {
   },
   chat: {
     title: "Chat",
-    instruction: "Press Enter to open chat and try a command.",
+    instruction: "Type a command; Tab or a right swipe accepts the gray suggestion.",
     keys: [],
   },
 } as const;
@@ -513,5 +513,6 @@ export const createPreviewWorld = (name: SceneName, option = "") => {
   }
   if (name === "interface" && hero.SEQUENCABLE?.states.message)
     disposeSequence(world, hero, "message");
+  if (name === "chat") act(world, "chat");
   return world;
 };

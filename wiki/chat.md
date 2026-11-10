@@ -11,9 +11,10 @@ popup chat
 | [[key:C]] | Open chat |
 | [[key:/]] | Open chat with `/` |
 | [[key:Enter]] | Submit |
-| [[key:↑]] [[key:↓]] | Previous or next submitted message |
+| [[key:Tab]] | Accept the gray suggestion |
+| [[key:↑]] [[key:↓]] | Cycle suggestions; browse saved history from an empty line |
 | [[key:Backspace]] | Delete |
-| [[key:Escape]] | Close |
+| [[key:Escape]] | Clear the line; press again to close |
 
 ## Command Reference
 
@@ -23,10 +24,10 @@ Arguments use spaces and case-sensitive names. `<arg>` is required; `[arg]` is o
 command-reference
 ```
 
-## Command Builder
+## Try Commands
 
-Run a command here. Search finds item names; Tab accepts the gray completion. Arrow keys select a suggestion. Commands share the same isolated world, so pins and stat changes remain available to later commands.
+Type `/gi`. Tab accepts the gray suggestion; on touch screens, swipe right over the dialog or keyboard. Type a longer prefix to narrow the suggested word. Up and Down choose a suggestion. From an empty line, Up recalls messages saved in this browser.
 
-```widget
-commands
+```scene
+chat
 ```

@@ -222,15 +222,13 @@ pre {
   display: block;
   margin-bottom: 32px;
 }
-.Choices,
-.Suggestions {
+.Choices {
   display: block;
   max-height: 320px;
   overflow: auto;
   margin: 0 0 32px;
 }
-.Choices button,
-.Suggestions button {
+.Choices button {
   display: block;
   text-align: left;
   max-width: 100%;

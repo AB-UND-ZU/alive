@@ -46,7 +46,7 @@ import {
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { castSkill, castSpell } from "../../engine/systems/trigger";
 import { TypedEntity } from "../../engine/entities";
-import { none } from "./sprites";
+import { none, missing } from "./sprites";
 import {
   disposeEntity,
   getCellEntities,
@@ -538,12 +538,12 @@ const executeFocus = (world: World, entity: Entity, id: string) => {
 const executeNew = (
   world: World,
   entity: Entity,
-  cellName: string = "",
+  cellName: string,
   amountText = "1",
   direction?: string
 ) => {
-  const cell = cellName as CellType | "";
-  if (cell !== "" && !cellNames.includes(cell)) {
+  const cell = cellName as CellType;
+  if (!cellNames.includes(cell)) {
     return `No cell "${cell}"!`;
   }
 
@@ -569,7 +569,7 @@ const executeNew = (
     });
 
     // clear cell but prevent removing self and buildings
-    if (cell === "") {
+    if (cell === "air") {
       getCellEntities(world, target).forEach((cellEntity) => {
         if (
           cellEntity === entity ||
@@ -678,9 +678,9 @@ commandSignatures.focus = {
 commandSignatures.new = {
   short: "n",
   executor: executeNew,
-  minArgs: 0,
+  minArgs: 1,
   maxArgs: 3,
-  usage: "/new [cell] [num] [dir]",
+  usage: "/new <cell> [num] [dir]",
 };
 commandSignatures.pin = {
   short: "p",
@@ -690,7 +690,12 @@ commandSignatures.pin = {
   usage: "/pin <name> [x,y]",
 };
 
-export const completeCommand = (world: World, input: string): string => {
+export const completeCommand = (
+  world: World,
+  input: string,
+  selection = 0
+): string => {
+  input = input.trimStart();
   if (!input.startsWith("/")) return "";
   const words = input.split(" ");
   const last = words[words.length - 1];
@@ -704,13 +709,44 @@ export const completeCommand = (world: World, input: string): string => {
       world
         .getEntities([IDENTIFIABLE, POSITION])
         .map((entity) => entity[IDENTIFIABLE].name);
+    const item = commandItems[words[1]];
+    const hasSprite = (variant: Omit<Item, "amount" | "carrier" | "bound">) =>
+      getItemSprite(variant).name !== missing.name;
+    const hasGiveSprite = (
+      variant: Omit<Item, "amount" | "carrier" | "bound">
+    ) =>
+      variant.consume === "potion"
+        ? unitStats.some((stat) => hasSprite({ ...variant, stat }))
+        : hasSprite(variant);
+    const material =
+      words[3] === "default" ? undefined : (words[3] as Material);
     const argumentsByCommand: Record<string, readonly (readonly string[])[]> = {
       help: [Object.keys(commandSignatures)],
       give: [
-        Object.keys(commandItems),
-        [],
-        [...materials, "default"],
-        words[1] === "potion" ? unitStats : elements,
+        Object.keys(commandItems).filter((name) =>
+          hasGiveSprite(commandItems[name])
+        ),
+        item ? ["10"] : [],
+        item
+          ? [...materials, "default"].filter((value) =>
+              hasGiveSprite({
+                ...item,
+                material: value === "default" ? undefined : (value as Material),
+              })
+            )
+          : [],
+        item
+          ? [...(item.consume === "potion" ? unitStats : elements)].filter(
+              (value) =>
+                hasSprite({
+                  ...item,
+                  material,
+                  ...(item.consume === "potion"
+                    ? { stat: value as UnitStat }
+                    : { element: value as Element }),
+                })
+            )
+          : [],
       ],
       cast: [
         Object.keys(commandItems).filter((name) => {
@@ -726,20 +762,22 @@ export const completeCommand = (world: World, input: string): string => {
       stat: [[...unitStats, ...npcTypes, ...commandStats]],
       mod: [commandMods],
       list: [commandLists],
-      new: [cellNames, [], orientations],
+      new: [cellNames, ["1"], orientations],
       tp: [command === "tp" ? identifiers() : []],
       focus: [command === "focus" ? identifiers() : []],
     };
     values = argumentsByCommand[command || ""]?.[words.length - 2] || [];
   }
 
-  const match = sorted([...new Set(values)]).find((value) =>
+  const matches = sorted([...new Set(values)]).filter((value) =>
     value.startsWith(last)
   );
-  return match === undefined ? "" : match.slice(last.length) + " ";
+  if (!matches.length) return "";
+  return matches[normalize(selection, matches.length)].slice(last.length) + " ";
 };
 
 export const parseCommand = (prompt: string): CommandCall | undefined => {
+  prompt = prompt.trim();
   if (!prompt.startsWith("/")) return;
 
   const [command, ...args] = prompt.substring(1).split(" ");

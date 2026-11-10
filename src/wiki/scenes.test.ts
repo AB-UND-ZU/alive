@@ -14,6 +14,7 @@ import { PLAYER } from "../engine/components/player";
 import { POPUP } from "../engine/components/popup";
 import {
   canShop,
+  getTab,
   getDeal,
   getTabSelections,
   getVerticalIndex,
@@ -276,4 +277,11 @@ test("the native pathfinder reaches the maze Apple and its exit", () => {
     expect(hero.POSITION).toEqual(goal);
   }
   expect(hero.POSITION).toEqual({ x: 14, y: 1 });
+});
+
+test("the Chat scene opens the native input ready for commands", () => {
+  const world = createPreviewWorld("chat");
+  const hero = assertHero(world);
+  const popup = world.assertByIdAndComponents(hero.PLAYER!.popup, [POPUP]);
+  expect(getTab(world, popup)).toBe("chat");
 });

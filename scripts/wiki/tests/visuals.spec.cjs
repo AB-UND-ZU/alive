@@ -194,29 +194,26 @@ test("category indexes link to canonical plant and element entries without dupli
   await expect(page.locator('[data-catalog-item="fire"]')).toBeVisible();
 });
 
-test("long commands keep a whole input frame inside the phone viewport", async ({
-  page,
-}) => {
+test("long commands wrap inside the native phone chat", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/game-design/interactions/chat.html");
-  const input = page.getByRole("textbox", { name: "Command", exact: true });
-  await input.fill("/give sword 1 diamond earth");
-  const target = input.locator("..");
-  await expect
-    .poll(async () => (await target.boundingBox()).width)
-    .toBeLessThanOrEqual(390);
-  const rows = await target
-    .locator(".Pixels > .Row")
-    .evaluateAll((rows) =>
-      rows.map((row) => row.getBoundingClientRect().width)
-    );
-  expect(rows).toHaveLength(3);
-  expect(new Set(rows).size).toBe(1);
-  expect(rows[0] % 18).toBe(0);
-  expect(rows[0]).toBe((await target.boundingBox()).width);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
-    390
-  );
+  const preview = page.locator('[data-scene="chat"]');
+  await preview.scrollIntoViewIfNeeded();
+  const iframe = preview.locator("iframe");
+  await expect(iframe).toHaveAttribute("data-x", /\d+/);
+  const frame = await (await iframe.elementHandle()).contentFrame();
+  await frame.locator(".Terminal").click({ position: { x: 4, y: 4 } });
+  await expect(preview).toHaveClass(/active/);
+  await expect(frame.locator("#keyboard")).toBeVisible();
+  await page.keyboard.type("/give sword 1 diamond earth");
+  expect((await iframe.boundingBox()).width).toBeLessThanOrEqual((await preview.locator(".PreviewScroll").boundingBox()).width);
+  const keyboard = await frame.locator("#keyboard").boundingBox();
+  expect(keyboard.width).toBeLessThanOrEqual((await iframe.boundingBox()).width);
+  const reset = await frame.getByRole("button", { name: "Reset", exact: true }).boundingBox();
+  expect(reset.y).toBeGreaterThanOrEqual(keyboard.y + keyboard.height - 1);
+  await expect(frame.locator("canvas")).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Command", exact: true })).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
 });
 
 test("large tables scroll sideways with fixed row labels and natural height", async ({

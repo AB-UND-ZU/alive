@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useWorld } from "../../bindings/hooks";
 import {
   keyLeft,
@@ -29,8 +29,15 @@ import {
   lowerKey,
   lettersKey,
   keyboardBorder,
+  keyPressed,
+  keySocketPressed,
+  modifierPressed,
+  modifierSocketPressed,
+  deletePressed,
+  deleteSocketPressed,
 } from "../../game/assets/sprites";
 import Row from "../Row";
+import { colors } from "../../game/assets/colors";
 import "./index.css";
 import { MOVABLE } from "../../engine/components/movable";
 import { PLAYER } from "../../engine/components/player";
@@ -38,7 +45,7 @@ import { POSITION } from "../../engine/components/position";
 import { typeChat } from "../../engine/systems/popup";
 import { useDimensions } from "../Dimensions";
 import { repeat } from "../../game/math/std";
-import { parseSprite } from "../../game/assets/ui";
+import { getPressedKeyEdge, parseSprite } from "../../game/assets/ui";
 
 export const keyboardColumns = 10;
 export const keyboardRows = 3;
@@ -113,12 +120,21 @@ export default function Keyboard() {
   const dimensions = useDimensions();
   const [shift, setShift] = useState(false);
   const [modifier, setModifier] = useState(false);
+  const [pressedKey, setPressedKey] = useState<number>();
+  const releaseKey = useCallback(() => setPressedKey(undefined), []);
+  useEffect(() => {
+    window.addEventListener("blur", releaseKey);
+    return () => window.removeEventListener("blur", releaseKey);
+  }, [releaseKey]);
   const pageIndex = Number(shift) + Number(modifier) * 2;
   const currentPage = keyboardPages[pageIndex];
 
   const handleType = useCallback(
-    (event: TouchEvent | React.MouseEvent<HTMLElement, MouseEvent>) => {
-      event.preventDefault();
+    (
+      event: TouchEvent | React.MouseEvent<HTMLElement, MouseEvent>,
+      pressOnly = false
+    ) => {
+      if (!pressOnly) event.preventDefault();
       const div = event.currentTarget as HTMLElement | undefined;
       const hero = ecs?.getEntity([PLAYER, POSITION]);
 
@@ -170,6 +186,11 @@ export default function Keyboard() {
         rowIndex >= keyboardRows
       )
         return;
+
+      if (pressOnly) {
+        setPressedKey(rowIndex * keyboardColumns + columnCellIndex);
+        return;
+      }
 
       if (rowIndex === 2 && columnCellIndex === 0) {
         setShift((prevShift) => !prevShift);
@@ -260,6 +281,43 @@ export default function Keyboard() {
     ],
   ];
 
+  const pressedRow =
+    pressedKey === undefined || paused
+      ? undefined
+      : Math.floor(pressedKey / keyboardColumns) * 2;
+  const pressedColumn = ((pressedKey || 0) % keyboardColumns) * 2 + 1;
+  if (pressedRow !== undefined) {
+    const color = keyboardSprites[pressedRow][pressedColumn].layers[0].color;
+    keyboardSprites[pressedRow][pressedColumn] =
+      color === colors.lime
+        ? modifierPressed
+        : color === colors.red
+        ? deletePressed
+        : keyPressed;
+    keyboardSprites[pressedRow + 1][pressedColumn] =
+      color === colors.lime
+        ? modifierSocketPressed
+        : color === colors.red
+        ? deleteSocketPressed
+        : keySocketPressed;
+    for (const [column, side] of [
+      [pressedColumn - 1, "right"],
+      [pressedColumn + 1, "left"],
+    ] as const) {
+      keyboardSprites[pressedRow][column] = getPressedKeyEdge(
+        keyboardSprites[pressedRow][column],
+        color,
+        side
+      );
+      keyboardSprites[pressedRow + 1][column] = getPressedKeyEdge(
+        keyboardSprites[pressedRow + 1][column],
+        color,
+        side,
+        true
+      );
+    }
+  }
+
   const overlayWidth = dimensions.renderedColumns;
 
   return (
@@ -276,6 +334,12 @@ export default function Keyboard() {
       <div
         id="keyboard"
         onClick={handleType}
+        onPointerDown={(event) => {
+          if (event.button === 0) handleType(event, true);
+        }}
+        onPointerUp={releaseKey}
+        onPointerCancel={releaseKey}
+        onPointerLeave={releaseKey}
         className="Keyboard"
         style={{ "--keyboard-width": keyboardWidth } as React.CSSProperties}
       />

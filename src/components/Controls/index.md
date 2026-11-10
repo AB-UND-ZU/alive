@@ -24,3 +24,5 @@ type Action = {
 ```
 
 In test-mode chat, Tab accepts the suggested command word. A right swipe does the same on the dialog or keyboard; continuing the same drag does not accept another word. Keyboard taps retain native click handling, while a swipe cancels the click.
+
+Up and Down select a suggested word while typing. Starting from an empty line, they browse persisted chat history instead.

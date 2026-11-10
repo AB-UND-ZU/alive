@@ -22,7 +22,6 @@ export function GamePreview({
   const frame = useRef<HTMLIFrameElement>(null),
     container = useRef<HTMLElement>(null),
     pending = useRef<string>(),
-    command = useRef<string>(),
     ready = useRef(false),
     visible = useRef(false);
   const [loaded, setLoaded] = useState(false);
@@ -90,13 +89,6 @@ export function GamePreview({
           send(action);
         }
         pending.current = undefined;
-        if (command.current) {
-          frame.current?.contentWindow?.postMessage(
-            { type: "command", command: command.current },
-            window.location.origin
-          );
-          command.current = undefined;
-        }
       }
     };
     const show = () => {
@@ -130,28 +122,12 @@ export function GamePreview({
       )
     );
     if (container.current) resize.observe(container.current);
-    const runCommand = (event: Event) => {
-      if (name !== "chat") return;
-      const value = (event as CustomEvent<string>).detail;
-      if (ready.current)
-        frame.current?.contentWindow?.postMessage(
-          { type: "command", command: value },
-          window.location.origin
-        );
-      else {
-        command.current = value;
-        setLoaded(true);
-      }
-      container.current?.scrollIntoView({ block: "start" });
-    };
-    window.addEventListener("wiki-command", runCommand);
     window.addEventListener("message", message);
     document.addEventListener("visibilitychange", visibility);
     return () => {
       send("pause");
       observer.disconnect();
       resize.disconnect();
-      window.removeEventListener("wiki-command", runCommand);
       window.removeEventListener("message", message);
       document.removeEventListener("visibilitychange", visibility);
     };
@@ -200,7 +176,12 @@ export function GamePreview({
               }`}
               style={{
                 width,
-                height: sceneLayout(name).height,
+                height: name === "chat" ? "auto" : sceneLayout(name).height,
+                maxWidth: name === "chat" ? "100%" : undefined,
+                aspectRatio:
+                  name === "chat"
+                    ? `414 / ${sceneLayout(name).height}`
+                    : undefined,
               }}
               data-x={state.x}
               data-y={state.y}
@@ -213,7 +194,12 @@ export function GamePreview({
               className="PreviewPlaceholder"
               style={{
                 width,
-                height: sceneLayout(name).height,
+                height: name === "chat" ? "auto" : sceneLayout(name).height,
+                maxWidth: name === "chat" ? "100%" : undefined,
+                aspectRatio:
+                  name === "chat"
+                    ? `414 / ${sceneLayout(name).height}`
+                    : undefined,
               }}
               aria-label="Preview loads when visible"
             />

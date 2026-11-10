@@ -59,6 +59,24 @@ describe("chat", () => {
     expect(getDialog(hero)).toEqual(["sent"]);
   });
 
+  it("trims sent messages and the recorded history", () => {
+    const { world, hero } = setup();
+    say(world, "  hello there  ");
+    expect(getDialog(hero)).toEqual(["hello there"]);
+    openChat(world);
+    act(world, "up");
+    expect(getPrompt(world)).toBe("hello there");
+  });
+
+  it("trims commands before parsing them", () => {
+    const { world, hero } = setup();
+    expect(submitChat(world, hero, "  /stat hp 12  ")).toBeUndefined();
+    expect(hero.STATS!.hp).toBe(12);
+    openChat(world);
+    act(world, "up");
+    expect(getPrompt(world)).toBe("/stat hp 12");
+  });
+
   it("opens an empty chat tab in the menu", () => {
     const { world, hero, menu } = setup();
 

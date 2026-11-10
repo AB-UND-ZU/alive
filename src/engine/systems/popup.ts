@@ -101,7 +101,7 @@ import {
   recolorSprite,
   shop,
 } from "../../game/assets/ui";
-import { invertOrientation } from "../../game/math/path";
+import { loadChatHistory, saveChatHistory } from "../../game/chatHistory";
 import { plantConfigs } from "../../game/balancing/harvesting";
 import { isPlantable, plantSeed, queueBrew } from "./harvest";
 import { getBrewingDeal } from "../../game/balancing/brewing";
@@ -200,6 +200,9 @@ export const typeChat = (
   ]);
   if (!popup || getTab(world, popup) !== "chat") return;
 
+  popup[POPUP].chatSuggestion = 0;
+  setVerticalIndex(world, popup, 0);
+
   const reference = world.assertByIdAndComponents(
     heroEntity[MOVABLE].reference,
     [REFERENCE]
@@ -219,6 +222,38 @@ export const typeChat = (
   }
 };
 
+export const navigateChat = (
+  world: World,
+  heroEntity: Entity,
+  direction: -1 | 1
+) => {
+  const popup = world.getEntityByIdAndComponents(heroEntity[PLAYER]?.popup, [
+    POPUP,
+  ]);
+  if (!popup || getTab(world, popup) !== "chat") return;
+  const input = getTabSelections(world, popup).map(getKeyFromIndex).join("");
+  const historyIndex = getVerticalIndex(world, popup);
+  if (input.trim() && historyIndex === 0) {
+    if (TEST_MODE && completeCommand(world, input)) {
+      popup[POPUP].chatSuggestion =
+        (popup[POPUP].chatSuggestion || 0) + direction;
+      rerenderEntity(world, popup);
+      play("select", { variant: direction === -1 ? 2 : 1 });
+    }
+    return;
+  }
+  const history = loadChatHistory(heroEntity[PLAYER].chatHistory);
+  heroEntity[PLAYER].chatHistory = history;
+  const next = clamp(historyIndex - direction, 0, history.length);
+  setVerticalIndex(world, popup, next);
+  popup[POPUP].selections[popup[POPUP].horizontalIndex] = next
+    ? [...history[next - 1]]
+    : [];
+  popup[POPUP].chatSuggestion = 0;
+  if (next !== historyIndex)
+    play("select", { variant: direction === -1 ? 2 : 1 });
+};
+
 export const completeChat = (world: World, heroEntity: Entity) => {
   if (!TEST_MODE) return;
   const popup = world.getEntityByIdAndComponents(heroEntity[PLAYER]?.popup, [
@@ -226,7 +261,7 @@ export const completeChat = (world: World, heroEntity: Entity) => {
   ]);
   if (!popup || getTab(world, popup) !== "chat") return;
   const input = getTabSelections(world, popup).map(getKeyFromIndex).join("");
-  const completion = completeCommand(world, input);
+  const completion = completeCommand(world, input, popup[POPUP].chatSuggestion);
   if (!completion) return;
   const indices = [...completion].flatMap((key) => {
     const index = getIndexFromKey(key);
@@ -247,7 +282,9 @@ export const submitChat = (
   heroEntity: Entity,
   line: string | string[] = ""
 ) => {
-  const keys = typeof line === "string" ? [...line] : line;
+  const keys = [...line];
+  while (keys.length && !keys[0].trim()) keys.shift();
+  while (keys.length && !keys[keys.length - 1].trim()) keys.pop();
   const popup = world.getEntityByIdAndComponents(heroEntity[PLAYER]?.popup, [
     POPUP,
   ]);
@@ -273,7 +310,11 @@ export const submitChat = (
         ]
       : [];
   });
+  heroEntity[PLAYER].chatHistory = loadChatHistory(
+    heroEntity[PLAYER].chatHistory
+  );
   heroEntity[PLAYER].chatHistory.unshift(selections);
+  saveChatHistory(heroEntity[PLAYER].chatHistory);
   play("confirm");
 
   const command = parseCommand(keys.join(""));
@@ -768,6 +809,7 @@ export const closePopup = (
 
   heroEntity[PLAYER].popup = undefined;
   popupEntity[POPUP].active = false;
+  popupEntity[POPUP].chatSuggestion = 0;
   popupEntity[POPUP].selections = Array.from(
     { length: popupEntity[POPUP].tabs.length },
     () => []
@@ -999,12 +1041,15 @@ export default function setupPopup(world: World) {
       heroEntity[PLAYER].actionTriggered === "up" ||
       heroEntity[PLAYER].actionTriggered === "down"
     ) {
-      const history = isInTab(world, heroEntity, "chat") && lines > 1;
       const orientation =
         targetOrientation || heroEntity[PLAYER].actionTriggered;
-      const targetScroll = history
-        ? invertOrientation(orientation)
-        : orientation;
+      if (transaction === "chat") {
+        navigateChat(world, heroEntity, orientation === "up" ? -1 : 1);
+        heroEntity[PLAYER].actionTriggered = undefined;
+        heroEntity[MOVABLE].lastInteraction = referenceGeneration;
+        return;
+      }
+      const targetScroll = orientation;
       const newIndex =
         previousIndex +
         (targetScroll === "up" ? -1 : targetScroll === "down" ? 1 : 0);
@@ -1019,16 +1064,6 @@ export default function setupPopup(world: World) {
         heroEntity[PLAYER].actionTriggered === "down"
       ) {
         heroEntity[PLAYER].actionTriggered = undefined;
-      }
-
-      // scroll through history
-      if (history) {
-        const historyIndex = clamp(newIndex, 0, lines - 1) - 1;
-        popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] =
-          historyIndex < 0
-            ? []
-            : [...heroEntity[PLAYER].chatHistory[historyIndex]];
-        rerenderEntity(world, popupEntity);
       }
     } else if (heroEntity[PLAYER].actionTriggered === "content") {
       const contentIndex = heroEntity[PLAYER].contentTriggered;

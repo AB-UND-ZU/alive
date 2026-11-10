@@ -8,6 +8,7 @@ Stores dialog tabs, selection, deals, recipes, and focus.
 | ----------------- | -------------------------------------------------- |
 | `verticalIndezes` | Cursor row for each tab; keep the source spelling. |
 | `selections`      | Selected path within each tab.                     |
+| `chatSuggestion` | Current command suggestion; reset on an edit or close. |
 | `viewpoint`       | Entity ID used for the popup camera.               |
 <!-- source-types -->
 

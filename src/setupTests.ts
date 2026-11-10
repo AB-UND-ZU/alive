@@ -86,4 +86,5 @@ beforeEach(() => {
   // every test starts from the same pseudo random sequence
   seedRandom(1);
   resetPlayedSounds();
+  localStorage.clear();
 });

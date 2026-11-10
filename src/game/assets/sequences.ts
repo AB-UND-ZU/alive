@@ -7260,11 +7260,14 @@ export const displayChat: Sequence<PopupSequence> = (world, entity, state) => {
   );
   const input = selections.map(getKeyFromIndex).join("");
   const suggestion = TEST_MODE
-    ? createText(completeCommand(world, input), colors.grey)
+    ? createText(
+        completeCommand(world, input, entity[POPUP].chatSuggestion),
+        colors.grey
+      )
     : [];
   const lines = [...typed, ...suggestion];
   lines[typed.length] = showCaret
-    ? mergeSprites(suggestion[0] || none, caret)
+    ? mergeSprites(caret, suggestion[0] || none)
     : suggestion[0] || none;
   const width = frameWidth - 2;
   const windowHeight = 6;

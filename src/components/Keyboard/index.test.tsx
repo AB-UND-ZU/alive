@@ -10,6 +10,7 @@ import Keyboard, {
   keyboardSize,
 } from ".";
 import { World } from "../../engine";
+import { colors } from "../../game/assets/colors";
 import { POPUP } from "../../engine/components/popup";
 import { getTab, getTabSelections } from "../../engine/systems/popup";
 import { assertIdentifierAndComponents } from "../../engine/utils";
@@ -85,6 +86,102 @@ describe("on-screen keyboard", () => {
     expectKeys(0, "qwertyuiop");
     expectKeys(2, "zxcvbnm");
   });
+
+  it.each([
+    [0, 0, colors.white],
+    [1, 9, colors.red],
+    [2, 0, colors.lime],
+    [2, 9, colors.lime],
+    [2, 8, colors.white],
+  ] as const)(
+    "uses stacked half-blocks and matching edges at %i,%i",
+    (row, column, color) => {
+      const { container, typed } = setup();
+      const keyboard = container.querySelector("#keyboard")!;
+      const rows = container.querySelectorAll(".KeyboardOverlay > .Row");
+      const index = column * 2 + 1;
+      const pixel = (cell: Element, x: number, y: number) =>
+        Array.from(cell.querySelectorAll("svg rect"))
+          .find(
+            (rect) =>
+              x >= Number(rect.getAttribute("x")) &&
+              x <
+                Number(rect.getAttribute("x")) +
+                  Number(rect.getAttribute("width")) &&
+              y >= Number(rect.getAttribute("y")) &&
+              y <
+                Number(rect.getAttribute("y")) +
+                  Number(rect.getAttribute("height"))
+          )
+          ?.getAttribute("fill");
+      const untouched = (cells: HTMLCollection) =>
+        [0, 1, 2, 3].flatMap((x) =>
+          [0, 4, 9, 15].map((y) => [
+            pixel(cells[index - 1], x, y),
+            pixel(cells[index + 1], 8 - x, y),
+          ])
+        );
+      const topEdges = untouched(rows[row * 2].children);
+      const bottomEdges = untouched(rows[row * 2 + 1].children);
+      fireEvent(
+        keyboard,
+        new MouseEvent("pointerdown", {
+          bubbles: true,
+          button: 0,
+          clientX: columnWidth / 4 + (column + 0.5) * columnWidth,
+          clientY: row * rowHeight + rowHeight * 0.375,
+        })
+      );
+      expect(
+        container.querySelectorAll(".KeyboardOverlay > .Row")
+      ).toHaveLength(6);
+      expect(
+        showsLayers(rows[row * 2].children[index], [
+          { char: "█", color },
+          { char: "▀", color: colors.grey },
+        ])
+      ).toBe(true);
+      expect(
+        showsLayers(rows[row * 2 + 1].children[index], [
+          { char: "█", color },
+          { char: "▄", color: colors.black },
+        ])
+      ).toBe(true);
+      expect(pixel(rows[row * 2].children[index - 1], 8, 0)).toBe(colors.grey);
+      expect(pixel(rows[row * 2].children[index + 1], 0, 0)).toBe(colors.grey);
+      expect(untouched(rows[row * 2].children)).toEqual(topEdges);
+      expect(untouched(rows[row * 2 + 1].children)).toEqual(bottomEdges);
+      expect(typed()).toBe("");
+      fireEvent(keyboard, new MouseEvent("pointerup", { bubbles: true }));
+      expect(pixel(rows[row * 2].children[index - 1], 8, 0)).toBe(color);
+    }
+  );
+
+  it.each(["pointercancel", "pointerout", "blur"])(
+    "restores the key on %s",
+    (event) => {
+      const { container, typed } = setup();
+      const keyboard = container.querySelector("#keyboard")!;
+      const face = container.querySelector(".KeyboardOverlay > .Row")!
+        .children[1];
+      fireEvent(
+        keyboard,
+        new MouseEvent("pointerdown", {
+          bubbles: true,
+          button: 0,
+          clientX: 15,
+          clientY: 15,
+        })
+      );
+      expect(face.getAttribute("data-glyph")).toBe("▀");
+      fireEvent(
+        event === "blur" ? window : keyboard,
+        new MouseEvent(event, { bubbles: true, relatedTarget: document.body })
+      );
+      expect(showsLayers(face, parseSprite("\x0f█\x00q").layers)).toBe(true);
+      expect(typed()).toBe("");
+    }
+  );
 
   it("types tapped letters into the chat", () => {
     const { world, tap, typed } = setup();

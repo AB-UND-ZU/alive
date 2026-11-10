@@ -69,6 +69,7 @@ export type Popup = {
   verticalIndezes: number[];
   horizontalIndex: number;
   selections: number[][];
+  chatSuggestion?: number;
   deals: Deal[];
   ingredients: Ingredients[];
   recipes: Recipe[];

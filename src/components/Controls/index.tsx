@@ -28,6 +28,7 @@ import {
   getTab,
   typeChat,
   completeChat,
+  navigateChat,
   getActivePopup,
   getTabSelections,
   getVerticalIndex,
@@ -257,6 +258,7 @@ export default function Controls({
   const inMenu = !TEST_MODE && level === menuName;
   const hero = useHero();
   const heroRef = useRef<Entity>();
+  const pausedRef = useRef(paused);
   const popup =
     ecs &&
     hero &&
@@ -284,6 +286,7 @@ export default function Controls({
 
   // update ref for listeners to consume
   heroRef.current = hero || undefined;
+  pausedRef.current = paused;
 
   const hidden =
     initial || !ecs || !heroRef.current || isDead(ecs, heroRef.current);
@@ -445,7 +448,7 @@ export default function Controls({
         currentAction ||
         !heroEntity ||
         !ecs ||
-        paused ||
+        pausedRef.current ||
         (pressedOrientations.current.length > 0 &&
           isInPopup(ecs, heroEntity)) ||
         (!isActionable(ecs, heroEntity) && !isDead(ecs, heroEntity))
@@ -515,7 +518,7 @@ export default function Controls({
         }, reference.tick);
       }
     },
-    [ecs, paused]
+    [ecs]
   );
 
   const handleSpell = useCallback(
@@ -628,6 +631,7 @@ export default function Controls({
         | React.MouseEvent<HTMLDivElement, MouseEvent>,
       command = false
     ) => {
+      const hero = heroRef.current;
       event.preventDefault();
       if (inMenu || !ecs || !hero || !isActionable(ecs, hero) || !TEST_MODE)
         return;
@@ -640,7 +644,7 @@ export default function Controls({
         handleAction("chat");
       }
     },
-    [handleAction, inMenu, ecs, hero]
+    [handleAction, inMenu, ecs]
   );
 
   const handleType = useCallback(
@@ -651,8 +655,16 @@ export default function Controls({
         | React.MouseEvent<HTMLDivElement, MouseEvent>,
       key: string
     ) => {
+      const hero = heroRef.current;
       event.preventDefault();
-      if (inMenu || !ecs || !hero || paused || !isActionable(ecs, hero)) return;
+      if (
+        inMenu ||
+        !ecs ||
+        !hero ||
+        pausedRef.current ||
+        !isActionable(ecs, hero)
+      )
+        return;
 
       if (backspaceKeys.includes(key)) {
         typeChat(ecs, hero);
@@ -670,7 +682,7 @@ export default function Controls({
           keyMap.content
       );
     },
-    [inMenu, ecs, hero, paused]
+    [inMenu, ecs]
   );
 
   const handleMap = useCallback(
@@ -926,6 +938,8 @@ export default function Controls({
 
   const handleKey = useCallback(
     (event: KeyboardEvent) => {
+      const hero = heroRef.current;
+      const paused = pausedRef.current;
       const popup = ecs && hero && getActivePopup(ecs, hero);
       const popupTab = ecs && popup && getTab(ecs, popup);
       if (event.type === "keydown" && closeKeys.includes(event.key)) {
@@ -970,12 +984,9 @@ export default function Controls({
           event.preventDefault();
           if (!paused && ecs && hero) completeChat(ecs, hero);
         } else if (historyKeys.includes(event.key)) {
-          // scroll through history
-          if (event.key === "ArrowUp") {
-            handleAction("up");
-          } else if (event.key === "ArrowDown") {
-            handleAction("down");
-          }
+          event.preventDefault();
+          if (!paused && ecs && hero)
+            navigateChat(ecs, hero, event.key === "ArrowUp" ? -1 : 1);
         } else {
           // allow typing in chat
           handleType(event, event.key);
@@ -1081,13 +1092,10 @@ export default function Controls({
     },
     [
       ecs,
-      hero,
       initial,
-      paused,
       interactable,
       setPaused,
       handleMove,
-      handleAction,
       handleSpell,
       handleSkill,
       handleInteract,
@@ -1121,6 +1129,8 @@ export default function Controls({
 
   const handleTouchMove = useCallback(
     (event: TouchEvent) => {
+      const hero = heroRef.current;
+      const paused = pausedRef.current;
       const popup = ecs && hero && getActivePopup(ecs, hero);
       const popupTab = ecs && popup && getTab(ecs, popup);
       if (!paused) {
@@ -1203,7 +1213,8 @@ export default function Controls({
             ["up", "down"].includes(primaryOrientation) &&
             pressedOrientations.current[0] !== primaryOrientation
           ) {
-            handleAction(primaryOrientation);
+            if (!paused && ecs && hero)
+              navigateChat(ecs, hero, primaryOrientation === "up" ? -1 : 1);
           }
         } else if (
           nextOrientations.length !== pressedOrientations.current.length ||
@@ -1222,15 +1233,7 @@ export default function Controls({
 
       return false;
     },
-    [
-      handleAction,
-      handleMove,
-      releaseTouch,
-      setJoystickOrientations,
-      paused,
-      ecs,
-      hero,
-    ]
+    [handleMove, releaseTouch, setJoystickOrientations, ecs]
   );
 
   const handleVisibility = useCallback(() => {

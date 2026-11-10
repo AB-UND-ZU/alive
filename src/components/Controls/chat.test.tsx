@@ -1,6 +1,9 @@
 /* eslint-disable testing-library/no-node-access, testing-library/no-container -- keyboard gestures target the native hit area */
+import { useLayoutEffect } from "react";
+import { useWorld } from "../../bindings/hooks";
 import { act, fireEvent } from "@testing-library/react";
 import Controls from ".";
+import { completeCommand } from "../../game/assets/commands";
 import { renderHud } from "./testing";
 import { createAreaWorld, step } from "../../testing/harness";
 import {
@@ -91,4 +94,35 @@ it("routes typing and completion to a newly opened chat before a React update", 
       fireEvent.keyDown(document.body, { key });
   });
   expect(getPrompt(world)).toBe("/give sword ");
+});
+
+it("Up and Down cycle the suggested word while keeping the typed prefix", () => {
+  const { world } = setup();
+  for (const key of "/give s") fireEvent.keyDown(document.body, { key });
+  fireEvent.keyDown(document.body, { key: "ArrowDown" });
+  expect(getPrompt(world)).toBe("/give s");
+  fireEvent.keyDown(document.body, { key: "ArrowDown" });
+  fireEvent.keyDown(document.body, { key: "ArrowUp" });
+  fireEvent.keyDown(document.body, { key: "Tab" });
+  expect(getPrompt(world)).toBe(
+    "/give s" + completeCommand(world, "/give s", 1)
+  );
+});
+
+it("accepts chat keys immediately after resuming, before passive listeners refresh", () => {
+  function ResumeTyping() {
+    const { paused } = useWorld();
+    useLayoutEffect(() => {
+      if (!paused)
+        for (const key of [..."/gi", "Tab"])
+          fireEvent.keyDown(document.body, { key });
+    }, [paused]);
+    return <Controls />;
+  }
+  const world = createAreaWorld("|  ♀  |");
+  setupHero(world);
+  openChat(world);
+  const { update } = renderHud(world, <ResumeTyping />, { paused: true });
+  update({ paused: false });
+  expect(getPrompt(world)).toBe("/give ");
 });

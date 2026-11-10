@@ -4,7 +4,7 @@ import { DemoFrame } from "./DemoFrame";
 import { muteAudio } from "../game/sound/resumable";
 import { findPath, relativeOrientations } from "../game/math/path";
 import { getIdentifierAndComponents } from "../engine/utils";
-import { getTab, submitChat } from "../engine/systems/popup";
+import { getTab } from "../engine/systems/popup";
 import { isInteractable } from "../engine/systems/freeze";
 import { getHero } from "../testing/harness";
 import { Button } from "./visuals";
@@ -197,21 +197,6 @@ function Bridge() {
     const listener = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
       const action = event.data?.type;
-      if (action === "command" && ecs) {
-        const hero = getHero(ecs);
-        const result =
-          hero && typeof event.data.command === "string"
-            ? submitChat(ecs, hero, event.data.command)
-            : "Invalid command";
-        window.parent.postMessage(
-          {
-            type: "command-result",
-            result: typeof result === "string" ? result : "OK",
-          },
-          window.location.origin
-        );
-      }
-
       if (action === "pause") {
         visible = false;
         stop();

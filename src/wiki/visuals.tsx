@@ -767,27 +767,20 @@ export function Input({
   labelContent,
   value,
   onChange,
-  completion = "",
   type = "text",
-  onKeyDown,
   compact = false,
 }: {
   label: string;
   labelContent?: ReactNode;
   value: string;
   onChange: (value: string) => void;
-  completion?: string;
   type?: string;
-  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
   compact?: boolean;
 }) {
   const container = useRef<HTMLLabelElement>(null);
   const columns = useColumns(container);
   const [focus, setFocus] = useState(false);
-  const line = [
-    ...textSprites(value, compact ? colors.black : colors.white),
-    ...textSprites(completion, colors.grey),
-  ];
+  const line = textSprites(value, compact ? colors.black : colors.white);
   const width =
     type === "number"
       ? 10
@@ -832,7 +825,6 @@ export function Input({
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => setFocus(true)}
           onBlur={() => setFocus(false)}
-          onKeyDown={onKeyDown}
           autoComplete="off"
           spellCheck={false}
         />
