@@ -49,14 +49,16 @@ describe("sound", () => {
 
   afterEach(() => jest.restoreAllMocks());
 
-  it("synthesizes a sound once per seed and replays it", () => {
-    for (let drop = 0; drop < 20; drop += 1) {
-      play("rain", { proximity: 1 / (drop + 1), delay: drop, seed: 1 });
+  it.each(["rain", "sail"] as const)(
+    "synthesizes %s once per seed and replays it",
+    (preset) => {
+      for (let drop = 0; drop < 20; drop += 1) {
+        play(preset, { proximity: 1 / (drop + 1), delay: drop, seed: 1 });
+      }
+      expect(starts).toHaveLength(20);
+      expect(synthesized).toHaveBeenCalledTimes(1);
     }
-
-    expect(starts).toHaveLength(20);
-    expect(synthesized).toHaveBeenCalledTimes(1);
-  });
+  );
 
   it("picks one of a few seeds when none is given", () => {
     for (let cast = 0; cast < 20; cast += 1) play("beam", { variant: 3 });
@@ -108,6 +110,7 @@ describe("sound", () => {
       play("danger", { variant: 72, intensity: 1, seed });
       play("level", { variant: 12, seed });
       play("arrow", { variant: 4, seed });
+      play("sail", { seed });
     }
     expect(synthesized).not.toHaveBeenCalled();
 

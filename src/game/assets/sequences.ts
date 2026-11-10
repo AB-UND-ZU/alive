@@ -422,6 +422,7 @@ import {
   Weather,
   weatherIntensity,
 } from "../../engine/systems/water";
+import { LIQUID } from "../../engine/components/liquid";
 import { coverSnow } from "../../engine/systems/freeze";
 import { aspectRatio } from "../../components/Dimensions/sizing";
 import { Harvestable, HARVESTABLE } from "../../engine/components/harvestable";
@@ -3482,34 +3483,17 @@ export const weatherStorm: Sequence<WeatherSequence> = (
   const finished = false;
   let updated = false;
 
-  // keep track of absolutely positioned viewpoint
   const size = world.metadata.gameEntity[LEVEL].size;
-  const viewables = world.getEntities([VIEWABLE, POSITION]);
-  const viewable = getActiveViewable(viewables);
-
-  const normalizedX = normalize(state.args.viewable.x, size);
-  const normalizedY = normalize(state.args.viewable.y, size);
-  if (normalizedX !== viewable[POSITION].x) {
-    state.args.viewable.x += signedDistance(
-      state.args.viewable.x,
-      viewable[POSITION].x,
-      size
-    );
-  }
-  if (normalizedY !== viewable[POSITION].y) {
-    state.args.viewable.y += signedDistance(
-      state.args.viewable.y,
-      viewable[POSITION].y,
-      size
-    );
-  }
+  const viewable = getActiveViewable(world.getEntities([VIEWABLE, POSITION]));
+  if (!viewable) return { finished, updated };
+  state.args.viewable = copy(viewable[POSITION]);
 
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
   const duration = state.args.end - state.args.start;
 
   // create drops
   if (generation !== state.args.generation && generation < state.args.end) {
-    const { sprite, speed } = weatherConfigs[state.args.type];
+    const { sprite } = weatherConfigs[state.args.type];
     const position = state.args.position;
     const proximity =
       state.args.intensity === 0
@@ -3538,7 +3522,7 @@ export const weatherStorm: Sequence<WeatherSequence> = (
         y: random(-weatherArea.y / 2, weatherArea.y / 2),
       };
       const fast = offset.y > 0;
-      const target = add(state.args.viewable, offset);
+      const target = combine(size, viewable[POSITION], offset);
       const dropName = `drop-${generation}-${index}`;
       state.args.drops.push({
         position: target,
@@ -3549,11 +3533,9 @@ export const weatherStorm: Sequence<WeatherSequence> = (
 
       const dropEntity = entities.createParticle(world, {
         [PARTICLE]: {
-          offsetX: target.x,
-          offsetY: target.y,
-          offsetZ: particleHeight,
-          duration: speed * dropHeight * (fast ? 1 : 2),
-          animatedOrigin: { x: target.x, y: target.y - dropHeight },
+          offsetX: offset.x,
+          offsetY: offset.y - dropHeight,
+          offsetZ: fogHeight,
           amount: distribution(50, 30, 20) + 1,
         },
         [RENDERABLE]: { generation: 1 },
@@ -3570,11 +3552,9 @@ export const weatherStorm: Sequence<WeatherSequence> = (
   const remainingDrops = [];
   for (const drop of state.args.drops) {
     const age = state.elapsed - drop.timestamp;
-    if (
-      age >=
-      (dropHeight * (drop.fast ? 1 : 2) - 1) *
-        weatherConfigs[state.args.type].speed
-    ) {
+    const duration =
+      dropHeight * (drop.fast ? 1 : 2) * weatherConfigs[state.args.type].speed;
+    if (age >= duration) {
       updated = true;
 
       disposeEntity(world, world.assertById(state.particles[drop.particle]));
@@ -3589,14 +3569,39 @@ export const weatherStorm: Sequence<WeatherSequence> = (
       }
       continue;
     }
+    const particle = world.assertByIdAndComponents(
+      state.particles[drop.particle],
+      [PARTICLE]
+    );
+    particle[PARTICLE].offsetX = signedDistance(
+      viewable[POSITION].x,
+      drop.position.x,
+      size
+    );
+    particle[PARTICLE].offsetY =
+      signedDistance(viewable[POSITION].y, drop.position.y, size) -
+      dropHeight * (1 - age / duration);
+    delete particle[PARTICLE].animatedOrigin;
+    updated = true;
     remainingDrops.push(drop);
   }
-
-  if (updated) {
-    state.args.drops = remainingDrops;
-  }
-
+  state.args.drops = remainingDrops;
   return { finished, updated };
+};
+
+export const bubbleSplash: Sequence<Record<string, never>> = (
+  world,
+  entity,
+  state
+) => {
+  const amount = Math.floor(state.elapsed / 250);
+  if (amount > (entity[LIQUID].type === "drop" ? 2 : 3)) {
+    disposeEntity(world, entity);
+    return { finished: true, updated: true };
+  }
+  const updated = amount !== entity[LIQUID].amount;
+  entity[LIQUID].amount = amount;
+  return { finished: false, updated };
 };
 
 const progressParts = 17;

@@ -13,6 +13,7 @@ import { MOVABLE } from "../../engine/components/movable";
 import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
 import { TypedEntity } from "../../engine/entities";
+import { playedSounds, resetPlayedSounds } from "../../testing/env";
 import { isMounting } from "../../engine/systems/vessel";
 import { addCell, assertUnit, hold } from "./helpers";
 
@@ -27,8 +28,8 @@ const area = `
 
 const shore = { x: 10, y: 2 };
 
-const setup = () => {
-  const world = createAreaWorld(area);
+const setup = (map = area) => {
+  const world = createAreaWorld(map);
   const boat = addCell(world, { x: 3, y: 2 }, "boat") as TypedEntity<
     "MOUNTABLE" | "MOVABLE" | "POSITION"
   >;
@@ -54,6 +55,32 @@ const steer = (
 };
 
 describe("boats", () => {
+  it("washes through water while sailing and only bubbles when starting or stopping", () => {
+    const { world, boat } = setup(`
+|                            |
+|   ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈     |
+|  ♀≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈     |
+|   ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈     |
+|                            |
+`);
+    mount(world);
+    resetPlayedSounds();
+    steer(world, "right");
+    expect(playedSounds).toContain("bubble");
+    advanceUntil(world, () => boat[POSITION].x === 5, 2000);
+    resetPlayedSounds();
+    advanceUntil(world, () => boat[POSITION].x === 12, 3000);
+    expect(playedSounds.filter((sound) => sound === "sail")).toHaveLength(1);
+    expect(playedSounds).not.toContain("bubble");
+    resetPlayedSounds();
+    steer(world, "left");
+    expect(playedSounds).toContain("bubble");
+    resetPlayedSounds();
+    step(world, 30);
+    expect(playedSounds).not.toContain("sail");
+    expect(playedSounds).not.toContain("bubble");
+  });
+
   it("boards an adjacent boat", () => {
     const { world, boat, hero } = setup();
 
@@ -62,6 +89,27 @@ describe("boats", () => {
     expect(hero[POSITION]).toEqual(boat[POSITION]);
     expect(hero[PLAYER].mount).toBe(world.getEntityId(boat));
     expect(boat[MOUNTABLE].passenger).toBe(world.getEntityId(hero));
+  });
+
+  it("keeps a blocked empty boat silent", () => {
+    const { world, hero, boat } = setup(`
+|                |
+|   ≈≈≈≈≈≈≈≈     |
+|  ♀≈█≈≈≈≈≈≈     |
+|   ≈≈≈≈≈≈≈≈     |
+|                |
+`);
+    resetPlayedSounds();
+    hold(world, ["right"]);
+    step(world, 30);
+    hold(world, []);
+    expect(hero[POSITION]).toEqual({ x: 2, y: 2 });
+    expect(boat[POSITION]).toEqual({ x: 3, y: 2 });
+    expect(
+      playedSounds.filter((sound) =>
+        ["push", "sail", "bubble"].includes(String(sound))
+      )
+    ).toEqual([]);
   });
 
   it("pushes an empty boat instead of boarding it", () => {
@@ -109,7 +157,9 @@ describe("boats", () => {
 
     steer(world, "right");
     advanceUntil(world, () => boat[POSITION].x === 5, 2000);
+    resetPlayedSounds();
     steer(world, "down");
+    expect(playedSounds).toContain("bubble");
     advanceUntil(world, () => boat[MOVABLE].orientations.length === 0, 2000);
 
     expect(boat[POSITION]).toEqual({ x: 5, y: 3 });

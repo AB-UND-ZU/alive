@@ -1,7 +1,7 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export type Displacable = {};
+export type Displacable = { pushSound?: boolean };
 
 export const DISPLACABLE = "DISPLACABLE";
 

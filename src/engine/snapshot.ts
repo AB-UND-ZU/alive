@@ -1,6 +1,8 @@
 import createWorld, { World } from "./ecs";
 import * as sprites from "../game/assets/sprites";
 import { Sprite } from "./components/sprite";
+import { INVENTORY } from "./components/inventory";
+import { ITEM } from "./components/item";
 import { TypedEntity } from "./entities";
 
 /**
@@ -138,6 +140,16 @@ export const restoreSnapshot = (snapshot: WorldSnapshot) => {
       );
     }
   });
+
+  // Older arena cleanup could remove loot items while their containers survived.
+  for (const entity of restored) {
+    const inventory = entity[INVENTORY];
+    if (!inventory) continue;
+    const items = inventory.items.filter((id) =>
+      world.getEntityByIdAndComponents(id, [ITEM])
+    );
+    if (items.length !== inventory.items.length) inventory.items = items;
+  }
 
   (world.metadata.ecs as unknown as { nextId: number }).nextId =
     snapshot.nextId;

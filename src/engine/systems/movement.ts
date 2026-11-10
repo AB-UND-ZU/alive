@@ -50,6 +50,7 @@ import { isMounting, stopVessel } from "./vessel";
 import { getExertables } from "./magic";
 import { EXERTABLE } from "../components/exertable";
 import { CASTABLE } from "../components/castable";
+import { DISPLACABLE } from "../components/displacable";
 import { EQUIPPABLE } from "../components/equippable";
 
 const chatHaste = -1001;
@@ -222,6 +223,7 @@ export const getBiome = (world: World, position: Position): BiomeName => {
 export default function setupMovement(world: World) {
   let referenceGenerations = -1;
   const entityReferences: Record<string, number> = {};
+  const nextSail: Record<string, number> = {};
 
   const onUpdate = (delta: number) => {
     const size = world.metadata.gameEntity[LEVEL].size;
@@ -259,6 +261,8 @@ export default function setupMovement(world: World) {
 
       entityReferences[entityId] = entityReference;
 
+      const pushSound = entity[DISPLACABLE]?.pushSound;
+      delete entity[DISPLACABLE]?.pushSound;
       const pendingOrientation = entity[MOVABLE].pendingOrientation;
       entity[MOVABLE].pendingOrientation = undefined;
 
@@ -331,6 +335,7 @@ export default function setupMovement(world: World) {
       }
 
       if (movedOrientation) {
+        if (pushSound) play("push");
         const delta = orientationPoints[movedOrientation];
         const rootPosition = combine(size, entity[POSITION], delta);
         // play sound
@@ -340,6 +345,17 @@ export default function setupMovement(world: World) {
           ).length > 0
             ? 1
             : 0.5;
+
+        const boat = entity[MOUNTABLE]?.medium === "water";
+        if (boat && isImmersible(world, entity[POSITION])) {
+          const distance = hero
+            ? getDistance(hero[POSITION], entity[POSITION], size)
+            : Infinity;
+          if (distance < 10 && entityReference >= (nextSail[entityId] ?? 0)) {
+            play("sail", { proximity: 1 / (distance + 1) });
+            nextSail[entityId] = entityReference + 5;
+          }
+        }
 
         if (entity[PLAYER]) {
           const variant = isImmersible(world, rootPosition)
@@ -372,7 +388,7 @@ export default function setupMovement(world: World) {
         for (const part of parts) {
           // leave bubble trail if walking through water
           if (isImmersible(world, part[POSITION]) && !part[MOVABLE].flying) {
-            createBubble(world, part[POSITION], "water");
+            createBubble(world, part[POSITION], "water", !boat);
           }
 
           // set facing to actual movement

@@ -15,6 +15,11 @@ import { POSITION } from "../../engine/components/position";
 import { STICKY } from "../../engine/components/sticky";
 import { CASTABLE } from "../../engine/components/castable";
 import { normalize } from "../../game/math/std";
+import { entities } from "../../engine";
+import { createSequence } from "../../engine/systems/sequence";
+import { WeatherSequence } from "../../engine/components/sequencable";
+import { none } from "../../game/assets/sprites";
+import { moveEntity } from "../../engine/systems/map";
 import { TypedEntity } from "../../engine/entities";
 import type { ReactThreeTest } from "@react-three/test-renderer";
 
@@ -62,6 +67,42 @@ const spawn = findInArea(area, "♀");
 const createWorld = () => createAreaWorld(area, { size: 48 });
 
 describe("Systems", () => {
+  it("anchors weather to the rendered viewpoint away from the map origin", async () => {
+    const world = createAreaWorld(area, { size: 240 });
+    const hero = assertHero(world);
+    moveEntity(world, hero, { x: 190, y: 190 });
+    const storm = entities.createAnchor(world, {
+      POSITION: { x: 0, y: 0 },
+      RENDERABLE: { generation: 0 },
+      SEQUENCABLE: { states: {} },
+      STICKY: {},
+      SPRITE: none,
+    });
+    createSequence<"weather", WeatherSequence>(
+      world,
+      storm,
+      "weather",
+      "weatherStorm",
+      {
+        position: { x: 190, y: 190 },
+        viewable: { x: 0, y: 0 },
+        start: -200,
+        end: Infinity,
+        intensity: 100,
+        generation: -1,
+        drops: [],
+        type: "rain",
+      }
+    );
+    const { renderer, advanceFrames } = await renderScene(world, <Systems />);
+    await advanceFrames(2);
+    const rendered = getEntityGroups(renderer.scene);
+    const anchor = rendered.find(({ entity }) => entity === storm)!;
+    expect(anchor.x).toBe(190);
+    expect(anchor.y).toBe(190);
+    await renderer.unmount();
+  });
+
   it.each(["LEVEL_MENU", "LEVEL_ISLAND"] as const)(
     "does not shake when entering a new %s world",
     async (level) => {

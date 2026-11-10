@@ -261,6 +261,7 @@ export type Sequencable = {
     aura?: SequenceState<AuraSequence>;
     drop?: SequenceState<DropSequence>;
     weather?: SequenceState<WeatherSequence>;
+    splash?: SequenceState<EmptyObject>;
     vision?: SequenceState<VisionSequence>;
     perish?: SequenceState<PerishSequence>;
     pointer?: SequenceState<PointerSequence>;

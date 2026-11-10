@@ -229,6 +229,19 @@ class Presets extends Params {
     this.p_hpf_ramp = -1;
   }
 
+  sail(options: SoundOptions) {
+    const proximity = options.proximity || 1;
+    this.wave_type = waveforms.NOISE;
+    this.sound_vol = (1 / 56) * proximity ** 1.2;
+    this.p_env_attack = 0.5;
+    this.p_env_sustain = 0.15;
+    this.p_env_decay = 0.6 + frnd(0.02);
+    this.p_base_freq = 0.6 + frnd(0.02);
+    this.p_lpf_freq = 0.21 + frnd(0.01);
+    this.p_hpf_freq = 0.025;
+    return this;
+  }
+
   rain(options: SoundOptions) {
     const proximity = options.proximity || 1;
     const intensity = options.intensity || 1;
@@ -1321,6 +1334,7 @@ const soundVariants = {
   xp: [],
   die: [1, 2],
   bubble: [1, 2],
+  sail: [],
   rain: [2],
   beam: [3],
   wave: [],

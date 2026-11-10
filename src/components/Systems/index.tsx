@@ -272,7 +272,13 @@ export default function Systems() {
   for (const entity of stickyEntities) {
     const entityId = ecs.getEntityId(entity);
 
-    renderableEntities.push([0, 0, !!structure, entityId, entity]);
+    renderableEntities.push([
+      position.x,
+      position.y,
+      !!structure,
+      entityId,
+      entity,
+    ]);
   }
 
   return (

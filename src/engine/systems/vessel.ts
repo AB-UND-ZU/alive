@@ -19,6 +19,7 @@ import { isWalkable } from "./movement";
 import { isImmersible } from "./immersion";
 import { getLootable } from "./collect";
 import { getSpikable } from "./spike";
+import { bubbleSound } from "./water";
 import { getClickable } from "./click";
 
 export const getMountable = (world: World, position: Position) =>
@@ -72,6 +73,14 @@ export const mountVessel = (world: World, entity: Entity, vessel: Entity) => {
 };
 
 export const stopVessel = (world: World, vessel: Entity) => {
+  if (
+    vessel[MOUNTABLE].medium === "water" &&
+    vessel[MOUNTABLE].passenger &&
+    vessel[MOVABLE].orientations.length > 0 &&
+    isImmersible(world, vessel[POSITION])
+  ) {
+    bubbleSound(world, vessel[POSITION], "bubble");
+  }
   vessel[MOVABLE].orientations = [];
   vessel[MOVABLE].pendingOrientation = undefined;
 };
@@ -152,6 +161,7 @@ export default function setupVessel(world: World) {
       const mount = world.getEntityByIdAndComponents(entity[PLAYER].mount, [
         MOUNTABLE,
         MOVABLE,
+        POSITION,
       ]);
       if (!isControllable(world, entity) || !mount) continue;
 
@@ -208,8 +218,14 @@ export default function setupVessel(world: World) {
         targetReference[REFERENCE].delta = 0;
         targetReference[REFERENCE].suspended = true;
         targetReference[REFERENCE].suspensionCounter = -1;
-        mount[MOVABLE].orientations = [];
+        stopVessel(world, mount);
       } else {
+        if (
+          mount[MOUNTABLE].medium === "water" &&
+          isImmersible(world, mount[POSITION])
+        ) {
+          bubbleSound(world, mount[POSITION], "bubble");
+        }
         // instantly start movement
         if (!mountOrientation) {
           targetReference[REFERENCE].delta = targetReference[REFERENCE].tick;

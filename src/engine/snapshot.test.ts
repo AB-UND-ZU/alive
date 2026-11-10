@@ -1,5 +1,11 @@
 import { deserialize, serialize } from "v8";
-import { assertHero, createTestWorld, step, walk } from "../testing/harness";
+import {
+  assertHero,
+  createAreaWorld,
+  createTestWorld,
+  step,
+  walk,
+} from "../testing/harness";
 import { createSystems, preloadLevel } from "./ecs";
 import { createSnapshot, restoreSnapshot, WorldSnapshot } from "./snapshot";
 import { POSITION } from "./components/position";
@@ -9,6 +15,12 @@ import { STATS } from "./components/stats";
 import { LEVEL } from "./components/level";
 import { getCellEntities } from "./systems/map";
 import { World } from "./ecs";
+import { entities } from ".";
+import { createItemAsDrop, createItemInInventory } from "./systems/drop";
+import { INVENTORY } from "./components/inventory";
+import { ITEM } from "./components/item";
+import { FOG } from "./components/fog";
+import { registerEntity } from "./systems/map";
 import { none } from "../game/assets/sprites";
 
 // IndexedDB stores values with the same structured clone algorithm
@@ -28,6 +40,50 @@ const getEntityIds = (world: World) =>
   world.getEntities([]).map((entity) => world.getEntityId(entity));
 
 describe("world snapshot", () => {
+  it("loads an island with a missing loot item and preserves its remaining items", () => {
+    const world = createAreaWorld("| ♀       |", {
+      size: 48,
+      level: "LEVEL_ISLAND",
+    });
+    step(world, 30);
+    const missing = createItemAsDrop(
+      world,
+      { x: 4, y: 0 },
+      entities.createItem,
+      {
+        ITEM: { stat: "hp", amount: 1, bound: false },
+        SPRITE: none,
+      }
+    );
+    const carrier = world.assertByIdAndComponents(missing[ITEM].carrier, [
+      INVENTORY,
+      FOG,
+      POSITION,
+    ]);
+    const carrierId = world.getEntityId(carrier);
+    const valid = createItemInInventory(world, carrier, entities.createItem, {
+      ITEM: { stackable: "apple", amount: 3 },
+      SPRITE: none,
+    });
+    const validId = world.getEntityId(valid);
+    carrier[FOG].visibility = "visible";
+    registerEntity(world, carrier);
+    world.removeEntity(missing);
+    const snapshot = createSnapshot(world);
+    const loaded = restoreSnapshot(snapshot);
+    createSystems(loaded);
+    preloadLevel(loaded);
+    expect(loaded.metadata.gameEntity[LEVEL].name).toBe("LEVEL_ISLAND");
+    expect(
+      loaded.assertByIdAndComponents(carrierId, [INVENTORY])[INVENTORY].items
+    ).toEqual([validId]);
+    expect(loaded.assertByIdAndComponents(validId, [ITEM])[ITEM].amount).toBe(
+      3
+    );
+    walk(loaded, "right");
+    expect(assertHero(loaded)[POSITION]).toEqual({ x: 2, y: 0 });
+  });
+
   it("restores all entities with their IDs and level", () => {
     const world = createTestWorld();
     walk(world, "down", 2);

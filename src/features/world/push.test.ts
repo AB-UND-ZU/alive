@@ -5,6 +5,7 @@ import {
   giveItems,
   step,
 } from "../../testing/harness";
+import { playedSounds, resetPlayedSounds } from "../../testing/env";
 import { World } from "../../engine";
 import { DISPLACABLE } from "../../engine/components/displacable";
 import { POSITION } from "../../engine/components/position";
@@ -32,6 +33,10 @@ describe("pushing boxes", () => {
 
     expect(box[POSITION]).toEqual({ x: 4, y: 1 });
     expect(findEntityAt(world, { x: 4, y: 1 }, [DISPLACABLE])).toBe(box);
+    expect(playedSounds).toContain("push");
+    resetPlayedSounds();
+    step(world, 30);
+    expect(playedSounds).not.toContain("push");
   });
 
   it("keeps pushing the box while walking", () => {
@@ -67,6 +72,7 @@ describe("pushing boxes", () => {
 
     expect(hero[POSITION]).toEqual({ x: 2, y: 1 });
     expect(box[POSITION]).toEqual({ x: 3, y: 1 });
+    expect(playedSounds).not.toContain("push");
   });
 
   it("pushes a box without breaking it while armed", () => {

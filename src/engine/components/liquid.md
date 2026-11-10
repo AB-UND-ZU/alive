@@ -2,11 +2,11 @@
 
 Tracks splash, drop and bubble effects.
 
-[Water](../systems/water.md) advances these effects using its elapsed clock. Water terrain itself uses [Immersible](immersible.md).
+Each effect owns a `bubbleSplash` sequence. Its elapsed time advances the visual stages and removes the effect, including after saving and loading. Water terrain itself uses [Immersible](immersible.md).
 
 | Field       | Meaning                                                          |
 | ----------- | ---------------------------------------------------------------- |
-| `timestamp` | Start time on the water system's elapsed clock, in milliseconds. |
+| `timestamp` | Legacy start time; retained when reading older saves. |
 | `amount`    | Current visual stage of the splash, drop or bubble.              |
 <!-- source-types -->
 

@@ -1,15 +1,15 @@
 # Water
 
-Advances splash, drop and bubble effects and updates neighboring water or sand terrain.
+Creates splash, drop and bubble effects and updates neighboring water or sand terrain.
 
 | Helper group   | Work                                                           |
 | -------------- | -------------------------------------------------------------- |
-| Liquid effects | Timestamp the effect, advance its stage and finish it          |
+| Liquid effects | Create a sequence that owns its stages and lifetime          |
 | Water cells    | Recompute the connected water appearance                       |
 | Sand cells     | Update the shoreline after terrain changes                     |
 | Weather        | Calculate rain/snow intensity |
 
-The elapsed clock advances every update. On restore it starts at the latest existing liquid timestamp, so saved bubbles can finish instead of waiting on a clock reset. See [saved games](../../game/saves/index.md). Water terrain uses [Immersible](../components/immersible.md); its animated effects use [Liquid](../components/liquid.md).
+Liquid effects advance through their own `bubbleSplash` sequences. There is no separate water clock or per-frame liquid cleanup. When restoring older saves, setup attaches a sequence at the existing liquid stage. See [saved games](../../game/saves/index.md). Water terrain uses [Immersible](../components/immersible.md); its animated effects use [Liquid](../components/liquid.md).
 <!-- source-types -->
 
 ## Weather

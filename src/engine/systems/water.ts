@@ -1,7 +1,7 @@
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
-import { disposeEntity, getCellEntities, registerEntity } from "./map";
+import { getCellEntities, registerEntity } from "./map";
 import { Liquid, LIQUID } from "../components/liquid";
 import { entities } from "..";
 import { FOG } from "../components/fog";
@@ -33,6 +33,7 @@ import { FARMABLE } from "../components/farmable";
 import { extinguishEntity, getBurnables } from "./burn";
 import { BURNABLE } from "../components/burnable";
 import { getAffectables } from "./magic";
+import { createSequence, getSequence } from "./sequence";
 import { AFFECTABLE } from "../components/affectable";
 
 export type Weather = "rain" | "snow";
@@ -90,7 +91,8 @@ export const bubbleSound = (
 export const createBubble = (
   world: World,
   position: Position,
-  bubbleType: "rain" | "water"
+  bubbleType: "rain" | "water",
+  audible = true
 ) => {
   const immersed = isImmersible(world, position);
 
@@ -106,7 +108,7 @@ export const createBubble = (
       : "drop";
 
   // play sound in proximity
-  bubbleSound(world, position, droppedType);
+  if (audible) bubbleSound(world, position, droppedType);
 
   // water soil
   const soil = getFarmable(world, position);
@@ -143,6 +145,13 @@ export const createBubble = (
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: bubble,
   });
+  createSequence<"splash", Record<string, never>>(
+    world,
+    bubbleEntity,
+    "splash",
+    "bubbleSplash",
+    {}
+  );
   registerEntity(world, bubbleEntity);
 };
 
@@ -247,45 +256,17 @@ export const updateSandCell = (world: World, position: Position) => {
   }
 };
 
-const waterTick = 250;
-
-export default function setupWater(world: World) {
-  // continue after restored bubbles, so they burst after loading a saved game
-  let elapsed = Math.max(
-    0,
-    ...world
-      .getEntities([LIQUID])
-      .map((entity) => entity[LIQUID].timestamp || 0)
-  );
-
-  const onUpdate = (delta: number) => {
-    elapsed += delta;
-
-    for (const entity of world.getEntities([
-      LIQUID,
-      POSITION,
-      RENDERABLE,
-      SEQUENCABLE,
-    ])) {
-      // apply timestamp
-      if (!entity[LIQUID].timestamp) {
-        entity[LIQUID].timestamp = elapsed;
-      }
-      const amount = Math.floor(
-        (elapsed - entity[LIQUID].timestamp) / waterTick
-      );
-      const endAmount = entity[LIQUID].type === "drop" ? 2 : 3;
-
-      if (amount > endAmount) {
-        disposeEntity(world, entity);
-      } else if (amount !== entity[LIQUID].amount) {
-        entity[LIQUID].amount = amount;
-        rerenderEntity(world, entity);
-      } else continue;
-
-      rerenderEntity(world, world.metadata.renderEntity);
-    }
-  };
-
-  return { onUpdate };
-}
+// Upgrade the transient liquid effects of older saves to sequence-owned lifetimes.
+export const resumeLiquidEffects = (world: World) => {
+  for (const entity of world.getEntities([LIQUID, SEQUENCABLE, RENDERABLE])) {
+    if (getSequence(world, entity, "splash")) continue;
+    createSequence<"splash", Record<string, never>>(
+      world,
+      entity,
+      "splash",
+      "bubbleSplash",
+      {}
+    );
+    entity[SEQUENCABLE].states.splash!.elapsed = entity[LIQUID].amount * 250;
+  }
+};

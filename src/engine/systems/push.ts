@@ -15,7 +15,6 @@ import { isDead } from "./damage";
 import { MOUNTABLE } from "../components/mountable";
 import { isWalkable } from "./movement";
 import { PLAYER } from "../components/player";
-import { play } from "../../game/sound";
 
 export const isDisplacable = (world: World, entity: Entity) =>
   DISPLACABLE in entity && !isFrozen(world, entity) && !isDead(world, entity);
@@ -112,7 +111,7 @@ export default function setupPush(world: World) {
         continue;
 
       pushEntity(world, targetEntity, targetOrientation);
-      if (entity[PLAYER]) play("push");
+      if (entity[PLAYER]) targetEntity[DISPLACABLE].pushSound = true;
 
       // prevent attacking boxes but allow movements
       entity[MOVABLE].momentum = targetOrientation;
