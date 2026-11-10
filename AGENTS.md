@@ -12,6 +12,11 @@ Alive is a browser adventure game built with TypeScript, React, Three.js and an 
 - Explain why only when the reason is not clear from the code. Avoid comments that repeat what the code does.
 - Use plain, readable English in wiki and UI text.
 
+## Git history
+
+- Keep `main` linear. Rebase worktree or feature commits onto the current `main`, then integrate them with `git merge --ff-only`.
+- Never create merge commits or use `--no-ff`. If a fast-forward is not possible, rebase and resolve conflicts before updating `main`.
+
 ## Verify every change
 
 - General functionality needs tests. Test an explicit game feature and its observable outcome, including relevant failure cases.
