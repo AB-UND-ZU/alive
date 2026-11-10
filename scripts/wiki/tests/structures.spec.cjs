@@ -1,12 +1,7 @@
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./fixtures.cjs");
 test("Structures compares native exterior and interior buildings and nonattackable devices", async ({
   page,
 }) => {
-  await page.addInitScript(() => {
-    window.EventSource = class {
-      close() {}
-    };
-  });
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("/game-design/cells/structures.html");

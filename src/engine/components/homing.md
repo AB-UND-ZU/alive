@@ -9,7 +9,18 @@ Tracks an effect following a target.
 
 ```ts src/engine/components/homing.ts
 export type Homing = {
-  type: "oakTower" | "oakHedge" | "oakLily" | "ilexTulip" | "ironDisc" | "goldDisc" | "ironOrbit";
+  type:
+    | "fireDisc"
+    | "fireOrbit"
+    | "healDisc"
+    | "wormTower"
+    | "oakTower"
+    | "oakHedge"
+    | "oakLily"
+    | "ilexTulip"
+    | "ironDisc"
+    | "goldDisc"
+    | "ironOrbit";
   target?: number;
   positions: Position[];
   ttl?: number;

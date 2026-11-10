@@ -1,4 +1,4 @@
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./fixtures.cjs");
 
 for (const width of [1214, 390]) {
   test(`sprite editor uses native tabs, character clicks and draft cancellation at ${width}px`, async ({

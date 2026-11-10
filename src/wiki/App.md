@@ -4,10 +4,10 @@ Renders Markdown tokens in React and follows browser history. Every page also ha
 
 | Part | Source |
 | --- | --- |
-| Menu order and groups | `scripts/wiki/navigation.json` |
+| Menu order and groups | `pages.json` |
 | Page content and source notes | Markdown in `wiki/` and adjacent source files |
 | Rendering and browser navigation | `App.tsx` |
-| Canonical routes, aliases and anchors | Build manifest |
+| Canonical routes, aliases and anchors | Route registry and source-reference index |
 
 Routes follow `game-design/<group>/<page>.html` and `development/<group>/<source>.html`; Welcome remains `index.html`. Old URLs redirect to the canonical route while retaining their anchor.
 

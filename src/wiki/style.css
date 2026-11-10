@@ -1,12 +1,5 @@
-@font-face {
-  font-family: "Alive Wiki DOS";
-  src: url("fonts/AliveWiki.woff") format("woff");
-  font-weight: normal;
-  font-style: normal;
-  font-display: block;
-}
 .Wiki {
-  font-family: "Alive Wiki DOS", "Perfect DOS VGA 437 Win", monospace;
+  font-family: "Perfect DOS VGA 437 Win", monospace;
   --cell-height: 32px;
   --cell-width: 18px;
   --pixel-size: 2px;

@@ -61,6 +61,14 @@ import glyphAliases from "./glyphAliases.json";
 import "./visuals.css";
 const glyphs = font.glyphs as Record<string, unknown>;
 const aliases = glyphAliases as Record<string, string>;
+const readableAliases = new RegExp(
+  "(" +
+    Object.keys(aliases)
+      .filter((char) => [...aliases[char]].length === 1)
+      .join("|") +
+    ")",
+  "g"
+);
 export const textSprites = (text: string, color: string = colors.silver) =>
   createText(
     [...text].map((c) => aliases[c] || (glyphs[c] ? c : "?")).join(""),
@@ -303,6 +311,19 @@ export function Text({
         part.split(/(?=[A-Z][a-z])/g)
       )
     : [];
+  const displayText = (value: string) =>
+    value.split(readableAliases).map((part, index) =>
+      typeof aliases[part] === "string" && [...aliases[part]].length === 1 ? (
+        <span className="ReadableGlyph" key={index}>
+          <span className="ReadableGlyphSource">{part}</span>
+          <span className="ReadableGlyphSprite" aria-hidden="true">
+            <Pixels rows={[textSprites(part, "currentColor")]} />
+          </span>
+        </span>
+      ) : (
+        part
+      )
+    );
   const content = (
     <span
       className={`Text NativeText CellGlyph${linked ? " LinkText" : ""}${
@@ -319,9 +340,12 @@ export function Text({
           "--glyph-color": actualColor,
           "--underline-color":
             actualColor === colors.grey ? colors.silver : actualColor,
-          "--link-underline": (linked || hovered) && actualColor !== colors.blue
-            ? underlineImage(actualColor === colors.grey ? colors.silver : actualColor)
-            : undefined,
+          "--link-underline":
+            (linked || hovered) && actualColor !== colors.blue
+              ? underlineImage(
+                  actualColor === colors.grey ? colors.silver : actualColor
+                )
+              : undefined,
           "--text-shade": shade,
         } as React.CSSProperties
       }
@@ -329,17 +353,17 @@ export function Text({
       {code
         ? codeWords.map((part, index) => (
             <Fragment key={index}>
-              {part}
+              {displayText(part)}
               {index < codeWords.length - 1 && <wbr />}
             </Fragment>
           ))
         : parts.length === 1
-        ? text
+        ? displayText(text)
         : parts.map((part, index) =>
             /^(Infinity|∞|99\+)$/.test(part) ? (
               <Count key={index} value={Infinity} color={actualColor} />
             ) : (
-              part
+              displayText(part)
             )
           )}
     </span>

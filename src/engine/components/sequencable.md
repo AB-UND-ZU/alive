@@ -438,6 +438,7 @@ export type PopupSequence = {
   scrollIndex?: number;
   verticalIndex: number;
   horizontalIndex: number;
+  backButton?: boolean;
   transaction: Popup["tabs"][number];
   instant: boolean;
 };
@@ -475,13 +476,14 @@ export type Sequencable = {
     aura?: SequenceState<AuraSequence>;
     drop?: SequenceState<DropSequence>;
     weather?: SequenceState<WeatherSequence>;
+    splash?: SequenceState<EmptyObject>;
     vision?: SequenceState<VisionSequence>;
     perish?: SequenceState<PerishSequence>;
     pointer?: SequenceState<PointerSequence>;
     marker?: SequenceState<MarkerSequence>;
     message?: SequenceState<MessageSequence>;
     decay?: SequenceState<DecaySequence>;
-    evaporate?: SequenceState<VanishSequence>;
+    evaporate?: SequenceState<EvaporateSequence>;
     vanish?: SequenceState<VanishSequence>;
     burn?: SequenceState<BurnSequence>;
     freeze?: SequenceState<FreezeSequence>;

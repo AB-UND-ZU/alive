@@ -14,6 +14,10 @@ Touch release and pointer cancellation clear the drag origin and held directions
 Backspace activates the left dialog action. Escape follows a rendered ←BACK button, or PLACE while positioning a sprite layer; otherwise it closes the popup. The popup sequence records whether that arrow is present, so all dialogs use their displayed action.
 
 `Action` describes a rendered action: its name, activation sprites, disabled state and button palette. Game rules remain in engine systems.
+
+In test-mode chat, Tab accepts the suggested command word. A right swipe does the same on the dialog or keyboard; continuing the same drag does not accept another word. Keyboard taps retain native click handling, while a swipe cancels the click.
+
+Up and Down select a suggested word while typing. Starting from an empty line, they browse persisted chat history instead.
 <!-- source-types -->
 
 ## Action
@@ -26,7 +30,3 @@ type Action = {
   palette: Palette;
 };
 ```
-
-In test-mode chat, Tab accepts the suggested command word. A right swipe does the same on the dialog or keyboard; continuing the same drag does not accept another word. Keyboard taps retain native click handling, while a swipe cancels the click.
-
-Up and Down select a suggested word while typing. Starting from an empty line, they browse persisted chat history instead.

@@ -1,4 +1,4 @@
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./fixtures.cjs");
 
 test("technical inline code keeps constants and wraps without changing copied source", async ({
   page,
@@ -53,13 +53,8 @@ test("technical inline code keeps constants and wraps without changing copied so
   ).toBe(false);
 });
 const copyKey = process.platform === "darwin" ? "Meta+C" : "Control+C";
-test.beforeEach(async ({ page, context }) => {
+test.beforeEach(async ({ context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.addInitScript(() => {
-    window.EventSource = class {
-      close() {}
-    };
-  });
 });
 async function copy(page, locator) {
   await locator.evaluate((node) => {
@@ -124,7 +119,7 @@ test("copying an item retains its name and normalizes cell spacing", async ({
   );
 });
 
-test("readable Unicode uses the native glyph and copies unchanged", async ({
+test("readable Unicode uses existing sprites and copies unchanged", async ({
   page,
 }) => {
   const errors = [];
@@ -133,52 +128,46 @@ test("readable Unicode uses the native glyph and copies unchanged", async ({
   });
   await page.goto("/development/wiki/codepage.html");
   await page.evaluate(() => document.fonts.ready);
-  const sameGlyph = await page.evaluate(async () => {
-    await document.fonts.load('32px "Alive Wiki DOS"', "↑");
-    await document.fonts.load('32px "Perfect DOS VGA 437 Win"', "ė");
-    const pixels = (font, text) => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 40;
-      canvas.height = 40;
-      const context = canvas.getContext("2d");
-      context.font = `32px "${font}"`;
-      context.fillText(text, 0, 32);
-      return [...context.getImageData(0, 0, 40, 40).data];
-    };
-    const readable = pixels("Alive Wiki DOS", "↑");
-    const original = pixels("Perfect DOS VGA 437 Win", "ė");
-    return {
-      loaded: document.fonts.check('32px "Alive Wiki DOS"', "↑"),
-      visible: readable.some((value) => value !== 0),
-      equal: readable.every((value, index) => value === original[index]),
-    };
-  });
-  expect(sameGlyph).toEqual({ loaded: true, visible: true, equal: true });
+  const glyph = page
+    .locator("main .ReadableGlyph")
+    .filter({ hasText: "↑" })
+    .first();
+  await expect(glyph.locator(".ReadableGlyphSprite .Layer")).toHaveText("ė");
+  await expect(glyph.locator(".ReadableGlyphSprite .Layer")).toBeVisible();
   const source = page.locator("main").getByText("↑", { exact: true });
   const expected = await source.textContent();
   expect(expected).toBe("↑");
   expect(await copy(page, source)).toBe(expected);
+  expect(await copy(page, glyph)).toBe(expected);
   expect(errors).toEqual([]);
 });
 
-test("glyph underlines stay behind wrapped links and never enter copied prose", async ({ page }) => {
+test("glyph underlines stay behind wrapped links and never enter copied prose", async ({
+  page,
+}) => {
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/index.html");
-    const link = page.locator('main a[href="https://en.wikipedia.org/wiki/Code_page_437"]');
+    const link = page.locator(
+      'main a[href="https://en.wikipedia.org/wiki/Code_page_437"]'
+    );
     const paragraph = link.locator("xpath=ancestor::p");
     const expected = await paragraph.textContent();
     await link.scrollIntoViewIfNeeded();
     const text = link.locator(".LinkText");
     await expect(text).toHaveCSS("text-decoration-line", "none");
     await expect(text).not.toHaveCSS("background-image", "none");
-    const normal = await text.evaluate(node => getComputedStyle(node).backgroundImage);
+    const normal = await text.evaluate(
+      (node) => getComputedStyle(node).backgroundImage
+    );
     expect(decodeURIComponent(normal)).toContain("<rect");
     expect(await copy(page, paragraph)).toBe(expected);
     await page.evaluate(() => getSelection().removeAllRanges());
     await link.hover();
     await expect(text).toHaveCSS("color", "rgb(0, 255, 255)");
-    expect(await text.evaluate(node => getComputedStyle(node).backgroundImage)).not.toBe(normal);
+    expect(
+      await text.evaluate((node) => getComputedStyle(node).backgroundImage)
+    ).not.toBe(normal);
     expect(await copy(page, paragraph)).toBe(expected);
     expect(expected).not.toMatch(/[_\n]/);
   }

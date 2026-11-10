@@ -41,8 +41,7 @@ import {
   useState,
 } from "react";
 import { createRoot } from "react-dom/client";
-import manifest from "wiki-manifest";
-import { WikiToken, WikiPage } from "./types";
+import { WikiManifest, WikiToken, WikiPage } from "./types";
 import {
   Heading,
   LinkStyleContext,
@@ -90,12 +89,36 @@ import {
 
 import "../components/App/index.css";
 
+import "./style.css";
+import { parseMarkdown } from "./markdown";
+
+const registry = require("./pages.json") as Omit<
+  WikiPage,
+  "tokens" | "references"
+>[];
+const sourceIndex = require("./sourceReferences.json") as {
+  references: WikiManifest["references"];
+  pages: Record<string, WikiManifest["references"]>;
+};
+const [major, minor, patch] = (
+  require("../../package.json").version as string
+).split(".");
+const manifest: WikiManifest = {
+  version: `V${major}x${minor.padStart(2, "0")}${
+    Number(patch) ? "." + patch : ""
+  }`,
+  title: [],
+  references: sourceIndex.references,
+  pages: registry.map((page) => ({
+    ...page,
+    tokens: [],
+    references: sourceIndex.pages[page.source],
+  })),
+};
+const sourceFiles = require.context("..", true, /\.md$/);
 const rootUrl = new URL(
-  ".",
-  new URL(
-    document.querySelector<HTMLMetaElement>('meta[name="wiki-root"]')!.content,
-    window.location.href
-  )
+  `${process.env.PUBLIC_URL || ""}/`,
+  window.location.origin
 );
 const base = rootUrl.href;
 const canonicalRoute = (route: string) =>
@@ -819,7 +842,13 @@ function Markdown({
     </>
   );
 }
-function Navigation({ page, navigate }: { page: WikiPage; navigate: Navigate }) {
+function Navigation({
+  page,
+  navigate,
+}: {
+  page: WikiPage;
+  navigate: Navigate;
+}) {
   const current = useRef<HTMLAnchorElement>(null);
   const viewport = useRef<HTMLDivElement>(null);
   const [scroll, setScroll] = useState({ rows: 0, index: 0, percent: 0 });
@@ -1046,6 +1075,45 @@ function App() {
   const [route, setRoute] = useState(currentRoute);
   const page =
     manifest.pages.find((p) => p.route === route) || manifest.pages[0];
+  const [loaded, setLoaded] = useState<WikiPage>();
+  const [error, setError] = useState("");
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoaded(undefined);
+    setError("");
+    const url = sourceFiles(
+      page.source.startsWith("wiki/")
+        ? "./wiki/pages/" + page.source.slice(5)
+        : "./" + page.source.slice(4)
+    ) as string;
+    void fetch(url, { signal: controller.signal })
+      .then(async (response) => {
+        if (
+          !response.ok ||
+          response.headers.get("content-type")?.includes("text/html")
+        )
+          throw new Error(`Could not load ${page.source}`);
+        return response.text();
+      })
+      .then((text) => {
+        if (!controller.signal.aborted)
+          setLoaded({
+            ...page,
+            tokens: parseMarkdown(
+              text,
+              page,
+              manifest.pages,
+              manifest.references
+            ),
+          });
+      })
+      .catch((cause) => {
+        if (!controller.signal.aborted)
+          setError(String(cause.message || cause));
+      });
+    return () => controller.abort();
+  }, [page]);
+  const ready = loaded?.source === page.source;
   const navigate: Navigate = (path) => {
     const [target, hash] = path.split("#");
     const url = new URL(
@@ -1090,7 +1158,7 @@ function App() {
     if (window.location.hash)
       document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
     else window.scrollTo(0, 0);
-  }, [page.route, page.title]);
+  }, [page.route, page.title, loaded]);
   const chapterPages = manifest.pages.filter(
       (p) => p.chapter === page.chapter && p.navigation && !p.disabled
     ),
@@ -1121,19 +1189,39 @@ function App() {
         ),
       }}
     >
-      <div className="TerminalPage" style={{
-        "--link-underline": underlineImage(colors.blue),
-        "--link-hover-underline": underlineImage(colors.aqua),
-      } as React.CSSProperties}>
+      <div
+        className="TerminalPage"
+        style={
+          {
+            "--link-underline": underlineImage(colors.blue),
+            "--link-hover-underline": underlineImage(colors.aqua),
+          } as React.CSSProperties
+        }
+      >
         <WikiHeader navigate={navigate} />
         <div className="WikiLayout">
           <Navigation page={page} navigate={navigate} />
-          <main key={page.route} id="content" tabIndex={-1}>
-            <Markdown
-              tokens={page.tokens}
-              navigate={navigate}
-              source={page.source}
-            />
+          <main
+            key={page.route}
+            id="content"
+            tabIndex={-1}
+            aria-busy={!ready && !error}
+          >
+            {error ? (
+              <p role="alert">
+                <Text>{error}</Text>
+              </p>
+            ) : ready ? (
+              <Markdown
+                tokens={loaded.tokens}
+                navigate={navigate}
+                source={page.source}
+              />
+            ) : (
+              <p>
+                <Text>Loading...</Text>
+              </p>
+            )}
             <div className="PageControls">
               {back && (
                 <Button onClick={() => navigate(back.route)}>{"< Back"}</Button>
@@ -1148,4 +1236,4 @@ function App() {
     </ReferenceContext.Provider>
   );
 }
-createRoot(document.getElementById("wiki-root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(<App />);

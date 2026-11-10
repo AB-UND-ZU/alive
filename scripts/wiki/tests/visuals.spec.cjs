@@ -1,12 +1,5 @@
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./fixtures.cjs");
 
-test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
-    window.EventSource = class {
-      close() {}
-    };
-  });
-});
 
 const fills = (locator) =>
   locator.evaluateAll((roots) => {

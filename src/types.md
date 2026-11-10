@@ -88,7 +88,6 @@
 | [Focus](engine/components/popup.md#type-focus) | `src/engine/components/popup.ts` |
 | [Focusable](engine/components/focusable.md#type-focusable) | `src/engine/components/focusable.ts` |
 | [Fog](engine/components/fog.md#type-fog) | `src/engine/components/fog.ts` |
-| [FontCell](components/Row/index.md#type-fontcell) | `src/components/Row/index.tsx` |
 | [Font](components/Entity/geometries.md#type-font) | `src/components/Entity/geometries.ts` |
 | [Forgable](engine/components/forgable.md#type-forgable) | `src/engine/components/forgable.ts` |
 | [ForgeOptionResult](game/balancing/forging.md#type-forgeoptionresult) | `src/game/balancing/forging.ts` |

@@ -1,12 +1,4 @@
-const { test, expect } = require("@playwright/test");
-test.beforeEach(async ({ page }) =>
-  page.addInitScript(
-    () =>
-      (window.EventSource = class {
-        close() {}
-      })
-  )
-);
+const { test, expect } = require("./fixtures.cjs");
 test("acquisition sources use compact titled native frames with complete drops and prices", async ({
   page,
 }) => {

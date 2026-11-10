@@ -8,7 +8,6 @@ import { createText } from "../../game/assets/ui";
 
 <Row cells={createText("Alive")} />
 ```
-
 <!-- source-types -->
 
 ## CellSprite

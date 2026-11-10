@@ -1,12 +1,5 @@
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./fixtures.cjs");
 
-test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
-    window.EventSource = class {
-      close() {}
-    };
-  });
-});
 
 test("Interface loads native controls after navigation from Welcome", async ({
   page,
@@ -162,11 +155,6 @@ test("native touch keeps real input and shows every reference direction", async 
     hasTouch: true,
   });
   const page = await context.newPage();
-  await page.addInitScript(() => {
-    window.EventSource = class {
-      close() {}
-    };
-  });
   const { iframe, frame, bounds } = await touchScene(page);
   await expect(frame.locator("style[data-touch-cursor]")).toHaveCount(0);
   expect(await frame.evaluate(() => navigator.maxTouchPoints)).toBeGreaterThan(

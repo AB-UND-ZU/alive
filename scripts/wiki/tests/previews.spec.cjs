@@ -1,11 +1,4 @@
-const { test, expect } = require("@playwright/test");
-test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
-    window.EventSource = class {
-      close() {}
-    };
-  });
-});
+const { test, expect } = require("./fixtures.cjs");
 
 test("feature previews align 23 by 15 cells with the game camera and show an instruction", async ({
   page,

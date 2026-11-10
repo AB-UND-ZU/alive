@@ -10,6 +10,7 @@ Controls disappearance.
 ```ts src/engine/components/vanishable.ts
 export type Vanishable = {
   type: "plant" | "evaporate";
+  color?: string;
   cells: { cell: CellType; delta: Position }[];
   decayed: boolean;
   evaporate?: { sprite: Sprite; fast: boolean };

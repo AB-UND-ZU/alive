@@ -1,6 +1,6 @@
 # Document Types
 
-The builder passes one typed manifest to the React wiki app.
+The route registry and browser Markdown parser supply the typed page data to the React wiki app.
 
 ```text manifest-flow.txt
 Markdown -> WikiToken[]
@@ -14,7 +14,7 @@ Markdown -> WikiToken[]
 | `WikiPage` | Source path, canonical route, menu group, content and source-local references |
 | `WikiManifest` | Game version, pages, title and reference destinations |
 
-A page alias preserves an older URL. `navigation` controls menu inclusion; `disabled` retains an unavailable entry. Syntax metadata belongs to the build so the browser does not parse or guess code references.
+A page alias preserves an older URL. `navigation` controls menu inclusion; `disabled` retains an unavailable entry. Prism computes syntax tokens when a page loads. Code links use the committed source-reference index, which is refreshed explicitly with `wiki:types`.
 <!-- source-types -->
 
 ## WikiToken

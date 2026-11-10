@@ -60,3 +60,17 @@ test("natural sources use the item's actual owning AI pattern", () => {
     [{ unit: "chick", item: { stackable: "egg", amount: 1, bound: false } }]
   );
 });
+
+test("committed acquisition metadata matches native rewards and patterns", async () => {
+  const expected = extractNpcItemSources(
+    await readFile("src/game/assets/npcs.ts", "utf8")
+  );
+  expected.natural = extractPatternItemSources(
+    await readFile("src/engine/systems/ai.ts", "utf8")
+  );
+  assert.deepEqual(
+    JSON.parse(await readFile("src/wiki/item-sources.json", "utf8")),
+    expected,
+    "Run npm run wiki:sources after changing native rewards or item-producing patterns"
+  );
+});

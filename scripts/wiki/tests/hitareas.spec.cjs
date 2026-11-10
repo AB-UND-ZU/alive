@@ -1,4 +1,4 @@
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./fixtures.cjs");
 
 // Project native particle centers independently of the DOM hit areas.
 const nativePoint = (page, sequence, key) =>

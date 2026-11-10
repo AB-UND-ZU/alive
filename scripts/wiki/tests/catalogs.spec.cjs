@@ -1,4 +1,4 @@
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./fixtures.cjs");
 
 test("class choices match the game selector and show compact progression", async ({
   page,

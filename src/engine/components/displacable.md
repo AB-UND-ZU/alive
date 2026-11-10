@@ -8,5 +8,5 @@ Allows movement caused by pushing or sliding.
 ## Displacable
 
 ```ts src/engine/components/displacable.ts
-export type Displacable = {};
+export type Displacable = { pushSound?: boolean };
 ```

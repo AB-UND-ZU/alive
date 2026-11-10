@@ -1,4 +1,4 @@
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./fixtures.cjs");
 const fs = require("node:fs");
 const path = require("node:path");
 const logicalText = (element) => {
@@ -29,18 +29,6 @@ async function expectColor(locator, color) {
     )
     .toBe(true);
 }
-
-const reloadTest = "the wiki dev server rebuilds and reloads a Markdown edit";
-
-test.beforeEach(async ({ page }, info) => {
-  // Reload has its own check; rebuilding must not interrupt other interactions.
-  if (info.title !== reloadTest)
-    await page.addInitScript(() => {
-      window.EventSource = class {
-        close() {}
-      };
-    });
-});
 
 test("navigation follows the design and implementation groups with Welcome and Play under Intro", async ({
   page,
@@ -764,50 +752,6 @@ test("source component and system pages exist", () => {
     const file = path.join("src/components", entry, "index.tsx");
     if (fs.existsSync(file))
       expect(fs.existsSync(file.replace(".tsx", ".md")), file).toBe(true);
-  }
-});
-
-test(reloadTest, async ({ page }) => {
-  const file = path.resolve("wiki/touch.md"),
-    original = fs.readFileSync(file, "utf8"),
-    marker = "Live Reload Verification Marker";
-  try {
-    await page.goto("/game-design/controls/touch.html");
-    await expect(page.locator('script[src="/__wiki_reload.js"]')).toHaveCount(
-      1
-    );
-    await page.waitForTimeout(250);
-    fs.writeFileSync(file, original + "\n" + marker + "\n");
-    for (let attempt = 0; attempt < 12; attempt++) {
-      expect(
-        (await page.request.get("/game-design/controls/touch.html")).status()
-      ).toBe(200);
-      await page.waitForTimeout(50);
-    }
-
-    await expect
-      .poll(
-        async () =>
-          page
-            .locator("main")
-            .textContent()
-            .catch(() => ""),
-        { timeout: 20000 }
-      )
-      .toContain(marker);
-    await expect(page).toHaveURL(/touch.html$/);
-  } finally {
-    fs.writeFileSync(file, original);
-    await expect
-      .poll(
-        async () =>
-          page
-            .locator("main")
-            .textContent()
-            .catch(() => marker),
-        { timeout: 20000 }
-      )
-      .not.toContain(marker);
   }
 });
 

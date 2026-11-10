@@ -212,3 +212,23 @@ h1.Heading:has(.HeadingNewLine) .HeadingWord {
 .WikiLink:not(:has(.Pixels)) .NativeText {
   white-space: normal;
 }
+
+.ReadableGlyph {
+  display: inline-grid;
+  width: var(--cell-width, 18px);
+  height: var(--cell-height, 32px);
+  vertical-align: top;
+}
+.ReadableGlyph > span {
+  grid-area: 1 / 1;
+}
+.ReadableGlyphSource {
+  opacity: 0;
+}
+.ReadableGlyphSprite {
+  pointer-events: none;
+}
+.ReadableGlyphSprite,
+.ReadableGlyphSprite * {
+  user-select: none !important;
+}

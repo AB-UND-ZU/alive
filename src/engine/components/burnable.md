@@ -10,6 +10,7 @@ Tracks active fire, simmering, combustion, and decay.
 ```ts src/engine/components/burnable.ts
 export type Burnable = {
   burning: boolean;
+  smokeless?: boolean;
   eternal: boolean;
   simmer: boolean;
   combusted: boolean;

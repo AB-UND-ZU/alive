@@ -1,3 +1,4 @@
+import "../../index.css";
 import Controls from "../Controls";
 import Dimensions from "../Dimensions";
 import Stats from "../Stats";

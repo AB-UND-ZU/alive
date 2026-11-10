@@ -1,4 +1,4 @@
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./fixtures.cjs");
 
 test("harvesting identifies native targets and construction remains with sprites", async ({
   page,

@@ -12,6 +12,4 @@
 
 The font stores graphical controls at U+0100 through U+011E. `glyphAliases.json` maps their normal Unicode symbols, including the female symbol, to those keys. Byte zero is blank; printable ASCII and extended characters keep their Unicode equivalents.
 
-The same alias data is used by text rendering and build validation.
-
-The wiki build adds these Unicode aliases to the bundled WOFF character table without changing its glyphs or widths. Prose and code can then keep readable Unicode in their actual text nodes and clipboard content. Native game sprites keep their original font keys.
+Text rendering maps these Unicode symbols to the existing stacked glyph sprites. The selectable source character keeps prose readable when copied. Native game sprites keep their original font keys; builds do not generate or modify fonts.

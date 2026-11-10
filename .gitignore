@@ -26,5 +26,3 @@ yarn-error.log*
 /.wiki-build
 /playwright-report
 /test-results
-
-.wiki-dev/

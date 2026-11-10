@@ -1,11 +1,4 @@
-const { test, expect } = require("@playwright/test");
-test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
-    window.EventSource = class {
-      close() {}
-    };
-  });
-});
+const { test, expect } = require("./fixtures.cjs");
 
 test("Levels composes native green frames with sizes and onward connections", async ({
   page,

@@ -1,4 +1,5 @@
 import ts from "typescript";
+import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { readFile, writeFile } from "node:fs/promises";
 
@@ -185,3 +186,8 @@ export async function generateItemSources(root) {
     await writeFile(destination, text);
   return result;
 }
+
+if (process.argv[1] === fileURLToPath(import.meta.url))
+  await generateItemSources(
+    path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
+  );

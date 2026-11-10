@@ -17,7 +17,9 @@ const text = (view: string) => {
   const element = document.createElement("div");
   element.innerHTML = view;
   element.querySelectorAll(".Pixels").forEach((node) => {
-    node.textContent = readRows(node as HTMLElement).join("").replace(/[^0-9%]/g, "");
+    node.textContent = readRows(node as HTMLElement)
+      .join("")
+      .replace(/[^0-9%]/g, "");
   });
   return element.textContent || "";
 };
@@ -182,5 +184,25 @@ it.each(["Infinity", "∞", "99+"])(
     expect(view).toContain('aria-label="99+"');
     expect(view).toContain(" ticks");
     expect(view).not.toContain("Infinity");
+  }
+);
+
+it("renders readable aliases with existing glyph sprites while keeping their source text", () => {
+  const view = renderToStaticMarkup(<Text>{"A ↑ B → C"}</Text>);
+  expect(text(view)).toBe("A ↑ B → C");
+  expect(view).toContain("ReadableGlyphSource");
+  const element = document.createElement("div");
+  element.innerHTML = view;
+  expect(
+    Array.from(element.querySelectorAll(".ReadableGlyphSprite .Layer")).map(
+      (layer) => layer.textContent
+    )
+  ).toEqual(["ė", "ę"]);
+});
+
+it.each(["constructor", "toString", "__proto__"])(
+  "renders ordinary text without reading inherited aliases (%s)",
+  (value) => {
+    expect(text(renderToStaticMarkup(<Text>{value}</Text>))).toBe(value);
   }
 );
