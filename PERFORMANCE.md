@@ -1,6 +1,6 @@
 # Performance implementation and verification
 
-Workspace: `alive-worktree-6`, branch `perf/alive-6`. Rebased onto local main `1954fd1` (the fetched remote main was older). The four changes are enabled in normal production code, with no experimental runtime flags.
+Workspace: `alive-worktree-6`, branch `perf/alive-6`. Rebased onto local main `1954fd1` (the fetched remote main was older). The four initial changes below and the three follow-up optimizations are enabled in normal production code, with no experimental runtime flags.
 
 ## Changes
 
@@ -121,8 +121,8 @@ repetitions and checks the complete ECS-state hash after 600 ticks.
 | Disable additional world/animated matrix updates | No consistent live frame improvement; rejected |
 | Restrict box geometry faces | No convincing live frame improvement; rejected |
 | Reuse shadows during relative camera translation | Render submission fell, total frame improvement only about 2%; not accepted |
-| Skip healthy entities in final decay cleanup | About 31% drop-system / 7.4% total simulation saving in the initial busy-world PoC; verify production separately |
-| Reuse adjacent-cell entity arrays | About 22% action-system / 4.4% total simulation saving in initial PoC; verify production separately |
+| Skip healthy entities in final decay cleanup | Accepted after production verification: 30.9% drop-system / 8.2% simulation saving in controlled loaded-world ticks |
+| Reuse adjacent-cell entity arrays | Accepted after production verification: 21.0% action-system / 4.5% simulation saving in controlled loaded-world ticks |
 | Combine four action predicates into a manual loop | More code, no improvement over simple array reuse; prefer array reuse |
 
 Renderer submission CPU is not GPU execution time. The available Chromium uses
@@ -223,3 +223,42 @@ worm-boss defeat, no remaining boss entity, and no browser errors.
 
 Before committing the action candidate, type checking, lint, all 183 fast suites
 (1,687 tests), six slow suites (36 tests), and the production build passed again.
+
+### Commits and combined verification
+
+- `d182048`: background sound synthesis, with PCM and worker lifecycle tests.
+- `f8a3dc3`: early decay eligibility check, with independent CPU and live-fight measurements.
+- `e7a579f`: shared adjacent-cell lookup, with independent measurements and browser interaction checks.
+
+Each candidate was committed only after its own required checks and measurements.
+The final production build also passed the real worker/fallback audio check again.
+The workspace remains based on local main `1954fd1`; nothing was pushed or merged.
+
+An extended comparison uses the same current harness against source from `8301359`
+and `e7a579f`, with 60 keyboard movement/casting cycles, an iron sword, fire beam,
+99 starting mana, the real worm encounter, and 24 initialized island regions.
+All runs retain approximately 39,000 entities and end at 79 mana. The encounter,
+spell controls, effects, shadows and HUD were visually inspected at both widths.
+These are single longer confirmation pairs; the repeated isolated measurements
+above remain the evidence for accepting each individual candidate.
+
+| Extended equipped fight | Baseline | Combined implementation |
+| --- | ---: | ---: |
+| Desktop mean simulation CPU | 3.496 ms | 3.155 ms (9.8% lower) |
+| Desktop mean frame interval | 36.528 ms | 35.622 ms (2.5% lower) |
+| Desktop p99 frame interval | 55.3 ms | 53.6 ms |
+| 390px / 4× CPU mean simulation CPU | 13.186 ms | 12.227 ms (7.3% lower) |
+| 390px / 4× CPU mean frame interval | 77.959 ms | 76.646 ms (1.7% lower) |
+| 390px / 4× CPU p99 frame interval | 164.0 ms | 162.3 ms |
+
+All four extended runs completed without browser errors. Live timing changes the
+number and positions of transient entities, so these real-clock runs are not used
+for exact state or pixel comparisons. The controlled 600-tick checks and six
+identical interaction screenshots provide those complementary checks.
+
+The strongest frame-tail improvement is during sound-catalog warming. The two
+engine changes consistently reduce steady simulation work as explored territory
+grows, but do not eliminate the heavy boss fight's full frame cost. This is not a
+claim that all lag is fixed or that low-end phones now sustain 60fps. Physical GPU
+profiling is still needed to separate remaining GPU, browser and React costs;
+software-rendered frame times and renderer submission CPU alone cannot do that.
