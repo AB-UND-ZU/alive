@@ -1,3 +1,4 @@
+import { completeCommand } from "./commands";
 import { getWarpMap, warpBlink } from "./warp";
 import {
   decayHeight,
@@ -6926,7 +6927,10 @@ export const displayWarp: Sequence<PopupSequence> = (world, entity, state) => {
     blinkParticle[PARTICLE].amount = blinkGeneration;
   }
 
-  const { content, level, lockedLevel, currentLevel } = getWarpMap(world, entity);
+  const { content, level, lockedLevel, currentLevel } = getWarpMap(
+    world,
+    entity
+  );
 
   const popupResult = renderPopup(
     world,
@@ -7248,18 +7252,29 @@ export const displayChat: Sequence<PopupSequence> = (world, entity, state) => {
 
   const selections = getTabSelections(world, entity);
   const verticalIndex = getVerticalIndex(world, entity);
-  const lines = [
-    ...selections.map((keyIndex) =>
-      recolorSprite(parseSprite(`\x0f█\x00${getKeyFromIndex(keyIndex)}`), {
-        [colors.black]: colors.white,
-        [colors.white]: colors.black,
-      })
-    ),
-    showCaret ? caret : none,
-  ];
+  const typed = selections.map((keyIndex) =>
+    recolorSprite(parseSprite(`\x0f█\x00${getKeyFromIndex(keyIndex)}`), {
+      [colors.black]: colors.white,
+      [colors.white]: colors.black,
+    })
+  );
+  const input = selections.map(getKeyFromIndex).join("");
+  const suggestion = TEST_MODE
+    ? createText(completeCommand(world, input), colors.grey)
+    : [];
+  const lines = [...typed, ...suggestion];
+  lines[typed.length] = showCaret
+    ? mergeSprites(suggestion[0] || none, caret)
+    : suggestion[0] || none;
+  const width = frameWidth - 2;
+  const windowHeight = 6;
+  const firstRow = Math.max(
+    0,
+    Math.floor(typed.length / width) - (windowHeight - 2) + 1
+  );
   const content: Sprite[][] = [
     ...repeat([], verticalIndex),
-    ...chunked(lines, frameWidth - 2),
+    ...chunked(lines, width).slice(firstRow),
   ];
 
   const popupResult = renderPopup(
@@ -7273,7 +7288,7 @@ export const displayChat: Sequence<PopupSequence> = (world, entity, state) => {
     undefined,
     createButton("SEND", 6, selections.length === 0, false, false, "lime"),
     createButton("CLEAR", 7, selections.length === 0, false, false, "red"),
-    6
+    windowHeight
   );
 
   return {

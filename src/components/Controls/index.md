@@ -22,3 +22,5 @@ type Action = {
   palette: Palette;
 };
 ```
+
+In test-mode chat, Tab accepts the suggested command word. A right swipe does the same on the dialog or keyboard; continuing the same drag does not accept another word. Keyboard taps retain native click handling, while a swipe cancels the click.

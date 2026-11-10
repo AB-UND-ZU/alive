@@ -37,3 +37,5 @@ export type CommandSignature = {
   short: string;
 };
 ```
+
+`completeCommand(world, input)` returns the suggested suffix and a trailing space. It reads accepted command arguments from the game data and current positioned identifiers from the world. Free-form numbers, coordinates and new pin names have no suggestions. Typing a longer prefix narrows the suggested word.

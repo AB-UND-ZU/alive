@@ -690,6 +690,55 @@ commandSignatures.pin = {
   usage: "/pin <name> [x,y]",
 };
 
+export const completeCommand = (world: World, input: string): string => {
+  if (!input.startsWith("/")) return "";
+  const words = input.split(" ");
+  const last = words[words.length - 1];
+  let values: readonly string[] = [];
+
+  if (words.length === 1) {
+    values = Object.keys(commandSignatures).map((name) => `/${name}`);
+  } else {
+    const command = expandCommand(words[0].slice(1));
+    const identifiers = () =>
+      world
+        .getEntities([IDENTIFIABLE, POSITION])
+        .map((entity) => entity[IDENTIFIABLE].name);
+    const argumentsByCommand: Record<string, readonly (readonly string[])[]> = {
+      help: [Object.keys(commandSignatures)],
+      give: [
+        Object.keys(commandItems),
+        [],
+        [...materials, "default"],
+        words[1] === "potion" ? unitStats : elements,
+      ],
+      cast: [
+        Object.keys(commandItems).filter((name) => {
+          const item = commandItems[name];
+          return (
+            (item.spell || item.skill) &&
+            !["zap", "block"].includes(item.skill!)
+          );
+        }),
+        materials,
+        elements,
+      ],
+      stat: [[...unitStats, ...npcTypes, ...commandStats]],
+      mod: [commandMods],
+      list: [commandLists],
+      new: [cellNames, [], orientations],
+      tp: [command === "tp" ? identifiers() : []],
+      focus: [command === "focus" ? identifiers() : []],
+    };
+    values = argumentsByCommand[command || ""]?.[words.length - 2] || [];
+  }
+
+  const match = sorted([...new Set(values)]).find((value) =>
+    value.startsWith(last)
+  );
+  return match === undefined ? "" : match.slice(last.length) + " ";
+};
+
 export const parseCommand = (prompt: string): CommandCall | undefined => {
   if (!prompt.startsWith("/")) return;
 

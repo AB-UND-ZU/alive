@@ -27,6 +27,8 @@ import { canCast } from "../../engine/systems/magic";
 import {
   getTab,
   typeChat,
+  completeChat,
+  getActivePopup,
   getTabSelections,
   getVerticalIndex,
   isInPopup,
@@ -924,6 +926,8 @@ export default function Controls({
 
   const handleKey = useCallback(
     (event: KeyboardEvent) => {
+      const popup = ecs && hero && getActivePopup(ecs, hero);
+      const popupTab = ecs && popup && getTab(ecs, popup);
       if (event.type === "keydown" && closeKeys.includes(event.key)) {
         if (!(popup && !paused) && !initial) {
           // handle pause and resume
@@ -962,7 +966,10 @@ export default function Controls({
         !closeKeys.includes(event.key) &&
         event.type === "keydown"
       ) {
-        if (historyKeys.includes(event.key)) {
+        if (tabKeys.includes(event.key)) {
+          event.preventDefault();
+          if (!paused && ecs && hero) completeChat(ecs, hero);
+        } else if (historyKeys.includes(event.key)) {
           // scroll through history
           if (event.key === "ArrowUp") {
             handleAction("up");
@@ -1077,8 +1084,6 @@ export default function Controls({
       hero,
       initial,
       paused,
-      popup,
-      popupTab,
       interactable,
       setPaused,
       handleMove,
@@ -1116,20 +1121,20 @@ export default function Controls({
 
   const handleTouchMove = useCallback(
     (event: TouchEvent) => {
+      const popup = ecs && hero && getActivePopup(ecs, hero);
+      const popupTab = ecs && popup && getTab(ecs, popup);
       if (!paused) {
         ensureAudio();
       }
 
-      // defer keyboard clicks to own component
-      if (
-        [...event.changedTouches].some((touch) =>
-          (touch.target as HTMLElement).closest("#keyboard")
-        )
-      )
-        return;
+      const onKeyboard = [...event.changedTouches].some((touch) =>
+        (touch.target as HTMLElement).closest("#keyboard")
+      );
+      if (onKeyboard && !(TEST_MODE && popupTab === "chat")) return;
 
       // prevent touches over action bar
       if (
+        !onKeyboard &&
         ![...event.changedTouches].some((touch) =>
           [
             "spell",
@@ -1181,6 +1186,7 @@ export default function Controls({
         return false;
       }
 
+      if (onKeyboard) event.preventDefault();
       const degrees = pointToDegree({ x: deltaX, y: deltaY });
       const nextOrientations = degreesToOrientations(degrees);
 
@@ -1189,6 +1195,11 @@ export default function Controls({
         const primaryOrientation = nextOrientations[0];
         if (TEST_MODE && popupTab === "chat") {
           if (
+            primaryOrientation === "right" &&
+            pressedOrientations.current[0] !== "right"
+          ) {
+            if (!paused && ecs && hero) completeChat(ecs, hero);
+          } else if (
             ["up", "down"].includes(primaryOrientation) &&
             pressedOrientations.current[0] !== primaryOrientation
           ) {
@@ -1217,7 +1228,8 @@ export default function Controls({
       releaseTouch,
       setJoystickOrientations,
       paused,
-      popupTab,
+      ecs,
+      hero,
     ]
   );
 

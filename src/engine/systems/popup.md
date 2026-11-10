@@ -18,3 +18,5 @@ Chat edits use `typeChat(world, hero, keyIndex)` immediately, without sharing th
 `submitChat(world, hero, line)` sends text, records history and executes slash commands through the same path as chat confirmation. It returns the command response, if any, and closes an open chat. Sequences can import it to make the player speak without opening a dialog. Keyboard selections may also be passed as an array to preserve layered special characters. The normal UI still requires test mode to submit chat.
 
 An omitted or empty line clears the speech bubble without adding history.
+
+`completeChat(world, hero)` appends the current command suggestion to the chat buffer. Desktop Tab and a right swipe use this function. Suggestions are display-only until accepted; history still contains only submitted text.

@@ -84,7 +84,11 @@ import {
   keyboardColumns,
   keyboardSize,
 } from "../../components/Keyboard";
-import { executeCommand, parseCommand } from "../../game/assets/commands";
+import {
+  completeCommand,
+  executeCommand,
+  parseCommand,
+} from "../../game/assets/commands";
 import {
   addBackground,
   brew,
@@ -189,7 +193,7 @@ export const popTabSelection = (world: World, popupEntity: Entity) => {
 export const typeChat = (
   world: World,
   heroEntity: Entity,
-  keyIndex?: number
+  keyIndex?: number | number[]
 ) => {
   const popup = world.getEntityByIdAndComponents(heroEntity[PLAYER]?.popup, [
     POPUP,
@@ -205,12 +209,37 @@ export const typeChat = (
   reference.suspended = false;
 
   if (keyIndex !== undefined) {
-    pushTabSelection(world, popup, keyIndex);
+    const indices = Array.isArray(keyIndex) ? keyIndex : [keyIndex];
+    getTabSelections(world, popup).push(...indices);
+    rerenderEntity(world, popup);
     play("type", { notes: 2, spacing: 16 });
   } else {
     popTabSelection(world, popup);
     play("type", { notes: 2, spacing: 20, intensity: 2 });
   }
+};
+
+export const completeChat = (world: World, heroEntity: Entity) => {
+  if (!TEST_MODE) return;
+  const popup = world.getEntityByIdAndComponents(heroEntity[PLAYER]?.popup, [
+    POPUP,
+  ]);
+  if (!popup || getTab(world, popup) !== "chat") return;
+  const input = getTabSelections(world, popup).map(getKeyFromIndex).join("");
+  const completion = completeCommand(world, input);
+  if (!completion) return;
+  const indices = [...completion].flatMap((key) => {
+    const index = getIndexFromKey(key);
+    return index
+      ? [
+          index.tab * keyboardSize +
+            index.offset * keyboardColumns +
+            index.content,
+        ]
+      : [];
+  });
+  if (indices.length !== [...completion].length) return;
+  typeChat(world, heroEntity, indices);
 };
 
 export const submitChat = (
