@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { useLayoutEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
+import { updateLocalMatrix } from "./matrixUpdates";
 import { SpringValue } from "@react-spring/three";
 
 /**
@@ -19,6 +20,12 @@ type Entry = {
   color: THREE.Color;
   darkness?: SpringValue<number>;
   index: number;
+  bufferIndex?: number;
+  bufferMesh?: THREE.InstancedMesh;
+  matrix?: THREE.Matrix4;
+  red?: number;
+  green?: number;
+  blue?: number;
 };
 
 type Batch = {
@@ -42,7 +49,11 @@ const materials = {
 };
 
 const createMesh = (batch: Batch, capacity: number) => {
-  const mesh = new THREE.InstancedMesh(batch.geometry, batch.material, capacity);
+  const mesh = new THREE.InstancedMesh(
+    batch.geometry,
+    batch.material,
+    capacity
+  );
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   mesh.instanceColor = new THREE.InstancedBufferAttribute(
     new Float32Array(capacity * 3),
@@ -104,6 +115,23 @@ const unregister = (batch: Batch, entry: Entry) => {
 
 const tempColor = new THREE.Color();
 
+// Keep pending changes until WebGL consumes them. A canvas may advance more
+// than once before rendering, or a temporarily hidden batch may not upload.
+const updateRange = (
+  attribute: THREE.BufferAttribute,
+  first: number,
+  last: number
+) => {
+  if (last < 0) return;
+  for (const range of attribute.updateRanges) {
+    first = Math.min(first, range.start);
+    last = Math.max(last, range.start + range.count - 1);
+  }
+  attribute.clearUpdateRanges();
+  attribute.addUpdateRange(first, last - first + 1);
+  attribute.needsUpdate = true;
+};
+
 /** Mount once inside the canvas. */
 export function InstanceRoot() {
   const scene = useThree((state) => state.scene);
@@ -123,29 +151,46 @@ export function InstanceRoot() {
 
     batches.forEach((batch) => {
       const { entries, mesh } = batch;
+      let matrixFirst = Infinity,
+        matrixLast = -1;
+      let colorFirst = Infinity,
+        colorLast = -1;
       const matrices = mesh.instanceMatrix.array as Float32Array;
       const colors = mesh.instanceColor!.array as Float32Array;
 
       for (let i = 0; i < entries.length; i += 1) {
         const entry = entries[i];
-        matrices.set(entry.anchor.matrixWorld.elements, i * 16);
+        const movedSlot = entry.bufferMesh !== mesh || entry.bufferIndex !== i;
+        if (movedSlot || !entry.matrix?.equals(entry.anchor.matrixWorld)) {
+          matrices.set(entry.anchor.matrixWorld.elements, i * 16);
+          (entry.matrix ||= new THREE.Matrix4()).copy(entry.anchor.matrixWorld);
+          matrixFirst = Math.min(matrixFirst, i * 16);
+          matrixLast = i * 16 + 15;
+        }
 
         let color = entry.color;
         if (entry.darkness) {
           color = tempColor.copy(color).multiplyScalar(entry.darkness.get());
         }
-        colors[i * 3] = color.r;
-        colors[i * 3 + 1] = color.g;
-        colors[i * 3 + 2] = color.b;
+        if (
+          movedSlot ||
+          entry.red !== color.r ||
+          entry.green !== color.g ||
+          entry.blue !== color.b
+        ) {
+          colors[i * 3] = entry.red = color.r;
+          colors[i * 3 + 1] = entry.green = color.g;
+          colors[i * 3 + 2] = entry.blue = color.b;
+          colorFirst = Math.min(colorFirst, i * 3);
+          colorLast = i * 3 + 2;
+        }
+        entry.bufferMesh = mesh;
+        entry.bufferIndex = i;
       }
 
       mesh.count = entries.length;
-      mesh.instanceMatrix.clearUpdateRanges();
-      mesh.instanceMatrix.addUpdateRange(0, entries.length * 16);
-      mesh.instanceMatrix.needsUpdate = true;
-      mesh.instanceColor!.clearUpdateRanges();
-      mesh.instanceColor!.addUpdateRange(0, entries.length * 3);
-      mesh.instanceColor!.needsUpdate = true;
+      updateRange(mesh.instanceMatrix, matrixFirst, matrixLast);
+      updateRange(mesh.instanceColor!, colorFirst, colorLast);
     });
   });
 
@@ -197,5 +242,13 @@ export function Instance({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [batchKey, geometry, lambert]);
 
-  return <object3D ref={anchor} position={position} userData={userData} />;
+  return (
+    <object3D
+      ref={anchor}
+      position={position}
+      userData={userData}
+      matrixAutoUpdate={false}
+      onUpdate={updateLocalMatrix}
+    />
+  );
 }

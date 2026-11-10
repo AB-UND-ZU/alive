@@ -7,6 +7,7 @@ import { MOVABLE } from "../../engine/components/movable";
 import { FOG } from "../../engine/components/fog";
 import { SWIMMABLE } from "../../engine/components/swimmable";
 import { colors } from "../../game/assets/colors";
+import { updateLocalMatrix } from "./matrixUpdates";
 import Animated from "./Animated";
 import CoveredLight from "./CoveredLight";
 import { useWorld } from "../../bindings/hooks";
@@ -186,6 +187,8 @@ function Entity({
 
   return (
     <Container
+      matrixAutoUpdate={Container === "group" ? false : undefined}
+      onUpdate={Container === "group" ? updateLocalMatrix : undefined}
       position={[x * dimensions.aspectRatio, -y, 0]}
       spring={config}
       bumpOrientation={entity[BUMPABLE]?.orientation}

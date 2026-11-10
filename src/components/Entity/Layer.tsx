@@ -8,6 +8,7 @@ import { stack, stackHeight } from "./utils";
 import Box from "./Box";
 import { Point } from "../../game/math/std";
 import { fontUrl, getBoxGeometry, getGlyphGeometry } from "./geometries";
+import { updateLocalMatrix } from "./matrixUpdates";
 import { Instance } from "./Instances";
 
 export type LayerProps = {
@@ -128,6 +129,8 @@ function Glyph({
 
   return (
     <mesh
+      matrixAutoUpdate={false}
+      onUpdate={updateLocalMatrix}
       geometry={getGlyphGeometry(font, char)}
       receiveShadow={receiveShadow}
       position={position}

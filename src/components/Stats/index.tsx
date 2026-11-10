@@ -110,6 +110,10 @@ function StatsInner({
         normalize(prevHighlight + 1, highlightDuration)
       );
     }, 100);
+    return () => {
+      clearInterval(highlightRef.current);
+      highlightRef.current = undefined;
+    };
   }, []);
 
   const pauseButton = createSpriteButton(

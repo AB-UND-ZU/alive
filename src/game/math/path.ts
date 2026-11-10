@@ -1,5 +1,6 @@
 // @ts-ignore
-import { Graph as GraphImpl, astar as astarImpl } from "javascript-astar";
+import { astar as astarImpl } from "javascript-astar";
+import { SparseGraph } from "./sparseGraph";
 import { World } from "../../engine";
 import { Position } from "../../engine/components/position";
 import { LEVEL } from "../../engine/components/level";
@@ -131,7 +132,7 @@ export const findPath = (
 ) => {
   const width = matrix.length / 2;
   const height = matrix[0].length / 2;
-  const graph = new GraphImpl(matrix) as Graph;
+  const graph = new SparseGraph(matrix);
   const normalizedOrigin = {
     x: normalize(origin.x, width),
     y: normalize(origin.y, height),
@@ -155,16 +156,12 @@ export const findPath = (
     y: Math.max(0, closestQuadrant.quadrant.y) * height,
   });
 
-  const targetNode = graph.grid[shiftedTarget.x][
-    shiftedTarget.y
-  ] as GridNode & { weight: number };
+  const targetNode = graph.node(shiftedTarget.x, shiftedTarget.y);
   if (targetWalkable) {
     targetNode.weight = 1;
   }
 
-  const originNode = graph.grid[shiftedOrigin.x][
-    shiftedOrigin.y
-  ] as GridNode & { weight: number };
+  const originNode = graph.node(shiftedOrigin.x, shiftedOrigin.y);
   originNode.weight = 1;
   const path = (astarImpl as typeof astar).search(
     graph,
@@ -185,9 +182,9 @@ export const findPathSimple = (
   origin: Position,
   target: Position
 ) => {
-  const graph = new GraphImpl(matrix) as Graph;
-  const originNode = graph.grid[origin.x][origin.y];
-  const targetNode = graph.grid[target.x][target.y];
+  const graph = new SparseGraph(matrix);
+  const originNode = graph.node(origin.x, origin.y);
+  const targetNode = graph.node(target.x, target.y);
 
   const path = (astarImpl as typeof astar).search(
     graph,

@@ -29,3 +29,7 @@ yarn-error.log*
 
 # generated wiki source links
 /src/wiki/sourceReferences.json
+
+# Performance measurements and reproducible stage bundles
+/results/perf/
+/results/performance/

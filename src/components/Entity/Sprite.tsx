@@ -5,6 +5,7 @@ import { useWorld } from "../../bindings/hooks";
 import { Orientation } from "../../engine/components/orientable";
 import { memo } from "react";
 import { animated, useSpring } from "@react-spring/three";
+import { updateLocalMatrix } from "./matrixUpdates";
 import Layer, { LayerProps } from "./Layer";
 import { useDimensions } from "../Dimensions";
 
@@ -82,7 +83,11 @@ function SpriteComponent({
   const layers = getFacingLayers(sprite, facing, amount);
 
   return (
-    <group position={[offsetX, offsetY, offsetZ]}>
+    <group
+      position={[offsetX, offsetY, offsetZ]}
+      matrixAutoUpdate={false}
+      onUpdate={updateLocalMatrix}
+    >
       {layers.map((layer, index) => (
         <Layer
           props={layerProps}

@@ -1,6 +1,7 @@
 import { ThreeElements } from "@react-three/fiber";
 import { useDimensions } from "../Dimensions";
 import { Orientation } from "../../engine/components/orientable";
+import { updateLocalMatrix } from "./matrixUpdates";
 import { getBoxGeometry } from "./geometries";
 
 export default function Box({
@@ -26,6 +27,8 @@ export default function Box({
 
   return (
     <mesh
+      matrixAutoUpdate={false}
+      onUpdate={updateLocalMatrix}
       {...props}
       geometry={getBoxGeometry(width, depth, height)}
       position={[

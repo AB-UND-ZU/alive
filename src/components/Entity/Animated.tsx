@@ -1,3 +1,4 @@
+import { ThreeElements } from "@react-three/fiber";
 import { Vector3Tuple } from "three";
 import { useSpring, animated, SpringConfig } from "@react-spring/three";
 import { useWorld } from "../../bindings/hooks";
@@ -22,7 +23,7 @@ export default function Animated({
   spring?: SpringConfig;
   bumpOrientation?: Orientation;
   bumpGeneration?: number;
-}) {
+} & Omit<ThreeElements["group"], "position">) {
   const { paused } = useWorld();
   const bumpRef = useRef(bumpGeneration);
   const [values, api] = useSpring(() => ({

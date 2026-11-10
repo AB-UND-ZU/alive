@@ -406,6 +406,14 @@ export default function Controls({
     }
   }, [spellAction, skillOrToolAction]);
 
+  useEffect(
+    () => () => {
+      clearInterval(highlightRef.current);
+      highlightRef.current = undefined;
+    },
+    []
+  );
+
   const handleAction = useCallback(
     (
       action:
