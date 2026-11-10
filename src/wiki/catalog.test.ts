@@ -220,7 +220,8 @@ describe("item catalog", () => {
     const containers = (Object.keys(unitDefinitions) as UnitKey[]).filter(
       isContainer
     );
-    expect(containers).toHaveLength(11);
+    expect(containers).toHaveLength(12);
+    expect(containers).toContain("wormChest");
     expect(
       containers.every(
         (key) => unitPage(key, unitDefinitions[key]) === "containers"

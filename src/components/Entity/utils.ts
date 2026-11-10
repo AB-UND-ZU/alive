@@ -13,7 +13,7 @@ import { PLAYER } from "../../engine/components/player";
 import { PROJECTILE } from "../../engine/components/projectile";
 import { ITEM } from "../../engine/components/item";
 import { isSwimming } from "../../engine/systems/immersion";
-import { shadow } from "../../game/assets/sprites";
+import { none, shadow } from "../../game/assets/sprites";
 import { LIQUID } from "../../engine/components/liquid";
 import { LOOTABLE } from "../../engine/components/lootable";
 import {
@@ -117,7 +117,8 @@ export const getSegments = (
     (isUnit || isNpc(world, entity)) &&
     !swimming &&
     !isLiquid &&
-    !isLootable
+    !isLootable &&
+    !(entity[NPC]?.type === "wormBoss" && entity[SPRITE] === none)
   ) {
     orderedSegments.push({
       id: -2,

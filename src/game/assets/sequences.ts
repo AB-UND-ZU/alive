@@ -1,10 +1,12 @@
 import { completeCommand } from "./commands";
+import { NPC } from "../../engine/components/npc";
 import { getWarpMap, warpBlink } from "./warp";
 import {
   decayHeight,
   dialogHeight,
   effectHeight,
   floatHeight,
+  fixedHeight,
   focusHeight,
   fogHeight,
   idleHeight,
@@ -450,6 +452,7 @@ import {
   createButton,
   createCountable,
   createDialog,
+  createShout,
   createProgress,
   createSpriteButton,
   createText,
@@ -463,6 +466,7 @@ import {
   mergeSprites,
   parseSprite,
   recolorSprite,
+  getFacingLayers,
   shaded,
   shop,
   stretch,
@@ -1841,8 +1845,14 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
   }
 
   if (targetProgress > currentProgress && !finished) {
-    const slashSideSprite = slashSide[state.args.material].default;
-    const slashCornerSprite = slashCorner[state.args.material].default;
+    const slashSideSprite =
+      slashSide[state.args.element ? "default" : state.args.material][
+        state.args.element || "default"
+      ];
+    const slashCornerSprite =
+      slashCorner[state.args.element ? "default" : state.args.material][
+        state.args.element || "default"
+      ];
 
     for (
       let particleIndex = currentProgress;
@@ -2596,7 +2606,9 @@ export const castBlast: Sequence<SpellSequence> = (world, entity, state) => {
   const progress = Math.round(state.elapsed / blastSpeed);
   const orientation = entity[ORIENTABLE].facing as Orientation;
   const delta = orientationPoints[orientation];
-  const material = state.args.material || "default";
+  const material = state.args.memory?.elemental
+    ? "default"
+    : state.args.material || "default";
   const element = state.args.element || "default";
   const limit = {
     x: delta.x * state.args.range,
@@ -3085,7 +3097,12 @@ export const creatureDecay: Sequence<DecaySequence> = (
       [PARTICLE]: {
         offsetX: 0,
         offsetY: 0,
-        offsetZ: entity[LIGHT]?.darkness ? floatHeight : decayHeight,
+        offsetZ:
+          entity[FOG]?.type === "float"
+            ? particleHeight
+            : entity[LIGHT]?.darkness
+            ? floatHeight
+            : decayHeight,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: decay,
@@ -3187,11 +3204,52 @@ export const creatureVanish: Sequence<VanishSequence> = (
   const existingLimbs = state.args.limbs;
   const finished = state.args.remaining <= 0 && !!existingLimbs;
   let limbs = existingLimbs || {};
-  const vanishGrowSprites = vanishConfig[state.args.type].grow;
-  const vanishShrinkSprites = vanishConfig[state.args.type].shrink;
-  const evaporateSprite = vanishConfig[state.args.type].evaporate;
+  const palette = (sprite: Sprite) =>
+    entity[VANISHABLE].color
+      ? recolorSprite(sprite, entity[VANISHABLE].color!)
+      : sprite;
+  const vanishGrowSprites = vanishConfig[state.args.type].grow.map(palette);
+  const vanishShrinkSprites = vanishConfig[state.args.type].shrink.map(palette);
+  const evaporateSprite =
+    vanishConfig[state.args.type].evaporate &&
+    palette(vanishConfig[state.args.type].evaporate!);
+
+  if (state.particles.shout && vanishGeneration >= 4) {
+    const speaker = world.getEntityById(state.particles.shout);
+    if (speaker) disposeEntity(world, speaker);
+    delete state.particles.shout;
+    updated = true;
+  }
 
   if (vanishGeneration === 0 && !existingLimbs) {
+    if (entity[NPC]?.type === "wormBoss") {
+      entity[TOOLTIP].idle = undefined;
+      entity[TOOLTIP].dialogs = [];
+      entity[TOOLTIP].override = "hidden";
+      entity[TOOLTIP].changed = true;
+      // Keep the dying shout independent of the dead unit's suppressed tooltip.
+      const speaker = entities.createGround(world, {
+        [FOG]: { visibility: "visible", type: "float", fixed: true },
+        [POSITION]: copy(entity[POSITION]),
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: none,
+      });
+      world.addComponentToEntity(speaker, TOOLTIP, {
+        dialogs: [createShout(".".repeat(random(3, 5)))],
+        nextDialog: 0,
+        persistent: false,
+        enemy: true,
+        override: "visible",
+      });
+      world.addComponentToEntity(speaker, SEQUENCABLE, { states: {} });
+      world.addComponentToEntity(speaker, PARTICLE, {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: 0,
+      });
+      registerEntity(world, speaker);
+      state.particles.shout = world.getEntityId(speaker);
+    }
     // create initial limb
     state.args.remaining += 1;
     limbs[entityId] = {
@@ -3202,7 +3260,11 @@ export const creatureVanish: Sequence<VanishSequence> = (
     };
     state.args.limbs = limbs;
     const vanishParticle = entities.createParticle(world, {
-      [PARTICLE]: { offsetX: 0, offsetY: 0, offsetZ: decayHeight },
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: entity[FOG]?.type === "float" ? particleHeight : decayHeight,
+      },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: vanishGrowSprites[0] || none,
     });
@@ -3256,7 +3318,8 @@ export const creatureVanish: Sequence<VanishSequence> = (
               [PARTICLE]: {
                 offsetX: delta.x,
                 offsetY: delta.y,
-                offsetZ: decayHeight,
+                offsetZ:
+                  entity[FOG]?.type === "float" ? particleHeight : decayHeight,
               },
               [RENDERABLE]: { generation: 1 },
               [SPRITE]: none,
@@ -7319,11 +7382,18 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
 
   const outerRadius = Math.ceil(state.elapsed / waveSpeed);
   const innerRadius = Math.round(state.elapsed / waveSpeed);
-  const material = state.args.material || "default";
+  const material = state.args.memory?.elemental
+    ? "default"
+    : state.args.material || "default";
   const element = state.args.element || "default";
-  const sideTemplate = entity[CASTABLE].knock > 0 ? waveSideDouble : waveSide;
+  const sideTemplate =
+    entity[CASTABLE].knock > 0 || state.args.memory?.double
+      ? waveSideDouble
+      : waveSide;
   const cornerTemplate =
-    entity[CASTABLE].knock > 0 ? waveCornerDouble : waveCorner;
+    entity[CASTABLE].knock > 0 || state.args.memory?.double
+      ? waveCornerDouble
+      : waveCorner;
 
   // create wave sides, initial corners and AoE
   if (state.args.progress === 0) {
@@ -7578,6 +7648,27 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
     updated = true;
   }
 
+  if (state.args.memory.bounds) {
+    const bounds = state.args.memory.bounds;
+    for (const id of Object.values(state.particles)) {
+      const particle = world.assertByIdAndComponents(id, [PARTICLE, SPRITE]);
+      if (
+        !bounds[`${particle[PARTICLE].offsetX},${particle[PARTICLE].offsetY}`]
+      ) {
+        particle[SPRITE] = none;
+        rerenderEntity(world, particle);
+      }
+    }
+    state.args.areas = state.args.areas.filter((id) => {
+      const area = world.assertByIdAndComponents(id, [POSITION]);
+      const x = signedDistance(entity[POSITION].x, area[POSITION].x, size);
+      const y = signedDistance(entity[POSITION].y, area[POSITION].y, size);
+      if (bounds[`${x},${y}`]) return true;
+      disposeEntity(world, area);
+      return false;
+    });
+  }
+
   if (
     outerRadius + waveDissolve >= state.args.range &&
     outerRadius < state.args.duration
@@ -7826,7 +7917,10 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
       ) {
         entity[AFFECTABLE].dot += 1;
         entity[AFFECTABLE].burn -= 1;
-        state.args.lastAffected.generation += burnTicks;
+        state.args.lastAffected = {
+          generation: worldGeneration,
+          delta: 0,
+        };
       }
     }
 
@@ -9076,7 +9170,11 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
   const active =
     !expired &&
     !changed &&
-    (state.args.overridden || (state.args.isIdle && !isAdjacent) || isCloseBy);
+    (state.args.overridden ||
+      (state.args.isIdle &&
+        (!isAdjacent ||
+          (entity[TOOLTIP].dialogs.length === 0 && !entity[SPRITE].name))) ||
+      isCloseBy);
 
   const orientation =
     (!state.args.isIdle &&
@@ -10030,6 +10128,33 @@ export const unitLimbs: Sequence<LimbSequence> = (world, entity, state) => {
   const orientation = entity[ORIENTABLE].facing as Orientation | undefined;
 
   if (!orientation || !state.args.type || finished) {
+    if (finished && entity[NPC]?.type === "wormBoss") {
+      for (const id of Object.values(state.particles)) {
+        const part = world.assertByIdAndComponents(id, [
+          PARTICLE,
+          SPRITE,
+          ORIENTABLE,
+        ]);
+        if (!getFacingLayers(part[SPRITE], part[ORIENTABLE].facing).length)
+          continue;
+        const fragment = entities.createGround(world, {
+          [FOG]: { visibility: "visible", type: "float", fixed: true },
+          [POSITION]: combine(size, entity[POSITION], {
+            x: part[PARTICLE].offsetX,
+            y: part[PARTICLE].offsetY,
+          }),
+          [RENDERABLE]: { generation: 0 },
+          [SPRITE]: part[SPRITE],
+        });
+        world.addComponentToEntity(fragment, FRAGMENT, { structure: entityId });
+        world.addComponentToEntity(fragment, DROPPABLE, { decayed: false });
+        world.addComponentToEntity(fragment, ORIENTABLE, {
+          facing: part[ORIENTABLE].facing,
+        });
+        world.addComponentToEntity(fragment, SEQUENCABLE, { states: {} });
+        registerEntity(world, fragment);
+      }
+    }
     // clear inactive limb
     if (state.particles.limb) {
       for (const particleName in state.particles) {
@@ -10064,7 +10189,7 @@ export const unitLimbs: Sequence<LimbSequence> = (world, entity, state) => {
         [PARTICLE]: {
           offsetX: limbConfig.offset.x,
           offsetY: limbConfig.offset.y,
-          offsetZ: floatHeight,
+          offsetZ: entity[FOG]?.fixed ? fixedHeight + 0.1 : floatHeight,
         },
         [RENDERABLE]: { generation: 1 },
         [SPRITE]: limbConfig.sprite,

@@ -6,6 +6,7 @@ import { CellType } from "../../bindings/creation";
 
 export type Vanishable = {
   type: "plant" | "evaporate";
+  color?: string;
   cells: { cell: CellType; delta: Position }[];
   decayed: boolean;
   evaporate?: { sprite: Sprite; fast: boolean };

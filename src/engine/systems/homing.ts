@@ -70,6 +70,15 @@ const discConfig: Record<
   Homing["type"],
   { sprite: Sprite; orbit?: boolean } & Partial<Castable>
 > = {
+  fireDisc: { sprite: disc.default.fire, magic: 1, burn: 2 },
+  fireOrbit: {
+    sprite: disc.default.fire,
+    magic: 1,
+    burn: 2,
+    orbit: true,
+  },
+  healDisc: { sprite: disc.default.earth, heal: 8 },
+  wormTower: { sprite: summon.default.fire, magic: 1, burn: 2, retrigger: 2 },
   oakTower: { sprite: summon.iron.default, magic: 2, retrigger: 2 },
   oakHedge: { sprite: homing.default.earth, forceAffecting: true },
   oakLily: { sprite: summon.default.earth, magic: 2, retrigger: 2 },
@@ -177,7 +186,11 @@ export default function setupHoming(world: World) {
 
       if (!hasAffected && !reached && !timeout) continue;
 
-      if (reached && !destination) {
+      if (
+        reached &&
+        !destination &&
+        !(hasAffected && !entity[CASTABLE].retrigger)
+      ) {
         const reachedPosition = entity[HOMING].positions.shift();
 
         if (orbit && reachedPosition) {
@@ -185,7 +198,11 @@ export default function setupHoming(world: World) {
         }
 
         continue;
-      } else if (!timeout && !(hasAffected && !entity[CASTABLE].retrigger)) {
+      } else if (
+        !timeout &&
+        !(reached && entity[HOMING].type === "wormTower") &&
+        !(hasAffected && !entity[CASTABLE].retrigger)
+      ) {
         // remain only without TTL and retriggering discs
         continue;
       }
@@ -213,7 +230,19 @@ export default function setupHoming(world: World) {
         entity[POSITION].x === nextPosition.x &&
         entity[POSITION].y === nextPosition.y;
 
-      if (entity[HOMING].type === "oakTower" && reached) {
+      if (entity[HOMING].type === "wormTower" && reached) {
+        const boss = world.getEntityById(entity[CASTABLE].caster);
+        if (!boss || isDead(world, boss)) continue;
+        const created = createCell(
+          world,
+          copy(entity[POSITION]),
+          "wormTower",
+          "hidden"
+        );
+        for (const candidate of created.all)
+          if (candidate[POSITION]) registerEntity(world, candidate);
+        setIdentifier(world, created.cell, "worm:tower");
+      } else if (entity[HOMING].type === "oakTower" && reached) {
         const towerEntity = createCell(
           world,
           copy(entity[POSITION]),

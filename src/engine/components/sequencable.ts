@@ -266,7 +266,7 @@ export type Sequencable = {
     marker?: SequenceState<MarkerSequence>;
     message?: SequenceState<MessageSequence>;
     decay?: SequenceState<DecaySequence>;
-    evaporate?: SequenceState<VanishSequence>;
+    evaporate?: SequenceState<EvaporateSequence>;
     vanish?: SequenceState<VanishSequence>;
     burn?: SequenceState<BurnSequence>;
     freeze?: SequenceState<FreezeSequence>;

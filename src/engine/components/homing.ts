@@ -3,7 +3,18 @@ import { World } from "../ecs";
 import { Position } from "./position";
 
 export type Homing = {
-  type: "oakTower" | "oakHedge" | "oakLily" | "ilexTulip" | "ironDisc" | "goldDisc" | "ironOrbit";
+  type:
+    | "fireDisc"
+    | "fireOrbit"
+    | "healDisc"
+    | "wormTower"
+    | "oakTower"
+    | "oakHedge"
+    | "oakLily"
+    | "ilexTulip"
+    | "ironDisc"
+    | "goldDisc"
+    | "ironOrbit";
   target?: number;
   positions: Position[];
   ttl?: number;

@@ -1,12 +1,17 @@
+import { createNpc, createCell } from "../../bindings/creation";
+import { npcSequence } from "../../game/assets/utils";
+import { registerEntity, moveEntity } from "../../engine/systems/map";
 import { INVENTORY } from "../../engine/components/inventory";
 import { POSITION } from "../../engine/components/position";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { FOG } from "../../engine/components/fog";
 import { PLAYER } from "../../engine/components/player";
 import { STATS } from "../../engine/components/stats";
-import { getSequence } from "../../engine/systems/sequence";
 import {
   advanceUntil,
+  advance,
+  assertHero,
+  createAreaWorld,
   countItems,
   findInArea,
   giveItems,
@@ -121,7 +126,57 @@ describe("fire chief", () => {
     expect(
       countItems(world, hero, { stackable: "resource", material: "gold" })
     ).toBe(2);
-    expect(getSequence(world, chief, "npc")).toBeUndefined();
+    expect(getStep(world, chief)).toBe("worm");
+    expect(getLines(chief)).toContain("Legends tell of a");
     expect(hero[PLAYER].popup).toBeUndefined();
   });
+});
+
+describe("jetty guard", () => {
+  it.each(["left", "right"])(
+    "steps %s aside when approached, returns when hero leaves, and can do it again",
+    (side) => {
+      const world = createAreaWorld(`
+|           |
+| ♀         |
+|           |
+|           |
+|           |
+|           |
+|           |
+|           |
+|           |
+`);
+      const hero = assertHero(world);
+      const guard = createNpc(world, "fireJettyGuard", { x: 5, y: 4 });
+      registerEntity(world, guard);
+      const blocker = createCell(
+        world,
+        { x: side === "left" ? 6 : 4, y: 4 },
+        "mountain",
+        "visible"
+      );
+      blocker.all.forEach((entity) => {
+        if (entity[POSITION]) registerEntity(world, entity);
+      });
+      npcSequence(world, guard, "fireJettyGuardNpc", { orientation: "up" });
+      advance(world, 1200);
+      expect(guard[POSITION]).toEqual({ x: 5, y: 4 });
+      moveEntity(world, hero, { x: 5, y: 6 });
+      advanceUntil(
+        world,
+        () => guard[POSITION].x === (side === "left" ? 4 : 6)
+      );
+      advance(world, 2400);
+      expect(guard[POSITION]).toEqual({ x: side === "left" ? 4 : 6, y: 4 });
+      moveEntity(world, hero, { x: 1, y: 1 });
+      advanceUntil(world, () => guard[POSITION].x === 5);
+      expect(guard[POSITION]).toEqual({ x: 5, y: 4 });
+      moveEntity(world, hero, { x: 5, y: 6 });
+      advanceUntil(
+        world,
+        () => guard[POSITION].x === (side === "left" ? 4 : 6)
+      );
+    }
+  );
 });

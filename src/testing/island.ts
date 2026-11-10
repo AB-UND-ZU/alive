@@ -5,15 +5,26 @@
  */
 import { assertHero, createTestWorld } from "./harness";
 import { seedRandom } from "./env";
+import { pixelCircle } from "../game/math/tracing";
+import { wormRadius } from "../game/levels/island/areas";
+import { islandNpcDistribution } from "../game/levels/island/units";
 import { World } from "../engine";
 import { LEVEL } from "../engine/components/level";
 import { Position, POSITION } from "../engine/components/position";
 import { COLLIDABLE } from "../engine/components/collidable";
 import { LOCKABLE } from "../engine/components/lockable";
-import { getCellEntities } from "../engine/systems/map";
+import { getCellEntities, moveEntity } from "../engine/systems/map";
 import { initializeCell } from "../engine/systems/initialize";
+import { getSequence } from "../engine/systems/sequence";
+import { orientationPoints } from "../engine/components/orientable";
+import { rotateOrientation } from "../game/math/path";
 import { assertIdentifierAndComponents } from "../engine/utils";
 import { findPath } from "../game/math/path";
+import { combine, getDistance, normalize } from "../game/math/std";
+import { executeCommand } from "../game/assets/commands";
+import { MAX_DROP_RADIUS } from "../engine/systems/drop";
+import { isWalkable } from "../engine/systems/movement";
+import { isImmersible } from "../engine/systems/immersion";
 import { createMatrix, getOverlappingCell, setPath } from "../game/math/matrix";
 
 const waypoints = [
@@ -109,6 +120,143 @@ export const describeIslandSeeds = (seeds: number[]) =>
 
     it("generates within the allowed attempts", () => {
       expect(failedAttempts).toBeLessThan(islandTries);
+    });
+
+    it("leaves the jetty boat for the player to build and places a water guard on glacier", () => {
+      const level = world.metadata.gameEntity[LEVEL];
+      expect(level.objects.flat(2)).not.toContain("boat");
+      const guard = assertIdentifierAndComponents(world, "waterGuard", [
+        POSITION,
+        "BELONGABLE",
+      ]);
+      expect(guard[POSITION]).toEqual({ x: level.size / 2, y: level.size / 2 });
+      expect(guard.BELONGABLE.faction).toBe("water");
+      expect(isImmersible(world, guard[POSITION])).toBe(false);
+      const jettyGuard = assertIdentifierAndComponents(
+        world,
+        "fireJettyGuard",
+        [POSITION]
+      );
+      const facing = getSequence(world, jettyGuard, "npc")!.args.memory
+        .orientation;
+      expect(
+        [-1, 1].some((turn) =>
+          isWalkable(
+            world,
+            combine(
+              level.size,
+              jettyGuard[POSITION],
+              orientationPoints[rotateOrientation(facing, turn)]
+            )
+          )
+        )
+      ).toBe(true);
+    });
+
+    it("registers worm teleport destinations before visiting the cave", () => {
+      const hero = assertHero(world);
+      const origin = { ...hero[POSITION] };
+      const level = world.metadata.gameEntity[LEVEL];
+      for (const id of ["worm_bait", "worm_sign", "worm_room"]) {
+        const destination = assertIdentifierAndComponents(world, id, [
+          POSITION,
+        ]);
+        expect(
+          level.initialized[destination[POSITION].x][destination[POSITION].y]
+        ).toBe(true);
+        expect(
+          executeCommand(world, hero, { handler: "tp", args: [id] })
+        ).toBeUndefined();
+        expect(
+          getDistance(
+            hero[POSITION],
+            destination[POSITION],
+            level.size,
+            1,
+            false
+          )
+        ).toBeLessThanOrEqual(MAX_DROP_RADIUS);
+        expect(isWalkable(world, hero[POSITION], hero)).toBe(true);
+      }
+      moveEntity(world, hero, origin);
+    });
+
+    it("places one walkable jetty cell in the cave's lower lake", () => {
+      const level = world.metadata.gameEntity[LEVEL];
+      const cells: string[][] = level.cells;
+      const x = cells.findIndex((column) => column.includes("worm_bait"));
+      expect(x).toBeGreaterThanOrEqual(0);
+      const centerY = normalize(cells[x].indexOf("worm_bait") + 4, level.size);
+      expect(level.cells[x][centerY]).toBe("water_deep");
+      expect(level.cells[x][normalize(centerY + 1, level.size)]).toBe(
+        "water_shallow"
+      );
+      for (const offsetY of [2]) {
+        const y = normalize(centerY + offsetY, level.size);
+        expect(level.cells[x][y]).toBe("jetty_vertical");
+        expect(level.objects[x][y]).toEqual([]);
+        initializeCell(world, x, y);
+        expect(isWalkable(world, { x, y })).toBe(true);
+        expect(isImmersible(world, { x, y })).toBe(false);
+        for (const offsetX of [-1, 1]) {
+          expect(level.cells[normalize(x + offsetX, level.size)][y]).toBe(
+            "water_shallow"
+          );
+        }
+      }
+      expect(["sand", "beach"]).toContain(
+        level.cells[x][normalize(centerY + 3, level.size)]
+      );
+    });
+
+    it("places the worm sign five cells south of the lake center", () => {
+      const level = world.metadata.gameEntity[LEVEL];
+      const cells: string[][] = level.cells;
+      const x = cells.findIndex((column) => column.includes("worm_bait"));
+      const centerY = normalize(cells[x].indexOf("worm_bait") + 4, level.size);
+      const signY = cells[x].indexOf("worm_sign");
+      initializeCell(world, x, signY);
+      const sign = assertIdentifierAndComponents(world, "worm_sign", [
+        POSITION,
+      ]);
+      expect(sign[POSITION]).toEqual({
+        x,
+        y: normalize(centerY + 5, level.size),
+      });
+    });
+
+    it("keeps ambient mobs and golems away from the worm cave edge while retaining island mobs", () => {
+      const level = world.metadata.gameEntity[LEVEL];
+      const cells: string[][] = level.cells;
+      const x = cells.findIndex((column) => column.includes("worm_bait"));
+      const center = {
+        x,
+        y: normalize(cells[x].indexOf("worm_bait") + 4, level.size),
+      };
+      const mobs = new Set([
+        "golem",
+        ...Object.values(islandNpcDistribution).flatMap((distribution) =>
+          Object.keys(distribution)
+        ),
+      ]);
+      const nearby = pixelCircle(
+        center,
+        wormRadius + 3,
+        undefined,
+        true
+      ).flatMap((point) => {
+        const px = normalize(point.x, level.size),
+          py = normalize(point.y, level.size);
+        return [level.cells[px][py], ...(level.objects[px][py] || [])].filter(
+          (cell) => mobs.has(cell)
+        );
+      });
+      expect(nearby).toEqual([]);
+      expect(
+        level.objects.some((column) =>
+          column.some((objects) => objects?.some((cell) => mobs.has(cell)))
+        )
+      ).toBe(true);
     });
 
     it("reaches all waypoints from the spawn", () => {

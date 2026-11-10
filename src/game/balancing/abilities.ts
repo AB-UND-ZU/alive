@@ -465,7 +465,22 @@ export const abilityStats: Partial<
     },
   },
 
+  wormTower: {
+    slash: { iron: { default: { melee: 1, magic: 0, burn: 0, knock: 3 } } },
+  },
   wormBoss: {
+    slash: { gold: { fire: { magic: 2, melee: 0, burn: 3, knock: 12 } } },
+    blast: {
+      gold: { fire: { magic: 5, burn: 0, knock: 2, retrigger: 2, reproc: 1 } },
+    },
+    wave: {
+      gold: {
+        fire: { magic: 0, true: 0, burn: 5, range: 16, duration: 17, knock: 0 },
+      },
+      iron: {
+        fire: { magic: 3, true: 0, burn: 2, range: 2, duration: 2, knock: 0 },
+      },
+    },
     // mouth or standing in limb
     default: {
       default: {

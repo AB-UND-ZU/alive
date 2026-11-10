@@ -62,7 +62,13 @@ import { Harvestable, Resource } from "../../engine/components/harvestable";
 import { Droppable } from "../../engine/components/droppable";
 import { Vanishable } from "../../engine/components/vanishable";
 import { mergeSprites, recolorSprite, slotShadow } from "../assets/ui";
-import { eye, orb, prism, waveTower } from "../assets/templates/creatures";
+import {
+  beamTower,
+  eye,
+  orb,
+  prism,
+  waveTower,
+} from "../assets/templates/creatures";
 import { banner, evaporate } from "../assets/templates/particles";
 import { getHarvestConfig } from "./harvesting";
 import { CellType } from "../../bindings/creation";
@@ -514,6 +520,23 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     patternNames: [],
     sprite: {
       ...recolorSprite(knight, { [colors.white]: colors.red }),
+      name: "Guard",
+    },
+    remains: "tombstone1",
+    evaporate: { sprite: ghost, fast: false },
+  },
+  waterGuard: {
+    faction: "water",
+    scratch: colors.silver,
+    stats: { hp: 40 },
+    equipments: [
+      { weapon: "sword", material: "iron", amount: 1, bound: true },
+      { offhand: "shield", material: "iron", amount: 1, bound: true },
+    ],
+    drops: [],
+    patternNames: [],
+    sprite: {
+      ...recolorSprite(knight, { [colors.white]: colors.blue }),
       name: "Guard",
     },
     remains: "tombstone1",
@@ -1994,20 +2017,66 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: golemUnit,
     evaporate: { sprite: stoneEvaporate, fast: true },
   },
+  wormTower: {
+    faction: "wild",
+    scratch: colors.red,
+    stats: { hp: 40, mp: 1, armor: 2, damp: 99 },
+    equipments: [],
+    drops: [
+      {
+        chance: 100,
+        items: [{ stat: "hp", amount: 1 }],
+      },
+    ],
+    patternNames: ["worm_tower"],
+    sprite: { ...beamTower.iron.fire, name: "" },
+    evaporate: { sprite: evaporate.iron.fire, fast: true },
+  },
   wormBoss: {
     faction: "unit",
     flying: true,
     scratch: colors.silver,
     spring: { duration: 350 },
     stats: {
-      hp: 200,
+      hp: 750,
       mp: 1,
-      armor: 1,
+      armor: 3,
+      resist: -2,
+      damp: 99,
     },
     equipments: [],
-    drops: [],
+    drops: [{ chance: 100, items: [{ stat: "xp", amount: 10 }] }],
+    vanish: {
+      cells: [],
+      type: "plant",
+      color: colors.red,
+      evaporate: { sprite: evaporate.default.fire, fast: true },
+    },
     patternNames: ["worm_boss"],
     sprite: wormBoss,
+  },
+  wormChest: {
+    faction: "unit",
+    scratch: colors.grey,
+    stats: { hp: 25, armor: 3 },
+    equipments: [],
+    drops: [
+      {
+        chance: 100,
+        items: [
+          {
+            stackable: "resource",
+            material: "wood",
+            element: "fire",
+            amount: 1,
+          },
+          { stackable: "resource", material: "gold", amount: 5 },
+          { consume: "potion", material: "iron", stat: "hp", amount: 10 },
+        ],
+      },
+    ],
+    patternNames: [],
+    sprite: mergeSprites(slotShadow, goldChest),
   },
   chestBoss: {
     faction: "unit",

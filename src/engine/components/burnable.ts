@@ -3,6 +3,7 @@ import { World } from "../ecs";
 
 export type Burnable = {
   burning: boolean;
+  smokeless?: boolean;
   eternal: boolean;
   simmer: boolean;
   combusted: boolean;

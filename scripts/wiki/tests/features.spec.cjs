@@ -689,7 +689,7 @@ test("Play starts with the game and loads presets with optional Test Mode", asyn
       .evaluate((element) => element.firstElementChild.dataset.scene)
   ).toBe("game");
   const table = page.locator("main table");
-  await expect(table.locator("tbody tr:not(.GridRule)")).toHaveCount(9);
+  await expect(table.locator("tbody tr:not(.GridRule)")).toHaveCount(10);
   await table
     .locator("tbody tr:not(.GridRule)")
     .filter({ hasText: "Dungeon" })
@@ -711,6 +711,15 @@ test("Play starts with the game and loads presets with optional Test Mode", asyn
   await page.keyboard.up("ArrowDown");
   expect(await page.evaluate(() => scrollY)).toBe(before);
   await expect(frame.locator("canvas")).toBeVisible();
+  await table
+    .locator("tbody tr:not(.GridRule)")
+    .filter({ hasText: "Worm Boss" })
+    .getByRole("button", { name: "Load", exact: true })
+    .click();
+  await expect(iframe).toHaveAttribute("src", /\?test#game\/worm$/);
+  await expect(iframe).toHaveAttribute("data-hp", /\d+/);
+  const wormFrame = await (await iframe.elementHandle()).contentFrame();
+  await expect(wormFrame.locator("canvas")).toBeVisible();
 });
 
 test("page concepts link to features while sprite names keep game colors until hover", async ({

@@ -21,6 +21,11 @@ import { SPRITE } from "../../engine/components/sprite";
 import { STATS } from "../../engine/components/stats";
 import { jetty as jettySprite } from "../../game/assets/sprites";
 import { getTab } from "../../engine/systems/popup";
+import { POPUP } from "../../engine/components/popup";
+import { createNpc } from "../../bindings/creation";
+import { registerEntity } from "../../engine/systems/map";
+import { npcSequence } from "../../game/assets/utils";
+import { getSequence } from "../../engine/systems/sequence";
 import { CellType } from "../../bindings/creation";
 import { buildConstructions } from "../../game/balancing/building";
 import { getEquipmentStats } from "../../game/balancing/equipment";
@@ -95,6 +100,24 @@ describe("hammer", () => {
 
     const popup = world.assertById(hero[PLAYER].popup!);
     expect(getTab(world, popup)).toBe("build");
+  });
+
+  it("scrolls the build menu without completing the chief's boat quest from its preview", () => {
+    const { world, hero } = setup([woodHammer]);
+    const chief = createNpc(world, "fireChief", { x: 5, y: 2 });
+    registerEntity(world, chief);
+    npcSequence(world, chief, "fireChiefNpc", {});
+    getSequence(world, chief, "npc")!.args.step = "boat";
+    step(world, 2);
+    act(world, "skill");
+    step(world, 30);
+    for (let line = 0; line <= buildConstructions.length; line++)
+      act(world, "down");
+    expect(getSequence(world, chief, "npc")!.args.step).toBe("boat");
+    expect(
+      world.getEntityByIdAndComponents(world.getEntityId(chief), [POPUP])
+    ).toBeDefined();
+    expect(getTab(world, world.assertById(hero[PLAYER].popup!))).toBe("build");
   });
 
   it("refuses a plan without its parts", () => {

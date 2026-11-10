@@ -687,11 +687,14 @@ export const createPopup = (
 };
 
 export const removePopup = (world: World, entity: Entity) => {
+  if (!entity[POPUP]) return;
   // close active popup
   const entityId = world.getEntityId(entity);
   const heroEntity = getIdentifierAndComponents(world, "hero", [PLAYER]);
   if (heroEntity && heroEntity[PLAYER].popup === entityId) {
     closePopup(world, heroEntity, entity);
+    // Closing a completed quest may already remove its popup.
+    if (!entity[POPUP]) return;
   }
 
   // remove viewpoint

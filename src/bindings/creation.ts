@@ -31,6 +31,7 @@ import { LOCKABLE } from "../engine/components/lockable";
 import { LOOTABLE } from "../engine/components/lootable";
 import { MELEE } from "../engine/components/melee";
 import { MOVABLE } from "../engine/components/movable";
+import { IDENTIFIABLE } from "../engine/components/identifiable";
 import { NPC, NpcType, npcTypes } from "../engine/components/npc";
 import {
   ORIENTABLE,
@@ -66,7 +67,6 @@ import { defaultLight, roomLight, spawnLight } from "../engine/systems/consume";
 import {
   createItemAsDrop,
   createItemInInventory,
-  dropEntity,
 } from "../engine/systems/drop";
 import { getEnterable } from "../engine/systems/enter";
 import { createHero } from "../engine/systems/fate";
@@ -973,6 +973,42 @@ export const setContinuePortal = (
     disposeSequence(world, portalEntity, "vortex");
     removePopup(world, portalEntity);
   }
+};
+
+export const createWormBait = (
+  world: World,
+  position: Position,
+  visibility: Fog["visibility"] = "hidden"
+) => {
+  const wormEntity = createCell(world, position, "dummy", visibility, false)
+    .cell as TypedEntity<
+    "STATS" | "SPRITE" | "BEHAVIOUR" | "BELONGABLE" | "POSITION"
+  >;
+  wormEntity[SPRITE] = getItemSprite({ stackable: "worm" });
+  wormEntity[STATS].hp = 1;
+  wormEntity[STATS].maxHp = 1;
+  wormEntity[STATS].armor = 0;
+  wormEntity[STATS].scale = 0;
+  wormEntity[BEHAVIOUR].patterns = [{ name: "worm", memory: {} }];
+  world.assertComponents(wormEntity, [MOVABLE])[MOVABLE].spring = {
+    duration: 350,
+  };
+  world.assertComponents(wormEntity, [ORIENTABLE])[ORIENTABLE].facing =
+    undefined;
+  wormEntity[BELONGABLE].faction = "wild";
+  world.assertComponents(wormEntity, [IDENTIFIABLE])[IDENTIFIABLE].name =
+    "worm_bait";
+  world.removeComponentFromEntity(
+    wormEntity as TypedEntity<"HARVESTABLE">,
+    HARVESTABLE
+  );
+  wormEntity[REMAINABLE] = {};
+  for (const item of wormEntity[INVENTORY]?.items || []) {
+    const drop = world.getEntityById(item);
+    if (drop) world.removeEntity(drop);
+  }
+  if (wormEntity[INVENTORY]) wormEntity[INVENTORY].items = [];
+  return wormEntity;
 };
 
 export const createCell = (
@@ -3006,6 +3042,7 @@ export const createCell = (
     cell === "rubyChest" ||
     cell === "ilexChest" ||
     cell === "oakChest" ||
+    cell === "wormChest" ||
     cell === "nomadChest"
   ) {
     if (cell === "desert_wood_chest") {
@@ -4044,7 +4081,7 @@ export const createCell = (
       },
       [EQUIPPABLE]: {},
       [EXERTABLE]: { castable: -1 },
-      [FOG]: { visibility, type: "unit" },
+      [FOG]: { visibility: "visible", type: "unit", fixed: true },
       [FRAGMENT]: { structure: -1 },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
@@ -4075,6 +4112,7 @@ export const createCell = (
         decayed: false,
         cells: bossUnit.vanish?.cells || [],
         type: bossUnit.vanish?.type || "evaporate",
+        color: bossUnit.vanish?.color,
         evaporate: bossUnit.vanish?.evaporate,
       },
     });
@@ -4083,7 +4121,7 @@ export const createCell = (
     bossEntity[CASTABLE].caster = world.getEntityId(bossEntity);
     bossEntity[EXERTABLE].castable = world.getEntityId(bossEntity);
 
-    // npcSequence(world, bossEntity, "wormNpc", {});
+    bossEntity[BELONGABLE].faction = "wild";
     setIdentifier(world, bossEntity, "worm_boss");
     const bossId = world.getEntityId(bossEntity);
     bossEntity[FRAGMENT].structure = bossId;
@@ -4115,16 +4153,24 @@ export const createCell = (
         [TEMPO]: { amount: -1 },
       })
     );
-    const placeholder: TypedEntity<"INVENTORY" | "POSITION" | "LOOTABLE"> = {
-      [LOOTABLE]: { disposable: true },
-      [INVENTORY]: { items: [] },
-      [POSITION]: { x, y },
-      [RENDERABLE]: { generation: 0 },
-    };
-    populateInventory(world, placeholder, [{ stackable: "worm", amount: 1 }]);
-    const wormEntity = dropEntity(world, placeholder, { x, y }, true)[0];
+    const wormEntity = createWormBait(world, { x, y }, visibility);
     all.push(wormEntity);
-    setIdentifier(world, wormEntity, "worm_bait");
+    const room = entities.createRoom(world, {
+      [LIGHT]: { brightness: 0, darkness: 0, visibility: 0 },
+      [POSITION]: combine(size, { x, y }, { x: 0, y: 4 }),
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: none,
+      [VIEWABLE]: { active: false, priority: 50 },
+    });
+    all.push(room);
+    setIdentifier(world, room, "wormRoom");
+    npcSequence(world, room, "wormRoom", {});
+    const roomPin = entities.createPin(world, {
+      [POSITION]: copy(room[POSITION]),
+    });
+    setIdentifier(world, roomPin, "worm_room");
+    all.push(roomPin);
     return { cell: wormEntity, all };
   } else if (cell === "chest_boss") {
     const bossUnit = generateNpcData("chestBoss");

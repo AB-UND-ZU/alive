@@ -1,4 +1,5 @@
 import { Orientation } from "../../engine/components/orientable";
+import { pixelCircle } from "../math/tracing";
 import { Sprite } from "../../engine/components/sprite";
 import { ClassKey } from "../balancing/classes";
 import { rotateOrientation } from "../math/path";
@@ -110,8 +111,8 @@ export const pixelFrame = (
   return overlay(frame, titleLayer, contentLayer, crop);
 };
 
-export const getCircleOrientations = () => {
-  const quarterCircle: {
+export const getCircleOrientations = (radius?: number) => {
+  let quarterCircle: {
     x: number;
     y: number;
     orientation: Orientation;
@@ -135,6 +136,39 @@ export const getCircleOrientations = () => {
     { x: 1, y: 6, orientation: "down" },
     { x: 0, y: 6, orientation: "down" },
   ];
+
+  if (radius !== undefined) {
+    const cells = pixelCircle({ x: 0, y: 0 }, radius, undefined, true);
+    const bottom = Math.max(...cells.map((cell) => cell.y));
+    let previousX =
+      Math.max(...cells.filter((cell) => cell.y === 0).map((cell) => cell.x)) +
+      1;
+    quarterCircle = [{ x: previousX, y: 0, orientation: "right" }];
+    for (let y = 1; y <= bottom + 1; y += 1) {
+      const row = cells.filter((cell) => cell.y === y);
+      const x = row.length ? Math.max(...row.map((cell) => cell.x)) + 1 : 0;
+      if (x === previousX) {
+        quarterCircle.push({ x, y, orientation: "right" });
+      } else {
+        quarterCircle.push({
+          x: previousX,
+          y,
+          orientation: "down",
+          corner: true,
+        });
+        for (let offsetX = previousX - 1; offsetX > x; offsetX -= 1) {
+          quarterCircle.push({ x: offsetX, y, orientation: "down" });
+        }
+        quarterCircle.push({
+          x,
+          y,
+          orientation: x === 0 ? "down" : "up",
+          corner: x !== 0,
+        });
+      }
+      previousX = x;
+    }
+  }
 
   const fullCircle = [];
   for (let orientationIndex = 0; orientationIndex < 4; orientationIndex += 1) {

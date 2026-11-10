@@ -82,7 +82,7 @@ describe("item acquisition", () => {
     );
     expect(
       obtainedFrom({ stackable: "resource", material: "wood", element: "fire" })
-    ).toEqual([]);
+    ).toEqual([{ kind: "drop", key: "wormChest", chance: 100 }]);
   });
   it("groups every canonical resource and food exactly once", () => {
     for (const category of ["resources", "consumables"]) {

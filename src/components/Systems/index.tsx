@@ -28,6 +28,7 @@ import { TypedEntity } from "../../engine/entities";
 import { CASTABLE } from "../../engine/components/castable";
 import { getClosestQuadrant } from "../../game/math/path";
 import { STICKY } from "../../engine/components/sticky";
+import { VIEWABLE } from "../../engine/components/viewable";
 import { HOMING } from "../../engine/components/homing";
 
 const shakeFactor = 0.1;
@@ -78,6 +79,18 @@ export default function Systems() {
       }
     }
 
+    const quake = viewable?.[VIEWABLE].quake;
+    if (quake !== undefined && game && quake > game[RENDERABLE].generation) {
+      api.start({
+        to: async (next) => {
+          await next({
+            x: random(-3, 3) * shakeFactor,
+            y: random(-3, 3) * shakeFactor,
+          });
+          await next({ x: 0, y: 0 });
+        },
+      });
+    }
     runningRef.current = false;
     if (error) {
       console.error("Systems failed:", error);

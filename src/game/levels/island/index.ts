@@ -49,6 +49,8 @@ import {
   spawnArea,
   townSize,
   wormArea,
+  wormRadius,
+  wormSize,
 } from "./areas";
 import {
   add,
@@ -650,6 +652,9 @@ export const generateIsland = (world: World) => {
         const greens = greensMatrix[x][y] * elevationFactor;
         const terrain = terrainMatrix[x][y] * elevationFactor;
         const spawn = spawnMatrix[x][y] * elevationFactor;
+        const mobSpawn =
+          spawn *
+          circularKernel(size, size, x, y, wormPoint, wormRadius + 5, 1, 0, 1);
         const distribution = islandNpcDistribution[biome];
 
         // process biome's terrain
@@ -724,7 +729,7 @@ export const generateIsland = (world: World) => {
             cell = spawn > 98 ? "leaf" : spawn > 89 ? "berry" : "bush";
           else if (greens > grassDepth)
             cell = spawn > 98 ? "leaf" : spawn > 95 ? "flower" : "grass";
-          else if (spawn < -95) objects.push(generateNpcKey(distribution));
+          else if (mobSpawn < -95) objects.push(generateNpcKey(distribution));
         } else if (biome === "desert") {
           // place mountains first
           if (terrain > desertDepth) cell = "mountain";
@@ -766,7 +771,7 @@ export const generateIsland = (world: World) => {
               // spawn ore in mountain only if accessible from outside
               matrix[x + targetDelta[0]][y + targetDelta[1]] = "ore";
             } else if (
-              spawn > 93 &&
+              mobSpawn > 93 &&
               largeSquareDeltas.every(
                 ([deltaX, deltaY]) => matrix[x + deltaX][y + deltaY] === "sand"
               )
@@ -804,7 +809,7 @@ export const generateIsland = (world: World) => {
           } else if (greens > cactusDepth && greens < cactusDepth + 2) {
             cell = "sand";
             objects.push("cactus");
-          } else if (cell === "sand" && spawn < -97)
+          } else if (cell === "sand" && mobSpawn < -97)
             objects.push(generateNpcKey(distribution));
           else if (cell === "sand" && spawn > 97) objects.push("tumbleweed");
         } else if (biome === "glacier") {
@@ -1047,17 +1052,40 @@ export const generateIsland = (world: World) => {
       };
 
       // create worm area
-      const wormMountain = pixelCircle(wormPoint, 8, aspectRatio, true);
+      const wormMountain = pixelCircle(
+        wormPoint,
+        wormRadius,
+        aspectRatio,
+        true
+      );
       wormMountain.forEach((position) => {
         setMatrix(worldMap, position.x, position.y, "mountain");
         objectsMap[normalize(position.x, size)][normalize(position.y, size)] =
           [];
       });
-      const wormSand = pixelCircle(wormPoint, 6, aspectRatio, true);
+      const wormSand = pixelCircle(
+        wormPoint,
+        wormRadius - 2,
+        aspectRatio,
+        true
+      );
       wormSand.forEach((position) => {
         setMatrix(worldMap, position.x, position.y, "sand");
       });
       insertArea(world, wormArea, wormPoint.x, wormPoint.y, true);
+      const wormJetty = combine(size, wormPoint, { x: 0, y: 2 });
+      worldMap[wormJetty.x][wormJetty.y] = "jetty_vertical";
+      objectsMap[wormJetty.x][wormJetty.y] = [];
+      const caveWater = wormSand.map((position) => ({
+        position,
+        cell: getWaterCell(
+          worldMap,
+          normalize(position.x, size),
+          normalize(position.y, size)
+        ),
+      }));
+      for (const { position, cell } of caveWater)
+        setMatrix(worldMap, position.x, position.y, cell);
 
       // find haven point as first beach starting from ocean towards center
       const beachPoint = marchLinePredicate(
@@ -1381,13 +1409,6 @@ export const generateIsland = (world: World) => {
         }
       }
 
-      // add boat at end of jetty
-      const boatPoint = combine(size, beachPoint, {
-        x: jettyDelta.x * (jettyConfiguration.length + 1),
-        y: jettyDelta.y * (jettyConfiguration.length + 1),
-      });
-      objectsMap[boatPoint.x][boatPoint.y] = ["boat"];
-
       const havenMap = matrixFactory<CellType | "">(
         havenWidth,
         havenHeight,
@@ -1673,6 +1694,21 @@ export const generateIsland = (world: World) => {
         });
       }
 
+      const glacierCenter = { x: size / 2, y: size / 2 };
+      for (let dx = -1; dx <= 1; dx++)
+        for (let dy = -1; dy <= 1; dy++) {
+          const position = combine(size, glacierCenter, { x: dx, y: dy });
+          world.metadata.gameEntity[LEVEL].cells[position.x][position.y] =
+            "snow";
+          objectsMap[position.x][position.y] = [];
+        }
+      initializeArea(
+        world,
+        combine(size, glacierCenter, { x: -1, y: -1 }),
+        combine(size, glacierCenter, { x: 1, y: 1 })
+      );
+      createNpc(world, "waterGuard", glacierCenter);
+
       // set snow for glacier
       const glacierStorm = entities.createAnchor(world, {
         [POSITION]: { x: 0, y: 0 },
@@ -1699,7 +1735,7 @@ export const generateIsland = (world: World) => {
         }
       );
 
-      // initialize spawn, town, ilex and oak
+      // initialize settlements and boss areas
       initializeArea(
         world,
         spawnCorner,
@@ -1725,6 +1761,12 @@ export const generateIsland = (world: World) => {
         world,
         nomadCorner,
         combine(size, nomadCorner, { x: nomadSize.x, y: nomadSize.y })
+      );
+
+      initializeArea(
+        world,
+        combine(size, wormPoint, { x: -wormSize.x, y: -wormSize.y }),
+        combine(size, wormPoint, wormSize)
       );
 
       // adjust hero
@@ -2034,7 +2076,10 @@ export const generateIsland = (world: World) => {
       );
 
       // place second guard in front of jetty
-      createNpc(world, "fireGuard", beachPoint);
+      const jettyGuard = createNpc(world, "fireJettyGuard", beachPoint);
+      npcSequence(world, jettyGuard, "fireJettyGuardNpc", {
+        orientation: jettyOrientation,
+      });
 
       // smith's house
       const fireSmithOffset = choice(-2, 2);

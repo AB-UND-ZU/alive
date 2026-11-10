@@ -2280,6 +2280,7 @@ export const warnOff: Sprite = {
     { char: "\u0101", color: colors.black },
     { char: "\u0100", color: colors.red },
     { char: "\u0106", color: colors.black },
+    { char: "■", color: colors.black },
   ],
 };
 export const shadow: Sprite = {

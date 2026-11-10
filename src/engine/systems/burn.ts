@@ -57,6 +57,8 @@ export const extinguishEntity = (world: World, entity: Entity) => {
     entity[BURNABLE].burning = false;
   }
 
+  if (entity[BURNABLE]?.smokeless) return;
+
   const castableEntity = entities.createSpell(world, {
     [BELONGABLE]: { faction: entity[BELONGABLE]?.faction || "nature" },
     [CASTABLE]: getEmptyCastable(world, entity),
@@ -152,9 +154,10 @@ export default function setupBurn(world: World) {
           }
 
           if (
-            burningEntity[BURNABLE].eternal ||
-            burningEntity[REMAINABLE]?.cell ||
-            simmer
+            !burningEntity[BURNABLE].smokeless &&
+            (burningEntity[BURNABLE].eternal ||
+              burningEntity[REMAINABLE]?.cell ||
+              simmer)
           )
             createSequence<"smoke", SmokeSequence>(
               world,

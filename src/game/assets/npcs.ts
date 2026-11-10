@@ -1,5 +1,6 @@
 import { entities } from "../../engine";
-import { BEHAVIOUR } from "../../engine/components/behaviour";
+import { BEHAVIOUR, Pattern } from "../../engine/components/behaviour";
+import { buildConstructions } from "../balancing/building";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { FOG } from "../../engine/components/fog";
 import { Item, ITEM } from "../../engine/components/item";
@@ -21,6 +22,10 @@ import {
   registerEntity,
 } from "../../engine/systems/map";
 import { rerenderEntity } from "../../engine/systems/renderer";
+import {
+  initializeArea,
+  initializeCell,
+} from "../../engine/systems/initialize";
 import { lockDoor } from "../../engine/systems/trigger";
 import {
   add,
@@ -35,7 +40,12 @@ import {
   signedDistance,
   within,
 } from "../math/std";
-import { bossArea, spawnArea } from "../levels/island/areas";
+import {
+  bossArea,
+  spawnArea,
+  wormRadius,
+  wormSize,
+} from "../levels/island/areas";
 import {
   woodChest,
   menuDot,
@@ -70,9 +80,11 @@ import {
   flowerDrop,
   kettle,
   bench,
+  boat,
   rock1,
   cactus1,
   mining,
+  repair,
 } from "./sprites";
 import {
   createItemName,
@@ -90,6 +102,7 @@ import {
   step,
 } from "./utils";
 import { getOrientedSprite } from "./ui";
+import { warnOn, warnOff } from "./sprites/particles";
 import {
   NpcSequence,
   SEQUENCABLE,
@@ -113,9 +126,10 @@ import {
   isShowingPopup,
   removePopup,
 } from "../../engine/systems/popup";
-import { isDead, isEnemy } from "../../engine/systems/damage";
+import { getLimbs, isDead, isEnemy } from "../../engine/systems/damage";
 import {
   createCell,
+  createWormBait,
   insertArea,
   setContinuePortal,
 } from "../../bindings/creation";
@@ -153,6 +167,7 @@ import {
   createText,
   forge,
   maxCountable,
+  plot,
   parseSprite,
   parseSprites,
   recolorSprite,
@@ -160,8 +175,8 @@ import {
 import { BLOCKABLE } from "../../engine/components/blockable";
 import { boots, bow, sword, waveSpell } from "./templates/equipments";
 import { spirit } from "./templates/items";
-import { getBiome, isFlyable } from "../../engine/systems/movement";
-import { relativeOrientations } from "../math/path";
+import { getBiome, isFlyable, isWalkable } from "../../engine/systems/movement";
+import { relativeOrientations, rotateOrientation } from "../math/path";
 import { brewingRecipes } from "../balancing/brewing";
 import { dotted, shaded } from "./ui";
 import { MELEE } from "../../engine/components/melee";
@@ -2160,10 +2175,179 @@ export const fireChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
       return true;
     },
     isCompleted: () => !entity[POPUP],
-    onLeave: () => END_STEP,
+    onLeave: () => "worm",
+  });
+
+  step({
+    stage,
+    name: "worm",
+    onEnter: () => {
+      const cells: string[][] = world.metadata.gameEntity[LEVEL].cells;
+      const caveX = cells.findIndex((column) => column.includes("worm_sign"));
+      if (caveX >= 0)
+        initializeCell(world, caveX, cells[caveX].indexOf("worm_sign"));
+      createPopup(world, entity, {
+        targets: [{ amount: 1, unit: "wormBoss" }],
+        focuses: [{ identifier: "worm_sign", highlight: "quest" }],
+        deals: [
+          { item: { stackable: "coin", amount: 75 }, stock: 1, prices: [] },
+          { item: { stat: "xp", amount: 10 }, stock: 1, prices: [] },
+          { item: { stackable: "letter", amount: 1 }, stock: 1, prices: [] },
+          {
+            item: { tool: "hammer", material: "wood", amount: 1 },
+            stock: 1,
+            prices: [],
+          },
+        ],
+        lines: [
+          [
+            createText("Legends tell of a"),
+            [
+              ...createText("deadly "),
+              ...createItemName({ stackable: "worm" }),
+              ...createText(" that"),
+            ],
+            createText("lives in a cave."),
+            [],
+            createText("Open the cave"),
+            [
+              ...createText("with a "),
+              ...createItemName({ tool: "pickaxe", material: "wood" }),
+              ...createText("."),
+            ],
+            [],
+            createText("Craft a golden"),
+            [
+              ...createItemName(
+                { weapon: "sword", material: "gold" },
+                colors.yellow
+              ),
+              ...createText(" to fight"),
+            ],
+            createText("this monster!"),
+          ],
+        ],
+        tabs: ["quest"],
+      });
+      return true;
+    },
+    isCompleted: () => !entity[POPUP],
+    onLeave: () => "boat",
+  });
+
+  step({
+    stage,
+    name: "boat",
+    onEnter: () => {
+      const boatParts = buildConstructions.find((construction) =>
+        construction.variants.some((variant) => variant.cell === "boat")
+      )!.parts;
+      createPopup(world, entity, {
+        targets: [{ unit: "waterGuard", identifier: "waterGuard", amount: 1 }],
+        focuses: [{ identifier: "waterGuard", highlight: "quest" }],
+        lines: [
+          [
+            createText("Time to move on"),
+            [
+              ...createText("with a "),
+              boat,
+              ...createText("Boat.", colors.grey),
+            ],
+            [],
+            [
+              ...createText("Use this "),
+              ...createItemName({ tool: "hammer", material: "wood" }),
+              ...createText(","),
+            ],
+            [
+              ...createText("craft "),
+              ...createItemText(boatParts[0]),
+              ...createText(" and"),
+            ],
+            [...createItemText(boatParts[1]), ...createText(".")],
+            [],
+            [
+              ...createText("Place a "),
+              plot,
+              ...createText("Plot", colors.grey),
+            ],
+            createText("in shallow water."),
+            [
+              ...createText("Select "),
+              repair,
+              ...createText("Repair", colors.grey),
+            ],
+            createText("to build it."),
+            [],
+            createText("Sail to glacier"),
+            createText("island. Give the"),
+            [
+              ...createItemName({ stackable: "letter" }),
+              ...createText(" to its"),
+            ],
+            [...createUnitName("waterGuard"), ...createText(".")],
+          ],
+        ],
+        tabs: ["quest"],
+      });
+      return true;
+    },
+    isCompleted: () => !entity[POPUP],
+    onLeave: () => {
+      return END_STEP;
+    },
   });
 
   return { finished: stage.finished, updated: stage.updated };
+};
+
+export const fireJettyGuardNpc: Sequence<NpcSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const hero = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const memory = state.args.memory;
+  memory.origin ||= copy(entity[POSITION]);
+  if (
+    entity[BEHAVIOUR].patterns.some(
+      (pattern: Pattern) => pattern.name === "move"
+    )
+  )
+    return { finished: false, updated: false };
+  const near =
+    !!hero && getDistance(hero[POSITION], memory.origin, size, 1) <= 2;
+  let target = memory.origin;
+  if (near) {
+    if (!memory.side || !isWalkable(world, memory.side, entity)) {
+      const sides = [-1, 1].map((turn) =>
+        combine(
+          size,
+          memory.origin,
+          orientationPoints[rotateOrientation(memory.orientation, turn)]
+        )
+      );
+      const free = sides.filter((position) =>
+        isWalkable(world, position, entity)
+      );
+      memory.side = free.length ? choice(...free) : undefined;
+    }
+    target = memory.side;
+  } else if (getDistance(entity[POSITION], memory.origin, size) === 0) {
+    delete memory.side;
+  }
+  if (
+    !target ||
+    getDistance(entity[POSITION], target, size) === 0 ||
+    !isWalkable(world, target, entity)
+  )
+    return { finished: false, updated: false };
+  entity[BEHAVIOUR].patterns.push({
+    name: "move",
+    memory: { targetPosition: copy(target) },
+  });
+  return { finished: false, updated: true };
 };
 
 export const fireGateGuardNpc: Sequence<NpcSequence> = (
@@ -3514,5 +3698,200 @@ export const wanderingTornadoNpc: Sequence<NpcSequence> = (
     moveEntity(world, entity, spawnPoint);
   }
 
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const wormRoom: Sequence<NpcSequence> = (world, entity, state) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+  const hero = getIdentifierAndComponents(world, "hero", [POSITION, VIEWABLE]);
+  if (!hero) return { finished: false, updated: false };
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const center = entity[POSITION];
+  const inRoom =
+    Math.abs(signedDistance(center.x, hero[POSITION].x, size)) < wormSize.x &&
+    Math.abs(signedDistance(center.y, hero[POSITION].y, size)) < wormSize.y;
+  const boss = getIdentifier(world, "worm_boss");
+  const bait = getIdentifier(world, "worm_bait");
+  const bossMemory = boss?.[BEHAVIOUR]?.patterns.find(
+    (pattern) => pattern.name === "worm_boss"
+  )?.memory;
+  const marker =
+    bossMemory && world.getEntityByIdAndComponents(bossMemory.marker, [SPRITE]);
+  if (marker) {
+    const blink = Math.floor(
+      (state.elapsed - bossMemory.warningStarted) /
+        (world.metadata.gameEntity[REFERENCE].tick / 2)
+    );
+    const sprite = blink % 2 ? warnOff : warnOn;
+    if (marker[SPRITE] !== sprite) {
+      marker[SPRITE] = sprite;
+      rerenderEntity(world, marker);
+    }
+  }
+  const cleanup = () => {
+    for (const candidate of world.getEntities([IDENTIFIABLE, POSITION])) {
+      if (candidate[IDENTIFIABLE].name.startsWith("worm:"))
+        disposeEntity(world, candidate);
+    }
+    for (const name of Object.keys(state.particles)) {
+      const particle = world.getEntityById(state.particles[name]);
+      if (particle) disposeEntity(world, particle);
+      delete state.particles[name];
+    }
+    hero[VIEWABLE].quake = undefined;
+  };
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () => true,
+    onLeave: () => "wait",
+  });
+  step({
+    stage,
+    name: "wait",
+    onEnter: () => {
+      entity[VIEWABLE].active = false;
+      rerenderEntity(world, entity);
+      rerenderEntity(world, hero);
+      return true;
+    },
+    isCompleted: () => inRoom && !isDead(world, hero),
+    onLeave: () => (state.args.memory.cleared ? "cleared" : "enter"),
+  });
+  step({
+    stage,
+    name: "enter",
+    onEnter: () => {
+      initializeArea(
+        world,
+        combine(size, center, { x: -wormSize.x, y: -wormSize.y }),
+        combine(size, center, wormSize)
+      );
+      entity[VIEWABLE].active = false;
+      rerenderEntity(world, entity);
+      rerenderEntity(world, hero);
+      return true;
+    },
+    isCompleted: () => !bait || isDead(world, bait),
+    onLeave: () => "pause",
+  });
+  step({
+    stage,
+    name: "pause",
+    onEnter: () => {
+      state.args.memory.start =
+        world.metadata.gameEntity[RENDERABLE].generation;
+      return true;
+    },
+    isCompleted: () =>
+      world.metadata.gameEntity[RENDERABLE].generation >=
+      state.args.memory.start + 3,
+    onLeave: () => "block",
+  });
+  step({
+    stage,
+    name: "block",
+    onEnter: () => {
+      entity[VIEWABLE].active = false;
+      rerenderEntity(world, entity);
+      state.args.memory.start =
+        world.metadata.gameEntity[RENDERABLE].generation;
+      const wormBarriers = getCircleOrientations(wormRadius);
+      for (const barrier of wormBarriers) {
+        const barrierEntity = entities.createBarrier(world, {
+          [BLOCKABLE]: {},
+          [COLLIDABLE]: {},
+          [FOG]: { visibility: "visible", type: "float", fixed: true },
+          [ORIENTABLE]: { facing: barrier.orientation },
+          [POSITION]: combine(size, center, barrier),
+          [SPRITE]: barrier.corner ? barrierCorner : barrierSide,
+          [RENDERABLE]: { generation: 0 },
+        });
+        registerEntity(world, barrierEntity);
+        setIdentifier(world, barrierEntity, "worm:barrier");
+      }
+      return true;
+    },
+    isCompleted: () =>
+      world.metadata.gameEntity[RENDERABLE].generation >=
+      state.args.memory.start + 2,
+    onLeave: () => "quake",
+  });
+  step({
+    stage,
+    name: "quake",
+    onEnter: () => {
+      state.args.memory.start =
+        world.metadata.gameEntity[RENDERABLE].generation;
+      hero[VIEWABLE].quake = state.args.memory.start + 8;
+      rerenderEntity(world, hero);
+      return true;
+    },
+    isCompleted: () =>
+      world.metadata.gameEntity[RENDERABLE].generation >=
+      state.args.memory.start + 8,
+    onLeave: () => {
+      const created = createCell(
+        world,
+        combine(size, center, { x: 0, y: 1 }),
+        "worm_boss",
+        "visible"
+      );
+      for (const candidate of created.all)
+        if (candidate[POSITION]) registerEntity(world, candidate);
+      return "fight";
+    },
+  });
+  step({
+    stage,
+    name: "fight",
+    isCompleted: () => {
+      const current = getIdentifier(world, "worm_boss");
+      if (current && isDead(world, current)) cleanup();
+      return !current;
+    },
+    onLeave: () => {
+      cleanup();
+      const reward = createCell(
+        world,
+        combine(size, center, { x: 0, y: 2 }),
+        "wormChest",
+        "visible"
+      );
+      for (const candidate of reward.all)
+        if (candidate[POSITION]) registerEntity(world, candidate);
+      setIdentifier(world, reward.cell, "worm_chest");
+      state.args.memory.cleared = true;
+      return "cleared";
+    },
+  });
+  step({
+    stage,
+    name: "leave",
+    forceEnter: () =>
+      ![START_STEP, "wait", "leave"].includes(state.args.step) &&
+      (!inRoom || isDead(world, hero)),
+    isCompleted: () => true,
+    onLeave: () => {
+      cleanup();
+      if (boss && !isDead(world, boss)) {
+        for (const limb of getLimbs(world, boss))
+          if (limb !== boss) disposeEntity(world, limb);
+        disposeEntity(world, boss);
+        const created = createWormBait(
+          world,
+          combine(size, center, { x: 0, y: -4 })
+        );
+        registerEntity(world, created);
+      }
+      return "wait";
+    },
+  });
   return { finished: stage.finished, updated: stage.updated };
 };

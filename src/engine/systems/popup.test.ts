@@ -11,7 +11,14 @@ import { ACTIONABLE } from "../components/actionable";
 import { POPUP } from "../components/popup";
 import { POSITION } from "../components/position";
 import { PLAYER } from "../components/player";
-import { getTab, getVerticalIndex, isInPopup } from "./popup";
+import {
+  createPopup,
+  openPopup,
+  removePopup,
+  getTab,
+  getVerticalIndex,
+  isInPopup,
+} from "./popup";
 import { World } from "../ecs";
 import { TypedEntity } from "../entities";
 
@@ -47,6 +54,20 @@ describe("popup interaction", () => {
 
     expect(hero[POSITION]).toEqual({ x: sign.x - 1, y: sign.y });
     expect(hero[ACTIONABLE].popup).toBe(world.getEntityId(getSign(world)));
+  });
+
+  it("removes an active completed quest only once, including its viewpoint", () => {
+    const { world, hero } = setup();
+    const sign = getSign(world);
+    createPopup(world, sign, { tabs: ["quest"], lines: [[]] });
+    openPopup(world, hero, sign, true);
+    sign[POPUP].selections[0] = [0, 0];
+    const viewpoint = sign[POPUP].viewpoint;
+    expect(() => removePopup(world, sign)).not.toThrow();
+    expect(sign[POPUP]).toBeUndefined();
+    expect(hero[PLAYER].popup).toBeUndefined();
+    step(world);
+    expect(world.getEntityById(viewpoint)).toBeUndefined();
   });
 
   it("opens, scrolls and closes the credits popup", () => {

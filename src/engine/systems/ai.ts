@@ -72,6 +72,8 @@ import {
   shadow,
   waveTowerCharged,
   wormCorner,
+  wormMouth,
+  warnOn,
   wormSide,
 } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
@@ -99,7 +101,7 @@ import { getFragment, getFragments, getOpaque } from "./enter";
 import { TypedEntity } from "../entities";
 import { STATS } from "../components/stats";
 import { EXERTABLE } from "../components/exertable";
-import { CASTABLE } from "../components/castable";
+import { CASTABLE, getEmptyCastable } from "../components/castable";
 import { createPopup } from "./popup";
 import { isControllable } from "./freeze";
 import {
@@ -123,13 +125,14 @@ import { CLICKABLE } from "../components/clickable";
 import { AFFECTABLE, getEmptyAffectable } from "../components/affectable";
 import { HARVESTABLE } from "../components/harvestable";
 import { PLAYER } from "../components/player";
-import { shootHoming } from "./homing";
+import { decayHoming, shootHoming } from "./homing";
 import { EQUIPPABLE } from "../components/equippable";
 import { SHOOTABLE } from "../components/shootable";
 import { createSequence, getSequence } from "./sequence";
 import {
   BranchSequence,
   LimbSequence,
+  SlashSequence,
   SEQUENCABLE,
 } from "../components/sequencable";
 import { generateNpcData, UnitDefinition } from "../../game/balancing/units";
@@ -163,6 +166,13 @@ import {
 } from "../../game/assets/ui";
 import { getLootable } from "./collect";
 import { getFarmable, getHarvestable } from "./harvest";
+import { wormRadius, wormSize } from "../../game/levels/island/areas";
+import { PARTICLE } from "../components/particle";
+import { REFERENCE } from "../components/reference";
+import { particleHeight } from "../../components/Entity/utils";
+import { BURNABLE } from "../components/burnable";
+import { getAbilityStats } from "../../game/balancing/abilities";
+import { evaporate } from "../../game/assets/templates/particles";
 import { FARMABLE } from "../components/farmable";
 
 export default function setupAi(world: World) {
@@ -207,8 +217,16 @@ export default function setupAi(world: World) {
         patterns.length === 0 ||
         !isControllable(world, entity) ||
         world.metadata.interact.active === entityId
-      )
+      ) {
+        if (entity[NPC]?.type === "wormBoss") {
+          for (const limb of getLimbs(world, entity)) {
+            if (!limb[MOVABLE]) continue;
+            limb[MOVABLE].orientations = [];
+            limb[MOVABLE].pendingOrientation = undefined;
+          }
+        }
         continue;
+      }
 
       for (const pattern of [...patterns]) {
         if (pattern.name === "wait") {
@@ -346,7 +364,9 @@ export default function setupAi(world: World) {
           rerenderEntity(world, entity);
           break;
         } else if (pattern.name === "worm") {
-          const wormItem = world.getEntityById(entity[INVENTORY]?.items[0]);
+          const wormItem =
+            world.getEntityById(entity[INVENTORY]?.items[0]) ||
+            (entity[STATS] && entity[SPRITE] ? entity : undefined);
           if (!wormItem) continue;
 
           if (!wormItem[ORIENTABLE]) {
@@ -4305,89 +4325,833 @@ export default function setupAi(world: World) {
           const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
           ]);
+          const room = getIdentifierAndComponents(world, "wormRoom", [
+            POSITION,
+            VIEWABLE,
+          ]);
+          const roomSequence = room && getSequence(world, room, "npc");
           if (
             !heroEntity ||
+            isDead(world, heroEntity) ||
             !entity[STATS] ||
-            !entity[SPRITE] ||
-            !entity[TOOLTIP]
-          ) {
-            patterns.splice(patterns.indexOf(pattern), 1);
-            continue;
+            !entity[TOOLTIP] ||
+            !entity[ORIENTABLE] ||
+            !entity[SPRITE]
+          )
+            break;
+          const memory = pattern.memory;
+          if (memory.phase === undefined) {
+            Object.assign(memory, {
+              phase: "surface",
+              surfacePhase: "intro",
+              hole: copy(entity[POSITION]),
+              ticks: 0,
+              length: 15,
+              segments: 15,
+              iteration: 0,
+              limbs: [{ id: entityId, waypoints: [], iteration: 1, steps: 0 }],
+              waypoints: [],
+              center: copy(room?.[POSITION] || entity[POSITION]),
+              fires: [],
+              detached: [],
+            });
+            entity[ORIENTABLE].facing = "up";
+            play("talk", {
+              variant: 1,
+              intensity: 3,
+              proximity: rageProximity,
+            });
           }
-
-          if (pattern.memory.phase === undefined) {
-            // set initial phase
-            patterns.splice(
-              patterns.indexOf(pattern),
-              1,
+          const center: Position = memory.center;
+          const clampPosition = (position: Position) =>
+            combine(size, center, {
+              x: Math.max(
+                -8,
+                Math.min(8, signedDistance(center.x, position.x, size))
+              ),
+              y: Math.max(
+                -5,
+                Math.min(5, signedDistance(center.y, position.y, size))
+              ),
+            });
+          const nextPhase = (phase: string) => {
+            memory.phase = phase;
+            memory.ticks = 0;
+          };
+          const setExposed = (exposed: boolean) => {
+            if (exposed) {
+              if (!entity[ATTACKABLE])
+                world.addComponentToEntity(entity, ATTACKABLE, {
+                  scratchColor: colors.silver,
+                });
+              if (!entity[AFFECTABLE])
+                world.addComponentToEntity(
+                  entity,
+                  AFFECTABLE,
+                  getEmptyAffectable()
+                );
+              if (!entity[EXERTABLE])
+                world.addComponentToEntity(entity, EXERTABLE, {
+                  castable: entityId,
+                });
+            } else {
+              if (entity[ATTACKABLE])
+                world.removeComponentFromEntity(
+                  world.assertComponents(entity, [ATTACKABLE]),
+                  ATTACKABLE
+                );
+              if (entity[AFFECTABLE])
+                world.removeComponentFromEntity(
+                  world.assertComponents(entity, [AFFECTABLE]),
+                  AFFECTABLE
+                );
+              if (entity[EXERTABLE])
+                world.removeComponentFromEntity(
+                  world.assertComponents(entity, [EXERTABLE]),
+                  EXERTABLE
+                );
+            }
+          };
+          memory.holes ||= [];
+          const showHole = (position: Position) => {
+            const hole = entities.createGround(world, {
+              [FOG]: { visibility: "visible", type: "object", fixed: true },
+              [POSITION]: copy(position),
+              [RENDERABLE]: { generation: 0 },
+              [SPRITE]: shadow,
+            });
+            registerEntity(world, hole);
+            setIdentifier(world, hole, "worm:hole");
+            const id = world.getEntityId(hole);
+            memory.holes.push({ id });
+            return id;
+          };
+          const closeHole = (id: number) => {
+            const hole = memory.holes.find(
+              (entry: { id: number }) => entry.id === id
+            );
+            if (hole) hole.end = generation + 3;
+          };
+          memory.holes = memory.holes.filter(
+            (entry: { id: number; end?: number }) => {
+              if (entry.end === undefined || generation < entry.end)
+                return true;
+              const hole = world.getEntityById(entry.id);
+              if (hole) disposeEntity(world, hole);
+              return false;
+            }
+          );
+          const sand = pixelCircle(
+            { x: 0, y: 0 },
+            wormRadius - 2,
+            undefined,
+            true
+          )
+            .map((offset) => combine(size, center, offset))
+            .filter((position) => {
+              const clamped = clampPosition(position);
+              return (
+                clamped.x === position.x &&
+                clamped.y === position.y &&
+                !isImmersible(world, position) &&
+                !world.metadata.gameEntity[LEVEL].cells[position.x][
+                  position.y
+                ].startsWith("jetty")
+              );
+            });
+          if (memory.shoutUntil && generation >= memory.shoutUntil) {
+            entity[TOOLTIP].dialogs = [];
+            entity[TOOLTIP].override = undefined;
+            entity[TOOLTIP].changed = true;
+            delete memory.shoutUntil;
+          }
+          const shout = (char: "?" | "!") => {
+            memory.shoutUntil = generation + 7;
+            entity[TOOLTIP]!.enemy = true;
+            entity[TOOLTIP]!.override = "visible";
+            entity[TOOLTIP]!.dialogs = [
+              createShout(
+                Array.from({ length: random(4, 8) }, () =>
+                  choice(char, char === "?" ? "¿" : "¡")
+                ).join("")
+              ),
+            ];
+            entity[TOOLTIP]!.changed = true;
+          };
+          const beginFlight = (intro = false) => {
+            const start = copy(memory.hole);
+            const rotation =
+              signedDistance(center.x, start.x, size) > 0 ? -1 : 1;
+            const target = clampPosition(
+              combine(size, start, {
+                x: rotation * random(8, 14),
+                y: random(-1, 1),
+              })
+            );
+            const destinations = sand.filter(
+              (position) =>
+                Math.abs(signedDistance(start.x, position.x, size)) >= 8
+            );
+            const finish = (destinations.length ? destinations : sand).sort(
+              (left, right) =>
+                getDistance(left, target, size) -
+                getDistance(right, target, size)
+            )[0];
+            const top = clampPosition(
+              combine(size, start, { x: 0, y: -random(3, 5) })
+            );
+            Object.assign(memory, {
+              rotation,
+              emerged: memory.limbs.length,
+              introJump: intro,
+              iteration: memory.iteration + 1,
+              waypoints: [start, top, { x: finish.x, y: top.y }, finish].filter(
+                (position, index, points) =>
+                  index === 0 ||
+                  position.x !== points[index - 1].x ||
+                  position.y !== points[index - 1].y
+              ),
+              lastShotPosition: copy(entity[POSITION]),
+              flightDistance: 0,
+              shotPattern: ((memory.shotPattern ?? -1) + 1) % 3,
+              shieldSegments: [],
+              shieldDiscs: [],
+            });
+            for (const [index, limb] of memory.limbs.entries()) {
+              limb.waypoints = memory.waypoints.slice(index === 0 ? 1 : 0);
+              limb.steps = 1;
+            }
+            closeHole(memory.activeHole);
+            entity[MOVABLE].spring = { duration: 350 };
+            if (!intro) entity[MOVABLE].orientations = ["up"];
+            entity[SPRITE] = { ...wormMouth, name: "" };
+            if (entity[FOG]) entity[FOG].type = "float";
+            setExposed(true);
+            nextPhase("flight");
+          };
+          const surface = (phase: string, hole: Position) => {
+            memory.surfacePhase = phase;
+            memory.hole = copy(hole);
+            nextPhase("surface");
+          };
+          const warn = (sprite: typeof rage | undefined) => {
+            const tooltip = entity[TOOLTIP]!;
+            if (tooltip.idle === sprite) return;
+            tooltip.idle = sprite;
+            tooltip.changed = true;
+            if (sprite)
+              play("danger", {
+                intensity: sprite === rage2 ? 2 : 1,
+                proximity: rageProximity,
+              });
+          };
+          const clearArtillery = () => {
+            const marker = world.getEntityById(memory.marker);
+            if (marker) disposeEntity(world, marker);
+            delete memory.marker;
+            if (room && roomSequence) {
+              for (let line = 0; line < 3; line += 1) {
+                const shot = world.getEntityById(
+                  roomSequence.particles[`artillery${line}`]
+                );
+                if (shot) disposeEntity(world, shot);
+                delete roomSequence.particles[`artillery${line}`];
+              }
+              rerenderEntity(world, room);
+            }
+          };
+          const fireWave = (
+            large: boolean,
+            position = large ? center : entity[POSITION]
+          ) => {
+            const wave = castSpell(
+              world,
+              { ...entity, [POSITION]: position },
               {
-                name: "wait",
-                memory: { ticks: 5 },
-              },
-              {
-                name: "worm_boss",
-                memory: {
-                  phase: 0,
-                  length: 15,
-                  iteration: 0,
-                  limbs: [
-                    // add head as limb
-                    {
-                      id: entityId,
-                      waypoints: [],
-                      iteration: 1,
-                      steps: 0,
-                    },
-                  ],
-                  waypoints: [],
+                [ITEM]: {
+                  carrier: -1,
+                  bound: false,
+                  amount: 1,
+                  spell: "wave",
+                  material: large ? "gold" : "iron",
+                  element: "fire",
                 },
               }
             );
-            break;
-          }
-
-          if (pattern.memory.phase === 0) {
-            if (pattern.memory.waypoints.length === 0) {
-              const height = random(3, 6);
-              const width = random(5, 10);
-              const rotation = choice(-1, 1);
-              const vertical = random(-3, 3);
-
-              pattern.memory.waypoints = [
-                copy(entity[POSITION]),
-                combine(size, entity[POSITION], {
-                  x: 0,
-                  y: -height - Math.max(vertical, 0),
-                }),
-                combine(size, entity[POSITION], {
-                  x: width * rotation,
-                  y: -height - Math.max(vertical, 0),
-                }),
-                combine(size, entity[POSITION], {
-                  x: width * rotation,
-                  y: -vertical,
-                }),
-              ];
-              pattern.memory.rotation = rotation;
-              pattern.memory.iteration += 1;
-              pattern.memory.limbs[0].waypoints = [...pattern.memory.waypoints];
+            if (!large && wave) {
+              const sequence = getSequence(world, wave, "spell");
+              if (sequence) {
+                const reach = sequence.args.range - 1;
+                const bounds: Record<string, boolean> = {};
+                for (let x = -reach; x <= reach; x += 1)
+                  for (let y = -reach; y <= reach; y += 1)
+                    if (Math.abs(x) + Math.abs(y) <= sequence.args.range)
+                      bounds[`${x},${y}`] = true;
+                sequence.args.memory.bounds = bounds;
+              }
             }
-            const waypoints = [...pattern.memory.waypoints] as Position[];
-            const rotation = pattern.memory.rotation;
+            if (large && wave) {
+              const sequence = getSequence(world, wave, "spell");
+              if (sequence) {
+                const circle = pixelCircle(
+                  { x: 0, y: 0 },
+                  wormRadius,
+                  undefined,
+                  true
+                );
+                const cells = new Set(circle.map(({ x, y }) => `${x},${y}`));
+                sequence.args.memory.bounds = Object.fromEntries(
+                  circle
+                    .filter(
+                      ({ x, y }) =>
+                        Math.abs(x) + Math.abs(y) < sequence.args.range &&
+                        Object.values(orientationPoints).every((delta) =>
+                          cells.has(`${x + delta.x},${y + delta.y}`)
+                        )
+                    )
+                    .map(({ x, y }) => [`${x},${y}`, true])
+                );
+              }
+            }
+          };
+          const addSegment = (
+            position: Position,
+            waypoints: Position[] = []
+          ) => {
+            const bossUnit = generateNpcData("wormBoss");
+            const limbEntity = entities.createExtremity(world, {
+              [ACTIONABLE]: {
+                spellTriggered: false,
+                skillTriggered: false,
+                interactTriggered: false,
+                toolEquipped: false,
+              },
+              [BUMPABLE]: { generation: 0 },
+              [COLLIDABLE]: {},
+              [DROPPABLE]: {
+                decayed: false,
+                evaporate: bossUnit.evaporate,
+              },
+              [EXERTABLE]: { castable: entityId },
+              [FOG]: { visibility: "visible", type: "float", fixed: true },
+              [FRAGMENT]: { structure: entityId },
+              [LAYER]: {},
+              [MOVABLE]: {
+                orientations: [],
+                reference: world.getEntityId(world.metadata.gameEntity),
+                spring: entity[MOVABLE].spring,
+                lastInteraction: 0,
+                flying: true,
+                swimming: false,
+              },
+              [ORIENTABLE]: { facing: "up" },
+              [POSITION]: copy(position),
+              [RENDERABLE]: { generation: 0 },
+              [SEQUENCABLE]: { states: {} },
+              [SHOOTABLE]: { shots: 0 },
+              [SPRITE]: wormSide,
+            });
+            registerEntity(world, limbEntity);
+            memory.limbs.push({
+              id: world.getEntityId(limbEntity),
+              waypoints: [...waypoints],
+              iteration: memory.iteration,
+              steps: 1,
+            });
+            return limbEntity;
+          };
+          const detachTail = () => {
+            const growing = memory.emerged < memory.segments;
+            if (!growing && memory.limbs.length <= 1) return;
+            if (growing) addSegment(memory.waypoints[0]);
+            const limb = memory.limbs.pop();
+            const tail = world.getEntityByIdAndComponents(limb.id, [
+              MOVABLE,
+              POSITION,
+              EXERTABLE,
+              FRAGMENT,
+              COLLIDABLE,
+            ]);
+            if (!tail) return;
+            memory.segments -= 1;
+            if (!growing) memory.emerged -= 1;
+            tail[MOVABLE].orientations = [];
+            tail[MOVABLE].pendingOrientation = undefined;
+            world.removeComponentFromEntity(tail, EXERTABLE);
+            world.removeComponentFromEntity(tail, FRAGMENT);
+            world.removeComponentFromEntity(tail, COLLIDABLE);
+            setIdentifier(world, tail, "worm:segment");
+            createSequence(world, tail, "decay", "creatureDecay", {
+              fast: false,
+            });
+            memory.detached.push({
+              id: world.getEntityId(tail),
+              position: copy(tail[POSITION]),
+            });
+          };
+          const retreat = (after: string) => {
+            clearArtillery();
+            warn(undefined);
+            memory.afterHidden = after;
+            nextPhase("retreat");
+          };
+          const spawnTower = (position: Position) => {
+            const rim = pixelCircle({ x: 0, y: 0 }, wormRadius - 3)
+              .map((offset) => combine(size, center, offset))
+              .filter(
+                (position) =>
+                  (memory.phase !== "rage" ||
+                    signedDistance(center.y, position.y, size) < 0) &&
+                  isWalkable(world, position) &&
+                  !getCellEntities(world, position).some(
+                    (candidate) =>
+                      (candidate[NPC]?.type === "wormTower" &&
+                        !isDead(world, candidate)) ||
+                      candidate[IDENTIFIABLE]?.name === "worm:fire"
+                  ) &&
+                  !world
+                    .getEntities([HOMING])
+                    .some(
+                      (disc) =>
+                        disc[HOMING].type === "wormTower" &&
+                        disc[HOMING].positions.some(
+                          (target) =>
+                            target.x === position.x && target.y === position.y
+                        )
+                    )
+              );
+            if (rim.length === 0) return false;
+            const separated = rim.filter(
+              (target) => getDistance(position, target, size) >= 3
+            );
+            if (!separated.length) return false;
+            const nearby = separated.filter(
+              (target) => getDistance(position, target, size) <= 7
+            );
+            const target = nearby.length
+              ? choice(...nearby)
+              : separated.sort(
+                  (left, right) =>
+                    Math.abs(getDistance(position, left, size) - 5) -
+                    Math.abs(getDistance(position, right, size) - 5)
+                )[0];
+            const disc = shootHoming(world, entity, {
+              type: "wormTower",
+              positions:
+                memory.phase === "rage"
+                  ? [
+                      combine(
+                        size,
+                        entity[POSITION],
+                        orientationPoints[entity[ORIENTABLE]?.facing || "up"]
+                      ),
+                      target,
+                    ]
+                  : [target],
+              ttl: 50,
+            });
+            moveEntity(world, disc, position);
+            return true;
+          };
+          const percentage = entity[STATS].hp / entity[STATS].maxHp;
+          memory.length = Math.min(
+            memory.length,
+            3 + Math.ceil(12 * percentage)
+          );
+          if (memory.phase === "rage") {
+            const threshold = Math.max(
+              0,
+              Math.floor((0.25 - percentage + 1e-9) / 0.03)
+            );
+            memory.rageLowestThreshold = Math.max(
+              memory.rageLowestThreshold || 0,
+              threshold
+            );
+            if (
+              memory.rageLowestThreshold > (memory.rageThreshold || 0) &&
+              spawnTower(memory.hole)
+            )
+              memory.rageThreshold = (memory.rageThreshold || 0) + 1;
+          }
+          if (memory.segments > memory.length) {
+            if (memory.phase === "flight") detachTail();
+            else if (["intro", "artillery"].includes(memory.phase)) {
+              if (spawnTower(memory.hole)) memory.segments -= 1;
+            }
+          }
+          memory.detached = memory.detached.filter(
+            (entry: {
+              id: number;
+              position: Position;
+              evaporating?: boolean;
+              summoned?: boolean;
+            }) => {
+              const { id, position } = entry;
+              const tail = world.getEntityByIdAndComponents(id, [
+                DROPPABLE,
+                POSITION,
+                SEQUENCABLE,
+              ]);
+              if (tail && !tail[DROPPABLE].decayed) return true;
+              if (!entry.summoned) {
+                if (!spawnTower(position)) return true;
+                entry.summoned = true;
+              }
+              if (tail && !entry.evaporating) {
+                entry.evaporating = true;
+                tail[SPRITE] = none;
+                createSequence(world, tail, "evaporate", "creatureEvaporate", {
+                  fast: true,
+                  sprite: evaporate.default.fire,
+                });
+                return true;
+              }
+              if (tail && getSequence(world, tail, "evaporate")) return true;
+              if (tail) disposeEntity(world, tail);
+              return false;
+            }
+          );
+          if (memory.phase !== "flight") {
+            entity[MOVABLE].orientations = [];
+            entity[MOVABLE].pendingOrientation = undefined;
+          }
+          if (percentage <= 0.25) memory.enraged = true;
+          if (memory.enraged && memory.phase === "artillery") retreat("rage");
+          if (memory.enraged && memory.phase === "burrow") {
+            entity[SPRITE] = none;
+            entity[ORIENTABLE].facing = undefined;
+            memory.hole = copy(entity[POSITION]);
+            memory.afterHidden = "rage";
+            nextPhase("hidden");
+          }
+          memory.fires = memory.fires.filter(
+            (entry: { id: number; end: number }) => {
+              if (generation < entry.end) return true;
+              const fire = world.getEntityById(entry.id);
+              if (fire) disposeEntity(world, fire);
+              return false;
+            }
+          );
+          memory.ticks += 1;
+          if (memory.phase === "surface") {
+            if (memory.ticks === 1) {
+              entity[MOVABLE].spring = { duration: 0 };
+              moveEntity(world, entity, memory.hole);
+              setExposed(false);
+              entity[SPRITE] = none;
+              memory.activeHole = showHole(memory.hole);
+              if (entity[FOG]) entity[FOG].type = "float";
+              entity[ORIENTABLE].facing = undefined;
+              warn(rage);
+            }
+            if (memory.ticks === 4) {
+              setExposed(true);
+              entity[MOVABLE].spring = { duration: 350 };
+              entity[SPRITE] = { ...wormMouth, name: "" };
+              if (entity[FOG]) entity[FOG].type = "float";
+              entity[ORIENTABLE].facing = "up";
+            }
+            if (memory.ticks === 5) {
+              addSegment(memory.hole);
+              if (memory.surfacePhase === "flight") {
+                warn(undefined);
+                beginFlight();
+              } else {
+                moveEntity(
+                  world,
+                  entity,
+                  combine(size, memory.hole, { x: 0, y: -1 })
+                );
+              }
+            }
+            if (memory.phase === "surface" && memory.ticks === 7) {
+              warn(undefined);
+              nextPhase(memory.surfacePhase);
+              if (memory.surfacePhase === "rage") {
+                play("talk", {
+                  variant: 1,
+                  intensity: 3,
+                  proximity: rageProximity,
+                });
+              }
+            }
+          } else if (memory.phase === "retreat") {
+            entity[ORIENTABLE].facing = "up";
+            if (memory.ticks === 1) {
+              entity[MOVABLE].spring = { duration: 350 };
+              moveEntity(world, entity, memory.hole);
+            }
+            if (memory.ticks === 2) {
+              for (const limb of memory.limbs.splice(1)) {
+                const segment = world.getEntityById(limb.id);
+                if (segment) disposeEntity(world, segment);
+              }
+            }
+            if (memory.ticks === 3) {
+              closeHole(memory.activeHole);
+              setExposed(false);
+              entity[SPRITE] = none;
+              entity[ORIENTABLE].facing = undefined;
+              nextPhase("hidden");
+            }
+          } else if (memory.phase === "hidden") {
+            if (memory.detached.length === 0) {
+              const phase = memory.enraged ? "rage" : memory.afterHidden;
+              if (phase === "rage")
+                surface("rage", combine(size, center, { x: 0, y: 1 }));
+              else nextPhase(phase);
+            }
+          } else if (memory.phase === "intro") {
+            if (memory.ticks === 1) shout("?");
+            if (!memory.shoutUntil && !getSequence(world, entity, "dialog")) {
+              fireWave(true);
+              nextPhase("collapse");
+            }
+          } else if (memory.phase === "collapse") {
+            const wave = world
+              .getEntities([CASTABLE, SEQUENCABLE])
+              .find(
+                (spell) =>
+                  spell[CASTABLE].caster === entityId &&
+                  getSequence(world, spell, "spell")?.name === "castWave1"
+              );
+            const radius =
+              (wave &&
+                getSequence(world, wave, "spell")?.args.memory.innerRadius) ||
+              memory.collapseRadius ||
+              0;
+            memory.collapseRadius = radius;
+            const wormCells = pixelCircle(
+              { x: 0, y: 0 },
+              wormRadius,
+              undefined,
+              true
+            );
+            const wormCellKeys = new Set(
+              wormCells.map(({ x, y }) => `${x},${y}`)
+            );
+            const nearWave = ({ x, y }: Position) =>
+              radius > 0 &&
+              Math.max(0, Math.abs(x) - 1) + Math.max(0, Math.abs(y) - 1) <=
+                radius;
+            // Rubble replaces collapsed walls without mining drops.
+            for (const wall of [
+              ...world.getEntities([POSITION, HARVESTABLE]),
+            ]) {
+              if (wall[HARVESTABLE].resource !== "mountain") continue;
+              const dx = Math.abs(
+                signedDistance(center.x, wall[POSITION].x, size)
+              );
+              const dy = Math.abs(
+                signedDistance(center.y, wall[POSITION].y, size)
+              );
+              if (
+                dx >= wormSize.x ||
+                dy >= wormSize.y ||
+                !radius ||
+                !wormCellKeys.has(`${dx},${dy}`) ||
+                !nearWave({ x: dx, y: dy })
+              )
+                continue;
+              const position = copy(wall[POSITION]);
+              disposeEntity(world, wall);
+              const rubble = createCell(
+                world,
+                position,
+                "rubble",
+                "hidden"
+              ).cell;
+              registerEntity(world, rubble);
+            }
+            if (!memory.ringLit) {
+              const wormFireRing = wormCells.filter(({ x, y }) =>
+                Object.values(orientationPoints).some(
+                  (delta) => !wormCellKeys.has(`${x + delta.x},${y + delta.y}`)
+                )
+              );
+              memory.ringFires ||= {};
+              for (const position of wormFireRing) {
+                const key = `${position.x},${position.y}`;
+                if (memory.ringFires[key] || !nearWave(position)) continue;
+                memory.ringFires[key] = true;
+                const fire = createCell(
+                  world,
+                  combine(size, center, position),
+                  "campfire",
+                  "visible"
+                ).cell;
+                fire[BURNABLE]!.smokeless = true;
+                fire[SPRITE] = none;
+                registerEntity(world, fire);
+                setIdentifier(world, fire, "worm:fire");
+              }
+              memory.ringLit =
+                Object.keys(memory.ringFires).length === wormFireRing.length;
+            }
+            if (!wave) {
+              memory.jumps = 1;
+              beginFlight(true);
+            }
+          } else if (memory.phase === "choose") {
+            if (memory.enraged) {
+              surface("rage", combine(size, center, { x: 0, y: 1 }));
+            } else {
+              const phase = memory.next || choice("burrow", "artillery");
+              memory.next = phase === "burrow" ? "artillery" : "burrow";
+              memory.jumps = random(3, 4);
+              memory.phaseHp = entity[STATS].hp;
+              if (phase === "artillery") {
+                surface(
+                  "artillery",
+                  combine(
+                    size,
+                    center,
+                    choice(
+                      { x: -8, y: 0 },
+                      { x: 8, y: 0 },
+                      { x: -5, y: 5 },
+                      { x: 5, y: -5 }
+                    )
+                  )
+                );
+              } else nextPhase(phase);
+            }
+          } else if (memory.phase === "rage") {
+            if (memory.limbs.length === 1) addSegment(memory.hole);
+            if (!memory.rageStarted) {
+              if (!memory.rageShouted) {
+                shout("!");
+                memory.rageShouted = true;
+              }
+              if (memory.shoutUntil || getSequence(world, entity, "dialog")) {
+                rerenderEntity(world, entity);
+                break;
+              }
+              memory.rageStarted = true;
+              memory.ticks = 0;
+            }
+            if (!memory.rageAttack) {
+              memory.rageAttack = choice(
+                ...["wave", "blasts", "slashes"].filter(
+                  (attack) => attack !== memory.previousRageAttack
+                )
+              );
+              memory.previousRageAttack = memory.rageAttack;
+              memory.slashes = 3;
+            }
+            if (memory.rageAttack === "wave") {
+              if (memory.ticks === 14) warn(rage);
+              if (memory.ticks === 24) {
+                warn(undefined);
+                fireWave(true);
+              }
+              if (memory.ticks >= 41) {
+                memory.ticks = 0;
+                delete memory.rageAttack;
+              }
+            } else if (memory.rageAttack === "blasts") {
+              memory.blastDirections ||= shuffle([...orientations]);
+              if ([3, 7, 11, 15].includes(memory.ticks)) warn(rage);
+              if ([6, 10, 14, 18].includes(memory.ticks)) {
+                warn(undefined);
+                castSpell(
+                  world,
+                  {
+                    ...entity,
+                    [POSITION]: copy(entity[POSITION]),
+                  },
+                  {
+                    [ITEM]: {
+                      carrier: -1,
+                      bound: false,
+                      amount: 1,
+                      spell: "blast",
+                      material: "gold",
+                      element: "fire",
+                    },
+                  },
+                  memory.blastDirections[(memory.ticks - 6) / 4]
+                );
+              }
+              if (memory.ticks >= 24) {
+                memory.ticks = 0;
+                delete memory.rageAttack;
+                delete memory.blastDirections;
+              }
+            } else {
+              if (memory.ticks % 6 === 1) warn(rage2);
+              if (memory.ticks % 6 === 5) {
+                warn(undefined);
+                const slash = entities.createSpell(world, {
+                  [BELONGABLE]: { faction: entity[BELONGABLE]!.faction },
+                  [CASTABLE]: {
+                    ...getEmptyCastable(world, entity),
+                    ...getAbilityStats(
+                      { skill: "slash", material: "gold", element: "fire" },
+                      "wormBoss"
+                    ),
+                  },
+                  [ORIENTABLE]: {},
+                  [POSITION]: copy(memory.hole),
+                  [RENDERABLE]: { generation: 0 },
+                  [SEQUENCABLE]: { states: {} },
+                  [SPRITE]: none,
+                });
+                createSequence<"slash", SlashSequence>(
+                  world,
+                  slash,
+                  "slash",
+                  "chargeSlash",
+                  {
+                    tick: world.metadata.gameEntity[REFERENCE].tick,
+                    material: "gold",
+                    element: "fire",
+                    castable: world.getEntityId(slash),
+                    exertables: [],
+                  }
+                );
+                play("slash");
+                memory.slashes -= 1;
+                if (memory.slashes === 0) {
+                  memory.ticks = 0;
+                  delete memory.rageAttack;
+                }
+              }
+            }
+          } else if (memory.phase === "burrow") {
+            if (memory.ticks === 1) {
+              const start = choice(
+                ...sand.filter(
+                  (position) => signedDistance(center.y, position.y, size) >= -2
+                )
+              );
+              surface("flight", start);
+            }
+          } else if (memory.phase === "flight") {
+            if (
+              entity[POSITION].x !== memory.lastShotPosition.x ||
+              entity[POSITION].y !== memory.lastShotPosition.y
+            ) {
+              memory.flightDistance += 1;
+              memory.lastShotPosition = copy(entity[POSITION]);
+            }
+            const waypoints = [...memory.waypoints] as Position[];
+            const rotation = memory.rotation;
 
             const limbs: {
               id: number;
               waypoints: Position[];
               iteration: number;
               steps: number;
-            }[] = [...pattern.memory.limbs];
+            }[] = [...memory.limbs];
             limbs.forEach((limb) => {
-              const limbEntity = world.assertByIdAndComponents(limb.id, [
+              const limbEntity = world.getEntityByIdAndComponents(limb.id, [
                 FOG,
                 MOVABLE,
                 ORIENTABLE,
                 POSITION,
               ]);
+              if (!limbEntity) return;
               const isHead = limbEntity === entity;
 
               // push z-index up
@@ -4398,13 +5162,18 @@ export default function setupAi(world: World) {
 
               let nextWaypoint: Position | undefined = limb.waypoints[0];
 
-              // wait until tail has decreased
-              if (!nextWaypoint) return;
+              if (!nextWaypoint) {
+                limbEntity[MOVABLE].orientations = [];
+                limbEntity[MOVABLE].pendingOrientation = undefined;
+                return;
+              }
 
               const distance = getDistance(
                 limbEntity[POSITION],
                 nextWaypoint,
-                size
+                size,
+                1,
+                false
               );
               const beforeWaypoint = distance === 1;
               const reachedWaypoint = distance === 0;
@@ -4419,13 +5188,19 @@ export default function setupAi(world: World) {
               if (!nextWaypoint) {
                 limbEntity[ORIENTABLE].facing = undefined;
                 limbEntity[MOVABLE].orientations = [];
+                limbEntity[MOVABLE].pendingOrientation = undefined;
 
-                if (!isHead) {
+                if (isHead) {
+                  memory.entryHole = showHole(limbEntity[POSITION]);
+                  limbEntity[SPRITE] = none;
+                  if (entity[EXERTABLE])
+                    world.removeComponentFromEntity(
+                      world.assertComponents(entity, [EXERTABLE]),
+                      EXERTABLE
+                    );
+                } else {
                   disposeEntity(world, limbEntity);
-                  pattern.memory.limbs.splice(
-                    pattern.memory.limbs.indexOf(limb),
-                    1
-                  );
+                  memory.limbs.splice(memory.limbs.indexOf(limb), 1);
                 }
 
                 return;
@@ -4438,10 +5213,7 @@ export default function setupAi(world: World) {
                 nextWaypoint
               )[0];
 
-              // don't move on first step
-              if (limb.steps !== 0) {
-                limbEntity[MOVABLE].orientations = [orientation];
-              }
+              limbEntity[MOVABLE].orientations = [orientation];
 
               if (beforeWaypoint && !isHead && nextWaypoint && !lastWaypoint) {
                 limbEntity[SPRITE] = wormCorner;
@@ -4460,68 +5232,431 @@ export default function setupAi(world: World) {
               rerenderEntity(world, limbEntity);
             });
 
-            if (limbs.length < pattern.memory.length) {
-              if (
-                getDistance(entity[POSITION], waypoints.slice(-1)[0], size) ===
-                0
-              ) {
-                // move head if reached end
-                moveEntity(
-                  world,
-                  entity,
-                  combine(size, entity[POSITION], {
-                    x: random(4, 8) * choice(-1, 1),
-                    y: random(3, 6) * choice(-1, 1),
-                  })
+            const facing = entity[ORIENTABLE].facing || "up";
+            const movement = entity[MOVABLE].orientations[0];
+            const head = movement
+              ? combine(size, entity[POSITION], orientationPoints[movement])
+              : entity[POSITION];
+            const mouth = combine(size, head, orientationPoints[facing]);
+            const fireDisc = (origin: Position, direction: Position) => {
+              const disc = shootHoming(world, entity, {
+                type: "fireDisc",
+                positions: [combine(size, origin, ...repeat(direction, 12))],
+                ttl: 14,
+              });
+              moveEntity(world, disc, origin);
+            };
+            const patternIndex = memory.shotPattern ?? 0;
+            const horizontal = facing === "left" || facing === "right";
+            if (
+              memory.limbs[0].waypoints.length > 0 &&
+              movement &&
+              ((patternIndex === 0 && memory.flightDistance >= 3) ||
+                (patternIndex === 1 && horizontal))
+            ) {
+              memory.flightDistance = 0;
+              for (const turn of [-1, 1])
+                fireDisc(
+                  mouth,
+                  orientationPoints[rotateOrientation(facing, turn)]
                 );
-                pattern.memory.waypoints = [];
-                pattern.memory.rotation = 0;
-                limbs[0].iteration += 1;
-                limbs[0].steps = 0;
-              } else {
-                // attach new limb
-                const bossUnit = generateNpcData("oakBoss");
-                const limbEntity = entities.createExtremity(world, {
-                  [ACTIONABLE]: {
-                    spellTriggered: false,
-                    skillTriggered: false,
-                    interactTriggered: false,
-                    toolEquipped: false,
-                  },
-                  [BUMPABLE]: { generation: 0 },
-                  [COLLIDABLE]: {},
-                  [DROPPABLE]: {
-                    decayed: false,
-                    evaporate: bossUnit.evaporate,
-                  },
-                  [EXERTABLE]: { castable: entityId },
-                  [FOG]: { visibility: "hidden", type: "unit" },
-                  [FRAGMENT]: { structure: entityId },
-                  [LAYER]: {},
-                  [MOVABLE]: {
-                    orientations: [],
-                    reference: world.getEntityId(world.metadata.gameEntity),
-                    spring: entity[MOVABLE].spring,
-                    lastInteraction: 0,
-                    flying: true,
-                    swimming: false,
-                  },
-                  [ORIENTABLE]: { facing: "up" },
-                  [POSITION]: copy(pattern.memory.waypoints[0]),
-                  [RENDERABLE]: { generation: 0 },
-                  [SEQUENCABLE]: { states: {} },
-                  [SHOOTABLE]: { shots: 0 },
-                  [SPRITE]: wormSide,
+            }
+            if (patternIndex === 2) {
+              const shieldCount = Math.max(0, memory.length - 4);
+              while (memory.shieldDiscs.length > shieldCount) {
+                const disc = world.getEntityByIdAndComponents(
+                  memory.shieldDiscs.pop(),
+                  [HOMING, MOVABLE, ORIENTABLE, RENDERABLE, CASTABLE, SPRITE]
+                );
+                if (disc) {
+                  decayHoming(world, disc);
+                  disc[MOVABLE].pendingOrientation = undefined;
+                  disc[CASTABLE].magic = 0;
+                  disc[CASTABLE].burn = 0;
+                  disc[SPRITE] = none;
+                }
+              }
+              for (const limb of memory.limbs.slice(1)) {
+                if (memory.shieldSegments.includes(limb.id)) continue;
+                if (memory.shieldSegments.length >= shieldCount) continue;
+                memory.shieldSegments.push(limb.id);
+                const segment = world.getEntityByIdAndComponents(limb.id, [
+                  POSITION,
+                  MOVABLE,
+                ]);
+                if (!segment) continue;
+                const side = 1;
+                const start = combine(
+                  size,
+                  segment[POSITION],
+                  orientationPoints[segment[MOVABLE]?.orientations[0] || "up"],
+                  { x: -memory.rotation * side, y: 0 }
+                );
+                const top = memory.waypoints[1];
+                const corner = memory.waypoints[memory.waypoints.length - 2];
+                const end = memory.waypoints.at(-1);
+                const path = [
+                  combine(size, top, { x: -memory.rotation * side, y: -side }),
+                  combine(size, corner, {
+                    x: memory.rotation * side,
+                    y: -side,
+                  }),
+                  combine(size, end, { x: memory.rotation * side, y: 0 }),
+                ];
+                const disc = shootHoming(world, entity, {
+                  type: "fireDisc",
+                  positions: path,
+                  ttl: 40,
                 });
-                pattern.memory.limbs.push({
-                  id: world.getEntityId(limbEntity),
-                  waypoints,
-                  iteration: pattern.memory.iteration,
-                  steps: 0,
-                });
+                memory.shieldDiscs.push(world.getEntityId(disc));
+                moveEntity(world, disc, start);
               }
             }
+            if (memory.emerged < memory.segments) {
+              // attach new limb
+              addSegment(memory.waypoints[0], waypoints);
+              memory.emerged += 1;
+            }
+            if (
+              memory.emerged >= memory.segments &&
+              memory.limbs.length === 1 &&
+              memory.limbs[0].waypoints.length === 0
+            ) {
+              closeHole(memory.entryHole);
+              setExposed(false);
+              memory.waypoints = [];
+              memory.jumps -= 1;
+              memory.hole = copy(entity[POSITION]);
+              memory.afterHidden = memory.jumps > 0 ? "burrow" : "choose";
+              entity[SPRITE] = none;
+              entity[ORIENTABLE].facing = undefined;
+              nextPhase("hidden");
+            }
+          } else if (memory.phase === "artillery") {
+            const cycle = (memory.ticks - 1) % 7;
+            if (cycle === 0) {
+              warn(rage);
+              const heroPosition = heroEntity[POSITION];
+              const toward =
+                relativeOrientations(
+                  world,
+                  heroPosition,
+                  entity[POSITION]
+                )[0] || "up";
+              const walking =
+                heroEntity[MOVABLE]?.pendingOrientation ||
+                heroEntity[MOVABLE]?.orientations[0] ||
+                heroEntity[ORIENTABLE]?.facing ||
+                toward;
+              const direction = orientationPoints[choice(toward, walking)];
+              const lead = random(2, 4);
+              const aim = choice(
+                combine(size, heroPosition, {
+                  x: random(-3, 3),
+                  y: random(-2, 2),
+                }),
+                combine(size, heroPosition, {
+                  x: direction.x * lead,
+                  y: direction.y * lead,
+                })
+              );
+              const candidates = pixelCircle({ x: 0, y: 0 }, 6, undefined, true)
+                .map((offset) => combine(size, center, offset))
+                .filter(
+                  (position) =>
+                    !isImmersible(world, position) &&
+                    !world.metadata.gameEntity[LEVEL].cells[position.x][
+                      position.y
+                    ].startsWith("jetty") &&
+                    getDistance(position, entity[POSITION], size) >= 3 &&
+                    !getCellEntities(world, position).some(
+                      (candidate) =>
+                        candidate[NPC]?.type === "wormTower" &&
+                        !isDead(world, candidate)
+                    )
+                );
+              candidates.sort(
+                (left, right) =>
+                  getDistance(left, aim, size) - getDistance(right, aim, size)
+              );
+              memory.target = candidates[0];
+              const marker = entities.createGround(world, {
+                [FOG]: { visibility: "visible", type: "object" },
+                [POSITION]: memory.target,
+                [RENDERABLE]: { generation: 0 },
+                [SPRITE]: warnOn,
+              });
+              registerEntity(world, marker);
+              memory.marker = world.getEntityId(marker);
+              memory.warningStarted = roomSequence?.elapsed || 0;
+              setIdentifier(world, marker, "worm:warning");
+            }
+            if ((cycle === 3 || cycle === 4) && roomSequence) {
+              for (let line = 0; line < 3; line += 1) {
+                const previous = world.getEntityById(
+                  roomSequence.particles[`artillery${line}`]
+                );
+                if (previous) disposeEntity(world, previous);
+              }
+              const position = cycle === 3 ? entity[POSITION] : memory.target;
+              const offsetX = signedDistance(center.x, position.x, size);
+              const offsetY = signedDistance(center.y, position.y, size);
+              for (let line = 0; line < 3; line += 1) {
+                const shot = entities.createFibre(world, {
+                  [ORIENTABLE]: { facing: line === 1 ? "up" : undefined },
+                  [PARTICLE]: {
+                    offsetX,
+                    offsetY: offsetY - (cycle === 3 ? 9 : 0) - line,
+                    offsetZ: particleHeight,
+                    animatedOrigin: {
+                      x: offsetX,
+                      y: offsetY - (cycle === 3 ? 0 : 9) - line,
+                    },
+                    duration:
+                      world.metadata.gameEntity[REFERENCE].tick *
+                      (cycle === 3 ? 1 : 2),
+                  },
+                  [RENDERABLE]: { generation: 1 },
+                  [SPRITE]: {
+                    name: "",
+                    layers: [{ char: "│", color: colors.red }],
+                    facing: { up: [{ char: "║", color: colors.red }] },
+                  },
+                });
+                roomSequence.particles[`artillery${line}`] =
+                  world.getEntityId(shot);
+              }
+              rerenderEntity(world, room!);
+            }
+            if (cycle === 6) {
+              clearArtillery();
+              if (
+                !getCellEntities(world, memory.target).some(
+                  (candidate) =>
+                    candidate[NPC]?.type === "wormTower" &&
+                    !isDead(world, candidate)
+                )
+              ) {
+                fireWave(false, memory.target);
+                if (!isImmersible(world, memory.target)) {
+                  const fire = createCell(
+                    world,
+                    memory.target,
+                    "campfire",
+                    "hidden"
+                  ).cell;
+                  fire[BURNABLE]!.smokeless = true;
+                  fire[SPRITE] = none;
+                  registerEntity(world, fire);
+                  setIdentifier(world, fire, "worm:fire");
+                  memory.fires.push({
+                    id: world.getEntityId(fire),
+                    end: generation + random(60, 150),
+                  });
+                }
+              }
+              warn(undefined);
+              if (
+                memory.phaseHp - entity[STATS].hp >= 30 ||
+                memory.ticks >= 120
+              )
+                retreat("choose");
+            }
           }
+          rerenderEntity(world, entity);
+          break;
+        } else if (pattern.name === "worm_tower") {
+          const boss = getIdentifierAndComponents(world, "worm_boss", [
+            STATS,
+            BEHAVIOUR,
+            POSITION,
+          ]);
+          if (!boss || isDead(world, boss)) {
+            if (entity[STATS]) entity[STATS].hp = 0;
+            break;
+          }
+          const memory = pattern.memory;
+          if (!memory.facing || !memory.shots) {
+            const center =
+              getIdentifierAndComponents(world, "wormRoom", [POSITION])?.[
+                POSITION
+              ] || boss[POSITION];
+            memory.facing =
+              relativeOrientations(world, entity[POSITION], center)[0] || "up";
+            memory.ticks = 0;
+            const floor = new Set(
+              pixelCircle({ x: 0, y: 0 }, wormRadius - 1, undefined, true).map(
+                ({ x, y }) => `${x},${y}`
+              )
+            );
+            memory.shots = [
+              memory.facing,
+              invertOrientation(memory.facing),
+            ].map((facing, index) => {
+              const delta = orientationPoints[facing as Orientation];
+              let target = copy(entity[POSITION]);
+              let distance = 0;
+              for (let step = 0; step < wormSize.x * 2; step += 1) {
+                const next = combine(size, target, delta);
+                const x = signedDistance(center.x, next.x, size);
+                const y = signedDistance(center.y, next.y, size);
+                if (!floor.has(`${x},${y}`)) break;
+                target = next;
+                distance += 1;
+              }
+              const waypoint = delta.x
+                ? { x: center.x, y: entity[POSITION].y }
+                : { x: entity[POSITION].x, y: center.y };
+              return {
+                positions: index === 0 ? [waypoint, target] : [target],
+                ttl: distance + 2,
+              };
+            });
+          }
+          memory.ticks += 1;
+          const bossMemory = boss[BEHAVIOUR].patterns.find(
+            (pattern) => pattern.name === "worm_boss"
+          )?.memory;
+          const artillery = bossMemory?.phase === "artillery";
+          const healing =
+            bossMemory?.phase === "rage" &&
+            boss[STATS].hp / boss[STATS].maxHp <= 0.25;
+          const setWarning = (sprite: typeof rage | undefined) => {
+            if (entity[TOOLTIP]?.idle === sprite) return;
+            entity[TOOLTIP]!.idle = sprite;
+            entity[TOOLTIP]!.changed = true;
+          };
+          const stopDisc = (id: number) => {
+            const disc = world.getEntityByIdAndComponents(id, [
+              HOMING,
+              MOVABLE,
+              ORIENTABLE,
+              RENDERABLE,
+              CASTABLE,
+              SPRITE,
+            ]);
+            if (!disc) return;
+            decayHoming(world, disc);
+            disc[MOVABLE].pendingOrientation = undefined;
+            disc[CASTABLE].heal = 0;
+            disc[CASTABLE].magic = 0;
+            disc[CASTABLE].burn = 0;
+            disc[SPRITE] = none;
+          };
+          if (!healing && memory.heal) {
+            stopDisc(memory.heal);
+            delete memory.heal;
+          }
+          if (!artillery && memory.orbits) {
+            for (const id of memory.orbits) {
+              stopDisc(id);
+            }
+            delete memory.orbits;
+          }
+
+          if (artillery) {
+            if (!memory.orbits) {
+              const path = iterations.flatMap(({ direction, normal }) => [
+                combine(size, entity[POSITION], direction),
+                combine(size, entity[POSITION], direction, normal),
+              ]);
+              memory.orbits = [0, 4].map((offset) => {
+                const positions = path
+                  .slice(offset)
+                  .concat(path.slice(0, offset));
+                const disc = shootHoming(world, entity, {
+                  type: "fireOrbit",
+                  positions,
+                  ttl: 0,
+                });
+                moveEntity(world, disc, positions[0]);
+                return world.getEntityId(disc);
+              });
+            }
+          }
+          if (bossMemory?.phase === "rage") {
+            delete memory.queuedAttack;
+            memory.shotsLeft = 0;
+            setWarning(undefined);
+            if (healing && !world.getEntityById(memory.heal)) {
+              const disc = shootHoming(world, entity, {
+                type: "healDisc",
+                target: world.getEntityId(boss),
+                positions: [copy(boss[POSITION])],
+                ttl: 30,
+              });
+              memory.heal = world.getEntityId(disc);
+            }
+            break;
+          }
+
+          // Finish queued actions except when rage disables tower attacks.
+          if (memory.queuedAttack) {
+            if (memory.ticks < memory.attackAt) break;
+            setWarning(undefined);
+            if (memory.queuedAttack === "shot") {
+              for (const shot of memory.shots)
+                shootHoming(world, entity, { type: "fireDisc", ...shot });
+              memory.shotsLeft -= 1;
+              if (memory.shotsLeft > 0) {
+                memory.shotsSinceSlash += 1;
+                memory.attackAt = memory.ticks + 1;
+                break;
+              }
+              memory.nextAttack = memory.ticks + 8;
+            } else {
+              const slash = entities.createSpell(world, {
+                [BELONGABLE]: { faction: entity[BELONGABLE]!.faction },
+                [CASTABLE]: {
+                  ...getEmptyCastable(world, entity),
+                  ...getAbilityStats(
+                    { skill: "slash", material: "iron" },
+                    "wormTower"
+                  ),
+                },
+                [ORIENTABLE]: {},
+                [POSITION]: copy(entity[POSITION]),
+                [RENDERABLE]: { generation: 0 },
+                [SEQUENCABLE]: { states: {} },
+                [SPRITE]: none,
+              });
+              createSequence<"slash", SlashSequence>(
+                world,
+                slash,
+                "slash",
+                "chargeSlash",
+                {
+                  tick: world.metadata.gameEntity[REFERENCE].tick,
+                  material: "iron",
+                  castable: world.getEntityId(slash),
+                  exertables: [],
+                }
+              );
+              play("slash");
+              memory.nextAttack = memory.ticks + 2;
+            }
+            delete memory.queuedAttack;
+            break;
+          }
+          if (memory.ticks < (memory.nextAttack || 0)) break;
+          const nearby =
+            !!rageHero &&
+            getDistance(entity[POSITION], rageHero[POSITION], size, 1, false) <=
+              1;
+          if (artillery && !nearby) {
+            setWarning(undefined);
+            break;
+          }
+          const slash =
+            nearby && (artillery || (memory.shotsSinceSlash || 0) >= 2);
+          memory.queuedAttack = slash ? "slash" : "shot";
+          memory.shotsSinceSlash = slash
+            ? 0
+            : (memory.shotsSinceSlash || 0) + 1;
+          memory.shotsLeft = slash ? 0 : 3;
+          memory.attackAt = memory.ticks + (slash ? 4 : 3);
+          setWarning(slash ? rage2 : rage);
+          break;
         } else if (pattern.name === "chest_boss") {
           const chaseTicks = 30;
           const healTicks = 45;

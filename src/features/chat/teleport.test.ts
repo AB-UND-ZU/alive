@@ -1,6 +1,10 @@
 import { createAreaWorld, walk } from "../../testing/harness";
 import { FOCUSABLE } from "../../engine/components/focusable";
 import { POSITION } from "../../engine/components/position";
+import { createCell } from "../../bindings/creation";
+import { registerEntity } from "../../engine/systems/map";
+import { executeCommand } from "../../game/assets/commands";
+import { getDistance } from "../../game/math/std";
 import {
   assertIdentifierAndComponents,
   getIdentifierAndComponents,
@@ -53,6 +57,24 @@ describe("tp command", () => {
     say(world, "/tp camp");
 
     expect(hero[POSITION]).toEqual({ x: 6, y: 4 });
+  });
+
+  it.each(["worm_bait", "worm_sign", "worm_room"])("teleports to %s", (id) => {
+    const { world, hero } = setup();
+    for (const [cell, position] of [
+      ["worm_bait", { x: 4, y: 0 }],
+      ["worm_sign", { x: 4, y: 3 }],
+    ] as const) {
+      for (const entity of createCell(world, position, cell, "hidden").all)
+        if (entity[POSITION]) registerEntity(world, entity);
+    }
+    const destination = assertIdentifierAndComponents(world, id, [POSITION]);
+    expect(
+      executeCommand(world, hero, { handler: "tp", args: [id] })
+    ).toBeUndefined();
+    expect(
+      getDistance(hero[POSITION], destination[POSITION], 10, 1, false)
+    ).toBeLessThanOrEqual(1);
   });
 
   it.each([

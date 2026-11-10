@@ -52,8 +52,10 @@ export const nomadArea = `\
 ???????????????\
 `;
 
-export const wormSize = { x: 12, y: 8 };
+export const wormRadius = 8;
+export const wormSize = { x: 15, y: 9 };
 export const wormArea = `\
+░░░░░░░░░░░░░
 ░░░░░░W░░░░░░
 ░░░░░░░░░░░░░
 ░░░░~~~~~░░░░
@@ -61,6 +63,7 @@ export const wormArea = `\
 ░░~~≈≈≈≈≈~~░░
 ░░░~~≈≈≈~~░░░
 ░░░░~~~~~░░░░
+░░░░░░░░░░░░░
 ░░░░░░░░░░░░░
 ░░░░░░w░░░░░░\
 `;

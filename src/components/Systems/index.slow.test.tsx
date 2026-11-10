@@ -7,6 +7,9 @@ import {
   snapshot,
 } from "../../testing/harness";
 import { renderScene } from "../../testing/render";
+import { getActiveViewable } from "../../bindings/hooks";
+import { VIEWABLE } from "../../engine/components/viewable";
+import { RENDERABLE } from "../../engine/components/renderable";
 import { LEVEL } from "../../engine/components/level";
 import { POSITION } from "../../engine/components/position";
 import { STICKY } from "../../engine/components/sticky";
@@ -23,6 +26,19 @@ jest.mock("../Entity", () => ({
       userData: { entity: props.entity, x: props.x, y: props.y },
     }),
 }));
+
+const mockShake = jest.fn();
+jest.mock("@react-spring/three", () => {
+  const actual = jest.requireActual("@react-spring/three");
+  const api = {
+    start: (...args: unknown[]) => mockShake(...args),
+    pause: jest.fn(),
+    resume: jest.fn(),
+  };
+  return { ...actual, useSpring: () => [{ x: 0, y: 0 }, api] };
+});
+
+beforeEach(() => mockShake.mockClear());
 
 type EntityGroup = { entity: TypedEntity<"POSITION">; x: number; y: number };
 
@@ -46,6 +62,37 @@ const spawn = findInArea(area, "♀");
 const createWorld = () => createAreaWorld(area, { size: 48 });
 
 describe("Systems", () => {
+  it.each(["LEVEL_MENU", "LEVEL_ISLAND"] as const)(
+    "does not shake when entering a new %s world",
+    async (level) => {
+      const world = createAreaWorld(area, { size: 48, level });
+      expect(world.metadata.gameEntity[RENDERABLE].generation).toBe(-1);
+      const { renderer, advanceFrames } = await renderScene(world, <Systems />);
+      await advanceFrames(4);
+      expect(mockShake).not.toHaveBeenCalled();
+      await renderer.unmount();
+    }
+  );
+
+  it("shakes only while the active viewpoint's earthquake is running", async () => {
+    const world = createWorld();
+    const viewpoint = getActiveViewable(
+      world.getEntities([VIEWABLE, POSITION])
+    );
+    viewpoint[VIEWABLE].quake =
+      world.metadata.gameEntity[RENDERABLE].generation + 8;
+    const { renderer, advanceFrames } = await renderScene(world, <Systems />);
+    await advanceFrames(2);
+    expect(mockShake).toHaveBeenCalled();
+
+    viewpoint[VIEWABLE].quake =
+      world.metadata.gameEntity[RENDERABLE].generation;
+    mockShake.mockClear();
+    await advanceFrames(2);
+    expect(mockShake).not.toHaveBeenCalled();
+    await renderer.unmount();
+  });
+
   it("renders every entity within the viewport at its own cell", async () => {
     const world = createWorld();
     const hero = assertHero(world);

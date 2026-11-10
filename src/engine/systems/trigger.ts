@@ -1047,6 +1047,7 @@ export const castSpell = (
       "spell",
       "castBlast",
       {
+        memory: {},
         progress: 0,
         range: spellStats.range,
         duration: spellStats.duration,
@@ -1094,7 +1095,13 @@ export const castSpell = (
       "spell",
       "castWave1",
       {
-        memory: { innerRadius: 0 },
+        memory: {
+          innerRadius: 0,
+          elemental: castableEntity[NPC]?.type === "wormBoss",
+          double:
+            castableEntity[NPC]?.type === "wormBoss" &&
+            item[ITEM].material === "gold",
+        },
         progress: 0,
         range: spellStats.range,
         duration: spellStats.duration,
@@ -1103,7 +1110,12 @@ export const castSpell = (
         element: item[ITEM].element,
       }
     );
-    play("wave", { intensity: spellStats.duration / 7 });
+    play("wave", {
+      intensity:
+        castableEntity[NPC]?.type === "wormBoss"
+          ? Math.min(spellStats.duration / 7, 1.25)
+          : spellStats.duration / 7,
+    });
   }
 
   if (
@@ -1114,6 +1126,7 @@ export const castSpell = (
     castableEntity[STATS].mp -= 1;
     rerenderEntity(world, castableEntity);
   }
+  return spellEntity;
 };
 
 export const castSkill = (world: World, entity: Entity, skill: Entity) => {

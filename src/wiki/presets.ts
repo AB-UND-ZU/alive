@@ -51,6 +51,13 @@ export const presets = {
     level: "LEVEL_ISLAND",
     cell: "oak_boss",
   },
+  worm: {
+    title: "Worm Boss",
+    description:
+      "Cave encounter with a gold sword, fire beam and pickaxe. Attack the small worm to begin.",
+    level: "LEVEL_ISLAND",
+    cell: "worm_bait",
+  },
   haven: {
     title: "Fire Haven",
     description: "Haven workshops with iron gear and crafting supplies.",
@@ -78,7 +85,8 @@ export function createPresetWorld(name: PresetName) {
     "LIGHT",
   ]);
   const advanced = name !== "dungeon";
-  const material = name === "oak" ? "gold" : advanced ? "iron" : "wood";
+  const material =
+    name === "oak" || name === "worm" ? "gold" : advanced ? "iron" : "wood";
   const equipment: Omit<Item, "carrier">[] = [
     { weapon: "sword", material, amount: 1, bound: false },
     {
@@ -95,9 +103,9 @@ export function createPresetWorld(name: PresetName) {
       { offhand: "shield", material, amount: 1, bound: false },
       { tool: "axe", material: "iron", amount: 1, bound: false }
     );
-  if (name === "ilex" || name === "oak")
+  if (name === "ilex" || name === "oak" || name === "worm")
     equipment.push({
-      spell: name === "oak" ? "beam" : "wave",
+      spell: name === "ilex" ? "wave" : "beam",
       material: "iron",
       element: "fire",
       amount: 1,

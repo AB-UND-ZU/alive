@@ -88,7 +88,7 @@ import {
   isAffectable,
 } from "./magic";
 import { LEVEL } from "../components/level";
-import { getTempo, isWalkable } from "./movement";
+import { getTempo, isPassable, isWalkable } from "./movement";
 import { BUMPABLE } from "../components/bumpable";
 import { EXERTABLE } from "../components/exertable";
 import { getSpikable, stingEntity } from "./spike";
@@ -660,7 +660,13 @@ export const applyProcs = (
   }
 
   // handle knock
-  knockEntity(world, targetEntity, orientation, itemStats.knock || 0);
+  knockEntity(
+    world,
+    targetEntity,
+    orientation,
+    itemStats.knock || 0,
+    attackerEntity
+  );
 
   // mark proc as handled
   targetEntity[AFFECTABLE].procs[procId] = generation;
@@ -682,10 +688,15 @@ export const knockEntity = (
   world: World,
   entity: Entity,
   orientation: Orientation,
-  amount: number
+  amount: number,
+  source?: Entity
 ) => {
   // fire tribe has knock immunity
-  if (entity[BELONGABLE]?.faction === "fire") return;
+  if (
+    entity[BELONGABLE]?.faction === "fire" ||
+    entity[NPC]?.type === "wormTower"
+  )
+    return;
 
   const size = world.metadata.gameEntity[LEVEL].size;
   if (!orientation) orientation = choice(...orientations);
@@ -703,7 +714,13 @@ export const knockEntity = (
         sting = spikable;
         break;
       }
-      if (!isWalkable(world, newTarget)) break;
+      // Worm attacks can push across the lake, but still stop at obstacles.
+      if (
+        source?.[NPC]?.type === "wormBoss"
+          ? !isPassable(world, newTarget)
+          : !isWalkable(world, newTarget)
+      )
+        break;
 
       slide -= 1;
       target = newTarget;

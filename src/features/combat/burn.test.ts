@@ -8,6 +8,8 @@ import {
   step,
   walk,
 } from "../../testing/harness";
+import { RENDERABLE } from "../../engine/components/renderable";
+import { moveEntity } from "../../engine/systems/map";
 import { STATS } from "../../engine/components/stats";
 import { AFFECTABLE } from "../../engine/components/affectable";
 import { BURNABLE } from "../../engine/components/burnable";
@@ -65,6 +67,37 @@ describe("burning", () => {
     advanceUntil(world, () => hero[AFFECTABLE].burn === 0);
 
     expect(hero[STATS].hp).toBeLessThan(hp);
+  });
+
+  it("keeps burn damage four ticks apart after lingering across different fires", () => {
+    const { world, hero } = createCombatWorld(
+      `
+|         |
+| ♀ **    |
+|         |
+`,
+      {},
+      500
+    );
+    walk(world, "right", 2);
+    step(world, 15);
+    walk(world, "right");
+    step(world, 240);
+    moveEntity(world, hero, { x: 5, y: 1 });
+    hero[AFFECTABLE].burn = 8;
+    const hits: number[] = [];
+    let hp = hero[STATS].hp;
+    for (let frame = 0; frame < 600 && hits.length < 5; frame++) {
+      step(world);
+      if (hero[STATS].hp < hp) {
+        hits.push(world.metadata.gameEntity[RENDERABLE].generation);
+        hp = hero[STATS].hp;
+      }
+    }
+    expect(hits).toHaveLength(5);
+    expect(hits.slice(1).map((tick, index) => tick - hits[index])).toEqual([
+      4, 4, 4, 4,
+    ]);
   });
 
   it("is extinguished by walking into water", () => {

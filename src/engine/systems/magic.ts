@@ -453,6 +453,15 @@ export default function setupMagic(world: World) {
 
         if (
           isDead(world, targetEntity) ||
+          (castableEntity[HOMING]?.type === "healDisc" &&
+            castableEntity[HOMING].target !== affectableId) ||
+          (["wormBoss", "wormTower"].includes(rootEntity[NPC]?.type || "") &&
+            casterEntity?.[BURNABLE]?.burning) ||
+          (rootEntity[NPC]?.type === "wormTower" &&
+            (castableEntity[CASTABLE].burn > 0 ||
+              getSequences(world, castableEntity).some(
+                ({ args }) => args.element === "fire"
+              ))) ||
           (isFriendlyFire(world, castableEntity, targetEntity) &&
             !castableEntity[CASTABLE].heal) ||
           !hasTriggered(
