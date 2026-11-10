@@ -1,3 +1,4 @@
+import { displaySpriteBuilder } from "./spriteBuilder";
 import { completeCommand } from "./commands";
 import { NPC } from "../../engine/components/npc";
 import { getWarpMap, warpBlink } from "./warp";
@@ -3867,7 +3868,9 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
   const transaction = getTab(world, entity);
   let handler: Sequence<PopupSequence> = displayInfo;
 
-  if (transaction === "buy") {
+  if (entity[POPUP].sprite) {
+    handler = displaySpriteBuilder;
+  } else if (transaction === "buy") {
     handler = displayBuy;
   } else if (transaction === "sell") {
     handler = displaySell;

@@ -30,10 +30,8 @@ import {
   completeChat,
   navigateChat,
   getActivePopup,
-  getTabSelections,
   getVerticalIndex,
   isInPopup,
-  isQuestCompleted,
 } from "../../engine/systems/popup";
 import { credits } from "../../game/assets/credits";
 import { isActionable, isInteractable } from "../../engine/systems/freeze";
@@ -827,19 +825,17 @@ export default function Controls({
         offsetY = event.touches[0].clientY - rect.top;
       }
 
-      const totalWidth = div.offsetWidth;
+      const totalWidth = rect.width;
       const columnWidth = totalWidth / (frameWidth - 2);
       const columnIndex = Math.min(
         frameWidth - 3,
         Math.floor(offsetX / columnWidth)
       );
 
-      const totalHeight = div.offsetHeight;
-      const rowHeight = totalHeight / (frameHeight - 2);
-      const rowIndex = Math.min(
-        frameHeight - 3,
-        Math.floor(offsetY / rowHeight)
-      );
+      const totalHeight = rect.height;
+      const rows = Number(div.dataset.rows) || frameHeight - 2;
+      const rowHeight = totalHeight / rows;
+      const rowIndex = Math.min(rows - 1, Math.floor(offsetY / rowHeight));
 
       handleAction("content", rowIndex, columnIndex);
     },
@@ -1027,7 +1023,7 @@ export default function Controls({
         backspaceKeys.includes(event.key) &&
         event.type === "keydown"
       ) {
-        if (ecs && popup && ["chat", "load"].includes(getTab(ecs, popup))) {
+        if (ecs && popup) {
           handleLeft(event);
         }
         return;
@@ -1056,17 +1052,8 @@ export default function Controls({
         }
         return;
       } else if (closeKeys.includes(event.key) && event.type === "keydown") {
-        if (popup) {
-          const selections = getTabSelections(ecs, popup);
-          const tab = getTab(ecs, popup);
-          if (
-            ecs &&
-            hero &&
-            (selections.length === 0 ||
-              (selections.length <= 1 &&
-                (tab === "style" || tab === "class")) ||
-              (selections.length === 2 && isQuestCompleted(ecs, hero, popup)))
-          ) {
+        if (ecs && popup) {
+          if (!getSequence(ecs, popup, "popup")?.args.backButton) {
             handleClose(event);
           } else {
             handleLeft(event);
@@ -1527,7 +1514,12 @@ export default function Controls({
             onPointerUp={handleRelease}
             onPointerCancel={handleRelease}
           />
-          <div className="PopupContent" id="content" onClick={handleContent} />
+          <div
+            className="PopupContent"
+            id="content"
+            data-rows={(popupSequence?.args.windowHeight || frameHeight) - 2}
+            onClick={handleContent}
+          />
           {popupTab === "chat" && <Keyboard />}
         </>
       )}

@@ -9,7 +9,7 @@ import { isInteractable } from "../engine/systems/freeze";
 import { getHero } from "../testing/harness";
 import { Button } from "./visuals";
 import { createRoot } from "react-dom/client";
-import { useEffect } from "react";
+import { CSSProperties, useEffect } from "react";
 import World from "../components/World";
 import { useWorld } from "../bindings/hooks";
 import Dimensions from "../components/Dimensions";
@@ -219,12 +219,18 @@ function Bridge() {
     };
     const reportState = () => {
       const hero = ecs && getHero(ecs);
+      const popup =
+        ecs && hero?.PLAYER?.popup
+          ? ecs.assertById(hero.PLAYER.popup)
+          : undefined;
+      const editor = name === "sprites" ? popup?.POPUP?.sprite : undefined;
       window.parent.postMessage(
         {
           type: "preview-state",
           position: hero?.POSITION,
           hp: hero?.STATS?.hp,
           automatic,
+          sprite: editor?.sprites[editor.selected],
           dialog:
             ecs && hero?.PLAYER?.popup
               ? getTab(ecs, ecs.assertById(hero.PLAYER.popup))
@@ -293,6 +299,15 @@ createRoot(document.getElementById("root")!).render(
         ? "preview-interface"
         : "preview preview-" + name
     }`}
+    style={
+      name === "game" || name === "interface"
+        ? undefined
+        : ({
+            "--controls-center-y": `calc(var(--terminal-height) / 2 + ${
+              sceneLayout(name).topHudRows
+            } * var(--cell-height))`,
+          } as CSSProperties)
+    }
     options={
       name === "game" || name === "interface"
         ? undefined

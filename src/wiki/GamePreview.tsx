@@ -1,3 +1,5 @@
+import { Sprite } from "../engine/components/sprite";
+import { SpriteCode } from "./SpriteCode";
 import { useEffect, useRef, useState } from "react";
 import { displayedClasses } from "../game/assets/pixels";
 import { PresetName } from "./presets";
@@ -35,7 +37,9 @@ export function GamePreview({
     hp?: number;
     dialog?: string;
     automatic?: boolean;
+    sprite?: Sprite;
   }>({});
+  const responsive = name === "chat" || name === "sprites";
   const [width, setWidth] = useState(
     name === "game" || name === "interface" ? 576 : 414
   );
@@ -79,6 +83,7 @@ export function GamePreview({
           hp: event.data.hp,
           dialog: event.data.dialog,
           automatic: event.data.automatic,
+          sprite: event.data.sprite,
         });
       if (event.data.type === "preview-ready") {
         ready.current = true;
@@ -177,7 +182,7 @@ export function GamePreview({
               style={{
                 width,
                 height: name === "chat" ? "auto" : sceneLayout(name).height,
-                maxWidth: name === "chat" ? "100%" : undefined,
+                maxWidth: responsive ? "100%" : undefined,
                 aspectRatio:
                   name === "chat"
                     ? `414 / ${sceneLayout(name).height}`
@@ -195,7 +200,7 @@ export function GamePreview({
               style={{
                 width,
                 height: name === "chat" ? "auto" : sceneLayout(name).height,
-                maxWidth: name === "chat" ? "100%" : undefined,
+                maxWidth: responsive ? "100%" : undefined,
                 aspectRatio:
                   name === "chat"
                     ? `414 / ${sceneLayout(name).height}`
@@ -209,6 +214,7 @@ export function GamePreview({
           <Text>{sceneDefinitions[name].instruction}</Text>
         </GridCenteredNote>
       </div>
+      {name === "sprites" && <SpriteCode sprite={state.sprite} />}
     </section>
   );
 }

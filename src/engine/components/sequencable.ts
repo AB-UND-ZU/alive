@@ -236,6 +236,7 @@ export type PopupSequence = {
   scrollIndex?: number;
   verticalIndex: number;
   horizontalIndex: number;
+  backButton?: boolean;
   transaction: Popup["tabs"][number];
   instant: boolean;
 };

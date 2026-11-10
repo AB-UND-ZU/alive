@@ -2,6 +2,8 @@
 
 `createPreviewWorld` composes a small level with `createAreaWorld`, `createCell`, and `populateInventory`. Each scene has a Rogue, its required equipment and resources, and a target or workstation. The static Interface diagram imports the Island spawn area; it does not run an interactive scene. Feature scenes have a stationary viewpoint that yields to dialogs and collision walls aligned with the 23-by-15 visible frame. Ordinary scenes initialize and reveal their small map so dialog camera movement never brings background fog into view. Building layers keep their normal inside/outside behavior. Light and Movement keep native interior fog, while every boundary remains visible. The movement maze leads to a collectible Apple and continues through an opening into grass on the right. Terrain shows the native mountain, ice, snow, grass, path, sand, beach, water, rubble and soil factories. The Touch scene sends desktop mouse gestures through the game's normal touch handlers.
 
+The Sprite Builder scene opens the native editor with its saved localStorage pack, or two editable copies of game sprites when no valid pack is stored.
+
 Dialog previews open their menu and leave it available for inspection. Demonstrations stop at their endpoint. The maze follows a native path through the Apple to its exit. Reset restores the initial scene and demonstration.
 
 Feature scenes trim unused top HUD rows while preserving their 23-by-15-cell camera. `sceneLayout` keeps viewport height, `visibleRows` and `Dimensions.topHudRows` together.

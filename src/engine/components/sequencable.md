@@ -2,6 +2,8 @@
 
 Stores running animation, quest, and dialog sequences.
 
+`PopupSequence.backButton` routes Escape through ←BACK, or PLACE while positioning a sprite layer.
+
 Start states with `createSequence` from [Sequence](../systems/sequence.md). Dispose them with the [Map](../systems/map.md) helpers so their reference frames and particles are removed too.
 
 | Field       | Meaning                                                                     |

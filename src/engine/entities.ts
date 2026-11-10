@@ -444,6 +444,14 @@ export const createDeposit = entityFactory([
   STATS,
 ]);
 
+export const createDialog = entityFactory([
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+]);
+
 export const createDoor = entityFactory([
   ENTERABLE,
   FOG,

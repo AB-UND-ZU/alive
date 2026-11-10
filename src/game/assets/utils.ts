@@ -214,8 +214,8 @@ export const scrolledVerticalIndex = (
 
   const verticalIndex = getVerticalIndex(world, entity);
   const innerHeight = details
-    ? frameHeight - detailsHeight - 3
-    : frameHeight - 2;
+    ? (state.args.windowHeight || frameHeight) - detailsHeight - 3
+    : (state.args.windowHeight || frameHeight) - 2;
   const padding = (innerHeight - 1) / 2;
 
   const lines = content.length - overscan;
@@ -291,6 +291,9 @@ export const renderPopup = (
 ) => {
   let updated = false;
   let finished = !isShowingPopup(world, entity);
+  state.args.backButton = !!leftButton?.some((sprite) =>
+    sprite.layers.some((layer) => layer.char === "\u011a")
+  );
   const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
   const generation = entity[RENDERABLE].generation;
   const popupMiddle = { x: 0, y: (windowHeight + 1) / -2 };
@@ -342,6 +345,7 @@ export const renderPopup = (
     tab !== "chat";
   const visibleOverlay =
     visibleScroll &&
+    !entity[POPUP].sprite &&
     !details &&
     !selection &&
     !["use", "map", "chat"].includes(tab);

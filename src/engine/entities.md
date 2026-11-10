@@ -1,5 +1,7 @@
 # Entity Factories
 
+`createDialog` supplies an invisible world entity for native editor popups; register its position before opening it.
+
 Typed factories attach the required component data and, normally, the current level tag. Factory names describe common entity shapes; [world creation](../bindings/creation.md) supplies their gameplay data.
 
 | Contract            | Behavior                                                         |

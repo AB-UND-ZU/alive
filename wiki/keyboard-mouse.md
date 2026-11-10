@@ -43,7 +43,8 @@ Nearby objects and equipped items determine the current action.
 | [[key:←]] [[key:→]] | Change a choice |
 | [[key:Enter]] | Confirm |
 | [[key:Tab]] | Change tabs |
-| [[key:Escape]] | Close |
+| [[key:Escape]] | Back or Place when offered; otherwise close |
+| [[key:Backspace]] | Left dialog action, including ERASE and DROP |
 
 ## Pause
 

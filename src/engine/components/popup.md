@@ -2,6 +2,8 @@
 
 Stores dialog tabs, selection, deals, recipes, and focus.
 
+The optional `sprite` field holds the native [Sprite Builder](../../game/assets/spriteBuilder.md) collection, selected sprite and draft color.
+
 [Popup](../systems/popup.md) updates selections and confirms actions. Create dialogs with `createPopup` so their selection arrays, view and sequence are initialized together.
 
 | Field             | Meaning                                            |

@@ -92,13 +92,14 @@ export const dotted = (sprites: Sprite[], color: string = colors.silver) =>
 export const shaded = (
   sprites: Sprite[],
   color: string = colors.silver,
-  char = "░"
+  char = "░",
+  background: string = colors.black
 ) =>
   sprites.map((sprite) => ({
     name: sprite.name,
     layers: [
       { char, color },
-      { char: "▀", color: colors.black },
+      { char: "▀", color: background },
       ...sprite.layers,
     ],
   }));

@@ -1,6 +1,7 @@
 /* eslint-disable testing-library/no-node-access, testing-library/no-container -- controls are drawn as glyph spans and invisible touch areas without accessible roles */
 import { act, fireEvent } from "@testing-library/react";
 import Controls from ".";
+import { openSpriteBuilder } from "../../game/assets/spriteBuilder";
 import { World } from "../../engine";
 import { ACTIONABLE } from "../../engine/components/actionable";
 import { EQUIPPABLE } from "../../engine/components/equippable";
@@ -437,6 +438,37 @@ describe("action keys", () => {
 
     press("Enter");
     runUntil(world, () => !!getHero(world), 10000);
+  });
+
+  it("Backspace erases sprites and layers while Escape follows the BACK action", () => {
+    const { world, hero } = setup();
+    act(() => {
+      openSpriteBuilder(world, hero);
+      step(world, 30);
+    });
+    const popup = world.assertByIdAndComponents(hero[PLAYER].popup!, [POPUP]);
+    const editor = popup[POPUP].sprite!;
+    press("Backspace");
+    runUntil(world, () => editor.sprites.length === 1);
+    press("Enter");
+    runUntil(world, () => getTab(world, popup) === "sprite");
+    const original = [...editor.sprites[0].layers];
+    press("Enter");
+    runUntil(world, () => editor.moving === true);
+    press("Enter");
+    runUntil(world, () => getTab(world, popup) === "layer");
+    tick(world, 30);
+    press("Escape");
+    runUntil(world, () => getTab(world, popup) === "sprite");
+    expect(editor.sprites[0].layers).toEqual(original);
+    expect(editor.moving).toBe(false);
+    press("Backspace");
+    runUntil(
+      world,
+      () => editor.sprites[0].layers.length === original.length - 1
+    );
+    press("Escape");
+    runUntil(world, () => !isInPopup(world, hero));
   });
 
   it("Escape closes an open menu without pausing", () => {
@@ -881,14 +913,14 @@ describe("touch controls", () => {
     runUntil(world, () => !!isInPopup(world, hero));
     runUntil(world, () => !hero[PLAYER].actionTriggered);
     const content = getTouchArea(container, "content") as HTMLElement;
-    Object.defineProperty(content, "offsetWidth", {
-      value: (frameWidth - 2) * 10,
-    });
-    Object.defineProperty(content, "offsetHeight", {
-      value: (frameHeight - 2) * 10,
-    });
+    jest.spyOn(content, "getBoundingClientRect").mockReturnValue({
+      left: 0,
+      top: 0,
+      width: (frameWidth - 2) * 10.25,
+      height: (frameHeight - 2) * 10.25,
+    } as DOMRect);
     const tapRow = (row: number) => {
-      fireEvent.click(content, { clientX: 45, clientY: row * 10 + 5 });
+      fireEvent.click(content, { clientX: 45, clientY: row * 10.25 + 5.125 });
       runUntil(world, () => !hero[PLAYER].actionTriggered);
     };
     const menu = getMenu(world);

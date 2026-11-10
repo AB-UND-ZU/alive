@@ -1,3 +1,4 @@
+import { openSpriteBuilder } from "../game/assets/spriteBuilder";
 import { disposeSequence } from "../engine/systems/map";
 import { createItemAsDrop } from "../engine/systems/drop";
 import { getItemSprite } from "../game/assets/utils";
@@ -140,9 +141,16 @@ export const sceneDefinitions = {
     instruction: "Choose the wood sword, then Iron, to preview its upgrade.",
     keys: ["Enter", "Enter", "ArrowDown", "Enter"],
   },
+  sprites: {
+    title: "Sprite Builder",
+    instruction:
+      "Edit a sprite, add a layer, then choose its color and character.",
+    keys: [],
+  },
   chat: {
     title: "Chat",
-    instruction: "Type a command; Tab or a right swipe accepts the gray suggestion.",
+    instruction:
+      "Type a command; Tab or a right swipe accepts the gray suggestion.",
     keys: [],
   },
 } as const;
@@ -514,5 +522,6 @@ export const createPreviewWorld = (name: SceneName, option = "") => {
   if (name === "interface" && hero.SEQUENCABLE?.states.message)
     disposeSequence(world, hero, "message");
   if (name === "chat") act(world, "chat");
+  if (name === "sprites") openSpriteBuilder(world, hero);
   return world;
 };

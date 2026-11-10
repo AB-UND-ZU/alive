@@ -1,3 +1,4 @@
+import { updateSpriteBuilder } from "../../game/assets/spriteBuilder";
 import { World } from "../ecs";
 import { RENDERABLE } from "../components/renderable";
 import { MOVABLE } from "../components/movable";
@@ -550,6 +551,9 @@ export const popupIdles = {
   build: undefined,
   credits: info,
   load: mapDiscovery,
+  pack: undefined,
+  sprite: undefined,
+  layer: undefined,
 };
 
 export const popupActions = {
@@ -575,6 +579,9 @@ export const popupActions = {
   chat: "CHAT",
   credits: "READ",
   load: "LOAD",
+  pack: "LIST",
+  sprite: "VIEW",
+  layer: "LAYER",
 };
 
 export const popupTitles = {
@@ -914,6 +921,21 @@ export default function setupPopup(world: World) {
     const targetOrientation: Orientation | undefined =
       heroEntity[MOVABLE].pendingOrientation ||
       heroEntity[MOVABLE].orientations[0];
+
+    if (
+      popupEntity[POPUP].sprite &&
+      !["close", "tab", "backtab"].includes(
+        heroEntity[PLAYER].actionTriggered || ""
+      )
+    ) {
+      if (targetOrientation || heroEntity[PLAYER].actionTriggered) {
+        updateSpriteBuilder(world, heroEntity, popupEntity, targetOrientation);
+        heroEntity[MOVABLE].pendingOrientation = undefined;
+        heroEntity[MOVABLE].lastInteraction = referenceGeneration;
+        rerenderEntity(world, popupEntity);
+      }
+      return;
+    }
 
     const inventoryItems = (heroEntity[INVENTORY]?.items || []).map((itemId) =>
       world.assertByIdAndComponents(itemId, [ITEM])

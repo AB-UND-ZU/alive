@@ -62,6 +62,9 @@ const popups = [
   "build",
   "credits",
   "load",
+  "pack",
+  "sprite",
+  "layer",
 ] as const;
 
 export type Popup = {
@@ -70,6 +73,15 @@ export type Popup = {
   horizontalIndex: number;
   selections: number[][];
   chatSuggestion?: number;
+  sprite?: {
+    sprites: Sprite[];
+    selected: number;
+    color: number;
+    colorMode: boolean;
+    layer?: number;
+    blink?: boolean;
+    moving?: boolean;
+  };
   deals: Deal[];
   ingredients: Ingredients[];
   recipes: Recipe[];

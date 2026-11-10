@@ -35,3 +35,9 @@ export const woodStickAir2: Sprite = {
   },
 };
 ```
+
+## Sprite Builder
+
+```scene
+sprites
+```
