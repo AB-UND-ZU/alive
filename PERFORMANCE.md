@@ -182,3 +182,44 @@ Before committing the decay candidate, type checking, lint, all 183 fast suites
 (1,687 tests), all six slow suites (36 tests), and the production build passed.
 Existing feature coverage includes item drops, player death, harvest/destruction,
 worm tail decay and boss defeat, and golem limb removal/kill counting.
+
+### Candidate 3: share the adjacent-cell lookup
+
+`setupAction` previously constructed the same cell's entity array four times for
+warp, lock, popup and mount selection. It now constructs it once and runs the same
+four first-match searches. Popup availability, cell iteration order, first-target
+priority and action precedence are unchanged. The array lives only for this cell
+visit; no invalidation mechanism or stale persistent cache is introduced.
+
+Against the committed audio-plus-decay build, three alternating controlled runs
+retained the complete ECS hash `3077288707` on 38,709 entities:
+
+| Median CPU per tick | Before | After | Reduction |
+| --- | ---: | ---: | ---: |
+| Action system | 0.4635 ms | 0.3660 ms | 21.0% |
+| All simulation | 2.2513 ms | 2.1500 ms | 4.5% |
+
+The live loaded-world fight in ABBA order gave action CPU of 0.6127 / 0.6176 ms
+before versus 0.5147 / 0.5181 ms after (16.1% lower). Total simulation CPU was
+3.3808 / 3.3252 ms before versus 3.2734 / 3.2600 ms after (2.6% lower). Mean frame
+intervals were 25.016 / 24.713 ms before versus 24.634 / 24.495 ms after; the small
+frame difference is not the acceptance claim. This removes repeated allocations
+and CPU from a frequently executed system without altering rendered content.
+
+Independent browser fixtures passed before and after at both 1280px and 390px:
+opening a door and advertising the next sign target; giving a sign priority over
+a door, opening and closing its popup while the door stays locked; boarding the
+correct adjacent boat and steering across water. These complement existing tests
+for keys/blocked doors, portals, dialog availability, interaction precedence and
+vessel behavior. An attempted immediate sign interaction after opening the adjacent
+door did not open on the unchanged baseline fixture; it is not claimed as a passed
+manual case. Sign opening is verified separately in the sign-first fixture.
+
+All six settled interaction screenshots (three scenes at two widths) were
+byte-for-byte identical PNGs between the before/after builds. The sign popup's
+text and layout were also visually inspected after its animation completed.
+The combined build passed the live boss-death checks at both widths: one recorded
+worm-boss defeat, no remaining boss entity, and no browser errors.
+
+Before committing the action candidate, type checking, lint, all 183 fast suites
+(1,687 tests), six slow suites (36 tests), and the production build passed again.

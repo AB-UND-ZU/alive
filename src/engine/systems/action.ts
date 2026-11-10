@@ -18,7 +18,6 @@ import { rerenderEntity } from "./renderer";
 import { STATS } from "../components/stats";
 import { TypedEntity } from "../entities";
 import {
-  getPopup,
   getTabSelections,
   isInPopup,
   isInTab,
@@ -40,7 +39,8 @@ import { BLOCKABLE } from "../components/blockable";
 import { getIdentifier } from "../utils";
 import { canDig, canPlant, getFarmable } from "./harvest";
 import { forgingCompleted } from "../../game/balancing/forging";
-import { canMount, getMountable } from "./vessel";
+import { canMount } from "./vessel";
+import { MOUNTABLE } from "../components/mountable";
 
 export const getBlockable = (world: World, position: Position) =>
   getCellEntities(world, position).find((entity) => BLOCKABLE in entity) as
@@ -247,10 +247,13 @@ export default function setupAction(world: World) {
             // check any adjacent actions
             const delta = { x: offsetX, y: offsetY };
             const targetPosition = add(entity[POSITION], delta);
-            const warpableEntity = getWarpable(world, targetPosition);
-            const lockableEntity = getLockable(world, targetPosition);
-            const adjacentPopup = getPopup(world, targetPosition);
-            const mountableEntity = getMountable(world, targetPosition);
+            const adjacent = getCellEntities(world, targetPosition);
+            const warpableEntity = adjacent.find((entity) => WARPABLE in entity);
+            const lockableEntity = adjacent.find((entity) => LOCKABLE in entity);
+            const adjacentPopup = adjacent.find((entity) =>
+              isPopupAvailable(world, entity)
+            );
+            const mountableEntity = adjacent.find((entity) => MOUNTABLE in entity);
             const popupEntity =
               adjacentPopup === entity ? undefined : adjacentPopup;
             const selections = popupEntity

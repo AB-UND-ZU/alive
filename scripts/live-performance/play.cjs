@@ -21,7 +21,11 @@ const stage = process.argv[2] || "baseline",
       rate: Number(process.env.CPU),
     });
   try {
-    await page.goto(`http://127.0.0.1:4196/?stage=${stage}&scene=${scene}`);
+    await page.goto(
+      `http://127.0.0.1:4196/?stage=${stage}&scene=${scene}${
+        process.env.EQUIPPED ? "&equipped=1" : ""
+      }`
+    );
     await page.waitForFunction(
       () =>
         window.live &&
@@ -68,7 +72,7 @@ const stage = process.argv[2] || "baseline",
     if (scene === "boss" || scene === "long")
       await page.evaluate(() => window.live.startBoss());
     await page.waitForTimeout(4000);
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < (Number(process.env.CYCLES) || 12); i++) {
       const key = ["ArrowRight", "ArrowUp", "ArrowLeft", "ArrowDown"][i % 4];
       await page.keyboard.down(key);
       await page.waitForTimeout(650);

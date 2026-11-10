@@ -1,12 +1,16 @@
 import { useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useWorld } from "../../src/bindings/hooks";
-import { createTestWorld } from "../../src/testing/harness";
+import {
+  createAreaWorld,
+  createTestWorld,
+  giveItems,
+} from "../../src/testing/harness";
 import { getIdentifier } from "../../src/engine/utils";
 import { moveEntity } from "../../src/engine/systems/map";
 import { initializeArea } from "../../src/engine/systems/initialize";
 import { seedRandom } from "../../src/testing/env";
-import { hold } from "../../src/features/world/helpers";
+import { addCell, hold } from "../../src/features/world/helpers";
 
 const records: Record<string, number[]> = {};
 let active = false;
@@ -19,6 +23,22 @@ export const scenarioFactory =
     ? undefined
     : () => {
         seedRandom(42);
+        if (scenario === "door-first" || scenario === "sign-first") {
+          return createAreaWorld(
+            scenario === "door-first"
+              ? "|        |\n|  D♀S   |\n|        |"
+              : "|        |\n|  S♀D   |\n|        |",
+            { size: 64, legend: { D: "wood_door", S: "guide_sign" } }
+          );
+        }
+        if (scenario === "boat") {
+          const world = createAreaWorld(
+            "|                |\n|   ≈≈≈≈≈≈≈≈     |\n|  ♀≈≈≈≈≈≈≈≈     |\n|   ≈≈≈≈≈≈≈≈     |\n|                |",
+            { size: 64 }
+          );
+          addCell(world, { x: 3, y: 2 }, "boat");
+          return world;
+        }
         const world = createTestWorld({
           level:
             scenario === "tutorial"
@@ -46,6 +66,14 @@ export const scenarioFactory =
             y: room.POSITION.y + 5,
           });
           if (scenario === "kernel") bait.STATS.hp = 0;
+        }
+        if (new URLSearchParams(location.search).has("equipped")) {
+          const hero: any = getIdentifier(world, "hero");
+          hero.STATS.maxMpCap = hero.STATS.maxMp = hero.STATS.mp = 99;
+          giveItems(world, hero, [
+            { weapon: "sword", material: "iron", amount: 1 },
+            { spell: "beam", material: "wood", element: "fire", amount: 1 },
+          ]);
         }
         return world;
       };
@@ -85,6 +113,8 @@ export function Live() {
         records,
         entities: world?.metadata.ecs.entities.length,
         hero: getIdentifier(world!, "hero")?.POSITION,
+        heroStats: getIdentifier(world!, "hero")?.STATS,
+        equipment: getIdentifier(world!, "hero")?.EQUIPPABLE,
         level: world?.metadata.gameEntity.LEVEL.name,
       };
     },

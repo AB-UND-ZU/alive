@@ -3,6 +3,17 @@ const { build } = require("esbuild"),
   path = require("path"),
   cp = require("child_process");
 const stage = process.argv[2] || "baseline";
+const sourceRef = process.env.SOURCE_REF;
+const changedSources = sourceRef
+  ? new Set(
+      cp
+        .execFileSync("git", ["diff", "--name-only", sourceRef, "--", "src"], {
+          encoding: "utf8",
+        })
+        .trim()
+        .split("\n")
+    )
+  : new Set();
 fs.mkdirSync("results/performance/live/" + stage, { recursive: true });
 (async () => {
   await build({
@@ -24,6 +35,10 @@ fs.mkdirSync("results/performance/live/" + stage, { recursive: true });
           b.onLoad({ filter: /\/src\/.*\.(ts|tsx)$/ }, (args) => {
             let s = fs.readFileSync(args.path, "utf8");
             const f = path.relative(process.cwd(), args.path);
+            if (changedSources.has(f))
+              s = cp.execFileSync("git", ["show", `${sourceRef}:${f}`], {
+                encoding: "utf8",
+              });
             s = require("./pocs.cjs")(process.env.POC, f, s);
             if (f === "src/game/sound/createWorker.ts")
               s = s.replace(
@@ -63,11 +78,11 @@ fs.mkdirSync("results/performance/live/" + stage, { recursive: true });
   });
   fs.writeFileSync(
     "results/performance/live/" + stage + "/source.diff",
-    cp.execFileSync("git", ["diff", "HEAD"])
+    cp.execFileSync("git", ["diff", sourceRef || "HEAD"])
   );
   fs.writeFileSync(
     "results/performance/live/" + stage + "/head",
-    cp.execFileSync("git", ["rev-parse", "HEAD"])
+    cp.execFileSync("git", ["rev-parse", sourceRef || "HEAD"])
   );
   if (process.env.POC === "audio-worker")
     await build({

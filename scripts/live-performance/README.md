@@ -58,3 +58,23 @@ before mounting; that diagnostic run is excluded too.
 production-audio.cjs checks the actual CRA production worker chunk through the
 production server on port 4187, worker completion/termination, audio playback,
 pause/resume, and unsupported-worker fallback at desktop and narrow widths.
+
+For comparisons from the same current harness, SOURCE_REF reads changed runtime
+source files from a prior commit without checking out or editing that worktree:
+
+```
+SOURCE_REF=8301359 node scripts/live-performance/build.cjs extended-baseline
+node scripts/live-performance/build.cjs extended-final
+EQUIPPED=1 CYCLES=60 node scripts/live-performance/play.cjs extended-final long 1
+```
+
+EQUIPPED gives the benchmark hero an iron sword, fire beam and 99 mana through the
+existing item factory. CYCLES extends the actual keyboard-input sequence. These
+options are test fixtures only. Keep the same options for both comparison builds.
+
+check-interactions.cjs covers door/sign target priority, opening a door, opening
+and closing a sign popup, boarding and steering a boat with actual keyboard input.
+It uses existing feature-test area factories, at 1280px and 390px widths. The
+screenshots wait for popup animation to complete. check-boss.cjs covers movement,
+attacks, pause/resume and actual boss death cleanup after setting its HP to zero;
+it checks one defeat and removal, and captures the before/after encounter.

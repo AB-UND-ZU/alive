@@ -63,6 +63,8 @@ const { chromium } = require("@playwright/test"),
       assert.ok(await page.locator("#pause-resume").isVisible());
       await page.locator("#pause-resume").click();
       await page.waitForTimeout(1000);
+      await page.keyboard.press("Enter", { delay: 80 });
+      await page.waitForTimeout(500);
       const result = await page.evaluate(() => window.audioCheck);
       assert.deepEqual(result.errors, []);
       assert.deepEqual(errors, []);
