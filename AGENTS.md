@@ -6,6 +6,7 @@ Alive is a browser adventure game built with TypeScript, React, Three.js and an 
 
 - Read the surrounding code and relevant tests before changing a feature.
 - Keep code simple to read and follow. Use existing naming, formatting and file structure.
+- **Everything in the game must use stacked text sprites. No new rendering primitive may be added anywhere.** Use only existing characters and stack them, including half-blocks for masking. Never add custom font assets, new glyphs, clipping or another drawing mechanism.
 - Reuse existing helpers, entity factories, sprites and balancing data. Add a helper only when it is needed and makes the code simpler.
 - Keep game rules in the engine or balancing files, rather than duplicating them in UI code or wiki examples.
 - Explain why only when the reason is not clear from the code. Avoid comments that repeat what the code does.
