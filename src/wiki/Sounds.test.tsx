@@ -1,7 +1,13 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { act, render, screen, fireEvent } from "@testing-library/react";
 import { Sounds } from "./Sounds";
 import { soundPresets } from "../game/sound";
 import { playedSounds } from "../testing/env";
+
+// The browser sound-page test covers glyph rendering; keep this test about playback.
+jest.mock("../components/Row", () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 test("every native sound preset has a play control and calls native playback", async () => {
   global.ResizeObserver = class {
@@ -16,6 +22,9 @@ test("every native sound preset has a play control and calls native playback", a
   expect(soundPresets).toEqual(
     expect.arrayContaining(["move", "pickup", "fish", "level"])
   );
-  fireEvent.click(buttons[0]);
-  await waitFor(() => expect(playedSounds).toContain(soundPresets[0]));
-}, 15000);
+
+  await act(async () => {
+    for (const button of buttons) fireEvent.click(button);
+  });
+  expect(playedSounds).toEqual(soundPresets);
+});
