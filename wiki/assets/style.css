@@ -222,15 +222,13 @@ pre {
   display: block;
   margin-bottom: 32px;
 }
-.Choices,
-.Suggestions {
+.Choices {
   display: block;
   max-height: 320px;
   overflow: auto;
   margin: 0 0 32px;
 }
-.Choices button,
-.Suggestions button {
+.Choices button {
   display: block;
   text-align: left;
   max-width: 100%;
@@ -501,7 +499,7 @@ table {
   user-select: text;
 }
 .CodeSemantic span, .CodeSemantic a { user-select: text; }
-.CodeSemantic a { color: var(--blue); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px; }
+.CodeSemantic a { color: var(--blue); }
 .CodeSemantic a:is(:hover, :focus-visible) { color: var(--aqua); }
 .CodeSemantic::selection,
 .CodeSemantic *::selection {
