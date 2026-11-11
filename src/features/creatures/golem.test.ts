@@ -1,4 +1,6 @@
 import { BEHAVIOUR, Pattern } from "../../engine/components/behaviour";
+import { EQUIPPABLE } from "../../engine/components/equippable";
+import { MELEE } from "../../engine/components/melee";
 import { POSITION } from "../../engine/components/position";
 import { FRAGMENT } from "../../engine/components/fragment";
 import { PLAYER } from "../../engine/components/player";
@@ -17,6 +19,7 @@ import {
   toughen,
 } from "./helpers";
 import { CASTABLE } from "../../engine/components/castable";
+import { moveEntity } from "../../engine/systems/map";
 import { getFragment } from "../../engine/systems/enter";
 import { add } from "../../game/math/std";
 import { orientationPoints } from "../../engine/components/orientable";
@@ -75,18 +78,98 @@ describe("golem", () => {
     );
   });
 
-  it("charges at the hero and knocks it back", () => {
+  it("chases the hero into melee range and strikes", () => {
     const { world, hero, golem } = setup();
     provoke(world, golem);
     const hp = hero[STATS].hp;
     const distance = distanceBetween(world, golem[POSITION], hero[POSITION]);
 
     advanceUntil(world, () => hero[STATS].hp < hp, 20000);
-    advanceTicks(world, 4);
-
+    expect(world.assertComponents(golem, [MELEE])[MELEE].hits).toBeGreaterThan(
+      0
+    );
     expect(
       distanceBetween(world, golem[POSITION], hero[POSITION])
-    ).toBeGreaterThan(distance);
+    ).toBeLessThanOrEqual(distance);
+  });
+
+  it.each(["up", "down", "left", "right"] as const)(
+    "melee attacks the hero beside its %s limb while chasing",
+    (orientation) => {
+      const { world, hero, golem, phases } = setup();
+      provoke(world, golem);
+      advanceUntil(world, () => phases().includes(11), 10000);
+      const delta = orientationPoints[orientation];
+      moveEntity(
+        world,
+        hero,
+        add(golem[POSITION], { x: delta.x * 2, y: delta.y * 2 })
+      );
+      golem[BEHAVIOUR].patterns = [
+        { name: "golem", memory: { phase: 11 } },
+        { name: "chase_slow", memory: {} },
+      ];
+      const melee = world.assertComponents(golem, [MELEE])[MELEE];
+      const hits = melee.hits;
+      const received = world.assertComponents(hero, [PLAYER])[PLAYER]
+        .receivedStats;
+      const damage = received.melee;
+
+      advanceTicks(world, 2);
+
+      expect(melee.hits).toBeGreaterThan(hits);
+      expect(received.melee - damage).toBeGreaterThanOrEqual(4);
+      expect(getSpells(world, golem)).toHaveLength(0);
+    }
+  );
+
+  it("cannot melee attack through a limb without its root weapon", () => {
+    const { world, hero, golem, phases } = setup();
+    provoke(world, golem);
+    advanceUntil(world, () => phases().includes(11), 10000);
+    delete world.assertComponents(golem, [EQUIPPABLE])[EQUIPPABLE].weapon;
+    moveEntity(world, hero, add(golem[POSITION], { x: 0, y: 2 }));
+    golem[BEHAVIOUR].patterns = [
+      { name: "golem", memory: { phase: 11 } },
+      { name: "chase_slow", memory: {} },
+    ];
+    const melee = world.assertComponents(golem, [MELEE])[MELEE];
+    const hits = melee.hits;
+    const hp = hero[STATS].hp;
+
+    advanceTicks(world, 2);
+
+    expect(melee.hits).toBe(hits);
+    expect(hero[STATS].hp).toBe(hp);
+  });
+
+  it("deals melee damage when its extended fist reaches the hero", () => {
+    const { world, hero, golem, phases } = setup();
+    provoke(world, golem);
+    advanceUntil(world, () => phases().includes(11), 10000);
+    const arm = getFragment(world, add(golem[POSITION], { x: 1, y: 0 }))!;
+    moveEntity(world, hero, add(arm[POSITION], { x: 0, y: 3 }));
+    golem[BEHAVIOUR].patterns = [
+      {
+        name: "golem",
+        memory: {
+          phase: 30,
+          limbId: world.getEntityId(arm),
+          orientation: "down",
+        },
+      },
+    ];
+    const received = world.assertComponents(hero, [PLAYER])[PLAYER]
+      .receivedStats;
+    const melee = received.melee;
+    const position = { ...hero[POSITION] };
+
+    advanceUntil(world, () => phases().includes(33), 10000);
+    advanceUntil(world, () => phases().includes(10), 10000);
+
+    expect(received.melee).toBeGreaterThan(melee);
+    expect(hero[POSITION]).not.toEqual(position);
+    expect(getSpells(world, golem)).toHaveLength(0);
   });
 
   it("casts bolts at the hero once both arms are broken off", () => {

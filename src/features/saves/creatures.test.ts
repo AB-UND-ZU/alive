@@ -8,6 +8,7 @@ import { saveAndLoad } from "../../testing/saves";
 import { World } from "../../engine";
 import { BEHAVIOUR, Pattern } from "../../engine/components/behaviour";
 import { IDENTIFIABLE } from "../../engine/components/identifiable";
+import { MELEE } from "../../engine/components/melee";
 import { ORIENTABLE } from "../../engine/components/orientable";
 import { POSITION } from "../../engine/components/position";
 import { STATS } from "../../engine/components/stats";
@@ -144,7 +145,7 @@ describe("saved creatures", () => {
     advanceUntil(loaded, () => !loaded.getEntityById(spawnerId), 15000);
   });
 
-  it("keeps an unfolded golem charging at the hero", () => {
+  it("keeps an unfolded golem melee attacking after loading", () => {
     const { world, hero } = createCreatureWorld(
       `
 |           |
@@ -166,11 +167,12 @@ describe("saved creatures", () => {
     const loaded = saveAndLoad(world);
     const loadedHero = getHero(loaded);
     const loadedGolem = getCreature(loaded, "golem");
-    const start = { ...loadedGolem[POSITION] };
+    const melee = loaded.assertComponents(loadedGolem, [MELEE])[MELEE];
+    const hits = melee.hits;
     const hp = loadedHero[STATS].hp;
     expect(getPhases(loaded).some((phase) => phase >= 10)).toBe(true);
 
     advanceUntil(loaded, () => loadedHero[STATS].hp < hp, 20000);
-    expect(loadedGolem[POSITION]).not.toEqual(start);
+    expect(melee.hits).toBeGreaterThan(hits);
   });
 });

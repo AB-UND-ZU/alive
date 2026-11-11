@@ -195,7 +195,7 @@ export const isMovable = (world: World, entity: Entity, position: Position) => {
   // allow attacking opposing entities
   const attackable = getAttackable(world, position);
   if (
-    entity[EQUIPPABLE]?.weapon &&
+    getRoot(world, entity)[EQUIPPABLE]?.weapon &&
     attackable &&
     !isFriendlyFire(world, entity, attackable)
   )
