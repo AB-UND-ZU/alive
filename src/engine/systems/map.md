@@ -14,6 +14,8 @@ Maintains the wrapped spatial index and walkability used by movement and interac
 | disposeSequence  | Remove a state's frame and particles                                           |
 | disposeEntity    | Unregister and remove the entity and its owned items/effects                   |
 
+Disposal is final and safe to repeat: bulk level cleanup may visit a popup viewpoint after its owner already disposed it. Its map registration and owned resources are removed only once.
+
 Use these helpers rather than changing registered coordinates or calling the bare ECS removal method. Movement does not perform a walkability check here; [Movement](movement.md) checks that separately.
 
 ```ts src/engine/systems/map.ts

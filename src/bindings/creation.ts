@@ -2607,6 +2607,7 @@ export const createCell = (
         [SWIMMABLE]: { swimming: false },
       });
       populateInventory(world, cellEntity, [fishItem]);
+      all.push(cellEntity);
     } else if (habitatCell === "habitat") {
       const habitatEntity = entities.createHabitat(world, {
         [BEHAVIOUR]: { patterns: [{ name: "habitat", memory: {} }] },

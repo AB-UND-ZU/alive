@@ -7,6 +7,7 @@ import { WARPABLE } from "../components/warpable";
 import { levelConfig } from "../../game/levels";
 import { initiateWarp } from "./trigger";
 import { SPAWNABLE } from "../components/spawnable";
+import { getSequence } from "./sequence";
 import { getClassData } from "../../game/balancing/classes";
 
 describe("warping", () => {
@@ -15,12 +16,14 @@ describe("warping", () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     jest.useRealTimers();
   });
 
   it("enters a new world on land without swimming", () => {
+    const warnings = jest.spyOn(console, "warn").mockImplementation(() => {});
     const world = createTestWorld();
-    advance(world, 1000);
+    advance(world, 3000);
     const hero = world.assertComponents(assertHero(world), [
       SWIMMABLE,
       SPRITE,
@@ -34,6 +37,7 @@ describe("warping", () => {
       levelConfig.LEVEL_TUTORIAL.mapOffsetY;
 
     initiateWarp(world, portal, hero);
+    advance(world, 3000);
     jest.advanceTimersByTime(3500);
 
     expect(world.metadata.gameEntity[LEVEL].name).toBe("LEVEL_TUTORIAL");
@@ -48,5 +52,7 @@ describe("warping", () => {
     advance(world, 1000);
     expect(hero[SWIMMABLE].swimming).toBe(false);
     expect(hero[SPRITE]).toEqual(sprite);
+    expect(getSequence(world, hero, "quest")?.name).not.toBe("menuQuest");
+    expect(warnings.mock.calls).toEqual([]);
   });
 });

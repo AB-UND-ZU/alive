@@ -15,6 +15,7 @@ import { Light, LIGHT } from "../components/light";
 import { rerenderEntity } from "./renderer";
 import {
   disposeEntity,
+  disposeSequence,
   moveEntity,
   registerEntity,
   updateWalkable,
@@ -286,6 +287,11 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
       // tag hero and related entities to new world
       const { size, generator, vision } = levelConfig[levelName];
       const light = calculateVision(vision);
+
+      // Quests belong to the departing level, unlike the hero and inventory.
+      if (getSequence(world, entity, "quest")) {
+        disposeSequence(world, entity, "quest");
+      }
 
       const inspectEntity = assertIdentifier(world, "inspect");
       const useEntity = assertIdentifier(world, "use");

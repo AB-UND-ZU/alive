@@ -162,12 +162,18 @@ export const disposeSequence = (
   delete entity[SEQUENCABLE].states[sequenceName];
 };
 
+// Owned entities can also occur later in a bulk cleanup snapshot.
+const disposedEntities = new WeakSet<Entity>();
+
 export const disposeEntity = (
   world: World,
   entity: Entity,
   deferredRemoval?: boolean,
   removeItems = true
 ) => {
+  if (disposedEntities.has(entity)) return;
+  disposedEntities.add(entity);
+
   if (POSITION in entity) {
     unregisterEntity(world, entity);
   }
