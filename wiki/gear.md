@@ -10,7 +10,7 @@ Gear holds equipped weapons, shields, accessories, spells, skills and tools.
 
 [[key:B]] View bag.
 
-[[key:E]] Quick actions.
+[[key:E]] Open quick item actions.
 
 
 [[item:spear]] has a contact attack and an active thrust. [[item:wand]] casts magic with its action and deals True damage on contact.

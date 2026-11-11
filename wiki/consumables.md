@@ -6,7 +6,7 @@ popup inspect:food
 
 Use food and potions to restore stats. Select an item and confirm to consume it.
 
-[[key:E]] Quick actions.
+[[key:E]] Open quick item actions.
 
 [[key:B]] Open the Bag.
 

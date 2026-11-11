@@ -4,7 +4,7 @@
 popup pause load
 ```
 
-[[key:Escape]] Pause.
+[[key:Escape]] Pause and save the game.
 
 Pausing saves the current game in this browser. Use Continue in the main menu to load it.
 
@@ -22,7 +22,7 @@ Each new game gets one save. Saving again replaces it. The name below [[button:S
 
 The main menu's Continue portal opens when a save exists. Select a save and confirm [[button:LOAD]]. Play resumes at the saved position, with the saved world, stats and items.
 
-[[key:Enter]] Continue.
+[[key:Enter]] Continue the selected save.
 
 | Save list | Shows |
 | --- | --- |

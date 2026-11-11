@@ -19,6 +19,7 @@ const bosses: Partial<Record<PresetName, UnitKey>> = {
   ilex: "ilexElite",
   oak: "oakBoss",
   worm: "wormBoss",
+  nomad: "fireNomad",
 };
 export function Play({
   base,
@@ -127,7 +128,7 @@ export function Play({
       )}
       <section className="Scenarios" aria-label="Scenarios">
         <PlainTable
-          headers={["Scenario", "Description", "Hero", "Load"]}
+          headers={["Scenario", "Hero", "Load"]}
           rows={choices.map((name) => {
             const loadout = getPresetLoadout(name);
             return [
@@ -135,13 +136,12 @@ export function Play({
                 {scenario(name)}
                 <Text>{` (${
                   bosses[name]
-                    ? "boss"
+                    ? "Boss"
                     : ["menu", "dungeon", "island"].includes(name)
-                    ? "level"
-                    : "area"
+                    ? "Level"
+                    : "Area"
                 })`}</Text>
               </span>,
-              <Text>{presets[name].description}</Text>,
               <div className="ScenarioEquipment">
                 <div>
                   <Text>

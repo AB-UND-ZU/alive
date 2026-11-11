@@ -20,7 +20,7 @@ import { getStatSprite, quest, info, forge } from "../game/assets/ui";
 import { getItemSprite } from "../game/assets/utils";
 import { commandItems } from "../game/assets/commands";
 import { Sprite } from "../engine/components/sprite";
-import { ReferenceLink } from "./references";
+import { ReferenceLink, featureSprites } from "./references";
 
 const itemSprite = (key: keyof typeof commandItems) => {
   const item = previewItem(commandItems[key]);
@@ -45,7 +45,7 @@ export const soundReferences: Record<
   slash: { sprite: itemSprite("slash"), target: "item:slash" },
   talk: { sprite: sprites.dialogStart, target: "dialogs" },
   fire: { sprite: sprites.fire, target: "item:fire" },
-  crackle: { sprite: sprites.campfire, target: "bonfire" },
+  crackle: { sprite: sprites.campfire, target: "fireplace" },
   danger: { sprite: quest, target: "damage" },
   arrow: { sprite: itemSprite("arrow"), target: "item:arrow" },
   spear: { sprite: itemSprite("spear"), target: "item:spear" },
@@ -78,7 +78,7 @@ export const soundReferences: Record<
   anvil: { sprite: sprites.anvil, target: "anvil" },
   cling: { sprite: forge, target: "forging" },
   unlock: { sprite: itemSprite("key"), target: "item:key" },
-  door: { sprite: sprites.keyHole, target: "door" },
+  door: { sprite: featureSprites.door, target: "door" },
   lever: { sprite: sprites.leverOn, target: "lever" },
   snow: { sprite: sprites.snowflake, target: "terrain" },
   push: { sprite: sprites.box, target: "unit:box" },

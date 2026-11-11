@@ -8,17 +8,17 @@ popup chat
 
 [[key:C]] Open chat.
 
-[[key:/]] Commands.
+[[key:/]] Enter a chat command.
 
-[[key:Enter]] Submit.
+[[key:Enter]] Send the chat message.
 
-[[key:Tab]] Complete.
+[[key:Tab]] Complete the command.
 
-[[key:↑]] [[key:↓]] Browse.
+[[key:↑]] [[key:↓]] Browse command history.
 
-[[key:Backspace]] Erase.
+[[key:Backspace]] Erase the last character.
 
-[[key:Escape]] Clear.
+[[key:Escape]] Clear the chat input.
 
 
 ## Command Reference

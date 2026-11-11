@@ -97,7 +97,7 @@ test.each([
           consume: "potion",
           stat: "hp",
           material: worm ? "iron" : "wood",
-          amount: name === "island" ? 10 : 20,
+          amount: name === "island" ? 10 : worm ? 30 : 20,
         }),
       ])
     );
@@ -105,7 +105,7 @@ test.each([
     expect(items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          spell: worm ? "wave" : "beam",
+          spell: "beam",
           material: worm ? "iron" : "wood",
           ...(worm ? { element: "earth" } : {}),
         }),
@@ -120,7 +120,7 @@ test.each([
         expect.objectContaining({
           consume: "potion",
           stat: "mp",
-          amount: 10,
+          amount: worm ? 20 : 10,
           material: worm ? "iron" : "wood",
         }),
       ])

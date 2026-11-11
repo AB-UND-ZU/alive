@@ -6,7 +6,7 @@ popup quest
 
 Read [[unit:sign]] for nearby instructions. Approach a character when [[button:QUEST]] appears. Follow the marker, complete the target or bring the requested items, then return and claim the reward. A request may choose one of several targets; the dialog shows your current one.
 
-[[key:Enter]] Open.
+[[key:Enter]] Open the nearby quest.
 
 ## Dungeon
 

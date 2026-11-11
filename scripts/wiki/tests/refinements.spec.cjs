@@ -52,8 +52,14 @@ test("bosses have one playable scenario preview and native preview and sprite ro
   const choices = page.getByRole("region", { name: "Scenarios", exact: true });
   await expect(
     choices.getByRole("button", { name: "Load", exact: true })
-  ).toHaveCount(4);
-  for (const unit of ["tutorialBoss", "ilexElite", "oakBoss", "wormBoss"]) {
+  ).toHaveCount(5);
+  for (const unit of [
+    "tutorialBoss",
+    "ilexElite",
+    "oakBoss",
+    "fireNomad",
+    "wormBoss",
+  ]) {
     const table = page.locator(`[data-catalog-unit="${unit}"] table`);
     await expect(table.locator("thead")).toContainText("Name");
     await expect(
@@ -78,7 +84,7 @@ test("bosses have one playable scenario preview and native preview and sprite ro
   );
 });
 
-test("container comparison keeps default chests and puts quest chests in reward frames", async ({
+test("container comparison keeps default chests and bosses show reward contents", async ({
   page,
 }) => {
   await page.goto("/game-design/cells/containers.html");
@@ -92,15 +98,19 @@ test("container comparison keeps default chests and puts quest chests in reward 
   await expect(
     chests.locator('thead th:not(:first-child) a[href*="#oakchest"]')
   ).toHaveCount(0);
-  await expect(page.locator("#oakchest .FrameScroll")).toHaveCount(1);
+  await expect(
+    page.getByRole("heading", { name: "Quest rewards" })
+  ).toHaveCount(0);
   await page.goto("/game-design/characters/bosses.html");
   const oak = page.locator('[data-catalog-unit="oakBoss"]');
   await expect(
     oak.getByRole("rowheader", { name: "Spawns", exact: true })
   ).toHaveCount(0);
-  await expect(
-    oak.locator('.CatalogDrops .FrameScroll a[href*="#oakchest"]')
-  ).toHaveCount(1);
+  for (const boss of ["ilexElite", "oakBoss", "wormBoss", "fireNomad"]) {
+    const drops = page.locator(`[data-catalog-unit="${boss}"] .CatalogDrops`);
+    await expect(drops.getByLabel("Chest", { exact: true })).toHaveCount(1);
+    expect(await drops.locator(".Parts .Item").count()).toBeGreaterThan(0);
+  }
 });
 
 test("structure contents and all factory door colors have valid keys and station links", async ({
@@ -115,7 +125,7 @@ test("structure contents and all factory door colors have valid keys and station
     "boat",
     "jetty",
     "furniture",
-    "bonfire",
+    "fireplace",
     "workstations",
   ])
     await expect(page.locator("#" + id)).toBeAttached();
@@ -196,4 +206,45 @@ test("scenario destinations update the top preview for same-page hashes and SPA 
     "src",
     /#game\/worm$/
   );
+});
+
+test("structure references use one Jetty, a full Bed and a burning Fireplace", async ({
+  page,
+}) => {
+  await page.goto("/game-design/cells/structures.html");
+  const jetty = page
+    .locator("section")
+    .filter({ has: page.locator("h2#jetty") });
+  await expect(jetty.locator("tbody tr:not(.GridRule)")).toHaveCount(1);
+  await expect(jetty.locator('tbody [data-column="0"]')).toHaveText(/Jetty/);
+  await expect(jetty).not.toContainText("Vertical");
+  await expect(
+    page.getByRole("heading", { name: "Bonfire", exact: true })
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Fireplace", exact: true })
+  ).toHaveCount(1);
+  const furniture = page
+    .locator("section")
+    .filter({ has: page.locator("h2#furniture") });
+  await expect(furniture.locator('tbody [data-column="0"]').first()).toHaveText(
+    /Bed/
+  );
+});
+
+test("Tumbleweed is named in Desert and Aura states where its bonuses apply", async ({
+  page,
+}) => {
+  await page.goto("/game-design/cells/plants.html");
+  await expect(
+    page.locator('.CatalogOverview a[href*="#tumbleweed"]')
+  ).toContainText("Tumbleweed");
+  const group = page
+    .locator(".CatalogGroup")
+    .filter({ has: page.locator('a[href*="#tumbleweed"]') });
+  await expect(group).toContainText("Desert");
+  await page.goto("/game-design/combat/stats.html");
+  await expect(
+    page.locator("tr").filter({ has: page.locator("#aura") })
+  ).toContainText("These bonuses apply while standing inside");
 });

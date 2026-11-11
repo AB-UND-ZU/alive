@@ -33,7 +33,6 @@ import {
   Pixels,
   PlainTable,
   Text,
-  Heading,
   StatLabel,
   UnitView,
 } from "./visuals";
@@ -45,6 +44,7 @@ import {
   getEffectSprite,
   previewItem,
   unitComparisonStats,
+  unitRewardChests,
 } from "./catalog";
 import { useContext } from "react";
 import { ItemView } from "./visuals";
@@ -617,6 +617,7 @@ export function UnitCatalogEntry({ keys }: { keys: UnitKey[] }) {
                         "oakBoss",
                         "wormBoss",
                         "golem",
+                        "fireNomad",
                       ] as UnitKey[]
                     ).includes(key) ? (
                     <BossDiagram unit={key} />
@@ -714,21 +715,48 @@ export function UnitCatalogEntry({ keys }: { keys: UnitKey[] }) {
           ],
           [
             "Drops",
-            ...units.map((unit) =>
-              unit.drops.length || unit.vanish?.cells.length ? (
+            ...units.map((unit, unitIndex) =>
+              unit.drops.length ||
+              unit.vanish?.cells.length ||
+              unitRewardChests(keys[unitIndex]).length ? (
                 <div className="CatalogDrops">
-                  {!!unit.vanish?.cells.length && (
+                  {unitRewardChests(keys[unitIndex]).map((chest) => (
+                    <Frame
+                      key={chest}
+                      label="Chest"
+                      title="Chest"
+                      className="DropDialog"
+                      compact
+                    >
+                      {unitDefinitions[chest].drops.map((drop, index) => (
+                        <Parts key={index} items={drop.items} />
+                      ))}
+                    </Frame>
+                  ))}
+                  {!!unit.vanish?.cells.filter(
+                    ({ cell }) =>
+                      !unitRewardChests(keys[unitIndex]).includes(
+                        cell as UnitKey
+                      )
+                  ).length && (
                     <Frame
                       label="Remains"
                       title="Remains"
                       className="DropDialog"
                       compact
                     >
-                      {unit.vanish.cells.map(({ cell }, index) => (
-                        <div key={index}>
-                          <UnitView unit={cell as UnitKey} />
-                        </div>
-                      ))}
+                      {unit.vanish.cells
+                        .filter(
+                          ({ cell }) =>
+                            !unitRewardChests(keys[unitIndex]).includes(
+                              cell as UnitKey
+                            )
+                        )
+                        .map(({ cell }, index) => (
+                          <div key={index}>
+                            <UnitView unit={cell as UnitKey} />
+                          </div>
+                        ))}
                     </Frame>
                   )}
                   {unit.drops
@@ -754,33 +782,5 @@ export function UnitCatalogEntry({ keys }: { keys: UnitKey[] }) {
         ]}
       />
     </section>
-  );
-}
-
-export function RewardContainers() {
-  return (
-    <>
-      <Heading text="Quest rewards" level={2} />
-      <div className="CatalogDrops">
-        {(Object.keys(unitDefinitions) as UnitKey[])
-          .filter(
-            (key) =>
-              /Chest$/.test(key) &&
-              !/^(wood|iron|gold|diamond|ruby)Chest$/.test(key)
-          )
-          .map((key) => (
-            <section key={key} id={referenceId(key)}>
-              <Frame title="Reward" label={key} compact>
-                <UnitView unit={key} />
-                {unitDefinitions[key].drops.map((drop, index) => (
-                  <div key={index}>
-                    <Parts items={drop.items} />
-                  </div>
-                ))}
-              </Frame>
-            </section>
-          ))}
-      </div>
-    </>
   );
 }

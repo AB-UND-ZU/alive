@@ -16,7 +16,7 @@ import { initializeArea } from "../engine/systems/initialize";
 import { preloadLevel } from "../engine/ecs";
 import { disposeEntity } from "../engine/systems/map";
 import { createCell } from "../bindings/creation";
-import { ilexArea, oakArea } from "../game/levels/island/areas";
+import { ilexArea, oakArea, nomadArea } from "../game/levels/island/areas";
 import { up4Area, tutorialRooms } from "../game/levels/tutorial/areas";
 import { WorldDiagram, worldRows } from "./WorldDiagram";
 import { Pixels } from "./visuals";
@@ -78,7 +78,9 @@ export const createBossWorld = (key: UnitKey, activated = false) => {
     return { world, bounds, hasRoom: true };
   }
   const area =
-    key === "ilexElite"
+    key === "fireNomad"
+      ? nomadArea
+      : key === "ilexElite"
       ? ilexArea
       : key === "oakBoss"
       ? oakArea
@@ -99,7 +101,7 @@ export const createBossWorld = (key: UnitKey, activated = false) => {
     { size: 64 }
   );
   initializeArea(world, { x: 0, y: 0 }, { x: width - 1, y: height });
-  if (!area || key === "tutorialBoss") {
+  if (!area || key === "tutorialBoss" || key === "fireNomad") {
     const room = tutorialRooms.find((room) => room.name === "north4")!;
     const wave = room.waves![0].position;
     createCell(
@@ -149,7 +151,7 @@ export const createBossWorld = (key: UnitKey, activated = false) => {
 
 export const bossDiagrams = (key: UnitKey, activated = false) => {
   const { world, bounds, hasRoom } = createBossWorld(key, activated);
-  const diagram = worldRows(world, bounds);
+  const diagram = worldRows(world, { ...bounds, inside: key === "fireNomad" });
   if (hasRoom) return diagram;
   const occupied = diagram.flatMap((row, y) =>
     row.flatMap((sprite, x) =>

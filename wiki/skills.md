@@ -4,9 +4,9 @@
 popup equip:skill
 ```
 
-[[key:Shift]] Use skill.
+[[key:Shift]] Use the selected skill.
 
-[[key:Q]] Tool / skill.
+[[key:Q]] Switch between Bag tools and skills.
 
 
 ```widget

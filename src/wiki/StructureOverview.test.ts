@@ -38,3 +38,17 @@ test("wood and desert buildings retain their native locked door types", () => {
   });
   expect(wood.outside).not.toEqual(fort.outside);
 });
+
+test("furniture uses all three native bed cells and Fireplace has a medium fire layer", () => {
+  const { cellSnapshot } = require("./WorldPlants");
+  const { fire } = require("../game/assets/sprites");
+  const { getFacingLayers } = require("../game/assets/ui");
+  const bed = cellSnapshot("bed_left").grid;
+  expect(bed).toHaveLength(1);
+  expect(bed[0]).toHaveLength(3);
+  for (const cell of bed[0]) expect(cell.layers.length).toBeGreaterThan(0);
+  const fireplace = cellSnapshot("fireplace").grid[0][0];
+  expect(fireplace.layers).toEqual(
+    expect.arrayContaining(getFacingLayers(fire, undefined, 2))
+  );
+});

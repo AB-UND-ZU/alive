@@ -6,9 +6,9 @@ popup equip:tool
 
 Equip a tool and choose a direction when prompted.
 
-[[key:Shift]] Use tool.
+[[key:Shift]] Use the selected tool.
 
-[[key:Q]] Tool / skill.
+[[key:Q]] Switch between Bag tools and skills.
 
 
 ```widget

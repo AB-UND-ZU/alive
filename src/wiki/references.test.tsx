@@ -236,3 +236,9 @@ test("blocking prose stays literal while the skill remains an explicit item refe
   expect(screen.getAllByRole("link")).toHaveLength(1);
   expect(screen.getByRole("link")).toHaveTextContent("Block");
 });
+
+test("generic Door references use the native closed wood door", () => {
+  const { doorClosed } = require("../game/assets/templates/units");
+  expect(featureSprites.door).toEqual(doorClosed.wood.default);
+  expect(featureSprites.doors).toEqual(doorClosed.wood.default);
+});

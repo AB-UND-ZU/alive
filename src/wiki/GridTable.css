@@ -60,3 +60,5 @@
   white-space: normal;
 }
 .HarvestingTable .GridValue[data-column="0"] .Text { white-space: normal; }
+
+.NoWrapGrid .GridValue, .NoWrapGrid .Text { white-space: nowrap; }

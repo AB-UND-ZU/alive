@@ -2,7 +2,7 @@
 
 Characters offer quests, trading and other interactions.
 
-[[key:Enter]] Interact.
+[[key:Enter]] Interact with the nearby NPC.
 
 | Character | Location | Interaction |
 | --- | --- | --- |

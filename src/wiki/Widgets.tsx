@@ -1,6 +1,5 @@
-import { RewardContainers } from "./CatalogEntry";
 import { SpriteGallery } from "./SpriteGallery";
-import { getWikiUnitSprite } from "./catalog";
+import { getWikiUnitSprite, getWikiUnitName } from "./catalog";
 import { TownMap } from "./WorldMap";
 import { StructureOverview } from "./StructureOverview";
 import { Minimap } from "./Minimap";
@@ -32,7 +31,6 @@ import {
   displayName,
   previewItem,
   catalogItems,
-  unitName,
   unitGroups,
   unitFamily,
   fishItems,
@@ -329,6 +327,7 @@ export function Widget({ name }: { name: string }) {
               </span>
             </ReferenceLink>,
             <div className="CatalogLines">
+              <Text>These bonuses apply while standing inside the Aura.</Text>
               {Object.keys(equipmentStatDescriptions)
                 .filter((key) => key.startsWith("add"))
                 .map((key) => (
@@ -532,7 +531,6 @@ export function Widget({ name }: { name: string }) {
         ])}
       />
     );
-  if (name === "reward-containers") return <RewardContainers />;
   if (name === "sprite-gallery") return <SpriteGallery />;
   if (name === "sprite-layers")
     return (
@@ -756,7 +754,7 @@ export function Widget({ name }: { name: string }) {
                   kind: "unit" as const,
                   group:
                     category === "plants"
-                      ? unitFamily(key) === "cactus"
+                      ? unitFamily(key) === "cactus" || key === "tumbleweed"
                         ? "Desert"
                         : "Forest"
                       : category === "enemies"
@@ -770,7 +768,7 @@ export function Widget({ name }: { name: string }) {
                     name:
                       group.length > 1
                         ? displayName(unitFamily(key))
-                        : unitName(key, unit),
+                        : getWikiUnitName(key),
                   },
                   color:
                     unit.faction === "wild"
@@ -930,6 +928,7 @@ export function Widget({ name }: { name: string }) {
         rows={buildConstructions.map((p) => [
           <ReferenceLink
             name={(() => {
+              if (p.variants[0].cell === "campfire") return "fireplace";
               const cell = p.variants[0].cell.replace(/_/g, "").toLowerCase();
               const unit = (Object.keys(unitDefinitions) as UnitKey[]).find(
                 (key) => isWikiUnit(key) && key.toLowerCase() === cell
@@ -945,7 +944,9 @@ export function Widget({ name }: { name: string }) {
             >
               <Pixels rows={[[p.sprite]]} label={p.sprite.name} />
               <Text color={colors.grey}>
-                {displayName(p.sprite.name || p.variants[0].cell)}
+                {p.variants[0].cell === "campfire"
+                  ? "Fireplace"
+                  : displayName(p.sprite.name || p.variants[0].cell)}
               </Text>
             </span>
           </ReferenceLink>,

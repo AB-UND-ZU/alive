@@ -23,8 +23,9 @@ import {
   desertPalmBurnt1,
   desertPalmBurnt2,
   none,
+  fire,
 } from "../game/assets/sprites";
-import { mergeSprites, slotShadow } from "../game/assets/ui";
+import { mergeSprites, slotShadow, getFacingLayers } from "../game/assets/ui";
 
 const families = [
   {
@@ -102,7 +103,22 @@ export function cellSnapshot(cell: string, variant?: Sprite) {
       if (item) crops.set(itemId, item.ITEM);
     }
   }
+  const grid = worldRows(world, {
+    x: cell.startsWith("bed") ? 5 : 6,
+    y: positions.length ? Math.min(...positions) : 6,
+    width: cell.startsWith("bed") ? 3 : 1,
+    height: positions.length
+      ? Math.max(...positions) - Math.min(...positions) + 1
+      : 1,
+    inside: true,
+  });
+  if (cell === "fireplace")
+    grid[0][0] = mergeSprites(grid[0][0], {
+      ...fire,
+      layers: getFacingLayers(fire, undefined, 2),
+    });
   return {
+    grid,
     sprites: worldRows(world, {
       x: 6,
       y: positions.length ? Math.min(...positions) : 6,

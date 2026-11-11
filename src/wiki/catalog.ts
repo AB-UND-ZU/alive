@@ -39,7 +39,9 @@ export const itemCategory = (item: Partial<Item>) =>
     : "resources";
 export const isWikiUnit = (key: string) => key !== "chestBoss";
 export const unitCategory = (key: string, unit: UnitDefinition) =>
-  ["rose", "violet", "clover"].includes(key)
+  key === "fireNomad"
+    ? "bosses"
+    : ["rose", "violet", "clover"].includes(key)
     ? "enemies"
     : /Totem$/.test(key)
     ? "skills"
@@ -87,7 +89,9 @@ export const unitPage = (key: string, unit: UnitDefinition) =>
     : unitCategory(key, unit);
 
 export const getWikiUnitName = (key: UnitKey, full = false) =>
-  full || unitPage(key, unitDefinitions[key]) === "npcs"
+  key === "tumbleweed"
+    ? "Tumbleweed"
+    : full || unitPage(key, unitDefinitions[key]) === "npcs"
     ? key === "tutorialBoss"
       ? "Bandit Boss"
       : displayName(key)
@@ -262,6 +266,22 @@ export const catalogItems = Object.fromEntries(
   )
 );
 
+export function unitRewardChests(key: UnitKey): UnitKey[] {
+  const sequenceChest: Partial<Record<UnitKey, UnitKey>> = {
+    ilexElite: "ilexChest",
+    wormBoss: "wormChest",
+    fireNomad: "nomadChest",
+  };
+  return [
+    ...new Set([
+      ...(unitDefinitions[key].vanish?.cells.map(
+        ({ cell }) => cell as UnitKey
+      ) || []),
+      ...(sequenceChest[key] ? [sequenceChest[key]!] : []),
+    ]),
+  ].filter((cell) => isContainer(cell));
+}
+
 export const isContainer = (key: string) => /chest|^pot$|^box$/i.test(key);
 
 export function unitComparisonStats(key: UnitKey) {
@@ -302,6 +322,7 @@ export function unitComparisonStats(key: UnitKey) {
   return { stats, attacks, bonuses: getEntityEquipmentStats(world, entity) };
 }
 export const unitFamily = (key: string) => {
+  if (key === "tumbleweed") return key;
   if (/chest/i.test(key)) return "chest";
   const name = unitDefinitions[key as UnitKey]?.sprite.name;
   if (name && /^[A-Z][A-Za-z ]+$/.test(name) && !/^\?+$/.test(name))

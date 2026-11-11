@@ -4,7 +4,7 @@
 popup equip:spell
 ```
 
-[[key:Space]] Cast.
+[[key:Space]] Cast the equipped spell.
 
 Each cast requires mana.
 

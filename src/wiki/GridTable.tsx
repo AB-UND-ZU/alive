@@ -46,6 +46,7 @@ export function GridTable({
   headers,
   rows,
   compact = false,
+  noWrap = false,
   rowHeaders = true,
   headerColor = colors.white,
   columnLimits = [],
@@ -54,6 +55,7 @@ export function GridTable({
   headers: ReactNode[];
   rows: ReactNode[][];
   compact?: boolean;
+  noWrap?: boolean;
   rowHeaders?: boolean;
   headerColor?: string;
   columnLimits?: number[];
@@ -103,6 +105,9 @@ export function GridTable({
     const minima = content.map((values, column) =>
       Math.max(
         compact ? 1 : 6,
+        ...(noWrap
+          ? values.map((value) => value.length + (compact ? 0 : 2))
+          : []),
         ...cells[column].flatMap((cell) =>
           cell.querySelector(".Key")
             ? [
@@ -173,7 +178,7 @@ export function GridTable({
     setWidths((previous) =>
       previous.join() === next.join() ? previous : next
     );
-  }, [headers, compact, columnLimits]);
+  }, [headers, compact, noWrap, columnLimits]);
   useLayoutEffect(layout, [layout, visibleRows]);
   useLayoutEffect(() => {
     const observer = new ResizeObserver(layout);
@@ -313,7 +318,9 @@ export function GridTable({
       <div className={`TableScroll ${className}`} ref={container}>
         <table
           ref={table}
-          className={`GridTable ${compact ? "CompactGrid" : ""}`}
+          className={`GridTable ${compact ? "CompactGrid" : ""} ${
+            noWrap ? "NoWrapGrid" : ""
+          }`}
           style={
             {
               "--frozen-left": `${widths[0] * 18}px`,

@@ -15,3 +15,5 @@ Enemy overview groups distinguish Ilex and Oak Adds from ordinary roaming enemie
 `getWikiUnitSprite` uses complete native unit portraits and the existing Rotten Tree stump for its otherwise invisible root entity. Non-default quest chests appear as reward frames outside the default chest comparison. Spawned remains belong inside each unit's Drops frame.
 
 `getWikiUnitName` uses full unit keys for NPC names and full comparison headings, while ordinary mentions keep native creature names. Animals with a sprite but no printed native name fall back to the unit name.
+
+`unitRewardChests` groups native vanish chests and sequence rewards under their encounter: Ilex, Oak, Worm and Nomad. Item acquisition links point to the encounter; its Drops cell shows the native contents in a Chest frame. Tumbleweed has its own name and belongs to Desert plants.

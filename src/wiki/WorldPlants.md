@@ -7,3 +7,5 @@ The Tree comparison lists both actual tree body choices and the Apple factory. P
 `cellSnapshot(cell, variant?)` creates the requested cell in a small area world and returns its composed sprite rows, harvest state and item pickups. World Plants and cell references share this factory snapshot; neither copies the cell's sprite or harvesting rules.
 
 `RottenPreview` builds the fallen tree with `createCell` and enlarges its complete three-cell world grid through the same two-pixels-per-character renderer.
+
+Cell snapshots expose a grid for structure previews as well as the single-column plant sprites. Beds retain all three horizontal cells from the native furniture factory. Fireplace layers the native medium-intensity burning particle over its base.

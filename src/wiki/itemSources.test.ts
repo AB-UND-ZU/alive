@@ -16,7 +16,7 @@ describe("item acquisition", () => {
           sell: [{ stackable: "coin", amount: 10 }],
         }),
         { kind: "harvest", key: "oak" },
-        expect.objectContaining({ kind: "drop", key: "oakChest", chance: 100 }),
+        expect.objectContaining({ kind: "drop", key: "oakBoss", chance: 100 }),
       ])
     );
     expect(
@@ -82,7 +82,7 @@ describe("item acquisition", () => {
     );
     expect(
       obtainedFrom({ stackable: "resource", material: "wood", element: "fire" })
-    ).toEqual([{ kind: "drop", key: "wormChest", chance: 100 }]);
+    ).toEqual([{ kind: "drop", key: "wormBoss", chance: 100 }]);
   });
   it("groups every canonical resource and food exactly once", () => {
     for (const category of ["resources", "consumables"]) {
@@ -125,4 +125,27 @@ it("retains all native fishing levels and exact buy/sell prices", () => {
     level: "LEVEL_ISLAND",
     biome: "jungle",
   });
+});
+
+it("attributes reward chest contents to the encounter instead of the container", () => {
+  expect(obtainedFrom({ stackable: "sapling" })).toContainEqual({
+    kind: "drop",
+    key: "ilexElite",
+    chance: 100,
+  });
+  expect(obtainedFrom({ stackable: "schema" })).toContainEqual({
+    kind: "drop",
+    key: "fireNomad",
+    chance: 100,
+  });
+  for (const item of [
+    { stackable: "sapling" },
+    { stackable: "schema" },
+    { stackable: "resource", material: "wood", element: "fire" },
+  ] as const)
+    expect(
+      obtainedFrom(item).some((source) =>
+        /^(ilex|oak|worm|nomad)Chest$/.test(source.key || "")
+      )
+    ).toBe(false);
 });

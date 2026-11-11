@@ -4,7 +4,7 @@ for (const [route, count] of [
   ["game-design/world/menu", 1],
   ["game-design/world/dungeon", 2],
   ["game-design/world/island", 7],
-  ["game-design/characters/bosses", 4],
+  ["game-design/characters/bosses", 5],
 ]) {
   test(`${route} uses the shared scenario load table with native hero supplies`, async ({
     page,
@@ -16,7 +16,6 @@ for (const [route, count] of [
     const table = page.getByRole("region", { name: "Scenarios", exact: true });
     await expect(table.getByRole("columnheader")).toHaveText([
       "Scenario",
-      "Description",
       "Hero",
       "Load",
     ]);
@@ -25,7 +24,7 @@ for (const [route, count] of [
     ).toHaveCount(count);
     for (const row of await table.locator("tbody tr:not(.GridRule)").all()) {
       const scenario = row.locator('[data-column="0"]');
-      await expect(scenario).toContainText(/\((level|area|boss)\)/);
+      await expect(scenario).toContainText(/\((Level|Area|Boss)\)/);
       await expect(scenario.locator("a .Pixels")).toHaveCount(1);
     }
     if (route.endsWith("play") || route.endsWith("dungeon")) {

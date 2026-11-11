@@ -22,6 +22,7 @@ import {
   catalogItems,
   itemVariants,
   isWikiUnit,
+  unitRewardChests,
   previewItem,
 } from "./catalog";
 import { worldPlantGroups } from "./WorldPlants";
@@ -82,6 +83,11 @@ function buildSources() {
       entries.push(source);
     result.set(key, entries);
   };
+  const rewardOwners = new Map(
+    (Object.keys(unitDefinitions) as (keyof typeof unitDefinitions)[]).flatMap(
+      (boss) => unitRewardChests(boss).map((chest) => [chest, boss] as const)
+    )
+  );
   for (const [key, unit] of Object.entries(unitDefinitions))
     if (isWikiUnit(key))
       for (const drop of unit.drops)
@@ -89,7 +95,7 @@ function buildSources() {
           if (item.amount && drop.chance)
             add(item, {
               kind: "drop",
-              key,
+              key: rewardOwners.get(key as keyof typeof unitDefinitions) || key,
               chance: unit.drops
                 .filter((bundle) =>
                   bundle.items.some(

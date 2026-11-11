@@ -281,8 +281,9 @@ const featureAliases: Record<string, string> = {
   gate: "structures#doors",
   gates: "structures#doors",
   jetty: "structures#jetty",
-  bonfire: "structures#bonfire",
+  fireplace: "structures#fireplace",
   furniture: "structures#furniture",
+  bed: "structures#furniture",
   chair: "structures#furniture",
   table: "structures#furniture",
   house: "structures#wood-house",
@@ -965,6 +966,13 @@ function Markdown({
       return (
         <PlainTable
           key={index}
+          noWrap={
+            !!token.rows?.some((row) =>
+              row[0]?.tokens.some(
+                (part) => part.type === "game" && part.kind === "key"
+              )
+            )
+          }
           headers={(token.header || []).map((cell) =>
             cell.tokens.map((t) => t.text || t.raw || "").join("")
           )}

@@ -5,3 +5,5 @@ Uses the actual Ilex, Oak and Dungeon room legends and cell factories. Multi-cel
 Room rendering uses `worldRows`, including native backdrops, equipment and facing. No combat simulation runs while reading a diagram. `bossDiagrams` renders the prepared world within its room bounds, cropping empty space for encounters without a room. Other bosses keep their existing fixture setup.
 
 The Worm diagram uses the seeded generated Island cave. Its native mouth is placed at the lake center, its limb particles settle through normal rendering, and AI/dialogs are frozen. The cutout includes the actual generated lake, jetty, sand and mountain rim; the bait worm, dialog particles and discovery marker on the native sign are removed, and a native upward-facing body segment is placed below the mouth.
+
+Nomad uses the native nomad room legend and Fire Nomad unit with the interior view so furniture remains visible. Its playable scenario uses the generated Island encounter.

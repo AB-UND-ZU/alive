@@ -5,6 +5,7 @@ import {
   jetty,
   table,
   campfire,
+  bedItem,
   bench,
 } from "../game/assets/sprites";
 import { displayName } from "./catalog";
@@ -93,7 +94,7 @@ export function StructureOverview() {
           Boat: boat,
           Jetty: jetty,
           Furniture: table,
-          Bonfire: campfire,
+          Fireplace: campfire,
           Workstations: bench,
           Portal: portal.SPRITE!,
           Lever: lever.SPRITE!,
@@ -216,19 +217,19 @@ const structureGroups = [
   {
     title: "Jetty",
     id: "jetty",
-    cells: ["jetty_horizontal", "jetty_vertical"],
+    cells: ["jetty_vertical"],
     description: "Walk along the jetty above water.",
   },
   {
     title: "Furniture",
     id: "furniture",
-    cells: ["bed_left", "bed_right", "chair_left", "chair_right", "table"],
+    cells: ["bed_left", "chair_left", "chair_right", "table"],
     description: "Furniture decorates the inside of buildings.",
   },
   {
-    title: "Bonfire",
-    id: "bonfire",
-    cells: ["campfire", "fireplace"],
+    title: "Fireplace",
+    id: "fireplace",
+    cells: ["fireplace"],
     description: "Fire lights its surroundings and can burn nearby units.",
   },
   {
@@ -320,13 +321,21 @@ function StructureDetails() {
             headers={["Structure", "Preview", "Interaction"]}
             rows={group.specimens.map(({ cell, sample }) => {
               const title =
-                cell === "campfire"
-                  ? "Bonfire"
+                cell === "jetty_vertical"
+                  ? "Jetty"
+                  : cell === "bed_left"
+                  ? "Bed"
                   : displayName(cell.replace(/_/g, " "));
               const icon = (
                 <Text
                   prefix={
-                    <Pixels rows={sample.sprites.map((sprite) => [sprite])} />
+                    <Pixels
+                      rows={
+                        cell === "bed_left"
+                          ? [[bedItem]]
+                          : [[sample.sprites[0]]]
+                      }
+                    />
                   }
                 >
                   {title}
@@ -347,9 +356,7 @@ function StructureDetails() {
                 >
                   {icon}
                 </ReferenceLink>,
-                <LargePreview
-                  grid={sample.sprites.map((sprite) => [sprite])}
-                />,
+                <LargePreview grid={sample.grid} />,
                 <ReferenceText
                   text={
                     cell === "bench"

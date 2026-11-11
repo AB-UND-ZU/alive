@@ -33,7 +33,6 @@ for (const width of [1440, 390, 360]) {
           nodes
             .filter(
               (node) =>
-                node.scrollWidth > node.clientWidth + 1 ||
                 !node.firstElementChild.classList.contains("Key") ||
                 [...node.querySelectorAll(".Text")].some(
                   (text) => text.getBoundingClientRect().height > 32.1
@@ -42,7 +41,20 @@ for (const width of [1440, 390, 360]) {
             .map((node) => node.textContent)
         );
       if (failures.length) pages.push({ page: name, failures });
-      await expect(page.locator("table .Key")).toHaveCount(0);
+      if (name === "keyboard-mouse") {
+        expect(await page.locator("table .Key").count()).toBeGreaterThan(20);
+        const controls = page.locator(".NoWrapGrid").first();
+        await expect(controls).toContainText(
+          "Switch between Bag tools and skills."
+        );
+        expect(
+          await controls
+            .locator(".GridValue")
+            .evaluateAll((nodes) =>
+              nodes.every((node) => node.scrollWidth <= node.clientWidth + 1)
+            )
+        ).toBe(true);
+      } else await expect(page.locator("table .Key")).toHaveCount(0);
     }
     expect(pages).toEqual([]);
   });

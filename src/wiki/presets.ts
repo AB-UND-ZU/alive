@@ -54,12 +54,6 @@ export const presets = {
     level: "LEVEL_ISLAND",
     cell: "oak_boss",
   },
-  worm: {
-    title: "Worm Boss",
-    description: "Attack the bait worm.",
-    level: "LEVEL_ISLAND",
-    cell: "worm_bait",
-  },
   haven: {
     title: "Fire Haven",
     description: "Visit Fire Haven.",
@@ -72,6 +66,12 @@ export const presets = {
     level: "LEVEL_ISLAND",
     target: "nomad_house",
   },
+  worm: {
+    title: "Worm Boss",
+    description: "Attack the bait worm.",
+    level: "LEVEL_ISLAND",
+    cell: "worm_bait",
+  },
 } as const;
 export type PresetName = keyof typeof presets;
 
@@ -80,105 +80,88 @@ export const islandPreviewSeed = 2026;
 export function getPresetLoadout(name: PresetName) {
   if (name === "menu") return { level: undefined, items: [], equipment: [] };
   const level =
-    name === "dungeon"
+    name === "dungeon" || name === "bandit"
       ? 1
-      : name === "island" || name === "bandit"
+      : name === "island" || name === "earth"
       ? 2
+      : name === "ilex"
+      ? 3
       : name === "oak"
       ? 4
       : name === "worm"
       ? 6
-      : 3;
+      : 5;
   const equipment: Omit<Item, "carrier">[] = [];
   const items: Omit<Item, "carrier" | "bound">[] = [];
+  const equip = (item: Partial<Item>) =>
+    equipment.push({ ...item, amount: 1, bound: false });
   const potion = (
     stat: "hp" | "mp",
     material: Item["material"],
     amount: number
   ) => items.push({ consume: "potion", stat, material, amount });
-  if (name !== "dungeon")
-    equipment.push({
-      weapon: "sword",
-      material: name === "island" ? "wood" : name === "worm" ? "gold" : "iron",
-      amount: 1,
-      bound: false,
-    });
-  if (name === "island") {
+  if (name === "dungeon") return { level, items, equipment };
+  equip({
+    weapon: "sword",
+    material: ["bandit", "island", "earth", "ilex"].includes(name)
+      ? "wood"
+      : name === "worm"
+      ? "gold"
+      : "iron",
+  });
+  if (["bandit", "island", "earth", "ilex"].includes(name)) {
     potion("hp", "wood", 10);
     items.push(
-      { stackable: "resource", material: "iron", amount: 1 },
-      { stackable: "coin", amount: 5 },
       { stackable: "apple", amount: 3 },
       { stackable: "banana", amount: 2 }
     );
-  } else if (name === "oak" || name === "worm") {
-    const worm = name === "worm";
-    equipment.push(
-      { ...commandItems.compass, amount: 1, bound: false },
-      {
-        spell: worm ? "wave" : "beam",
-        material: worm ? "iron" : "wood",
-        ...(worm ? { element: "earth" as const } : {}),
-        amount: 1,
-        bound: false,
-      },
-      {
-        skill: worm ? "block" : "slash",
-        material: worm ? "iron" : "wood",
-        amount: 1,
-        bound: false,
-      },
-      {
-        tool: worm ? "pickaxe" : "axe",
-        material: "wood",
-        amount: 1,
-        bound: false,
-      }
-    );
+    if (name === "island")
+      items.push(
+        { stackable: "resource", material: "iron", amount: 1 },
+        { stackable: "coin", amount: 5 }
+      );
+    if (name === "earth" || name === "ilex") {
+      equip(commandItems.compass);
+      equip({ tool: "axe", material: "wood" });
+    }
+    if (name === "ilex") equip({ spell: "wave", material: "wood" });
+  } else {
+    const worm = name === "worm",
+      nomad = name === "nomad",
+      haven = name === "haven";
+    equip(commandItems.compass);
+    equip({
+      spell: nomad ? "wave" : haven ? "dash" : "beam",
+      material: name === "oak" ? "wood" : "iron",
+      ...(name !== "oak" ? { element: "earth" as const } : {}),
+    });
+    equip({
+      skill: worm ? "block" : haven ? "bow" : "slash",
+      material: name === "oak" ? "wood" : "iron",
+    });
+    equip({
+      tool: haven || nomad || worm ? "pickaxe" : "axe",
+      material: "wood",
+    });
+    items.push({
+      stackable: haven ? "arrow" : "charge",
+      amount: name === "oak" ? 10 : 20,
+    });
+    potion("hp", nomad || worm ? "iron" : "wood", nomad || worm ? 30 : 20);
+    potion("mp", nomad || worm ? "iron" : "wood", nomad || worm ? 20 : 10);
+    if (haven || nomad) {
+      equip({ accessory: "amulet", material: "wood" });
+      equip(
+        nomad ? commandItems.map : { accessory: "boots", material: "wood" }
+      );
+      items.push({ stackable: "resource", material: "gold", amount: 3 });
+    }
     if (worm) {
-      equipment.push({
-        accessory: "boots",
-        material: "iron",
-        amount: 1,
-        bound: false,
-      });
       items.push(
         { tool: "hook", material: "wood", amount: 1 },
         { stackable: "worm", amount: 10 }
       );
     }
-    items.push({ stackable: "charge", amount: worm ? 20 : 10 });
-    potion("hp", worm ? "iron" : "wood", 20);
-    potion("mp", worm ? "iron" : "wood", 10);
-  } else if (name !== "dungeon") {
-    equipment.push(
-      { ...commandItems.compass, amount: 1, bound: false },
-      { offhand: "shield", material: "iron", amount: 1, bound: false },
-      {
-        skill: name === "bandit" || name === "nomad" ? "bow" : "slash",
-        material: "iron",
-        amount: 1,
-        bound: false,
-      },
-      { tool: "axe", material: "wood", amount: 1, bound: false }
-    );
-    if (name === "ilex")
-      equipment.push({
-        spell: "wave",
-        material: "iron",
-        element: "fire",
-        amount: 1,
-        bound: false,
-      });
-    items.push(
-      { stackable: "coin", amount: 20 },
-      { stackable: "apple", amount: 5 },
-      { stackable: "charge", amount: 10 },
-      { stackable: "arrow", amount: 20 },
-      { stackable: "resource", material: "wood", amount: 10 }
-    );
-    potion("hp", "wood", 10);
-    potion("mp", "wood", 5);
   }
   return { level, items, equipment };
 }

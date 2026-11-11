@@ -10,6 +10,7 @@ import {
   boat,
   jetty,
   campfire,
+  bedItem,
   pot,
   bench,
   anvil,
@@ -30,6 +31,7 @@ import {
   mapHouse,
   mapFortress,
 } from "../game/assets/sprites";
+import { doorClosed } from "../game/assets/templates/units";
 import { getItemSprite } from "../game/assets/utils";
 import { shop, forge, brew, craft } from "../game/assets/ui";
 
@@ -43,15 +45,16 @@ export const featureSprites: Record<string, Sprite> = {
   boat,
   dock: jetty,
   jetty,
-  bonfire: campfire,
+  fireplace: campfire,
+  bed: bedItem,
   vase: pot,
   bench,
   workbench: bench,
   workstations: bench,
   potion: getItemSprite({ consume: "potion", material: "wood", stat: "hp" }),
   potions: getItemSprite({ consume: "potion", material: "wood", stat: "hp" }),
-  door: getItemSprite({ materialized: "door", material: "wood" }),
-  doors: getItemSprite({ materialized: "door", material: "wood" }),
+  door: doorClosed.wood.default,
+  doors: doorClosed.wood.default,
   gate: getItemSprite({ materialized: "gate", material: "wood" }),
   gates: getItemSprite({ materialized: "gate", material: "wood" }),
   anvil,

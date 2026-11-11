@@ -32,7 +32,7 @@ const renderSources = (
     </ReferenceContext.Provider>
   );
 
-test("one Drop frame lists every native coin-producing unit without summaries or probability headings", () => {
+test("one Drop frame lists coin sources with bosses owning their reward chests", () => {
   renderSources({ stackable: "coin" });
   const frame = screen.getByLabelText("Drop");
   const links = within(frame).getAllByRole("link");
@@ -46,7 +46,15 @@ test("one Drop frame lists every native coin-producing unit without summaries or
           )
       )
     )
-    .map(([key]) => key);
+    .map(
+      ([key]) =>
+        ((
+          { ilexChest: "ilexElite", oakChest: "oakBoss" } as Record<
+            string,
+            string
+          >
+        )[key] || key)
+    );
   expect(links).toHaveLength(expected.length);
   for (const key of expected)
     expect(
