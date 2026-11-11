@@ -1,0 +1,15 @@
+# Brewing
+
+```widget
+popup brew brew:recipe brew:ingredients
+```
+
+Choose one ingredient option for a recipe. Brewing takes time after the ingredients are committed.
+
+```widget
+brewing
+```
+
+```scene
+brewing
+```
