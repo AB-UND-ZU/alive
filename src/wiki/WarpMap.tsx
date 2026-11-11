@@ -50,9 +50,9 @@ export function WarpMap() {
   const { features = {}, link } = useContext(ReferenceContext);
   const levelLink = (level: LevelName) => {
     const name = levelConfig[level].name;
-    return features.levels ? (
+    return features[name.toLowerCase()] ? (
       link(
-        features.levels.href + "#" + name.toLowerCase(),
+        features[name.toLowerCase()].href,
         <Text>{name}</Text>,
         true
       )

@@ -1,3 +1,5 @@
+import { PresetName } from "./presets";
+import { muteAudio, setAudioActive } from "../game/sound/resumable";
 import { underlineImage } from "./underline";
 import { JoystickReference } from "./TouchControls";
 import { DialogSnapshot } from "./DialogSnapshot";
@@ -125,11 +127,17 @@ const canonicalRoute = (route: string) =>
   manifest.pages.find(
     (page) => page.route === route || page.aliases?.includes(route)
   )?.route || route;
-const currentRoute = () =>
-  canonicalRoute(
+const currentRoute = () => {
+  const route = canonicalRoute(
     decodeURI(window.location.pathname.slice(rootUrl.pathname.length)) ||
       "index.html"
   );
+  const section = window.location.hash.slice(1);
+  return route === canonicalRoute("portals.html") &&
+    ["menu", "dungeon", "island"].includes(section)
+    ? canonicalRoute(section + ".html")
+    : route;
+};
 const featureRoute = (name: string) =>
   manifest.pages.find((page) => page.source === `wiki/${name}.md`)?.route ||
   `${name}.html`;
@@ -201,13 +209,13 @@ for (const page of manifest.pages.filter(
 const featureAliases: Record<string, string> = {
   trading: "shops",
   tips: "dialogs",
-  world: "levels",
+  world: "island",
   aura: "stats#aura",
-  "world map": "levels",
+  "world map": "island",
   terrain: "terrain",
   grounds: "terrain",
-  portal: "levels#portals",
-  portals: "levels#portals",
+  portal: "portals",
+  portals: "portals",
   "wood house": "structures#wood-house",
   "desert fort": "structures#desert-fort",
   lever: "structures#lever",
@@ -220,7 +228,8 @@ const featureAliases: Record<string, string> = {
   water: "elements#water",
   earth: "elements#earth",
   air: "elements#air",
-  level: "levels",
+  level: "portals",
+  levels: "portals",
   saving: "savegames",
   "saved games": "savegames",
   presets: "play",
@@ -716,7 +725,9 @@ function Markdown({
         return (
           <GamePreview
             key={index}
-            name={token.text!.trim() as SceneName}
+            name={token.text!.trim().split("/")[0] as SceneName}
+            preset={token.text!.trim().split("/")[1] as PresetName | undefined}
+            testMode={token.text!.trim().split("/")[0] !== "game"}
             base={base}
           />
         );
@@ -1098,7 +1109,9 @@ function App() {
         return response.text();
       })
       .then((text) => {
-        if (!controller.signal.aborted)
+        if (!controller.signal.aborted) {
+          setAudioActive(false);
+          muteAudio();
           setLoaded({
             ...requestedPage,
             tokens: parseMarkdown(
@@ -1108,6 +1121,7 @@ function App() {
               manifest.references
             ),
           });
+        }
       })
       .catch((cause) => {
         if (!controller.signal.aborted)
@@ -1117,6 +1131,8 @@ function App() {
   }, [requestedPage]);
   const ready = loaded?.source === requestedPage.source;
   const navigate: Navigate = (path) => {
+    setAudioActive(false);
+    muteAudio();
     const [target, hash] = path.split("#");
     const url = new URL(
       canonicalRoute(target) + (hash ? "#" + hash : ""),
@@ -1141,6 +1157,8 @@ function App() {
   };
   useEffect(() => {
     const pop = () => {
+      setAudioActive(false);
+      muteAudio();
       const nextRoute = currentRoute();
       setRoute(nextRoute);
       if (nextRoute !== page.route) return;
@@ -1245,4 +1263,6 @@ function App() {
     </ReferenceContext.Provider>
   );
 }
+setAudioActive(false);
+muteAudio();
 createRoot(document.getElementById("root")!).render(<App />);

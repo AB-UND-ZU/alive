@@ -17,7 +17,7 @@ test("acquisition sources use compact titled native frames with complete drops a
   await expect(levels).toContainText("Island");
   await expect(levels.locator("a").first()).toHaveAttribute(
     "href",
-    /levels\.html#island$/
+    /island\.html$/
   );
 });
 test("timers list each native haste interval and the multiline assignment", async ({
@@ -56,7 +56,7 @@ test("timers list each native haste interval and the multiline assignment", asyn
 test("Dungeon table follows numbered room order and labels Waves", async ({
   page,
 }) => {
-  await page.goto("/game-design/world/levels.html");
+  await page.goto("/game-design/world/dungeon.html");
   const labels = (
     await page
       .locator('.DungeonMap tbody tr:not(.GridRule) th[scope="row"]')

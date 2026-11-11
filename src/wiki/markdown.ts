@@ -120,6 +120,7 @@ export function parseMarkdown(
         (
           {
             "wiki/trading.md": "wiki/shops.md",
+            "wiki/levels.md": "wiki/portals.md",
             "wiki/tips.md": "wiki/dialogs.md",
           } as Record<string, string>
         )[target.pathname.slice(1)] || target.pathname.slice(1);
@@ -141,7 +142,11 @@ export function parseMarkdown(
         token.anchor = reference.href.split("#")[1];
     }
     if (token.type === "code") {
-      if (token.lang === "scene" && !scenes.includes(token.text!.trim()))
+      if (
+        token.lang === "scene" &&
+        !scenes.includes(token.text!.trim()) &&
+        !/^game\/(menu|dungeon|island)$/.test(token.text!.trim())
+      )
         throw new Error("Unknown scene " + token.text);
       token.syntax = syntax(
         token.text!,

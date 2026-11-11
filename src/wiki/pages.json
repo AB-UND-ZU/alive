@@ -4,7 +4,10 @@
   {"source": "wiki/interface.md", "title": "Interface", "route": "game-design/controls/interface.html", "aliases": ["interface.html"], "chapter": "Gameplay", "group": "Controls", "navigation": true},
   {"source": "wiki/keyboard-mouse.md", "title": "Keyboard/Mouse", "route": "game-design/controls/keyboard-mouse.html", "aliases": ["keyboard-mouse.html", "controls.html"], "chapter": "Gameplay", "group": "Controls", "navigation": true},
   {"source": "wiki/touch.md", "title": "Touch", "route": "game-design/controls/touch.html", "aliases": ["touch.html"], "chapter": "Gameplay", "group": "Controls", "navigation": true},
-  {"source": "wiki/levels.md", "title": "Levels", "route": "game-design/world/levels.html", "aliases": ["levels.html"], "chapter": "Gameplay", "group": "World", "navigation": true},
+  {"source": "wiki/portals.md", "title": "Portals", "route": "game-design/world/portals.html", "aliases": ["levels.html", "game-design/world/levels.html", "portals.html"], "chapter": "Gameplay", "group": "World", "navigation": true},
+  {"source": "wiki/menu.md", "title": "Menu", "route": "game-design/world/menu.html", "aliases": ["menu.html"], "chapter": "Gameplay", "group": "World", "navigation": true},
+  {"source": "wiki/dungeon.md", "title": "Dungeon", "route": "game-design/world/dungeon.html", "aliases": ["dungeon.html"], "chapter": "Gameplay", "group": "World", "navigation": true},
+  {"source": "wiki/island.md", "title": "Island", "route": "game-design/world/island.html", "aliases": ["island.html"], "chapter": "Gameplay", "group": "World", "navigation": true},
   {"source": "wiki/map.md", "title": "Minimap", "route": "game-design/world/minimap.html", "aliases": ["map.html", "game-design/world/map.html", "minimap.html", "world.html"], "chapter": "Gameplay", "group": "World", "navigation": true},
   {"source": "wiki/savegames.md", "title": "Savegames", "route": "game-design/world/savegames.html", "aliases": ["savegames.html"], "chapter": "Gameplay", "group": "World", "navigation": true},
   {"source": "wiki/timers.md", "title": "Tick Timers", "route": "game-design/world/timers.html", "aliases": ["timers.html"], "chapter": "Gameplay", "group": "World", "navigation": true},
@@ -260,7 +263,7 @@
   {"source": "src/wiki/WarpMap.md", "title": "Portal Map", "route": "development/wiki/warpmap.html", "aliases": ["development/src/wiki/WarpMap.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/Widgets.md", "title": "Data Widgets", "route": "development/wiki/widgets.html", "aliases": ["development/src/wiki/Widgets.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/WorldDiagram.md", "title": "World Diagrams", "route": "development/wiki/worlddiagram.html", "aliases": ["development/src/wiki/WorldDiagram.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
-  {"source": "src/wiki/WorldMap.md", "title": "Island Diagram", "route": "development/wiki/worldmap.html", "aliases": ["development/src/wiki/WorldMap.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
+  {"source": "src/wiki/WorldMap.md", "title": "Island Maps", "route": "development/wiki/worldmap.html", "aliases": ["development/src/wiki/WorldMap.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/WorldPlants.md", "title": "World Plants", "route": "development/wiki/worldplants.html", "aliases": ["development/src/wiki/WorldPlants.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/catalog.md", "title": "Catalog", "route": "development/wiki/catalog.html", "aliases": ["development/src/wiki/catalog.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/codePage.md", "title": "Dos Code Page", "route": "development/wiki/codepage.html", "aliases": ["development/src/wiki/codePage.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
@@ -278,5 +281,6 @@
   {"source": "src/game/assets/characters.md", "title": "Characters", "route": "development/engine/game/assets/characters.html", "aliases": ["development/src/game/assets/characters.html"], "chapter": "Development", "group": "Engine", "navigation": true},
   {"source": "src/game/assets/spriteBuilder.md", "title": "Sprite Builder", "route": "development/engine/game/assets/spritebuilder.html", "aliases": ["development/src/game/assets/spriteBuilder.html"], "chapter": "Development", "group": "Engine", "navigation": true},
   {"source": "src/game/spritePack.md", "title": "Sprite Pack", "route": "development/engine/game/spritepack.html", "aliases": ["development/src/game/spritePack.html"], "chapter": "Development", "group": "Engine", "navigation": true},
-  {"source": "src/wiki/SpriteCode.md", "title": "Sprite Code", "route": "development/wiki/spritecode.html", "aliases": ["development/src/wiki/SpriteCode.html"], "chapter": "Development", "group": "Wiki", "navigation": true}
+  {"source": "src/wiki/SpriteCode.md", "title": "Sprite Code", "route": "development/wiki/spritecode.html", "aliases": ["development/src/wiki/SpriteCode.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
+  {"source": "src/wiki/WorldMapData.md", "title": "Island Map Data", "route": "development/wiki/worldmapdata.html", "aliases": [], "chapter": "Development", "group": "Wiki", "navigation": true}
 ]

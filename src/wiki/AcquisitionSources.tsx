@@ -105,12 +105,8 @@ export function AcquisitionSources({ item }: { item: Partial<Item> }) {
                   );
                   return (
                     <div key={index}>
-                      {features.levels
-                        ? link(
-                            features.levels.href + "#" + name.toLowerCase(),
-                            content,
-                            true
-                          )
+                      {features[name.toLowerCase()]
+                        ? link(features[name.toLowerCase()].href, content, true)
                         : content}
                     </div>
                   );

@@ -72,7 +72,7 @@ const roomNotes: Record<
   north5: {
     title: "Exit",
     icons: [portal],
-    features: [["levels", "Portals"]],
+    features: [["portals", "Portals"]],
   },
 };
 

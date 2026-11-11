@@ -16,6 +16,8 @@ import { shop, forge, brew, craft } from "../game/assets/ui";
 
 export const featureSprites: Record<string, Sprite> = {
   levels: mapDiscovery,
+  portals: mapDiscovery,
+  island: mapDiscovery,
   world: mapDiscovery,
   "world map": mapDiscovery,
   map: mapDiscovery,

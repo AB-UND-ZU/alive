@@ -1,7 +1,7 @@
 import { enableTouchEmulation, TouchCursor } from "./TouchControls";
 import { createPresetWorld, PresetName } from "./presets";
 import { DemoFrame } from "./DemoFrame";
-import { muteAudio } from "../game/sound/resumable";
+import { setAudioActive, ensureAudio } from "../game/sound/resumable";
 import { findPath, relativeOrientations } from "../game/math/path";
 import { getIdentifierAndComponents } from "../engine/utils";
 import { getTab } from "../engine/systems/popup";
@@ -25,7 +25,7 @@ import {
 } from "./scenes";
 import "../components/App/index.css";
 import "./preview-engine.css";
-muteAudio();
+setAudioActive(false);
 const [scene, option = ""] = window.location.hash.slice(1).split("/");
 const name = (scene || "game") as SceneName;
 if (name === "touch") void enableTouchEmulation();
@@ -198,6 +198,7 @@ function Bridge() {
       if (event.origin !== window.location.origin) return;
       const action = event.data?.type;
       if (action === "pause") {
+        setAudioActive(false);
         visible = false;
         stop();
         setPaused(true);
@@ -242,6 +243,11 @@ function Bridge() {
     };
     const report = setInterval(reportState, 200);
     reportState();
+    const enableAudio = (event: Event) => {
+      if (!event.isTrusted || name === "interface") return;
+      setAudioActive(true);
+      void ensureAudio();
+    };
     const focus = () => {
       focused = true;
       stop();
@@ -253,6 +259,7 @@ function Bridge() {
       );
     };
     const blur = () => {
+      setAudioActive(false);
       focused = false;
       document.body.classList.remove("focused");
       stop();
@@ -265,10 +272,15 @@ function Bridge() {
         window.location.origin
       );
     };
-    const touchFocus = () => {
+    const touchFocus = (event: TouchEvent) => {
+      enableAudio(event);
       window.focus();
       focus();
     };
+    const silence = () => setAudioActive(false);
+    window.addEventListener("pagehide", silence);
+    window.addEventListener("pointerdown", enableAudio, true);
+    window.addEventListener("keydown", enableAudio, true);
     window.addEventListener("touchstart", touchFocus, true);
     window.addEventListener("focus", focus);
     window.addEventListener("blur", blur);
@@ -279,6 +291,10 @@ function Bridge() {
     );
     return () => {
       stop();
+      setAudioActive(false);
+      window.removeEventListener("pagehide", silence);
+      window.removeEventListener("pointerdown", enableAudio, true);
+      window.removeEventListener("keydown", enableAudio, true);
       clearInterval(report);
       window.removeEventListener("keydown", capture, true);
       window.removeEventListener("keyup", capture, true);

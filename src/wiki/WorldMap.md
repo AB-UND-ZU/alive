@@ -1,5 +1,7 @@
-# Island Diagram
+# Island Maps
 
-Draws a schematic of the Island's glacier, ocean, jungle, mountain range and desert using native terrain and landmark sprites. Labels identify the start, towns and boss regions. The generator rotates the mainland and moves settlements, so this diagram describes their relationship rather than a saved game's coordinates.
+Displays the fixed-seed native Island overview and settlement cutouts from `island.json`. The playable Island preset uses the same seed. Normal navigation never generates another world for these static views.
 
-The separate Minimap page shows the native discovered-world popup and its zoom levels.
+Earth Town and Fire Haven use `WorldMapData` and `worldRows` with the native inside flag. Their NPC and workstation legends appear underneath. The compact Fire Haven view uses the same stacked characters at half size.
+
+The separate Minimap page keeps its committed discovered-world popup examples. Run `wiki:world` explicitly to refresh the full Island and town reference; it does not modify `minimap.json`.

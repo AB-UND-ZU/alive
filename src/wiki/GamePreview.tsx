@@ -2,7 +2,7 @@ import { Sprite } from "../engine/components/sprite";
 import { SpriteCode } from "./SpriteCode";
 import { useEffect, useRef, useState } from "react";
 import { displayedClasses } from "../game/assets/pixels";
-import { PresetName } from "./presets";
+import { PresetName, presets } from "./presets";
 import { createDialog } from "../game/assets/ui";
 import { Pixels, Text } from "./visuals";
 import "./preview-layout.css";
@@ -211,7 +211,11 @@ export function GamePreview({
           )}
         </div>
         <GridCenteredNote>
-          <Text>{sceneDefinitions[name].instruction}</Text>
+          <Text>
+            {name === "game" && preset
+              ? `Play ${presets[preset].title} using the normal game controls.`
+              : sceneDefinitions[name].instruction}
+          </Text>
         </GridCenteredNote>
       </div>
       {name === "sprites" && <SpriteCode sprite={state.sprite} />}

@@ -9,6 +9,7 @@
 | `npm run wiki:types`                       | Refresh adjacent type documentation                                                   |
 | `npm run wiki:references`                  | Refresh generated source links during a running preview                               |
 | `npm run wiki:sources`                     | Explicitly refresh item acquisition metadata                                          |
+| `npm run wiki:world`                       | Explicitly rebuild seeded Island and town maps                                       |
 | `npm run wiki:minimap`                     | Explicitly regenerate the minimap snapshot                                            |
 
 The game and wiki use the same stock CRA entry. `REACT_APP_WIKI` selects the wiki. There are no webpack overrides or separate file watchers. Use `PORT=4185 npm run wiki:dev` to select another development port.
@@ -40,3 +41,5 @@ Production assets use `/alive/wiki/`. `scripts/wiki/routes.mjs` copies CRA's gen
 Readable symbol aliases use the existing stacked text sprites over a selectable source character. The wiki uses the existing DOS font without generating or adding font assets. Body cells are 18 by 32 pixels, headings use three character rows, and scrolling is native.
 
 Write a module's purpose and contracts in its adjacent Markdown before running `wiki:types`. It refreshes declarations below `<!-- source-types -->`, preserving authored examples above. A missing source note stops generation before changing files. The workflow uses Node 24 on Ubuntu 24.04, builds the game and wiki, and publishes `build/` to GitHub Pages.
+
+The Menu, Dungeon and Island pages use `game/menu`, `game/dungeon` and `game/island` scene fences. Island seed 2026 also supplies the full native map and interior settlement references. `wiki:world` explicitly refreshes `island.json`; previews and builds reuse it. Static wiki content has inactive audio output. Samples on Sounds are deliberate; game-frame audio is enabled during interaction and muted on blur, pause or unload.

@@ -6,7 +6,7 @@ ASCII-based 2D adventure game. Using React and Three.js (with react-three-fiber)
 text-callout
 ```
 
-Start in [Play](play.md), or learn the [controls](keyboard-mouse.md). The [Dungeon](levels.md) introduces movement and combat before the island.
+Start in [Play](play.md), or learn the [controls](keyboard-mouse.md). The [Dungeon](dungeon.md) introduces movement and combat before the island.
 
 ## Text Rendering
 

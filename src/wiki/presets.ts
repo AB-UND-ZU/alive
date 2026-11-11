@@ -1,3 +1,4 @@
+import { createRng } from "../game/math/rng";
 import { createTestWorld, assertHero } from "../testing/harness";
 import { populateInventory } from "../bindings/creation";
 import { LEVEL, LevelName } from "../engine/components/level";
@@ -73,9 +74,18 @@ export const presets = {
 } as const;
 export type PresetName = keyof typeof presets;
 
+export const islandPreviewSeed = 2026;
+
 export function createPresetWorld(name: PresetName) {
   const preset = presets[name];
-  const world = createTestWorld({ level: preset.level as LevelName });
+  const nativeRandom = Math.random;
+  let world: ReturnType<typeof createTestWorld>;
+  try {
+    Math.random = createRng(islandPreviewSeed);
+    world = createTestWorld({ level: preset.level as LevelName });
+  } finally {
+    Math.random = nativeRandom;
+  }
   if (name === "menu") return world;
   const hero = world.assertComponents(assertHero(world), [
     "INVENTORY",

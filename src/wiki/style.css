@@ -1,3 +1,7 @@
+.Wiki #root {
+  overflow: visible;
+}
+
 .Wiki {
   font-family: "Perfect DOS VGA 437 Win", monospace;
   --cell-height: 32px;

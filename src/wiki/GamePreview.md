@@ -13,3 +13,5 @@ The Chat frame fits narrow pages with CSS aspect ratio and maximum width. The ga
 Every feature preview uses the same controls layout, regardless of which scene opens chat. The keyboard sits one row above Reset so the extra preview action cannot cover a key. Controls and the keyboard cover the world frame where they overlap.
 
 Feature previews supply the terminal center to the shared controls using `--controls-center-y`. It includes the scene’s retained stat rows, aligning interaction prompts and all popup hit areas after unused HUD rows are removed. The normal game keeps its existing window-center default.
+
+Visible autoplay is silent. A pointer, touch or keyboard interaction enables the frame audio activity gate and resumes its AudioContext. Blur, pause and page unload disable the gate. This is separate from the player's Sound FX setting, so refocusing never overrides a muted game.

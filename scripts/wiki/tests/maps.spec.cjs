@@ -1,6 +1,6 @@
 const { test, expect } = require("./fixtures.cjs");
 
-test("Levels composes native green frames with sizes and onward connections", async ({
+test("Portals composes native green frames with sizes and onward connections", async ({
   page,
 }) => {
   await page.goto("/game-design/world/levels.html");
@@ -30,13 +30,16 @@ test("Levels composes native green frames with sizes and onward connections", as
     expect(row.y - mapBox.y).toBe(offset * 32);
     expect(row.height).toBe(5 * 32);
   }
+  await expect(page).toHaveURL(/world\/portals.html$/);
+  await page.goto("/game-design/world/dungeon.html");
   await expect(page.locator(".DungeonMap .DungeonLegendEntry")).toHaveCount(7);
   const dungeon = page.locator(".DungeonMap .WorldMapContent > .Pixels");
   expect((await dungeon.boundingBox()).height).toBeLessThanOrEqual(416);
+  await page.goto("/game-design/world/island.html");
   await expect(
-    page.locator(
-      '.WorldMap [aria-label="Island schematic: ocean and glacier; jungle with the start, Earth Town and Ilex; central mountains and Oak; desert with Fire Haven and the Nomad"]'
-    )
+    page.getByLabel("Generated Island map, seed 2026, fully revealed", {
+      exact: true,
+    })
   ).toHaveCount(1);
 });
 

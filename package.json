@@ -51,7 +51,8 @@
     "wiki:dev": "npm run wiki:references && echo \"Wiki: http://127.0.0.1:${PORT:-4173}\" && REACT_APP_WIKI=true PUBLIC_URL=/ PORT=${PORT:-4173} HOST=127.0.0.1 BROWSER=none react-scripts start",
     "wiki:test": "node --test scripts/wiki/types.test.mjs scripts/wiki/references.test.mjs scripts/wiki/item-sources.test.mjs scripts/wiki/routes.test.mjs && playwright test && WIKI_TEST_DEV=true playwright test",
     "wiki:sources": "node scripts/wiki/item-sources.mjs",
-    "wiki:references": "node scripts/wiki/references.mjs"
+    "wiki:references": "node scripts/wiki/references.mjs",
+    "wiki:world": "WIKI_WORLD_SNAPSHOT=true CI=true react-scripts test --watchAll=false --runInBand --runTestsByPath src/wiki/WorldMapData.generation.test.ts"
   },
   "eslintConfig": {
     "extends": [

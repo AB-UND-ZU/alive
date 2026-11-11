@@ -1,7 +1,14 @@
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 const masterGain = audioContext.createGain();
 masterGain.gain.value = 1;
-masterGain.connect(audioContext.destination);
+const activityGain = audioContext.createGain();
+activityGain.gain.value = 1;
+masterGain.connect(activityGain);
+activityGain.connect(audioContext.destination);
+
+export const setAudioActive = (active: boolean) => {
+  activityGain.gain.value = active ? 1 : 0;
+};
 
 export const muteAudio = () => {
   masterGain.gain.value = 0;
@@ -14,12 +21,15 @@ export const unmuteAudio = () => {
 export const suspendAudio = () => audioContext.suspend();
 
 export const ensureAudio = () => {
-  if (!isPlaying()) {
+  if (audioContext.state !== "running") {
     return audioContext.resume();
   }
 };
 
-export const isPlaying = () => audioContext.state === "running";
+export const isPlaying = () =>
+  audioContext.state === "running" &&
+  masterGain.gain.value > 0 &&
+  activityGain.gain.value > 0;
 
 export type SoundBuffer = {
   play: (time: number, volume?: number) => void;

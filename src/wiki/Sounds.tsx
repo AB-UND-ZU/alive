@@ -1,12 +1,25 @@
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { play, soundPresets } from "../game/sound";
-import { ensureAudio, unmuteAudio } from "../game/sound/resumable";
+import {
+  ensureAudio,
+  unmuteAudio,
+  muteAudio,
+  setAudioActive,
+} from "../game/sound/resumable";
 import { displayName } from "./catalog";
 import { Button, PlainTable, Text } from "./visuals";
 
 export function Sounds() {
   const [last, setLast] = useState("");
+  useLayoutEffect(
+    () => () => {
+      setAudioActive(false);
+      muteAudio();
+    },
+    []
+  );
   const listen = async (name: (typeof soundPresets)[number]) => {
+    setAudioActive(true);
     unmuteAudio();
     await ensureAudio();
     play(name);
