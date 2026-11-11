@@ -31,8 +31,8 @@
     "prismjs": "^1.30.0"
   },
   "scripts": {
-    "start": "npm run wiki:references && FAST_REFRESH=false react-scripts start",
-    "build": "npm run wiki:references && react-scripts build",
+    "start": "FAST_REFRESH=false react-scripts start",
+    "build": "react-scripts build",
     "test": "react-scripts test --testPathIgnorePatterns='\\.generation\\.test\\.'",
     "test:fast": "CI=true react-scripts test --watchAll=false --testPathIgnorePatterns='\\.(slow|generation)\\.test\\.'",
     "test:slow": "CI=true react-scripts test --watchAll=false --testPathPattern='\\.slow\\.test\\.'",
