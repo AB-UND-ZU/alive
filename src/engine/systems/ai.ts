@@ -1,3 +1,4 @@
+import { syncMovementSpring } from "../motion";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
@@ -4038,6 +4039,7 @@ export default function setupAi(world: World) {
 
             activeArm[MOVABLE].orientations = [pattern.memory.orientation];
             activeArm[MOVABLE].spring = { duration: 350 };
+            syncMovementSpring(world, activeArm);
 
             patterns.splice(patterns.indexOf(pattern), 1, {
               name: "golem",
@@ -4074,6 +4076,7 @@ export default function setupAi(world: World) {
               if (fistEntity) {
                 fistEntity[MOVABLE].orientations = [];
                 fistEntity[MOVABLE].spring = { ...entity[MOVABLE].spring };
+                syncMovementSpring(world, fistEntity);
                 patterns.splice(
                   patterns.indexOf(pattern),
                   1,
@@ -4523,6 +4526,7 @@ export default function setupAi(world: World) {
             }
             closeHole(memory.activeHole);
             entity[MOVABLE].spring = { duration: 350 };
+            syncMovementSpring(world, entity);
             if (!intro) entity[MOVABLE].orientations = ["up"];
             entity[SPRITE] = { ...wormMouth, name: "" };
             if (entity[FOG]) entity[FOG].type = "float";
@@ -4836,6 +4840,7 @@ export default function setupAi(world: World) {
           if (memory.phase === "surface") {
             if (memory.ticks === 1) {
               entity[MOVABLE].spring = { duration: 0 };
+              syncMovementSpring(world, entity);
               moveEntity(world, entity, memory.hole);
               setExposed(false);
               entity[SPRITE] = none;
@@ -4847,6 +4852,7 @@ export default function setupAi(world: World) {
             if (memory.ticks === 4) {
               setExposed(true);
               entity[MOVABLE].spring = { duration: 350 };
+              syncMovementSpring(world, entity);
               entity[SPRITE] = { ...wormMouth, name: "" };
               if (entity[FOG]) entity[FOG].type = "float";
               entity[ORIENTABLE].facing = "up";
@@ -4879,6 +4885,7 @@ export default function setupAi(world: World) {
             entity[ORIENTABLE].facing = "up";
             if (memory.ticks === 1) {
               entity[MOVABLE].spring = { duration: 350 };
+              syncMovementSpring(world, entity);
               moveEntity(world, entity, memory.hole);
             }
             if (memory.ticks === 2) {

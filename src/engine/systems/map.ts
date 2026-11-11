@@ -1,3 +1,4 @@
+import { moveMotion } from "../motion";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -224,6 +225,7 @@ export const moveEntity = (
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
 
+  moveMotion(world, entity, position.x, position.y, size);
   unregisterEntity(world, entity);
   entity[POSITION].x = normalize(position.x, size);
   entity[POSITION].y = normalize(position.y, size);

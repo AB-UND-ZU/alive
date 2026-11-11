@@ -1,3 +1,10 @@
+import {
+  initializeParticleMotion,
+  releaseMotion,
+  updateParticleMotions,
+  updateCameraMotion,
+} from "./motion";
+import { PARTICLE } from "./components/particle";
 import type ECSLibrary from "ecs";
 import {
   System,
@@ -35,7 +42,10 @@ export default function createWorld() {
     ids.nextId = Math.max(nextId, entityId + 1);
     return entity;
   };
-  const removeEntity = ECS.removeEntity.bind(ECS, world);
+  const removeEntity = (entity: ECSEntity, deferredRemoval?: boolean) => {
+    releaseMotion(ecs, entity);
+    ECS.removeEntity(world, entity, deferredRemoval);
+  };
   const getEntity = <C extends keyof Entity>(componentNames: C[]) =>
     ECS.getEntity(world, [
       ...componentNames,
@@ -152,7 +162,10 @@ export default function createWorld() {
     entity: ECSEntity,
     componentName: C,
     componentData: Entity[C]
-  ) => ECS.addComponentToEntity(world, entity, componentName, componentData);
+  ) => {
+    ECS.addComponentToEntity(world, entity, componentName, componentData);
+    if (componentName === PARTICLE) initializeParticleMotion(ecs, entity);
+  };
   const removeComponentFromEntity = <C extends keyof Entity>(
     entity: TypedEntity<C>,
     componentName: C,
@@ -170,10 +183,14 @@ export default function createWorld() {
     ECS.addSystem(world, () => system(ecs));
 
   const update = (delta: number) => {
+    world.ecs.metadata.elapsed += delta;
+    world.ecs.metadata.renderTime = world.ecs.metadata.elapsed;
     if (world.ecs.metadata.gameEntity[LEVEL]?.name !== "LEVEL_MENU") {
       world.ecs.metadata.playtime += delta;
     }
     ECS.update(world, delta);
+    updateParticleMotions(ecs);
+    updateCameraMotion(ecs);
   };
   const cleanup = ECS.cleanup.bind(ECS, world);
 
@@ -205,6 +222,8 @@ export default function createWorld() {
       initial: true,
       // milliseconds spent in levels other than the menu
       playtime: 0,
+      elapsed: 0,
+      renderTime: 0,
       // stored game this world was loaded from or saved to
       saveId: undefined as string | undefined,
       loadGame: (saveId: string) => {},

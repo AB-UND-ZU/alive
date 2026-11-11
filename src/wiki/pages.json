@@ -52,6 +52,7 @@
   {"source": "wiki/responsive.md", "title": "Responsive", "route": "game-design/rendering/responsive.html", "aliases": ["responsive.html"], "chapter": "Gameplay", "group": "Rendering", "navigation": true},
   {"source": "wiki/animations.md", "title": "Animations", "route": "game-design/rendering/animations.html", "aliases": ["animations.html"], "chapter": "Gameplay", "group": "Rendering", "navigation": true},
   {"source": "src/bindings/hooks.md", "title": "World Hooks", "route": "development/engine/hooks.html", "aliases": ["development/src/bindings/hooks.html"], "chapter": "Development", "group": "Engine", "navigation": true},
+  {"source": "src/engine/motion.md", "title": "Motion Timing", "route": "development/engine/motion.html", "aliases": [], "chapter": "Development", "group": "Engine", "navigation": true},
   {"source": "src/engine/ecs.md", "title": "Engine", "route": "development/engine/ecs.html", "aliases": ["development/src/engine/ecs.html"], "chapter": "Development", "group": "Engine", "navigation": true},
   {"source": "src/engine/snapshot.md", "title": "World Snapshots", "route": "development/engine/snapshot.html", "aliases": ["development/src/engine/snapshot.html"], "chapter": "Development", "group": "Engine", "navigation": true},
   {"source": "src/engine/wfc/haven.md", "title": "Haven Generation", "route": "development/engine/wfc/haven.html", "aliases": ["development/src/engine/wfc/haven.html"], "chapter": "Development", "group": "Engine", "navigation": true},

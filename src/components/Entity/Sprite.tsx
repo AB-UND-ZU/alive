@@ -3,11 +3,10 @@ import { stack, stackHeight } from "./utils";
 import { getFacingLayers } from "../../game/assets/ui";
 import { useWorld } from "../../bindings/hooks";
 import { Orientation } from "../../engine/components/orientable";
-import { memo } from "react";
-import { animated, useSpring } from "@react-spring/three";
+import { memo, useRef } from "react";
+import { useMotionPosition } from "./useMotionPosition";
 import { updateLocalMatrix } from "./matrixUpdates";
 import Layer, { LayerProps } from "./Layer";
-import { useDimensions } from "../Dimensions";
 
 type SpriteProps = {
   sprite: SpriteType;
@@ -28,32 +27,31 @@ function AnimatedSpriteComponent({
   offsetZ,
   layerProps,
 }: SpriteProps) {
-  const { ecs, paused } = useWorld();
-  const dimensions = useDimensions();
+  const { ecs } = useWorld();
 
-  // animate particle offset
-  const spring = useSpring({
-    from: {
-      offsetX: (layerProps.animatedOrigin?.x || 0) * dimensions.aspectRatio,
-      offsetY: -(layerProps.animatedOrigin?.y || 0),
-    },
-    to: {
-      offsetX,
-      offsetY,
-    },
-    config: { duration: layerProps.duration || 200 },
-    pause: paused,
-  });
+  const initialPosition = useRef<[number, number, number]>([
+    offsetX,
+    offsetY,
+    offsetZ,
+  ]);
+  const group = useMotionPosition(
+    layerProps.particle,
+    offsetX,
+    offsetY,
+    offsetZ,
+    true
+  );
 
   if (!ecs) return null;
 
   const layers = getFacingLayers(sprite, facing, amount);
 
   return (
-    <animated.group
-      position-x={spring.offsetX}
-      position-y={spring.offsetY}
-      position-z={offsetZ}
+    <group
+      ref={group}
+      position={initialPosition.current}
+      matrixAutoUpdate={false}
+      onUpdate={updateLocalMatrix}
     >
       {layers.map((layer, index) => (
         <Layer
@@ -63,7 +61,7 @@ function AnimatedSpriteComponent({
           offsetZ={(index * stackHeight) / stack}
         />
       ))}
-    </animated.group>
+    </group>
   );
 }
 
@@ -108,7 +106,8 @@ const isSameLayerProps = (prev: LayerProps, next: LayerProps) =>
   prev.animatedOrigin?.y === next.animatedOrigin?.y &&
   prev.receiveShadow === next.receiveShadow &&
   prev.colorFactor === next.colorFactor &&
-  prev.duration === next.duration;
+  prev.duration === next.duration &&
+  prev.particle === next.particle;
 
 // a changed particle rerenders its whole entity, so skip unchanged siblings
 const isSameSprite = (prev: SpriteProps, next: SpriteProps) =>

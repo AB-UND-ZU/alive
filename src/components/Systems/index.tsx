@@ -79,6 +79,8 @@ export default function Systems() {
       }
     }
 
+    ecs.metadata.renderTime = ecs.metadata.elapsed + elapsedRef.current;
+
     const quake = viewable?.[VIEWABLE].quake;
     if (quake !== undefined && game && quake > game[RENDERABLE].generation) {
       api.start({
@@ -96,17 +98,19 @@ export default function Systems() {
       console.error("Systems failed:", error);
       throw error;
     }
-  });
+  }, -2);
 
   // sync paused status
   useEffect(() => {
     if (paused || suspended) {
-      elapsedRef.current = 0;
+      elapsedRef.current = ecs
+        ? Math.max(0, ecs.metadata.renderTime - ecs.metadata.elapsed)
+        : 0;
       api.pause();
     } else {
       api.resume();
     }
-  }, [api, paused, suspended]);
+  }, [api, paused, suspended, ecs]);
 
   useEffect(() => {
     // don't shake for damage received before loading a saved game

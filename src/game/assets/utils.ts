@@ -1,3 +1,4 @@
+import { updateParticleMotion } from "../../engine/motion";
 import { Entity } from "ecs";
 import { entities, World } from "../../engine";
 import type * as npcTypes from "./npcs";
@@ -893,6 +894,7 @@ export const renderPopup = (
         };
         particleEntity[PARTICLE].duration = -offsetY * popupDelay;
       }
+      updateParticleMotion(world, particleEntity);
     }
   } else if (settled && !state.args.instant) {
     // stop animating settled popup

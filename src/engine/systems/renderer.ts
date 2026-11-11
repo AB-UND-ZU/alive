@@ -1,3 +1,4 @@
+import { updateParticleMotion } from "../motion";
 import { Entity } from "ecs";
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
@@ -8,6 +9,7 @@ import { Sequencable, SEQUENCABLE } from "../components/sequencable";
 import { LEVEL } from "../components/level";
 
 export const rerenderEntity = (world: World, entity: Entity) => {
+  updateParticleMotion(world, entity);
   entity[RENDERABLE].generation += 1;
 };
 

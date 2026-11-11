@@ -173,6 +173,7 @@ function Entity({
         animatedOrigin: particle[PARTICLE].animatedOrigin,
         receiveShadow: false,
         duration: particle[PARTICLE].duration,
+        particle,
       },
     })
   );
@@ -188,12 +189,10 @@ function Entity({
 
   return (
     <Container
-      matrixAutoUpdate={Container === "group" ? false : undefined}
-      onUpdate={Container === "group" ? updateLocalMatrix : undefined}
       position={[x * dimensions.aspectRatio, -y, 0]}
-      spring={config}
-      bumpOrientation={entity[BUMPABLE]?.orientation}
-      bumpGeneration={entity[BUMPABLE]?.generation}
+      {...(Container === Animated
+        ? { entity }
+        : { matrixAutoUpdate: false, onUpdate: updateLocalMatrix })}
     >
       {isOpaque && isVisible && (
         <Box height={wallHeight} castShadow orientation={opaqueOrientation}>

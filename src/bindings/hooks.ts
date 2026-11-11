@@ -1,3 +1,4 @@
+import { cameraSpring } from "../engine/motion";
 import {
   createContext,
   useCallback,
@@ -160,12 +161,6 @@ export const useViewable = () => {
   return getActiveViewable(viewables);
 };
 
-const defaultSpring = {
-  mass: 1,
-  friction: 30,
-  tension: 100,
-};
-
 const zeroFraction = { x: 0, y: 0 };
 export const useViewpoint = () => {
   const { ecs } = useWorld();
@@ -202,7 +197,7 @@ export const useViewpoint = () => {
   return {
     position,
     jump,
-    config: viewable?.[VIEWABLE].spring || defaultSpring,
+    config: viewable?.[VIEWABLE].spring || cameraSpring,
     radius: viewable?.[LIGHT]?.brightness || Infinity,
     fraction: viewable?.[VIEWABLE].fraction || zeroFraction,
     viewable,

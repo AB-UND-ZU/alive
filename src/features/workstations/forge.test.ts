@@ -1,3 +1,5 @@
+import { getMotion, sampleMotion } from "../../engine/motion";
+import { getSequence } from "../../engine/systems/sequence";
 import {
   act,
   countItems,
@@ -87,6 +89,20 @@ const hitAllSteps = (world: World, anvil: AnvilEntity) => {
 };
 
 describe("forging at an anvil", () => {
+  it("returns the hammer to the next swing's starting edge without a jump", () => {
+    const { world, anvil } = setup([ironSword, materialUpgrade.add]);
+    openStation(world);
+    selectItems(world, anvil, [0, 1]);
+    act(world, "right");
+    hitStep(world, anvil);
+    const hammerId = getSequence(world, anvil, "popup")!.particles.hammer;
+    const hammer = world.assertById(hammerId);
+    const before = sampleMotion(getMotion(hammer)!, world.metadata.elapsed).x;
+    step(world);
+    const after = sampleMotion(getMotion(hammer)!, world.metadata.elapsed).x;
+    expect(Math.abs(after - before)).toBeLessThan(1);
+    expect(anvil[FORGABLE].progress).toBe(1);
+  });
   it("opens the anvil and lists the carried items", () => {
     const { world, hero, anvil } = setup([ironSword, materialUpgrade.add]);
 

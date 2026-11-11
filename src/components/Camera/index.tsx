@@ -1,41 +1,52 @@
 import { OrthographicCamera } from "@react-three/drei";
-import { useSpring, animated } from "@react-spring/three";
+import { OrthographicCamera as CameraObject, Vector3Tuple } from "three";
+import { useFrame } from "@react-three/fiber";
+import { useLayoutEffect, useRef } from "react";
 import { useDimensions } from "../Dimensions";
-import { useViewpoint, useWorld } from "../../bindings/hooks";
+import { useWorld } from "../../bindings/hooks";
 import { cameraHeight } from "../Entity/utils";
-
-const AnimatedOrthographicCamera = animated(OrthographicCamera);
-const initialCamera = {
-  x: 0,
-  y: 0,
-  z: cameraHeight,
-};
+import {
+  getCameraMotion,
+  releaseCameraMotion,
+  sampleMotion,
+  updateCameraMotion,
+} from "../../engine/motion";
 
 export default function Camera() {
-  const { paused } = useWorld();
+  const { ecs } = useWorld();
   const dimensions = useDimensions();
-  const { position, fraction, config, jump } = useViewpoint();
+  const camera = useRef<CameraObject>(null);
+  const sample = useRef({ x: 0, y: 0 });
+  const initialPosition = useRef<Vector3Tuple>([0, 0, cameraHeight]);
 
-  const zoom = dimensions.cellHeight;
-  const spring = useSpring({
-    from: initialCamera,
-    to: {
-      x: (position.x + fraction.x) * dimensions.aspectRatio,
-      y: -(position.y + fraction.y),
-      z: cameraHeight,
-    },
-    pause: paused,
-    immediate: jump,
-    config,
-  });
+  useLayoutEffect(() => {
+    if (!ecs) return;
+    updateCameraMotion(ecs, true);
+    return () => {
+      releaseCameraMotion(ecs);
+    };
+  }, [ecs]);
+
+  const updatePosition = () => {
+    if (!ecs || !camera.current) return;
+    const motion = getCameraMotion(ecs);
+    if (!motion) return;
+    sampleMotion(motion, ecs.metadata.renderTime, sample.current);
+    camera.current.position.set(
+      sample.current.x * dimensions.aspectRatio,
+      -sample.current.y,
+      cameraHeight
+    );
+  };
+  useFrame(updatePosition, -1);
+  useLayoutEffect(updatePosition);
 
   return (
-    <AnimatedOrthographicCamera
+    <OrthographicCamera
+      ref={camera}
       makeDefault
-      position-x={spring.x}
-      position-y={spring.y}
-      position-z={spring.z}
-      zoom={zoom}
+      position={initialPosition.current}
+      zoom={dimensions.cellHeight}
       near={0.1}
       far={cameraHeight}
     />

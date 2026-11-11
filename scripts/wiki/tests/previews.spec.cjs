@@ -12,22 +12,33 @@ test("feature previews align 23 by 15 cells with the game camera and show an ins
   await expect(
     frame.locator('.DemoFrame[data-columns="23"][data-rows="15"]')
   ).toHaveCount(1);
-  const geometry = await frame.evaluate(() => {
-    const bounds = document.querySelector(".DemoFrame").getBoundingClientRect();
-    const canvas = document.querySelector("canvas").getBoundingClientRect();
-    return {
-      width: bounds.width,
-      height: bounds.height,
-      dx: bounds.x + bounds.width / 2 - canvas.x - canvas.width / 2,
-      dy: bounds.y + bounds.height / 2 - canvas.y - canvas.height / 2,
-      cell: getComputedStyle(document.documentElement).getPropertyValue(
-        "--cell-height"
-      ),
-      top: bounds.top,
-      bottom: bounds.bottom,
-      viewport: innerHeight,
-    };
-  });
+  const readGeometry = () =>
+    frame.evaluate(() => {
+      const bounds = document
+        .querySelector(".DemoFrame")
+        .getBoundingClientRect();
+      const canvas = document.querySelector("canvas").getBoundingClientRect();
+      return {
+        width: bounds.width,
+        height: bounds.height,
+        dx: bounds.x + bounds.width / 2 - canvas.x - canvas.width / 2,
+        dy: bounds.y + bounds.height / 2 - canvas.y - canvas.height / 2,
+        cell: getComputedStyle(document.documentElement).getPropertyValue(
+          "--cell-height"
+        ),
+        top: bounds.top,
+        bottom: bounds.bottom,
+        viewport: innerHeight,
+      };
+    });
+  // ResizeObserver sizes the canvas after the iframe has loaded its world.
+  await expect
+    .poll(async () => {
+      const geometry = await readGeometry();
+      return Math.max(Math.abs(geometry.dx), Math.abs(geometry.dy));
+    })
+    .toBeLessThan(0.1);
+  const geometry = await readGeometry();
   expect(geometry.width).toBe(414);
   expect(geometry.height).toBe(480);
   expect(geometry.cell).toBe("32px");
@@ -90,7 +101,9 @@ test("desktop touch emulation feeds the native joystick and releases movement", 
     await frame.evaluate(() => getComputedStyle(document.body).cursor)
   ).toBe("none");
   const origin = await frame.locator(".Joystick").boundingBox();
-  expect(Math.abs(origin.x + origin.width / 2 - bounds.x - 180)).toBeLessThan(1);
+  expect(Math.abs(origin.x + origin.width / 2 - bounds.x - 180)).toBeLessThan(
+    1
+  );
   expect(origin.y + origin.height / 2).toBeCloseTo(bounds.y + 330, 1);
   await expect(preview).toHaveClass(/active/);
   await expect(frame.locator(".DemoFrame .Layer").first()).toHaveCSS(

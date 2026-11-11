@@ -1,3 +1,4 @@
+import { syncMovementSpring } from "../motion";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { POSITION, Position } from "../components/position";
@@ -45,6 +46,7 @@ export const mountVessel = (world: World, entity: Entity, vessel: Entity) => {
   vessel[MOUNTABLE].passenger = entityId;
   vessel[MOUNTABLE].spring = entity[MOVABLE].spring;
   entity[MOVABLE].spring = { duration: frameEntity[REFERENCE].tick };
+  syncMovementSpring(world, entity);
   entity[MOVABLE].orientations = [];
   entity[MOVABLE].pendingOrientation = undefined;
   entity[MOVABLE].lastInteraction = frameEntity[RENDERABLE].generation;
@@ -93,6 +95,7 @@ export const unmountVessel = (world: World, entity: Entity, vessel: Entity) => {
 
   entity[PLAYER].mount = undefined;
   entity[MOVABLE].spring = vessel[MOUNTABLE].spring;
+  syncMovementSpring(world, entity);
   entity[MOVABLE].lastInteraction = frameEntity[RENDERABLE].generation;
   vessel[MOUNTABLE].passenger = undefined;
   vessel[MOUNTABLE].spring = undefined;

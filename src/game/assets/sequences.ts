@@ -1,3 +1,4 @@
+import { setParticleMotion } from "../../engine/motion";
 import { displaySpriteBuilder } from "./spriteBuilder";
 import { completeCommand } from "./commands";
 import { NPC } from "../../engine/components/npc";
@@ -6120,8 +6121,10 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
   const hammerGeneration = Math.floor(
     (state.elapsed - entity[FORGABLE].lastElapsed) / tick
   );
+  const hammerLeft = (hittingWidth + 1) / -2;
+  const hammerRight = (hittingWidth + 1) / 2 - 2;
   const hammerStart = {
-    x: (hittingWidth + 1) / -2,
+    x: hammerRight,
     y: -8,
   };
   if (!state.particles.hammer) {
@@ -6131,7 +6134,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
         offsetY: hammerStart.y,
         offsetZ: selectionHeight,
         animatedOrigin: copy(hammerStart),
-        amount: hammerGeneration,
+        amount: -1,
         duration: tick,
       },
       [RENDERABLE]: { generation: 1 },
@@ -6196,9 +6199,24 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
         particleEntity[SPRITE] = sprite;
         particleEntity[PARTICLE].offsetX =
           hammerGeneration % (forgeTicks * 2) < forgeTicks
-            ? (hittingWidth + 1) / -2 + index
-            : (hittingWidth + 1) / 2 - 2 + index;
+            ? hammerLeft + index
+            : hammerRight + index;
         particleEntity[PARTICLE].duration = tick * forgeTicks;
+        const duration = tick * forgeTicks;
+        const offset =
+          (state.elapsed - entity[FORGABLE].lastElapsed) % duration;
+        const fromX =
+          hammerGeneration % (forgeTicks * 2) < forgeTicks
+            ? hammerRight + index
+            : hammerLeft + index;
+        setParticleMotion(
+          particleEntity,
+          fromX,
+          hammerStart.y,
+          world.metadata.elapsed - offset,
+          duration,
+          true
+        );
         rerenderEntity(world, particleEntity);
       });
     } else if (
@@ -6217,7 +6235,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
         particles.forEach(([particleEntity], index) => {
           if (hammerGeneration < 2) {
             particleEntity[PARTICLE].offsetX =
-              (hittingWidth + 1) / -2 + index + entity[FORGABLE].hitIndex;
+              hammerLeft + index + entity[FORGABLE].hitIndex;
             particleEntity[PARTICLE].duration = tick / 2;
           } else if (hammerGeneration < 3) {
             particleEntity[PARTICLE].offsetY = -6;
@@ -6225,7 +6243,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
             performForgeHit(world, entity);
             particleEntity[PARTICLE].offsetY = -8;
           } else if (hammerGeneration < 5) {
-            particleEntity[PARTICLE].offsetX = (hittingWidth + 1) / -2 + index;
+            particleEntity[PARTICLE].offsetX = hammerStart.x + index;
           }
           rerenderEntity(world, particleEntity);
         });
@@ -6233,7 +6251,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
     } else if (!animateHammer && isAnimating) {
       particles.forEach(([particleEntity], index) => {
         particleEntity[SPRITE] = none;
-        particleEntity[PARTICLE].offsetX = (hittingWidth + 1) / -2 + index;
+        particleEntity[PARTICLE].offsetX = hammerLeft + index;
         particleEntity[PARTICLE].duration = tick;
         rerenderEntity(world, particleEntity);
       });
