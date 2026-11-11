@@ -11,7 +11,7 @@ import { Spawnable, SPAWNABLE } from "../../engine/components/spawnable";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { WARPABLE } from "../../engine/components/warpable";
 import { getLockable, isUnlocked } from "../../engine/systems/action";
-import { getCell } from "../../engine/systems/map";
+import { disposeSequence, getCell } from "../../engine/systems/map";
 import { isInPopup } from "../../engine/systems/popup";
 import { getSequence } from "../../engine/systems/sequence";
 import { isSpikable } from "../../engine/systems/spike";
@@ -661,6 +661,7 @@ export const tombstoneQuest: Sequence<QuestSequence> = (
       const currentQuest = (entity[SPAWNABLE] as Spawnable).quest;
 
       if (currentQuest) {
+        disposeSequence(world, entity, "quest");
         questSequence(
           world,
           entity,

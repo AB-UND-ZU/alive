@@ -7,6 +7,7 @@ import { SWIMMABLE } from "../../engine/components/swimmable";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { REVIVABLE } from "../../engine/components/revivable";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
+import { SPAWNABLE } from "../../engine/components/spawnable";
 import { STATS } from "../../engine/components/stats";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { getSequence } from "../../engine/systems/sequence";
@@ -80,14 +81,31 @@ describe("tombstone quest", () => {
     expect(getSequence(world, revived, "quest")?.name).toBe("tombstoneQuest");
     expect(getFocus(world).highlight).toBe("tombstone");
 
-    walk(world, "right", grave.x - revived[POSITION].x);
-    step(world, 10);
+    const tombstoneFrame = getSequence(world, revived, "quest")!.reference;
+    const warnings = jest.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      walk(world, "right", grave.x - revived[POSITION].x);
+      step(world, 10);
 
-    expect(getSequence(world, revived, "quest")?.name).toBe("waypointQuest");
-    expect(getFocus(world)).toEqual({
-      target: world.getEntityId(target),
-      highlight: "quest",
-    });
+      expect(getSequence(world, revived, "quest")?.name).toBe("waypointQuest");
+      expect(getFocus(world)).toEqual({
+        target: world.getEntityId(target),
+        highlight: "quest",
+      });
+      expect(world.getEntityById(tombstoneFrame)).toBeUndefined();
+      expect(
+        world.assertComponents(revived, [SPAWNABLE])[SPAWNABLE].quest
+      ).toBeUndefined();
+      expect(warnings.mock.calls).toEqual([]);
+
+      walk(world, "right", target[POSITION].x - revived[POSITION].x - 2);
+      step(world, 10);
+      expect(getSequence(world, revived, "quest")).toBeUndefined();
+      expect(getFocus(world).target).toBeUndefined();
+      expect(warnings.mock.calls).toEqual([]);
+    } finally {
+      warnings.mockRestore();
+    }
   });
 });
 
