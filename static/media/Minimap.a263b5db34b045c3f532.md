@@ -1,5 +1,0 @@
-# Minimap
-
-Imports four committed native popup zooms prepared by `MinimapData`. They are regenerated only with `wiki:minimap`. They share one Island and one exploration state. The browser reuses the stored rows across navigation, so changing pages never generates another Island.
-
-The native pathfinder and visibility system prepare connected routes from spawn through Earth Town, Fire Haven and the Nomad. The final viewpoint stays away from those points of interest. A Gold Map and Wood Torch use the existing equipment factory and vision calculation. Remembered terrain and unexplored fog remain. No minimap terrain, fog or point-of-interest algorithm is copied into wiki code.
