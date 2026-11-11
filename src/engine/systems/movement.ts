@@ -90,6 +90,16 @@ export const getEntityHaste = (world: World, entity: Entity) =>
     ? boatHaste
     : getEntityStats(world, entity).haste;
 
+export const updateMovementInterval = (world: World, entity: Entity) => {
+  const reference = world.assertByIdAndComponents(entity[MOVABLE].reference, [
+    REFERENCE,
+  ])[REFERENCE];
+  const interval = getHasteInterval(world, getEntityHaste(world, entity));
+  if (reference.tick === interval) return;
+  reference.delta = Math.min(reference.delta / reference.tick, 1) * interval;
+  reference.tick = interval;
+};
+
 export const getCollidable = (world: World, position: Position) =>
   getCellEntities(world, position).find(
     (entity) => COLLIDABLE in (entity as Entity)

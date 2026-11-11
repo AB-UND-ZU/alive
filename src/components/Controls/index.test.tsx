@@ -19,6 +19,7 @@ import {
   getVerticalIndex,
   isInPopup,
   pushTabSelection,
+  setVerticalIndex,
 } from "../../engine/systems/popup";
 import { stackableConsumptions } from "../../engine/systems/consume";
 import { assertIdentifierAndComponents } from "../../engine/utils";
@@ -949,6 +950,94 @@ describe("touch controls", () => {
     runUntil(world, () => !isInPopup(world, hero));
 
     expect(hero[ACTIONABLE].toolEquipped).toBe(true);
+  });
+
+  it.each([false, true])(
+    "a dialog swipe cannot tap its release row, including after pointer release: %s",
+    (pointerRelease) => {
+      const { world, hero, container, trader } = setupShop();
+      press("Enter");
+      runUntil(world, () => hero[PLAYER].popup === world.getEntityId(trader));
+      runUntil(world, () => !hero[PLAYER].actionTriggered);
+      const content = getTouchArea(container, "content");
+      jest.spyOn(content, "getBoundingClientRect").mockReturnValue({
+        left: 0,
+        top: 0,
+        width: 170,
+        height: 90,
+      } as DOMRect);
+      touch("touchStart", [[50, 20]], content);
+      touch("touchMove", [[50, 80]], content);
+      runUntil(world, () => getVerticalIndex(world, trader) >= 2);
+      const selected = getVerticalIndex(world, trader);
+      touch("touchMove", [[50, 20]], content);
+      if (pointerRelease) {
+        const event = new Event("pointerup", { bubbles: true });
+        Object.defineProperty(event, "pointerType", { value: "touch" });
+        act(() => window.dispatchEvent(event));
+      }
+      touch("touchEnd", [], content);
+      fireEvent.click(content, { clientX: 45, clientY: 5, detail: 1 });
+      tick(world, 5);
+      expect(getVerticalIndex(world, trader)).toBe(selected);
+      expect(getTabSelections(world, trader)).toEqual([]);
+      touch("touchStart", [[45, 5]], content);
+      touch("touchEnd", [], content);
+      fireEvent.click(content, { clientX: 45, clientY: 5, detail: 1 });
+      runUntil(world, () => getVerticalIndex(world, trader) === 0);
+    }
+  );
+
+  it.each([
+    ["keyboard", "down"],
+    ["keyboard", "up"],
+    ["swipe", "down"],
+    ["swipe", "up"],
+  ] as const)(
+    "%s %s starts dialog navigation with one step, then repeats at dialog speed",
+    (input, direction) => {
+      const { world, hero, container, trader } = setupShop();
+      press("Enter");
+      runUntil(world, () => hero[PLAYER].popup === world.getEntityId(trader));
+      runUntil(world, () => !hero[PLAYER].actionTriggered);
+      const start = direction === "down" ? 0 : 5;
+      const delta = direction === "down" ? 1 : -1;
+      act(() => setVerticalIndex(world, trader, start));
+      if (input === "keyboard")
+        press(direction === "down" ? "ArrowDown" : "ArrowUp");
+      else {
+        const content = getTouchArea(container, "content");
+        touch("touchStart", [[50, 100]], content);
+        touch("touchMove", [[50, 100 + delta * 60]], content);
+      }
+      runUntil(world, () => getVerticalIndex(world, trader) === start + delta);
+      tick(world, 3);
+      expect(getVerticalIndex(world, trader)).toBe(start + delta);
+      runUntil(
+        world,
+        () => getVerticalIndex(world, trader) === start + delta * 2
+      );
+      if (input === "keyboard")
+        release(direction === "down" ? "ArrowDown" : "ArrowUp");
+      else touch("touchEnd", []);
+    }
+  );
+
+  it("a short direction press immediately after confirming a dialog moves exactly one row", () => {
+    const { world, hero, container } = setup();
+    act(() => {
+      openSpriteBuilder(world, hero);
+      step(world, 30);
+    });
+    runUntil(world, () => !!isInPopup(world, hero));
+    fireEvent.click(getTouchArea(container, "right"));
+    const popup = world.assertByIdAndComponents(hero[PLAYER].popup, [POPUP]);
+    runUntil(world, () => getTab(world, popup) === "sprite");
+    press("ArrowDown");
+    release("ArrowDown");
+    runUntil(world, () => getVerticalIndex(world, popup) === 1);
+    tick(world, 10);
+    expect(getVerticalIndex(world, popup)).toBe(1);
   });
 
   it("dragging walks in the dragged direction and lifting stops", () => {

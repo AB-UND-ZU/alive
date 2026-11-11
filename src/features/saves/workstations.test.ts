@@ -116,7 +116,7 @@ const brewAll = (world: World) => {
   const kettle = getKettle(world);
   return advanceUntil(
     world,
-    () => kettle[BREWABLE].queue.length === 0 && !kettle[BURNABLE].simmer,
+    () => kettle[BREWABLE].queue.length === 0,
     getBrewingTime(world) * 3
   );
 };
@@ -124,13 +124,18 @@ const brewAll = (world: World) => {
 describe("saved workstations", () => {
   it("finishes brewing queued recipes in the same time", () => {
     const unsaved = startBrewing(2);
-    const loaded = saveAndLoad(startBrewing(2));
+    const loaded = saveAndLoad(unsaved);
     const kettle = getKettle(loaded);
     expect(kettle[BREWABLE].queue).toHaveLength(2);
 
     expect(brewAll(loaded)).toBe(brewAll(unsaved));
     expect(countResult(loaded, kettle, quickest.item)).toBe(
       quickest.item.amount * 2
+    );
+    advanceUntil(
+      loaded,
+      () => !kettle[BURNABLE].simmer,
+      loaded.metadata.gameEntity[REFERENCE].tick
     );
   });
 

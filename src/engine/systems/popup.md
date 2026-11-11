@@ -24,3 +24,5 @@ An omitted or empty line clears the speech bubble without adding history.
 `navigateChat(world, hero, direction)` cycles suggestions for a draft. From an empty line it reads localStorage and browses submitted history. Browsing continues until the empty entry is reached or the line is edited. Text edits reset the suggestion selection.
 
 Removing an active completed quest may close and remove it in the same operation. Cleanup checks whether that nested close already removed the popup before disposing its viewpoint.
+
+Held navigation is consumed once per player reference tick. Redrawing hero stats within that tick cannot repeat the initial Up or Down step.

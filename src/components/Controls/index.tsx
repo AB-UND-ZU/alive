@@ -270,6 +270,7 @@ export default function Controls({
     ecs && popup ? getSequence(ecs, popup, "popup") : undefined;
   const popupTab = ecs && popup && getTab(ecs, popup);
   const pressedOrientations = useRef<Orientation[]>([]);
+  const touchMoved = useRef(false);
   const touchOrigin = useRef<[number, number] | undefined>(undefined);
   const [joystickOrientations, setJoystickOrientations] = useState<
     Orientation[]
@@ -870,6 +871,14 @@ export default function Controls({
       if (!reference) return;
 
       const attemptedOrientations = orientations;
+      // Start a new dialog press immediately, then use the normal repeat clock.
+      if (
+        attemptedOrientations.length &&
+        !heroEntity[MOVABLE].orientations.length &&
+        isInPopup(ecs, heroEntity)
+      ) {
+        reference.delta = reference.tick;
+      }
       heroEntity[MOVABLE].orientations = attemptedOrientations;
       const pendingOrientation = attemptedOrientations[0];
 
@@ -1128,6 +1137,8 @@ export default function Controls({
       const paused = pausedRef.current;
       const popup = ecs && hero && getActivePopup(ecs, hero);
       const popupTab = ecs && popup && getTab(ecs, popup);
+      if (event.type === "touchstart" && event.touches.length === 1)
+        touchMoved.current = false;
       if (!paused) {
         ensureAudio();
       }
@@ -1191,7 +1202,8 @@ export default function Controls({
         return false;
       }
 
-      if (onKeyboard) event.preventDefault();
+      touchMoved.current = true;
+      event.preventDefault();
       const degrees = pointToDegree({ x: deltaX, y: deltaY });
       const nextOrientations = degreesToOrientations(degrees);
 
@@ -1238,10 +1250,20 @@ export default function Controls({
   }, [setPaused]);
 
   useEffect(() => {
+    const suppressSwipeClick = (event: MouseEvent) => {
+      if (!touchMoved.current || event.detail === 0) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+    const startPointer = (event: PointerEvent) => {
+      if (event.pointerType !== "touch") touchMoved.current = false;
+    };
     // A touch target can disappear after moving away from an interaction.
     const releasePointer = (event: PointerEvent) => {
       if (event.pointerType === "touch") releaseTouch();
     };
+    window.addEventListener("click", suppressSwipeClick, true);
+    window.addEventListener("pointerdown", startPointer, true);
     window.addEventListener("pointerup", releasePointer, true);
     window.addEventListener("pointercancel", releasePointer, true);
     window.addEventListener("keydown", handleKey);
@@ -1257,6 +1279,8 @@ export default function Controls({
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
+      window.removeEventListener("click", suppressSwipeClick, true);
+      window.removeEventListener("pointerdown", startPointer, true);
       window.removeEventListener("pointerup", releasePointer, true);
       window.removeEventListener("pointercancel", releasePointer, true);
       window.removeEventListener("keydown", handleKey);

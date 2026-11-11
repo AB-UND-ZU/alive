@@ -4,6 +4,8 @@ import {
   createAreaWorld,
   findInArea,
   step,
+  holdMove,
+  FRAME,
   trigger,
   walk,
 } from "../../testing/harness";
@@ -14,11 +16,18 @@ import { PLAYER } from "../components/player";
 import {
   createPopup,
   openPopup,
+  closePopup,
   removePopup,
   getTab,
   getVerticalIndex,
   isInPopup,
 } from "./popup";
+import { STATS } from "../components/stats";
+import { MOVABLE } from "../components/movable";
+import { REFERENCE } from "../components/reference";
+import { RENDERABLE } from "../components/renderable";
+import { rerenderEntity } from "./renderer";
+import { getEntityHaste, getHasteInterval } from "./movement";
 import { World } from "../ecs";
 import { TypedEntity } from "../entities";
 
@@ -41,7 +50,13 @@ const getSign = (world: World) =>
 // walk next to the sign
 const setup = () => {
   const world = createAreaWorld(area);
-  const hero = world.assertComponents(assertHero(world), [ACTIONABLE, PLAYER]);
+  const hero = world.assertComponents(assertHero(world), [
+    ACTIONABLE,
+    PLAYER,
+    MOVABLE,
+    POSITION,
+    STATS,
+  ]);
   walk(world, "right", 5);
   step(world, 15);
 
@@ -90,4 +105,65 @@ describe("popup interaction", () => {
     trigger(world, "close");
     advanceUntil(world, () => !isInPopup(world, hero), 1000);
   });
+});
+
+describe("dialog navigation timing", () => {
+  it("moves at most once per reference tick even when hero stats redraw", () => {
+    const { world, hero } = setup();
+    const popup = getSign(world);
+    openPopup(world, hero, popup, true);
+    step(world, 30);
+    holdMove(world, ["down"]);
+    advanceUntil(world, () => getVerticalIndex(world, popup) === 1);
+    const reference = world.assertByIdAndComponents(hero[MOVABLE].reference, [
+      RENDERABLE,
+    ]);
+    const generation = reference[RENDERABLE].generation;
+    rerenderEntity(world, hero);
+    world.update(1);
+    expect(reference[RENDERABLE].generation).toBe(generation);
+    expect(getVerticalIndex(world, popup)).toBe(1);
+    for (let elapsed = FRAME; elapsed < 140; elapsed += FRAME) {
+      rerenderEntity(world, hero);
+      world.update(FRAME);
+      expect(getVerticalIndex(world, popup)).toBe(1);
+    }
+    advanceUntil(world, () => getVerticalIndex(world, popup) === 2, 200);
+  });
+
+  it.each([
+    ["credits", 0],
+    ["chat", 0],
+    ["credits", 5],
+    ["chat", 5],
+  ] as const)(
+    "restores walking speed immediately after leaving %s with haste %s",
+    (tab, haste) => {
+      const { world, hero } = setup();
+      const popup = getSign(world);
+      popup[POPUP].tabs = [tab];
+      world.assertComponents(hero, [STATS])[STATS].haste = haste;
+      openPopup(world, hero, popup, true);
+      step(world, 30);
+      const reference = world.assertByIdAndComponents(hero[MOVABLE].reference, [
+        REFERENCE,
+      ]);
+      expect(reference[REFERENCE].tick).toBe(tab === "chat" ? 10 : 175);
+      closePopup(world, hero, popup);
+      const walkingTick = getHasteInterval(world, getEntityHaste(world, hero));
+      holdMove(world, ["left"]);
+      let lastX = hero[POSITION].x;
+      const steps: number[] = [];
+      for (let elapsed = 0; elapsed <= walkingTick * 2; elapsed += FRAME) {
+        world.update(FRAME);
+        if (hero[POSITION].x !== lastX) {
+          steps.push(elapsed);
+          lastX = hero[POSITION].x;
+        }
+      }
+      expect(reference[REFERENCE].tick).toBe(walkingTick);
+      expect(steps.length).toBeGreaterThanOrEqual(2);
+      expect(steps[1] - steps[0]).toBeGreaterThanOrEqual(walkingTick - FRAME);
+    }
+  );
 });

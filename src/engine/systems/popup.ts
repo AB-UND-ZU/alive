@@ -102,6 +102,7 @@ import {
   recolorSprite,
   shop,
 } from "../../game/assets/ui";
+import { updateMovementInterval } from "./movement";
 import { loadChatHistory, saveChatHistory } from "../../game/chatHistory";
 import { plantConfigs } from "../../game/balancing/harvesting";
 import { isPlantable, plantSeed, queueBrew } from "./harvest";
@@ -732,6 +733,7 @@ export const openPopup = (
   const popupId = world.getEntityId(popupEntity);
   const transaction = getDiscoveryTab(world, popupEntity);
   heroEntity[PLAYER].popup = popupId;
+  updateMovementInterval(world, heroEntity);
   popupEntity[POPUP].active = true;
   rerenderEntity(world, heroEntity);
 
@@ -818,6 +820,7 @@ export const closePopup = (
   const selections = getTabSelections(world, popupEntity);
 
   heroEntity[PLAYER].popup = undefined;
+  updateMovementInterval(world, heroEntity);
   popupEntity[POPUP].active = false;
   popupEntity[POPUP].chatSuggestion = 0;
   popupEntity[POPUP].selections = Array.from(
@@ -916,6 +919,8 @@ export default function setupPopup(world: World) {
 
     // skip if player is not in popup
     if (!popupEntity) return;
+
+    if (heroEntity[MOVABLE].lastInteraction === referenceGeneration) return;
 
     // capture movements while popup is open
     const targetOrientation: Orientation | undefined =
@@ -1129,12 +1134,7 @@ export default function setupPopup(world: World) {
       setVerticalIndex(world, popupEntity, boundIndex);
     }
 
-    // skip if player has already interacted or not going to
-    if (
-      heroEntity[MOVABLE].lastInteraction === generation ||
-      (!targetOrientation && !heroEntity[PLAYER].actionTriggered)
-    )
-      return;
+    if (!targetOrientation && !heroEntity[PLAYER].actionTriggered) return;
 
     // handle actions
     if (heroEntity[PLAYER].actionTriggered === "close") {
@@ -1157,6 +1157,7 @@ export default function setupPopup(world: World) {
       );
       heroEntity[PLAYER].actionTriggered = undefined;
       heroEntity[PLAYER].tabTriggered = undefined;
+      updateMovementInterval(world, heroEntity);
 
       // rerender on tab changes
       if (

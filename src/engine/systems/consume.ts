@@ -14,8 +14,7 @@ import { createSequence, getSequence } from "./sequence";
 import { ConsumeSequence, VisionSequence } from "../components/sequencable";
 import { MOVABLE } from "../components/movable";
 import { entities } from "..";
-import { REFERENCE } from "../components/reference";
-import { getEntityHaste, getHasteInterval } from "./movement";
+import { getEntityHaste, updateMovementInterval } from "./movement";
 import { NPC } from "../components/npc";
 import { POPUP } from "../components/popup";
 import { addToInventory } from "./collect";
@@ -340,13 +339,8 @@ export default function setupConsume(world: World) {
       const haste = getEntityHaste(world, entity);
       const vision = getEntityVision(world, entity);
       const equipmentStats = getEntityEquipmentStats(world, entity);
-      const frame = world.assertByIdAndComponents(entity[MOVABLE].reference, [
-        REFERENCE,
-        RENDERABLE,
-      ]);
-
       if (haste !== entityHaste[entityId]) {
-        frame[REFERENCE].tick = getHasteInterval(world, haste);
+        updateMovementInterval(world, entity);
         entityHaste[entityId] = haste;
         rerenderEntity(world, entity);
       }

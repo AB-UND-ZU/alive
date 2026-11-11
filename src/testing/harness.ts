@@ -22,6 +22,7 @@ import { SPRITE } from "../engine/components/sprite";
 import { Player, PLAYER } from "../engine/components/player";
 import { ACTIONABLE } from "../engine/components/actionable";
 import { Entity, TypedEntity } from "../engine/entities";
+import { isInPopup } from "../engine/systems/popup";
 import { getHasteInterval } from "../engine/systems/movement";
 import { getEntityStats } from "../engine/systems/damage";
 import { getCellEntities } from "../engine/systems/map";
@@ -197,6 +198,13 @@ export const holdMove = (world: World, orientations: Orientation[]) => {
     REFERENCE,
   ])[REFERENCE];
 
+  if (
+    orientations.length &&
+    !hero[MOVABLE].orientations.length &&
+    isInPopup(world, hero)
+  ) {
+    reference.delta = reference.tick;
+  }
   hero[MOVABLE].orientations = orientations;
   if (orientations[0]) hero[MOVABLE].pendingOrientation = orientations[0];
 
