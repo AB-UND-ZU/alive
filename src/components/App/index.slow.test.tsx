@@ -1,6 +1,8 @@
-/* eslint-disable testing-library/no-node-access -- UI is drawn as glyph spans without accessible roles */
+/* eslint-disable testing-library/no-node-access, testing-library/no-container -- UI is drawn as glyph spans without accessible roles */
+import { StrictMode } from "react";
 import { act, fireEvent, render } from "@testing-library/react";
 import App from ".";
+import { loadSounds } from "../../game/sound";
 import { readRows } from "../Controls/testing";
 import type { World } from "../../engine";
 import { assertHero, step } from "../../testing/harness";
@@ -30,12 +32,13 @@ jest.mock("../Stats", () => ({
 const readOverlay = (container: HTMLElement) =>
   readRows(container, ".Paused .Overlay .Row").join("\n");
 
-const boot = () => {
+const boot = async () => {
   const view = render(<App />);
   const loading = readOverlay(view.container);
 
-  // level is generated in a deferred timeout to show loading screen first
-  act(() => {
+  await act(async () => {
+    jest.advanceTimersByTime(32);
+    await Promise.resolve();
     jest.runOnlyPendingTimers();
   });
 
@@ -51,19 +54,74 @@ beforeEach(() => {
 
 afterEach(() => {
   jest.useRealTimers();
+  jest.restoreAllMocks();
 });
 
 describe("App", () => {
-  it("shows loading screen, then title screen once the level is ready", () => {
-    const { container, loading } = boot();
+  it("waits for sounds before generating the menu under StrictMode", async () => {
+    let finish!: () => void;
+    (loadSounds as jest.Mock).mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      })
+    );
+    const { container } = render(
+      <StrictMode>
+        <App />
+      </StrictMode>
+    );
+    expect(readOverlay(container)).toContain("Loading sounds...");
+    expect(container.querySelector("#resume")).not.toBeInTheDocument();
+    await act(async () => {
+      jest.advanceTimersByTime(32);
+    });
+    const world = mockWorlds[mockWorlds.length - 1];
+    expect(world.getEntities(["PLAYER", "POSITION"])).toHaveLength(0);
+    expect(readOverlay(container)).toContain("Loading sounds...");
+    await act(async () => {
+      finish();
+      await Promise.resolve();
+    });
+    expect(readOverlay(container)).toContain("Loading map...");
+    expect(world.getEntities(["PLAYER", "POSITION"])).toHaveLength(0);
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+    expect(world.getEntities(["PLAYER", "POSITION"])).toHaveLength(1);
+    expect(readOverlay(container)).toContain("to start the game");
+  });
 
-    expect(loading).toContain("Loading map...");
+  it("does not generate an abandoned menu when sound loading finishes", async () => {
+    let finish!: () => void;
+    (loadSounds as jest.Mock).mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      })
+    );
+    const view = render(<App />);
+    await act(async () => {
+      jest.advanceTimersByTime(32);
+    });
+    const world = mockWorlds[mockWorlds.length - 1];
+    view.unmount();
+    await act(async () => {
+      finish();
+      await Promise.resolve();
+      jest.runOnlyPendingTimers();
+    });
+    expect(world.getEntities(["PLAYER", "POSITION"])).toHaveLength(0);
+  });
+
+  it("shows loading screen, then title screen once the level is ready", async () => {
+    const { container, loading } = await boot();
+
+    expect(loading).toContain("Loading sounds...");
     expect(readOverlay(container)).toContain("to start the game");
     expect(container.querySelector(".Terminal")).toBeInTheDocument();
   });
 
-  it("starts the game when clicking resume", () => {
-    const { container, world } = boot();
+  it("starts the game when clicking resume", async () => {
+    const { container, world } = await boot();
 
     start(container);
 
@@ -71,8 +129,8 @@ describe("App", () => {
     expect(world.metadata.initial).toBe(false);
   });
 
-  it("moves the hero with arrow keys", () => {
-    const { container, world } = boot();
+  it("moves the hero with arrow keys", async () => {
+    const { container, world } = await boot();
     start(container);
     const hero = assertHero(world);
     const { x, y } = hero[POSITION];
@@ -88,8 +146,8 @@ describe("App", () => {
     expect(hero[POSITION]).toEqual({ x: x + 1, y });
   });
 
-  it("toggles pause with Escape", () => {
-    const { container } = boot();
+  it("toggles pause with Escape", async () => {
+    const { container } = await boot();
     start(container);
 
     fireEvent.keyDown(window, { key: "Escape" });

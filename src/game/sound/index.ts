@@ -11,7 +11,7 @@ import { Params, waveforms } from "jsfxr";
 import { createRng } from "../math/rng";
 import { random } from "../math/std";
 import { synthesizeSound } from "./synthesis";
-import { prewarmSounds } from "./prewarm";
+import { synthesizeSounds } from "./loading";
 
 export const npcVariants: Partial<Record<NpcType, SoundVariant<"slide">>> = {
   golem: 1,
@@ -1391,8 +1391,7 @@ const presetVariants: Record<SoundPreset, readonly number[]> = soundVariants;
 
 type SoundVariant<P extends SoundPreset> = (typeof soundVariants)[P][number];
 
-// slightly reduced quality halves the memory of synthesized sounds
-const sampleRate = 22050;
+const sampleRate = 44100;
 
 const createParams = (preset: SoundPreset, options: SoundOptions) => {
   const params = new Presets();
@@ -1427,28 +1426,42 @@ const getSound = (params: Params) => {
   return cached;
 };
 
-let precomputing = false;
+let loading: Promise<void> | undefined;
 
-// Warm the finite preset catalog without blocking game frames.
-const precomputeSounds = () => {
-  if (precomputing) return;
-  precomputing = true;
-
-  const pending = soundPresets.flatMap((preset) =>
-    [undefined, ...presetVariants[preset]].flatMap((variant) =>
-      seeds.map((seed) => createParams(preset, { variant, seed }))
-    )
-  );
-  prewarmSounds(
-    pending.filter((params) => getGain(params) > 0),
-    (params) => sounds.has(getSoundKey(params)),
-    (params, samples) => {
-      sounds.set(getSoundKey(params), {
-        sound: createSoundBuffer(samples, params.sample_rate),
-        gain: getGain(params),
-      });
+export const loadSounds = (
+  intensities: Partial<Record<SoundPreset, number[]>> = {}
+) => {
+  if (loading) return loading;
+  loading = (async () => {
+    const catalog = new Map<string, Params>();
+    for (const preset of soundPresets) {
+      const presetIntensities = [undefined, ...(intensities[preset] || [])];
+      for (const variant of [undefined, ...presetVariants[preset]]) {
+        for (const intensity of presetIntensities) {
+          for (const seed of seeds) {
+            const params = createParams(preset, { variant, seed, intensity });
+            const key = getSoundKey(params);
+            if (getGain(params) > 0 && !sounds.has(key) && !catalog.has(key)) {
+              catalog.set(key, params);
+            }
+          }
+        }
+      }
     }
-  );
+    const pending = [...catalog.values()];
+    if (!pending.length) return;
+    const samples = await synthesizeSounds(pending);
+    pending.forEach((params, index) => {
+      const key = getSoundKey(params);
+      if (!sounds.has(key)) {
+        sounds.set(key, {
+          sound: createSoundBuffer(samples[index], params.sample_rate),
+          gain: getGain(params),
+        });
+      }
+    });
+  })();
+  return loading;
 };
 
 export const play = <P extends SoundPreset>(
@@ -1456,8 +1469,6 @@ export const play = <P extends SoundPreset>(
   { delay = 0, notes = 1, spacing = 0, pattern, ...options }: SfxOptions<P> = {}
 ) => {
   if (!isPlaying()) return;
-
-  precomputeSounds();
 
   for (let note = 1; note <= notes; note += 1) {
     // leave out rests, e.g. empty chars

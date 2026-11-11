@@ -8,6 +8,8 @@ Owns level creation, pause/suspension state and the world context used by the HU
 | `persistent` | Enable storage; defaults off for injected worlds and on for ordinary play |
 | `children` | UI mounted inside the world context |
 
+Normal startup paints "Loading sounds...", loads the shared sound catalog, then switches to "Loading map..." and generates the menu. Resume input is ignored until loading finishes. Returning to the menu reuses the sound buffers. Injected worlds skip this startup phase. Pending menu generation is cancelled when the world unmounts or is replaced.
+
 Pausing a playable world and returning to the menu save to [local storage](../../game/saves/storage.md). Continue restores a snapshot, reconnects UI callbacks and systems, preloads the world, then remounts its children.
 
 Play presets enable persistence. Feature snippets leave it off, so their experiments cannot overwrite a real save.

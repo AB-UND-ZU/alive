@@ -55,6 +55,7 @@ export default function Paused() {
     initial,
     setInitial,
     suspended,
+    loadingSounds,
     saveStatus,
     saveGame,
     openMenu,
@@ -108,7 +109,11 @@ export default function Paused() {
       <div className="Overlay">
         {suspended ? (
           <>
-            <Row cells={createDialog("Loading map...")} />
+            <Row
+              cells={createDialog(
+                loadingSounds ? "Loading sounds..." : "Loading map..."
+              )}
+            />
             <Row />
             <Row />
           </>
@@ -188,7 +193,9 @@ export default function Paused() {
           </>
         )}
       </div>
-      <div className="Resume" id="resume" onClick={handleResume} />
+      {!suspended && (
+        <div className="Resume" id="resume" onClick={handleResume} />
+      )}
     </div>
   );
 }

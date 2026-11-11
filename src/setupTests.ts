@@ -74,6 +74,7 @@ jest.mock("./game/sound", () => {
   const env = jest.requireActual("./testing/env");
   return {
     ...actual,
+    loadSounds: jest.fn(() => Promise.resolve()),
     play: (...args: unknown[]) => {
       env.playedSounds.push(args[0]);
     },

@@ -56,7 +56,9 @@ const flush = () =>
 
 // the menu is generated in a timeout after showing the loading screen
 const generateMenu = () =>
-  act(() => {
+  act(async () => {
+    jest.advanceTimersByTime(32);
+    await Promise.resolve();
     jest.runOnlyPendingTimers();
   });
 
@@ -128,7 +130,7 @@ describe("World", () => {
 
     renderWorld();
     await flush();
-    generateMenu();
+    await generateMenu();
 
     expect(error).toHaveBeenCalledWith(
       "Loading saves failed:",
@@ -248,7 +250,7 @@ describe("World", () => {
 
   it("doesn't save in the main menu", async () => {
     renderWorld();
-    generateMenu();
+    await generateMenu();
 
     pause();
     await flush();
@@ -284,7 +286,7 @@ describe("World", () => {
     expect(mounts).toBe(2);
 
     await flush();
-    generateMenu();
+    await generateMenu();
 
     expect(readSaves().map(({ id }) => id)).toEqual([game.metadata.saveId]);
     expect(context.suspended).toBe(false);
@@ -296,7 +298,7 @@ describe("World", () => {
     const save = await storeGame(saved);
     const { x, y } = assertHero(saved)[POSITION];
     renderWorld();
-    generateMenu();
+    await generateMenu();
     const menu = ecs();
 
     act(() => menu.metadata.suspend());
@@ -323,7 +325,7 @@ describe("World", () => {
   it("replaces the loaded save when saving again", async () => {
     const save = await storeGame(createAreaWorld(area));
     renderWorld();
-    generateMenu();
+    await generateMenu();
     act(() => {
       ecs().metadata.loadGame(save.id);
     });
@@ -338,7 +340,7 @@ describe("World", () => {
   it("starts the menu after a loaded game without its save", async () => {
     const save = await storeGame(createAreaWorld(area));
     renderWorld();
-    generateMenu();
+    await generateMenu();
     act(() => {
       ecs().metadata.loadGame(save.id);
     });
@@ -346,7 +348,7 @@ describe("World", () => {
 
     act(() => context.openMenu());
     await flush();
-    generateMenu();
+    await generateMenu();
 
     expect(levelName()).toBe("LEVEL_MENU");
     expect(ecs().metadata.saveId).toBeUndefined();
@@ -355,7 +357,7 @@ describe("World", () => {
   it("returns to the main menu when loading fails", async () => {
     const error = jest.spyOn(console, "error").mockImplementation(() => {});
     renderWorld();
-    generateMenu();
+    await generateMenu();
     const menu = ecs();
 
     act(() => {
@@ -367,7 +369,7 @@ describe("World", () => {
     expect(ecs()).not.toBe(menu);
     expect(context.suspended).toBe(true);
 
-    generateMenu();
+    await generateMenu();
 
     expect(levelName()).toBe("LEVEL_MENU");
     expect(context.suspended).toBe(false);
@@ -376,7 +378,7 @@ describe("World", () => {
   it("erases saves from the menu", async () => {
     const save = await storeGame(createAreaWorld(area));
     renderWorld();
-    generateMenu();
+    await generateMenu();
 
     act(() => {
       ecs().metadata.eraseGame(save.id);
@@ -389,7 +391,7 @@ describe("World", () => {
   it("reports failures when erasing", async () => {
     const error = jest.spyOn(console, "error").mockImplementation(() => {});
     renderWorld();
-    generateMenu();
+    await generateMenu();
     await flush();
     fake.abortNext(new Error("UnknownError"));
 

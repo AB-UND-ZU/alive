@@ -8,6 +8,10 @@ import {
 } from "react";
 import { createWorld, World as WorldType } from "../../engine";
 import { SaveStatus, WorldProvider } from "../../bindings/hooks";
+import { loadSounds } from "../../game/sound";
+import { classDefinitions } from "../../game/balancing/classes";
+import { getHasteInterval } from "../../engine/systems/movement";
+import { frameHeight, popupDelay } from "../../game/assets/utils";
 import { ensureAudio, suspendAudio } from "../../game/sound/resumable";
 import { createLevel, createSystems, preloadLevel } from "../../engine/ecs";
 import { LevelName } from "../../engine/components/level";
@@ -52,6 +56,7 @@ export default function World({
 }>) {
   const dimensions = useDimensions();
   const [paused, setPaused] = useState(true);
+  const [loadingSounds, setLoadingSounds] = useState(!createInitialWorld);
   const [suspended, setSuspended] = useState(!createInitialWorld);
   const [initial, setInitial] = useState(!createInitialWorld);
   const [flipped, setFlipped] = useState(false);
@@ -77,20 +82,18 @@ export default function World({
     };
 
     // switching worlds remounts all children to drop old entity references
-    const showWorld = (world: WorldType) =>
-      setCurrent((previous) => ({ ecs: world, key: previous.key + 1 }));
+    const showWorld = (world: WorldType, loadMenu = false) =>
+      setCurrent((previous) => ({
+        ecs: world,
+        key: previous.key + 1,
+        loadMenu,
+      }));
 
-    // generate menu after showing loading screen
     const createMenu = () => {
       const world = createWorld();
       connectWorld(world);
       createLevel(world, initialLevel, levelConfig[initialLevel].size);
       createSystems(world);
-      setTimeout(() => {
-        levelConfig[initialLevel].generator(world);
-        preloadLevel(world);
-        world.metadata.resume();
-      }, 0);
 
       return world;
     };
@@ -100,7 +103,7 @@ export default function World({
       setSaveStatus(undefined);
       const world = createMenu();
       world.metadata.initial = false;
-      showWorld(world);
+      showWorld(world, true);
     };
 
     const loadGame = async (saveId: string) => {
@@ -123,13 +126,43 @@ export default function World({
   });
 
   const [current, setCurrent] = useState(() => {
-    if (!createInitialWorld) return { ecs: actions.createMenu(), key: 0 };
+    if (!createInitialWorld)
+      return { ecs: actions.createMenu(), key: 0, loadMenu: true };
 
     const world = createInitialWorld();
     actions.connectWorld(world);
-    return { ecs: world, key: 0 };
+    return { ecs: world, key: 0, loadMenu: false };
   });
   const { ecs } = current;
+
+  useEffect(() => {
+    if (!current.loadMenu) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    // Paint the loading text before starting synthesis, including its fallback.
+    const frame = requestAnimationFrame(() => {
+      timer = setTimeout(async () => {
+        await loadSounds({
+          move: Object.values(classDefinitions).map(({ stats }) =>
+            getHasteInterval(ecs, stats.haste)
+          ),
+          open: [(frameHeight - 1) * popupDelay],
+        });
+        if (cancelled) return;
+        setLoadingSounds(false);
+        timer = setTimeout(() => {
+          levelConfig[initialLevel].generator(ecs);
+          preloadLevel(ecs);
+          ecs.metadata.resume();
+        }, 0);
+      }, 0);
+    });
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+      clearTimeout(timer);
+    };
+  }, [ecs, current.loadMenu]);
 
   const saveGame = useCallback(() => {
     // Composed wiki scenes must not overwrite playable saves.
@@ -147,10 +180,11 @@ export default function World({
 
   const handlePause = useCallback(
     (action: React.SetStateAction<boolean>) => {
-      ecs.metadata.initial = false;
-
       const newPause =
         typeof action === "function" ? action(pauseRef.current) : action;
+
+      if (!newPause && suspendedRef.current) return;
+      ecs.metadata.initial = false;
 
       // toggle sound and save when pausing
       if (newPause) {
@@ -175,6 +209,7 @@ export default function World({
   const context = useMemo(
     () => ({
       ecs,
+      loadingSounds,
       suspended,
       setSuspended,
       paused,
@@ -189,6 +224,7 @@ export default function World({
     }),
     [
       ecs,
+      loadingSounds,
       suspended,
       setSuspended,
       paused,

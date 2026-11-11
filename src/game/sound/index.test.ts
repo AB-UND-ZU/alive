@@ -4,7 +4,7 @@ import { ensureAudio } from "./resumable";
 jest.mock("./createWorker", () => ({ createSoundWorker: () => undefined }));
 
 // render real sounds, the global test setup only records played names
-const { play } = jest.requireActual<typeof import(".")>(".");
+const { play, loadSounds } = jest.requireActual<typeof import(".")>(".");
 
 const AudioContext = (window as any).AudioContext;
 
@@ -18,13 +18,7 @@ describe("sound", () => {
   let starts: number[];
   let gains: { gain: { value: number } }[];
 
-  beforeAll(() => {
-    // background synthesis only runs when a test advances timers
-    jest.useFakeTimers();
-    return ensureAudio();
-  });
-
-  afterAll(() => jest.useRealTimers());
+  beforeAll(() => ensureAudio());
 
   beforeEach(() => {
     synthesized = jest.spyOn(SoundEffect.prototype, "getRawBuffer");
@@ -93,19 +87,21 @@ describe("sound", () => {
     expect(starts).toEqual([0, 0.05, 0.1, 0, 0.1]);
   });
 
-  it("stores sounds at a reduced sample rate without silent tails", () => {
+  it("keeps the original sample rate without silent tails", () => {
     play("wave", { seed: 2 });
 
     const rendered = synthesized.mock.results[0].value.normalized;
     const [, length, sampleRate] = buffers.mock.calls[0];
-    expect(sampleRate).toBe(22050);
+    expect(sampleRate).toBe(44100);
     expect(length).toBeLessThan(rendered.length);
     const peak = Math.max(...rendered.map(Math.abs));
     expect(Math.abs(rendered[length - 1])).toBeGreaterThan(peak / 1000);
   });
 
-  it("synthesizes every listed variant and seed in the background", () => {
-    jest.runAllTimers();
+  it("loads every listed variant and seed once before playback", async () => {
+    const loading = loadSounds({ move: [300, 266], open: [600] });
+    expect(loadSounds()).toBe(loading);
+    await loading;
     synthesized.mockClear();
 
     for (const seed of [0, 1, 2, 3] as const) {
@@ -113,6 +109,12 @@ describe("sound", () => {
       play("level", { variant: 12, seed });
       play("arrow", { variant: 4, seed });
       play("sail", { seed });
+      play("open", { intensity: 600, seed });
+      for (const intensity of [300, 266]) {
+        for (const variant of [1, 2, 3] as const) {
+          play("move", { intensity, variant, seed });
+        }
+      }
     }
     expect(synthesized).not.toHaveBeenCalled();
 
