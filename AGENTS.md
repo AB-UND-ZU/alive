@@ -12,6 +12,11 @@ Alive is a browser adventure game built with TypeScript, React, Three.js and an 
 - Explain why only when the reason is not clear from the code. Avoid comments that repeat what the code does.
 - Use plain, readable English in wiki and UI text.
 
+## Repository contents
+
+- Keep temporary scripts, profiling experiments, benchmark bundles, investigation screenshots and research reports outside the repository and its worktrees, for example in a task directory under `/tmp`. Do not commit them.
+- Keep only maintained game code, media, wiki content, implementation documentation and required build/test tooling in the repository. Remove investigation artifacts from earlier work when cleaning up.
+
 ## Git history
 
 - Keep `main` linear. Rebase worktree or feature commits onto the current `main`, then integrate them with `git merge --ff-only`.
