@@ -1,7 +1,7 @@
 # Play and Scenario Pages
 
-Shows the game before its scenario selector. Selecting a scenario remounts the frame; its normal game controls remain active. Play keeps its optional Test Mode lever and links every scenario to the level or boss page. Menu, Dungeon and Island pages expose their relevant scenarios. Bosses has one preview and a short load table for its four encounters.
+Each page shows its game preview above a scenario table. Every row contains the linked level, area or boss, a short description, the hero's level and native equipment/inventory with material, element and potion type, and a Load button. Play keeps its optional Test Mode lever. Menu, Dungeon, Island and Bosses reuse the same table with their relevant scenarios.
 
-Presets use native generators, item factories and class leveling. See [preset creation](presets.md). All previews keep native font and sprite dimensions.
+`getPresetLoadout` supplies both the table and `createPresetWorld`; the UI does not copy equipment or leveling rules. Presets use native generators, item factories and class leveling. See [preset creation](presets.md). All previews keep native font and sprite dimensions.
 
-Scenario links include a `scenario-` fragment so their destination page loads the requested world directly into its top preview. Choosing a scenario also updates that fragment for reloads and sharing.
+Scenario links include a `scenario-` fragment so their destination loads the requested world into its top preview. Loading updates that fragment for reloads and sharing.

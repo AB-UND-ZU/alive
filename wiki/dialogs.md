@@ -13,4 +13,6 @@ popup message
 | Name and action | Entity name and available interaction |
 | Quest marker | Target of the current quest step |
 
-[[key:B]] opens the Bag to inspect carried items. [Signs](signs.md) open longer instructions; [Quests](quests.md) show tasks and rewards.
+[[key:B]] Open the Bag.
+
+Inspect carried items in the Bag. [Signs](signs.md) open longer instructions; [Quests](quests.md) show tasks and rewards.

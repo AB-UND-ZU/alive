@@ -11,3 +11,5 @@ Numeric-only inventory description rows are omitted when the comparison already 
 Blocked-slot metadata is omitted from narrative comparisons. Diamond and Ruby resource descriptions keep their native forging text but omit the inherited Mine claim: only Iron and Gold mines are implemented. Golem Limb uses its native dialog icon at one cell; the Golem body diagrams show the factory fragments before and after waking.
 
 Element-only bonuses share an Extra stats row. Totem Aura uses its native icon and four colored stat lines. Food, fish and potion effects use Consume; fish prices come from the engine's sell-price helper. Every item column lists its full-identity acquisition sources through Item Sources, grouped by drop, harvest, quest and recipe. Unsupported acquisition paths stay empty.
+
+Descriptions retain native text and sprite runs. An icon and its printed name share one reference link, including terrain icons whose internal name differs. Known item names in plain text gain their standard references; ordinary blocking instructions remain literal.

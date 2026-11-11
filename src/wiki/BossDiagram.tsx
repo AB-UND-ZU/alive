@@ -1,3 +1,5 @@
+import { createDecoration } from "../engine/entities";
+import { wormSide } from "../game/assets/sprites";
 import { useState } from "react";
 import { UnitKey } from "../game/balancing/units";
 import {
@@ -42,14 +44,36 @@ export const createBossWorld = (key: UnitKey, activated = false) => {
       { x: bounds.x, y: bounds.y },
       { x: bounds.x + bounds.width - 1, y: bounds.y + bounds.height - 1 }
     );
+    const bait = getIdentifierAndComponents(world, "worm_bait", ["POSITION"]);
+    if (bait) disposeEntity(world, bait, false);
     const boss = createCell(world, { ...center }, "worm_boss", "visible").cell;
     boss.ORIENTABLE = { facing: "up" };
     for (const entity of world.getEntities(["BEHAVIOUR"]))
       entity.BEHAVIOUR.patterns = [];
     step(world);
     preloadLevel(world);
-    for (const entity of world.getEntities(["TOOLTIP"]))
+    for (const entity of world.getEntities(["TOOLTIP"])) {
       entity.TOOLTIP.dialogs = [];
+      entity.TOOLTIP.override = "hidden";
+      const states = entity.SEQUENCABLE?.states;
+      if (!states) continue;
+      for (const key of ["dialog", "discovery"] as const) {
+        const sequence = states[key];
+        if (!sequence) continue;
+        for (const id of Object.values(sequence.particles)) {
+          const particle = world.getEntityById(id);
+          if (particle) world.removeEntity(particle);
+        }
+        delete states[key];
+      }
+    }
+    createDecoration(world, {
+      FOG: { visibility: "visible", type: "float", fixed: true },
+      ORIENTABLE: { facing: "up" },
+      POSITION: { x: center.x, y: center.y + 1 },
+      RENDERABLE: { generation: 0 },
+      SPRITE: wormSide,
+    });
     disposeEntity(world, assertHero(world), false);
     return { world, bounds, hasRoom: true };
   }

@@ -704,8 +704,10 @@ test("Play starts with the game and loads presets with optional Test Mode", asyn
   const table = page.locator("main table");
   await expect(table.locator("tbody tr:not(.GridRule)")).toHaveCount(10);
   await page
-    .getByRole("tablist", { name: "Scenario" })
-    .getByRole("tab", { name: "Dungeon", exact: true })
+    .getByRole("region", { name: "Scenarios", exact: true })
+    .locator("tbody tr:not(.GridRule)")
+    .filter({ has: page.getByRole("link", { name: "Dungeon", exact: true }) })
+    .getByRole("button", { name: "Load", exact: true })
     .click();
   const iframe = page.locator('[data-scene="game"] iframe');
   await expect(iframe).toHaveAttribute("src", /preview.html#game\/dungeon$/);
@@ -724,8 +726,10 @@ test("Play starts with the game and loads presets with optional Test Mode", asyn
   expect(await page.evaluate(() => scrollY)).toBe(before);
   await expect(frame.locator("canvas")).toBeVisible();
   await page
-    .getByRole("tablist", { name: "Scenario" })
-    .getByRole("tab", { name: "Worm Boss", exact: true })
+    .getByRole("region", { name: "Scenarios", exact: true })
+    .locator("tbody tr:not(.GridRule)")
+    .filter({ has: page.getByRole("link", { name: "Worm Boss", exact: true }) })
+    .getByRole("button", { name: "Load", exact: true })
     .click();
   await expect(iframe).toHaveAttribute("src", /\?test#game\/worm$/);
   await expect(iframe).toHaveAttribute("data-hp", /\d+/, { timeout: 15000 });

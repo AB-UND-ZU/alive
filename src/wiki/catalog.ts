@@ -86,6 +86,15 @@ export const unitPage = (key: string, unit: UnitDefinition) =>
     ? "enemies"
     : unitCategory(key, unit);
 
+export const getWikiUnitName = (key: UnitKey, full = false) =>
+  full || unitPage(key, unitDefinitions[key]) === "npcs"
+    ? key === "tutorialBoss"
+      ? "Bandit Boss"
+      : displayName(key)
+    : key === "rotten"
+    ? "Rotten Tree"
+    : displayName(unitDefinitions[key].sprite.name.replace(/_/g, " ") || key);
+
 export const displayName = (key: string) =>
   key
     .replace(/([a-z])([A-Z])/g, "$1 $2")

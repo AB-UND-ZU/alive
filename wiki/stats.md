@@ -6,7 +6,7 @@ popup stats
 
 Stats describe health, mana, growth and combat bonuses.
 
-[[key:T]] opens the hero's stats.
+[[key:T]] Open stats.
 
 Character tables include equipped bonuses and the in-game haste and vision offsets. Damage rows show attack values before bonuses and defenses; see [Damage](damage.md).
 

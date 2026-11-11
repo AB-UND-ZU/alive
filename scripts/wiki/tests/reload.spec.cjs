@@ -11,6 +11,7 @@ test("the wiki dev server rebuilds and reloads a Markdown edit", async ({
   try {
     await page.goto("/game-design/controls/touch.html");
     await expect(page.locator('script[src*="bundle.js"]')).toHaveCount(1);
+    await expect(page.locator("main h1")).toHaveAccessibleName("Touch");
     await page.waitForTimeout(250);
     fs.writeFileSync(file, original + "\n" + marker + "\n");
     for (let attempt = 0; attempt < 12; attempt++) {
@@ -43,5 +44,19 @@ test("the wiki dev server rebuilds and reloads a Markdown edit", async ({
         { timeout: 20000 }
       )
       .not.toContain(marker);
+    await expect(page.locator("main h1")).toHaveAccessibleName("Touch");
+    await page.reload();
+    await expect(page.locator("main h1")).toHaveAccessibleName("Touch");
+    const markdown = await page.evaluate(() =>
+      performance
+        .getEntriesByType("resource")
+        .map((entry) => entry.name)
+        .find((url) => /\/touch\.[^/]+\.md$/.test(url))
+    );
+    expect(markdown).toBeTruthy();
+    const response = await page.request.get(markdown);
+    expect(response.ok()).toBe(true);
+    expect(await response.text()).toContain("# Touch");
+    expect(response.headers()["content-type"]).not.toContain("text/html");
   }
 });

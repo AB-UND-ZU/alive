@@ -3,6 +3,7 @@ import {
   displayName,
   getEffectSprite,
   getWikiUnitSprite,
+  getWikiUnitName,
 } from "./catalog";
 import { ReferenceLink } from "./references";
 import {
@@ -36,7 +37,7 @@ import {
 } from "../game/assets/ui";
 import { colors } from "../game/assets/colors";
 import { getItemSprite, createUnitName } from "../game/assets/utils";
-import { UnitKey, unitDefinitions } from "../game/balancing/units";
+import { UnitKey } from "../game/balancing/units";
 import {
   keyLeft,
   keyRight,
@@ -492,20 +493,16 @@ export function SlotLabel({ slot }: { slot: Equipment }) {
     </ReferenceLink>
   );
 }
-export function UnitView({ unit }: { unit: UnitKey }) {
+export function UnitView({
+  unit,
+  fullName = false,
+}: {
+  unit: UnitKey;
+  fullName?: boolean;
+}) {
   const [nativeSprite, ...nameSprites] = createUnitName(unit);
   const sprite = unit === "rotten" ? getWikiUnitSprite(unit) : nativeSprite;
-  const nativeName = nameSprites
-    .map((part) => part.layers[part.layers.length - 1]?.char || "")
-    .join("");
-  const name =
-    unit === "rotten"
-      ? "Rotten Tree"
-      : nativeName
-      ? displayName(nativeName.replace(/_/g, " "))
-      : unitDefinitions[unit].sprite.layers.length
-      ? displayName(unit)
-      : "";
+  const name = getWikiUnitName(unit, fullName);
   if (!name && !sprite.layers.length) return null;
   return (
     <ReferenceLink name={"unit:" + unit} sprite>
@@ -523,13 +520,38 @@ export function UnitView({ unit }: { unit: UnitKey }) {
 export function ItemView({
   item,
   amount = false,
+  details = false,
 }: {
   item: Partial<Item>;
   amount?: boolean;
+  details?: boolean;
 }) {
   const resolved = previewItem(item);
   const sprite =
     getEffectSprite(resolved) || getItemSprite(resolved, "display");
+  const qualifiers =
+    details && !item.stackable
+      ? [
+          item.accessory !== "map" && item.accessory !== "compass"
+            ? item.material
+            : undefined,
+          item.element,
+          item.consume === "potion" ? item.stat : undefined,
+        ]
+          .filter(
+            (value) =>
+              Boolean(value) &&
+              !sprite.name
+                .toLowerCase()
+                .split(" ")
+                .includes(value!.toLowerCase())
+          )
+          .map((value) => displayName(value!))
+      : [];
+  const baseName = getEffectSprite(resolved)
+    ? displayName(resolved.spell!)
+    : displayName(sprite.name.replace(/_/g, " "));
+  const name = [...qualifiers, baseName].join(" ");
   return (
     <ReferenceLink
       sprite
@@ -559,11 +581,11 @@ export function ItemView({
                   {String(item.amount ?? 1)}
                 </Text>
               )}
-              <Pixels rows={[[sprite]]} label={sprite.name} />
+              <Pixels rows={[[sprite]]} label={name} />
             </>
           }
         >
-          {sprite.name}
+          {name}
         </Text>
       </span>
     </ReferenceLink>

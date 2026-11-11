@@ -6,10 +6,10 @@ popup equip:tool
 
 Equip a tool and choose a direction when prompted.
 
-| Key | Action |
-| --- | --- |
-| [[key:Shift]] | Activate the equipped tool |
-| [[key:Q]] | Switch between tool and skill |
+[[key:Shift]] Use tool.
+
+[[key:Q]] Tool / skill.
+
 
 ```widget
 items tools

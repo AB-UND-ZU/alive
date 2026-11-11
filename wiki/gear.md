@@ -6,11 +6,12 @@ popup gear inspect use equip
 
 Gear holds equipped weapons, shields, accessories, spells, skills and tools.
 
-| Key       | Action                |
-| --------- | --------------------- |
-| [[key:G]] | Open gear             |
-| [[key:B]] | View bag |
-| [[key:E]] | Quick actions |
+[[key:G]] Open gear.
+
+[[key:B]] View bag.
+
+[[key:E]] Quick actions.
+
 
 [[item:spear]] has a contact attack and an active thrust. [[item:wand]] casts magic with its action and deals True damage on contact.
 

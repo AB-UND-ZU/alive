@@ -4,6 +4,7 @@ import { colors } from "../game/assets/colors";
 import { Sprite } from "../engine/components/sprite";
 import {
   mapDiscovery,
+  portal,
   chairRight,
   table,
   boat,
@@ -29,6 +30,7 @@ import {
   mapHouse,
   mapFortress,
 } from "../game/assets/sprites";
+import { getItemSprite } from "../game/assets/utils";
 import { shop, forge, brew, craft } from "../game/assets/ui";
 
 export const featureSprites: Record<string, Sprite> = {
@@ -45,6 +47,13 @@ export const featureSprites: Record<string, Sprite> = {
   vase: pot,
   bench,
   workbench: bench,
+  workstations: bench,
+  potion: getItemSprite({ consume: "potion", material: "wood", stat: "hp" }),
+  potions: getItemSprite({ consume: "potion", material: "wood", stat: "hp" }),
+  door: getItemSprite({ materialized: "door", material: "wood" }),
+  doors: getItemSprite({ materialized: "door", material: "wood" }),
+  gate: getItemSprite({ materialized: "gate", material: "wood" }),
+  gates: getItemSprite({ materialized: "gate", material: "wood" }),
   anvil,
   kettle,
   desert: sand,
@@ -56,6 +65,7 @@ export const featureSprites: Record<string, Sprite> = {
   menu: mapDiscovery,
   dungeon: mapDiscovery,
   portals: mapDiscovery,
+  portal,
   island: mapDiscovery,
   world: mapDiscovery,
   "world map": mapDiscovery,
@@ -102,6 +112,17 @@ export const referenceId = (value: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+export function matchesReferenceName(label: string, name: string) {
+  const canonical = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const word = label.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return [
+    canonical,
+    canonical + "s",
+    canonical + "es",
+    canonical.replace(/y$/, "ie") + "s",
+  ].includes(word);
+}
+
 export function ReferenceText({
   text,
   color = colors.silver,
@@ -160,7 +181,7 @@ export function ReferenceText({
       {chunks.map((chunk, index) => {
         const key = chunk.text.toLowerCase();
         const candidate = entries[key];
-        const reference =
+        let reference: Reference | undefined =
           features[key] ||
           (inTable && (candidate?.kind === "unit" || candidate?.kind === "item")
             ? candidate
@@ -180,6 +201,9 @@ export function ReferenceText({
               decorations[key].name)
           ? decorations[key]
           : undefined;
+        // Blocking is ordinary prose; the skill is referenced explicitly with item:block.
+        if (reference?.kind === "item" && ["block", "blocks"].includes(key))
+          reference = undefined;
         const tail =
           chunk.punctuation || (index === chunks.length - 1 && suffix) ? (
             <>
@@ -209,7 +233,10 @@ export function ReferenceText({
                 }
                 suffix={tail}
               >
-                {decoration?.name || chunk.text}
+                {decoration?.name ||
+                  (decoration?.sprite
+                    ? chunk.text.charAt(0).toUpperCase() + chunk.text.slice(1)
+                    : chunk.text)}
               </Text>
             </span>
           </MentionStyle>
@@ -258,6 +285,6 @@ export function ReferenceLink({
   const reference =
     sprite && (candidate?.kind === "type" || candidate?.kind === "code")
       ? features[name.toLowerCase()]
-      : candidate || features[name.toLowerCase()];
+      : features[name.toLowerCase()] || candidate;
   return <>{reference ? link(reference.href, content, true) : content}</>;
 }

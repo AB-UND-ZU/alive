@@ -7,6 +7,7 @@ import {
   campfire,
   bench,
 } from "../game/assets/sprites";
+import { displayName } from "./catalog";
 import { cellSnapshot } from "./WorldPlants";
 import { Item } from "../engine/components/item";
 import { colors } from "../game/assets/colors";
@@ -276,9 +277,12 @@ function StructureDetails() {
           "Name",
           ...details.doors.map((door) => (
             <ReferenceLink name="doors" sprite>
-              <Text prefix={<Pixels rows={[[door.SPRITE!]]} />}>{`${
-                door.LOCKABLE!.element || door.LOCKABLE!.material
-              } door`}</Text>
+              <Text prefix={<Pixels rows={[[door.SPRITE!]]} />}>
+                {`${door.LOCKABLE!.element || door.LOCKABLE!.material} door`
+                  .split(" ")
+                  .map(displayName)
+                  .join(" ")}
+              </Text>
             </ReferenceLink>
           )),
         ]}
@@ -316,7 +320,9 @@ function StructureDetails() {
             headers={["Structure", "Preview", "Interaction"]}
             rows={group.specimens.map(({ cell, sample }) => {
               const title =
-                cell === "campfire" ? "Bonfire" : cell.replace(/_/g, " ");
+                cell === "campfire"
+                  ? "Bonfire"
+                  : displayName(cell.replace(/_/g, " "));
               const icon = (
                 <Text
                   prefix={

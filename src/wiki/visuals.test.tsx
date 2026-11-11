@@ -11,6 +11,7 @@ import {
   Text,
   Literal,
   UnitView,
+  ItemView,
   ProseContext,
   TableContext,
   Count,
@@ -218,4 +219,25 @@ it.each(
 )("renders the full native %s portrait including its backdrop", (unit) => {
   const view = renderToStaticMarkup(<UnitView unit={unit} />);
   expect(view).toContain(characterMarkup(getFacingLayers(getUnitSprite(unit))));
+});
+
+test("scenario item labels identify material, element and potion type without relying on color", () => {
+  render(
+    <>
+      <ItemView
+        item={{ spell: "wave", material: "iron", element: "earth" }}
+        details
+      />
+      <ItemView
+        item={{ consume: "potion", material: "wood", stat: "hp" }}
+        details
+      />
+      <ItemView item={{ accessory: "compass", material: "wood" }} details />
+      <ItemView item={{ spell: "bolt", material: "wood" }} details />
+    </>
+  );
+  expect(screen.getByText("Iron Earth Wave")).toBeInTheDocument();
+  expect(screen.getByText(/^Wood HP /)).toBeInTheDocument();
+  expect(screen.getByText("Compass")).toBeInTheDocument();
+  expect(screen.getByText("Wood Bolt")).toBeInTheDocument();
 });

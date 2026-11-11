@@ -1,10 +1,17 @@
 import { getWikiUnitSprite } from "./catalog";
 import { useContext, useEffect, useState } from "react";
 import { GamePreview } from "./GamePreview";
-import { Button, Choice, Pixels, PlainTable, Text } from "./visuals";
-import { leverOff, leverOn, mapDiscovery } from "../game/assets/sprites";
-import { presets, PresetName } from "./presets";
-import { ReferenceContext, ReferenceText } from "./references";
+import { Button, ItemView, Pixels, PlainTable, Text } from "./visuals";
+import {
+  leverOff,
+  leverOn,
+  mapDiscovery,
+  mapHouse,
+  mapFortress,
+  mapNomad,
+} from "../game/assets/sprites";
+import { presets, PresetName, getPresetLoadout } from "./presets";
+import { ReferenceContext } from "./references";
 import { UnitKey } from "../game/balancing/units";
 
 const bosses: Partial<Record<PresetName, UnitKey>> = {
@@ -70,13 +77,29 @@ export function Play({
       ? name
       : "island";
     const content = (
-      <Text
-        prefix={
-          <Pixels rows={[[unit ? getWikiUnitSprite(unit) : mapDiscovery]]} />
-        }
-      >
-        {presets[name].title}
-      </Text>
+      <span className="Item">
+        <Text
+          prefix={
+            <Pixels
+              rows={[
+                [
+                  unit
+                    ? getWikiUnitSprite(unit)
+                    : name === "earth"
+                    ? mapHouse
+                    : name === "haven"
+                    ? mapFortress
+                    : name === "nomad"
+                    ? mapNomad
+                    : mapDiscovery,
+                ],
+              ]}
+            />
+          }
+        >
+          {presets[name].title}
+        </Text>
+      </span>
     );
     return features[target]
       ? link(features[target].href + "#scenario-" + name, content, true)
@@ -91,57 +114,58 @@ export function Play({
         preset={preset}
         testMode={test}
       />
-      {choices.length > 1 && page !== "bosses" && (
-        <div className="ScenarioChoices">
-          <Choice
-            label="Scenario"
-            values={choices.map((name) => presets[name].title)}
-            value={presets[preset].title}
-            onChange={(title) =>
-              load(choices.find((name) => presets[name].title === title)!)
-            }
-          />
-        </div>
-      )}
       {page === "play" && (
-        <>
-          <button
-            className="ModeLever"
-            aria-label="Test Mode"
-            aria-pressed={test}
-            onClick={() => setTest(!test)}
-          >
-            <Pixels rows={[[test ? leverOn : leverOff]]} />
-            <Text> Test Mode (commands with Enter)</Text>
-          </button>
-          <PlainTable
-            headers={["Scenario", "Page"]}
-            rows={choices.map((name) => [
-              scenario(name),
-              <ReferenceText
-                text={
-                  bosses[name]
-                    ? "Bosses"
-                    : name === "menu" || name === "dungeon"
-                    ? presets[name].title
-                    : "Island"
-                }
-              />,
-            ])}
-          />
-        </>
+        <button
+          className="ModeLever"
+          aria-label="Test Mode"
+          aria-pressed={test}
+          onClick={() => setTest(!test)}
+        >
+          <Pixels rows={[[test ? leverOn : leverOff]]} />
+          <Text> Test Mode (commands with Enter)</Text>
+        </button>
       )}
-      {page === "bosses" && (
+      <section className="Scenarios" aria-label="Scenarios">
         <PlainTable
-          headers={["Boss", "Load"]}
-          rows={choices.map((name) => [
-            scenario(name),
-            <Button palette="lime" onClick={() => load(name)}>
-              Load
-            </Button>,
-          ])}
+          headers={["Scenario", "Description", "Hero", "Load"]}
+          rows={choices.map((name) => {
+            const loadout = getPresetLoadout(name);
+            return [
+              <span>
+                {scenario(name)}
+                <Text>{` (${
+                  bosses[name]
+                    ? "boss"
+                    : ["menu", "dungeon", "island"].includes(name)
+                    ? "level"
+                    : "area"
+                })`}</Text>
+              </span>,
+              <Text>{presets[name].description}</Text>,
+              <div className="ScenarioEquipment">
+                <div>
+                  <Text>
+                    {loadout.level ? `Level ${loadout.level}` : "No hero"}
+                  </Text>
+                </div>
+                {loadout.level && !loadout.equipment.length && (
+                  <div>
+                    <Text>Empty-handed</Text>
+                  </div>
+                )}
+                {[...loadout.equipment, ...loadout.items].map((item, index) => (
+                  <div key={index}>
+                    <ItemView item={item} amount details />
+                  </div>
+                ))}
+              </div>,
+              <Button palette="lime" onClick={() => load(name)}>
+                Load
+              </Button>,
+            ];
+          })}
         />
-      )}
+      </section>
     </>
   );
 }

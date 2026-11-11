@@ -1,4 +1,4 @@
-import { getWikiUnitSprite } from "./catalog";
+import { getWikiUnitSprite, getWikiUnitName, displayName } from "./catalog";
 import { PresetName } from "./presets";
 import { muteAudio, setAudioActive } from "../game/sound/resumable";
 import { underlineImage } from "./underline";
@@ -18,6 +18,8 @@ import { CodeBlock } from "./CodeBlock";
 import { Callout } from "./Callout";
 import {
   ReferenceContext,
+  MentionStyle,
+  matchesReferenceName,
   ReferenceText,
   referenceId,
   Reference,
@@ -37,6 +39,7 @@ import {
   createContext,
   useContext,
   useId,
+  isValidElement,
   useMemo,
   useEffect,
   useLayoutEffect,
@@ -242,6 +245,8 @@ const featureAliases: Record<string, string> = {
   save: "savegames",
   slot: "slots",
   slots: "slots",
+  potion: "consumables#potion",
+  potions: "consumables#potion",
   container: "containers",
   containers: "containers",
   crate: "containers",
@@ -273,6 +278,8 @@ const featureAliases: Record<string, string> = {
   bench: "crafting",
   door: "structures#doors",
   doors: "structures#doors",
+  gate: "structures#doors",
+  gates: "structures#doors",
   jetty: "structures#jetty",
   bonfire: "structures#bonfire",
   furniture: "structures#furniture",
@@ -337,7 +344,10 @@ for (const [name, item] of Object.entries(commandItems)) {
     getEffectSprite(previewItem(item)) ||
     getItemSprite(previewItem(item), "display");
   if (sprite !== missing && !/[?]{2,}/.test(sprite.name))
-    decorations[name.toLowerCase()] = { sprite };
+    decorations[name.toLowerCase()] = {
+      sprite,
+      name: displayName(sprite.name.replace(/_/g, " ")),
+    };
 }
 for (const stat of Object.keys(statConfig) as (keyof DisplayStats)[]) {
   decorations[stat.toLowerCase()] = {
@@ -354,6 +364,8 @@ references.blast = {
   href: featureRoute("spells") + "#direct-casts",
   kind: "item",
 };
+references["item:bolt"] = references.bolt;
+references["item:blast"] = references.blast;
 references.resource = { href: featureRoute("resources"), kind: "item" };
 if (decorations.bolt) decorations.bolt.name = "Bolt";
 if (decorations.blast) decorations.blast.name = "Blast";
@@ -361,6 +373,7 @@ for (const name of Object.keys(unitDefinitions).filter(isWikiUnit)) {
   const data = generateUnitData(name as UnitKey);
   const decoration = {
     sprite: { ...getWikiUnitSprite(name as UnitKey), name: data.sprite.name },
+    name: getWikiUnitName(name as UnitKey),
     color:
       data.faction === "wild"
         ? colors.maroon
@@ -394,7 +407,10 @@ for (const [name, keys] of nativeUnitNames) {
     keys.length === 1
       ? references["unit:" + keys[0]]
       : { href: [...pages][0], kind: "unit" };
-  decorations[name] = decorations[keys[0].toLowerCase()];
+  decorations[name] = {
+    ...decorations[keys[0].toLowerCase()],
+    name: displayName(name),
+  };
 }
 const nativeItemNames = new Map<string, string[]>();
 for (const [key, item] of Object.entries(commandItems)) {
@@ -410,7 +426,10 @@ for (const [name, keys] of nativeItemNames) {
   const targets = new Set(keys.map((key) => references[key].href));
   if (targets.size !== 1) continue;
   references[name] = references[keys[0]];
-  decorations[name] = decorations[keys[0].toLowerCase()];
+  decorations[name] = {
+    ...decorations[keys[0].toLowerCase()],
+    name: displayName(name),
+  };
 }
 for (const name of displayedClasses)
   decorations[name] = {
@@ -445,6 +464,32 @@ decorations["fire haven"] = {
 };
 for (const [name, color] of Object.entries(colors))
   decorations[name] = { color: color === colors.black ? colors.silver : color };
+const decorationsByTarget = new Map<string, (typeof decorations)[string]>();
+for (const [name, decoration] of Object.entries(decorations)) {
+  const reference = features[name] || references[name];
+  if (decoration.sprite && reference)
+    decorationsByTarget.set(reference.href, decoration);
+}
+for (const [name, reference] of Object.entries(references)) {
+  if (
+    name.includes(":") ||
+    featureSprites[name] ||
+    decorations[name]?.sprite ||
+    !["item", "unit"].includes(reference.kind)
+  )
+    continue;
+  const original = decorationsByTarget.get(reference.href);
+  if (original?.sprite) {
+    const canonical = original.name || original.sprite.name;
+    decorations[name] = {
+      ...original,
+      name: matchesReferenceName(name, canonical)
+        ? displayName(name)
+        : canonical,
+    };
+  }
+}
+
 const automaticFeatures = Object.fromEntries(
   [
     ...Object.entries(references).filter(
@@ -487,6 +532,23 @@ const LinkPolicyContext = createContext<{
   anchor?: string;
   targets: Map<string, string>;
 } | null>(null);
+function getLinkDecoration(name: string, href: string) {
+  const key = name.toLowerCase();
+  const feature = features[key];
+  if (
+    featureSprites[key] &&
+    feature &&
+    canonicalRoute(feature.href.split("#")[0]) ===
+      canonicalRoute(href.split("#")[0])
+  )
+    return {
+      sprite: featureSprites[key],
+      name: displayName(name),
+      color: colors.grey,
+    };
+  return decorations[key];
+}
+
 function Link({
   href,
   children,
@@ -509,10 +571,23 @@ function Link({
   const destination = manifest.pages.find(
     (page) => page.route === canonicalRoute(href.split("#")[0])
   );
-  const feature =
-    !automatic && destination?.source.startsWith("wiki/")
-      ? featureSprites[destination.source.slice(5, -3)]
+  const text =
+    isValidElement<{ children?: ReactNode; prefix?: ReactNode }>(children) &&
+    children.type === Text &&
+    !children.props.prefix &&
+    typeof children.props.children === "string"
+      ? children.props.children
       : undefined;
+  const decoration =
+    text && destination?.chapter === "Gameplay"
+      ? getLinkDecoration(text, href)
+      : undefined;
+  const feature =
+    decoration?.sprite ||
+    ((!automatic || text) && destination?.source.startsWith("wiki/")
+      ? featureSprites[text?.toLowerCase() || ""] ||
+        featureSprites[destination.source.slice(5, -3)]
+      : undefined);
   if (policy && !navigation && !/^(https?:|mailto:)/.test(href)) {
     const [route, anchor] = href.split("#");
     const target = canonicalRoute(route || policy.route);
@@ -535,7 +610,10 @@ function Link({
       href={
         href.startsWith("http") || href.startsWith("#") ? href : base + href
       }
-      aria-label={label}
+      aria-label={
+        label ||
+        (feature && text ? decoration?.name || displayName(text) : undefined)
+      }
       className="WikiLink"
       onClick={(event) => {
         if (
@@ -554,10 +632,18 @@ function Link({
         value={{ linked: styled, hovered: false, preserveColor: false }}
       >
         {feature ? (
-          <span className="RichMention">
-            <Pixels rows={[[feature]]} label={feature.name} />
-            {children}
-          </span>
+          <MentionStyle preserveColor>
+            <span className="RichMention">
+              <Pixels rows={[[feature]]} label={feature.name} />
+              {text ? (
+                <Text color={decoration?.color || colors.grey}>
+                  {decoration?.name || displayName(text)}
+                </Text>
+              ) : (
+                children
+              )}
+            </span>
+          </MentionStyle>
         ) : (
           children
         )}
@@ -661,18 +747,42 @@ function Inline({
             />
           );
         }
-        if (token.type === "link")
+        if (token.type === "link") {
+          const name = decode(token.text || "");
+          const decoration = getLinkDecoration(name, token.href!);
+          const sprite = decoration?.sprite;
           return (
-            <Link key={i} href={token.href!} navigate={navigate}>
-              <Inline
-                tokens={token.tokens || []}
-                navigate={navigate}
-                color={colors.silver}
-                literal
-                suffix={ending}
-              />
+            <Link
+              key={i}
+              href={token.href!}
+              navigate={navigate}
+              automatic={Boolean(sprite)}
+              navigation={Boolean(sprite)}
+            >
+              {sprite ? (
+                <MentionStyle preserveColor>
+                  <span className="RichMention">
+                    <Pixels rows={[[sprite]]} label={sprite.name} />
+                    <Text
+                      color={decoration?.color || colors.grey}
+                      suffix={ending}
+                    >
+                      {decoration?.name || displayName(name)}
+                    </Text>
+                  </span>
+                </MentionStyle>
+              ) : (
+                <Inline
+                  tokens={token.tokens || []}
+                  navigate={navigate}
+                  color={colors.silver}
+                  literal
+                  suffix={ending}
+                />
+              )}
             </Link>
           );
+        }
         if (token.type === "strong" || token.type === "em")
           return (
             <Inline

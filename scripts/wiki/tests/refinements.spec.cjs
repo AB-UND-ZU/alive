@@ -49,7 +49,7 @@ test("bosses have one playable scenario preview and native preview and sprite ro
 }) => {
   await page.goto("/game-design/characters/bosses.html");
   await expect(page.locator('[data-scene="game"]')).toHaveCount(1);
-  const choices = page.locator("main > .TableScroll").first();
+  const choices = page.getByRole("region", { name: "Scenarios", exact: true });
   await expect(
     choices.getByRole("button", { name: "Load", exact: true })
   ).toHaveCount(4);
@@ -121,7 +121,7 @@ test("structure contents and all factory door colors have valid keys and station
     await expect(page.locator("#" + id)).toBeAttached();
   for (const name of ["wood door", "iron door", "gold door", "earth door"])
     await expect(
-      page.getByRole("columnheader").filter({ hasText: name })
+      page.getByRole("columnheader").filter({ hasText: new RegExp(name, "i") })
     ).toHaveCount(1);
   for (const target of ["crafting", "forging", "brewing"])
     expect(

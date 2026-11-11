@@ -1,10 +1,11 @@
-import { unitPage, getWikiUnitSprite } from "./catalog";
+import { unitPage, getWikiUnitSprite, isAnimalItem } from "./catalog";
 import {
   consumptionConfigs,
   getItemConsumption,
 } from "../engine/systems/consume";
 import { statConfig, Stats as DisplayStats } from "../game/assets/ui";
 import { aura } from "../game/assets/sprites";
+import { commandItems } from "../game/assets/commands";
 import { getItemSellPrice } from "../game/balancing/trading";
 import { Item } from "../engine/components/item";
 import { Sprite } from "../engine/components/sprite";
@@ -17,6 +18,7 @@ import { getItemConfig, getItemSprite } from "../game/assets/utils";
 import { getItemStats, getEquipmentStats } from "../game/balancing/equipment";
 import {
   referenceId,
+  ReferenceContext,
   ReferenceText,
   ReferenceLink,
   MentionStyle,
@@ -44,6 +46,7 @@ import {
   previewItem,
   unitComparisonStats,
 } from "./catalog";
+import { useContext } from "react";
 import { ItemView } from "./visuals";
 
 export function FactionLabel({ faction }: { faction: Faction }) {
@@ -130,6 +133,7 @@ export function narrativeRows(
 }
 
 export function CatalogDescription({ rows }: { rows: Sprite[][] }) {
+  const { entries, features = {} } = useContext(ReferenceContext);
   const content: (Sprite | string)[] = [];
   rows.forEach((row, index) => {
     const first = row.find(
@@ -188,13 +192,36 @@ export function CatalogDescription({ rows }: { rows: Sprite[][] }) {
                     : { sprite: cell as Sprite }
                 );
             }
+            const nativeName =
+              runs.find((run) => run.sprite)?.sprite?.name || "";
+            const wordName = runs
+              .map((run) => run.text || "")
+              .join("")
+              .replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, "");
+            const nativeSprite = runs.find((run) => run.sprite)?.sprite;
+            const itemKey = nativeName.toLowerCase();
+            const item = commandItems[itemKey];
+            const itemSprite = item && getItemSprite(item, "display");
+            const itemReference =
+              nativeSprite &&
+              itemSprite &&
+              entries["item:" + itemKey] &&
+              JSON.stringify(nativeSprite.layers) ===
+                JSON.stringify(itemSprite.layers)
+                ? "item:" + itemKey
+                : undefined;
+            const name = nativeSprite
+              ? itemReference ||
+                (entries[nativeName] ||
+                entries[nativeName.toLowerCase()] ||
+                features[nativeName.toLowerCase()]
+                  ? nativeName
+                  : wordName)
+              : "";
             return (
               <span key={index}>
                 {index > 0 && " "}
-                <ReferenceLink
-                  name={runs.find((run) => run.sprite)?.sprite?.name || ""}
-                  sprite
-                >
+                <ReferenceLink name={name} sprite>
                   <span className="Word">
                     {runs.map((run, runIndex) =>
                       run.sprite ? (
@@ -208,7 +235,7 @@ export function CatalogDescription({ rows }: { rows: Sprite[][] }) {
                           key={runIndex}
                           text={run.text!}
                           color={run.color}
-                          decorate={!runs.some((run) => run.sprite)}
+                          decorate={!nativeSprite}
                         />
                       )
                     )}
@@ -298,7 +325,17 @@ export function ItemCatalogEntry({
     >
       <PlainTable
         headers={[
-          title || sprite.name,
+          isAnimalItem(definition) ? (
+            "Name"
+          ) : family ? (
+            title || sprite.name
+          ) : (
+            <ReferenceLink name={"item:" + name} sprite>
+              <Text prefix={<Pixels rows={[[sprite]]} label={sprite.name} />}>
+                {title || sprite.name}
+              </Text>
+            </ReferenceLink>
+          ),
           ...variants.map((item, index) => (
             <ReferenceLink
               name={"item:" + (family?.[index].name || name)}
@@ -307,7 +344,7 @@ export function ItemCatalogEntry({
               <Text
                 prefix={<Pixels rows={[[getItemSprite(item, "display")]]} />}
               >
-                {family
+                {family || isAnimalItem(item)
                   ? getItemSprite(item, "display").name
                   : variants.length === 1
                   ? ""
@@ -546,8 +583,10 @@ export function UnitCatalogEntry({ keys }: { keys: UnitKey[] }) {
     >
       <PlainTable
         headers={[
-          keys.some(
-            (key) => unitPage(key, unitDefinitions[key]) === "bosses"
+          keys.some((key) =>
+            ["bosses", "npcs", "animals", "enemies"].includes(
+              unitPage(key, unitDefinitions[key])
+            )
           ) ? (
             "Name"
           ) : (
@@ -557,7 +596,7 @@ export function UnitCatalogEntry({ keys }: { keys: UnitKey[] }) {
               </Text>
             </ReferenceLink>
           ),
-          ...keys.map((key) => <UnitView unit={key} />),
+          ...keys.map((key) => <UnitView unit={key} fullName />),
         ]}
         rows={[
           ...[

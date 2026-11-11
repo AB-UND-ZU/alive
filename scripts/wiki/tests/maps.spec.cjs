@@ -11,7 +11,7 @@ test("Portals composes native green frames with sizes and onward connections", a
   const table = page.locator(".WarpMap table");
   await expect(table.locator("thead")).toContainText("Size");
   await expect(table.locator("thead")).not.toContainText("Vision");
-  await expect(table.locator("tbody")).toContainText("No onward portal");
+  await expect(table.locator("tbody")).toContainText(/No onward[\s\S]*Portal/);
   expect(
     (await page.locator(".WarpMap .TableScroll").boundingBox()).width
   ).toBeGreaterThan(400);

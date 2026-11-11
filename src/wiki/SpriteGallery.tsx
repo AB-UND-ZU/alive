@@ -1,3 +1,4 @@
+import { displayName } from "./catalog";
 import * as ui from "../game/assets/ui";
 import { unitDefinitions } from "../game/balancing/units";
 import { classDefinitions } from "../game/balancing/classes";
@@ -98,7 +99,9 @@ export function SpriteGallery() {
               <Text
                 prefix={<Pixels rows={[[sprite]]} label={sprite.name || key} />}
               >
-                {sprite.name || "Unnamed"}
+                {sprite.name
+                  ? displayName(sprite.name.replace(/_/g, " "))
+                  : "Unnamed"}
               </Text>
             );
             return [

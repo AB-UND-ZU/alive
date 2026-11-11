@@ -6,8 +6,8 @@ Approach [[unit:sign]] and choose [[button:READ]]. Signs explain nearby controls
 popup menu_sign spawn_sign potion_sign fruit_sign guide_sign trader_sign worm_sign credits_sign
 ```
 
-| Key | Action |
-| --- | --- |
-| [[key:Enter]] | Open the nearby READ prompt |
-| [[key:↑]] [[key:↓]] | Scroll its text |
-| [[key:Escape]] | Close |
+[[key:Enter]] Read.
+
+[[key:↑]] [[key:↓]] Scroll.
+
+[[key:Escape]] Close.

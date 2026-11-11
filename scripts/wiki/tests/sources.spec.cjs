@@ -61,7 +61,7 @@ test("timers list each native haste interval and the multiline assignment", asyn
     "const tickMs = Math.floor(\n"
   );
 });
-test("Dungeon table follows numbered room order and labels Waves", async ({
+test("Dungeon legend follows the map from top to bottom and labels Waves", async ({
   page,
 }) => {
   await page.goto("/game-design/world/dungeon.html");
@@ -75,12 +75,12 @@ test("Dungeon table follows numbered room order and labels Waves", async ({
       })
     );
   expect(labels).toEqual([
-    "1 Start",
-    "2 Guide",
-    "3 Fruit",
-    "4 Pond",
-    "5 Waves",
-    "6 Boss",
     "7 Exit",
+    "6 Boss",
+    "5 Waves",
+    "4 Pond",
+    "3 Fruit",
+    "2 Guide",
+    "1 Start",
   ]);
 });

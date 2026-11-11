@@ -6,15 +6,20 @@ Chat accepts messages and commands in Test Mode. Messages stay in your game; the
 popup chat
 ```
 
-| Key | Action |
-| --- | --- |
-| [[key:C]] | Open chat |
-| [[key:/]] | Open chat with `/` |
-| [[key:Enter]] | Submit |
-| [[key:Tab]] | Accept the gray suggestion |
-| [[key:↑]] [[key:↓]] | Cycle suggestions; browse saved history from an empty line |
-| [[key:Backspace]] | Delete |
-| [[key:Escape]] | Clear the line; press again to close |
+[[key:C]] Open chat.
+
+[[key:/]] Commands.
+
+[[key:Enter]] Submit.
+
+[[key:Tab]] Complete.
+
+[[key:↑]] [[key:↓]] Browse.
+
+[[key:Backspace]] Erase.
+
+[[key:Escape]] Clear.
+
 
 ## Command Reference
 

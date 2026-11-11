@@ -18,60 +18,57 @@ import { commandItems } from "../game/assets/commands";
 export const presets = {
   menu: {
     title: "Menu",
-    description: "New game, Continue and controls.",
+    description: "Start or continue.",
     level: "LEVEL_MENU",
   },
   dungeon: {
     title: "Dungeon",
-    description: "Begin the Dungeon empty-handed at level 1.",
+    description: "Begin the tutorial.",
     level: "LEVEL_TUTORIAL",
   },
   bandit: {
     title: "Bandit Boss",
-    description: "The Bandit's room with an iron sword, shield and bow.",
+    description: "Fight at the final gate.",
     level: "LEVEL_TUTORIAL",
   },
   island: {
     title: "Island",
-    description:
-      "Continue after the Dungeon at level 2 with a wood sword and supplies.",
+    description: "Continue after the Dungeon.",
     level: "LEVEL_ISLAND",
   },
   earth: {
     title: "Earth Town",
-    description: "Town workshops with tools, coins and crafting supplies.",
+    description: "Visit Earth Town.",
     level: "LEVEL_ISLAND",
     target: "earth_town",
   },
   ilex: {
     title: "Ilex Boss",
-    description: "Ilex encounter with an iron sword and fire wave.",
+    description: "Fight in the forest.",
     level: "LEVEL_ISLAND",
     cell: "ilex_elite",
   },
   oak: {
     title: "Oak Boss",
-    description:
-      "Quest equipment at level 4: iron sword, beam, slash and wood potions.",
+    description: "Fight after the town quests.",
     level: "LEVEL_ISLAND",
     cell: "oak_boss",
   },
   worm: {
     title: "Worm Boss",
-    description:
-      "Level 6 with a gold sword, earth wave, iron bubble and exploration tools. Attack the small worm to begin.",
+    description: "Attack the bait worm.",
     level: "LEVEL_ISLAND",
     cell: "worm_bait",
   },
   haven: {
     title: "Fire Haven",
-    description: "Haven workshops with iron gear and crafting supplies.",
+    description: "Visit Fire Haven.",
     level: "LEVEL_ISLAND",
     target: "fire_haven",
   },
   nomad: {
     title: "Nomad",
-    description: "The nomad's house with an axe, bow and trade supplies.",
+    description: "Visit the nomad's house.",
     level: "LEVEL_ISLAND",
     target: "nomad_house",
   },
@@ -80,34 +77,9 @@ export type PresetName = keyof typeof presets;
 
 export const islandPreviewSeed = 2026;
 
-export function createPresetWorld(name: PresetName) {
-  const preset = presets[name];
-  const nativeRandom = Math.random;
-  let world: ReturnType<typeof createTestWorld>;
-  try {
-    Math.random = createRng(islandPreviewSeed);
-    world = createTestWorld({ level: preset.level as LevelName });
-  } finally {
-    Math.random = nativeRandom;
-  }
-  if (name === "menu") return world;
-  const hero = world.assertComponents(assertHero(world), [
-    "INVENTORY",
-    "POSITION",
-    "STATS",
-    "SPAWNABLE",
-    "LIGHT",
-  ]);
-  for (const item of world.getEntities(["ITEM"]))
-    if (item.ITEM.carrier === world.getEntityId(hero))
-      disposeEntity(world, item, false);
-  hero.INVENTORY.items = [];
-  hero.EQUIPPABLE = {};
-  const classData = getClassData("rogue", hero.SPAWNABLE.hairColor);
-  hero.SPAWNABLE.classKey = "rogue";
-  hero.SPRITE = classData.sprite;
-  if (hero.SWIMMABLE) hero.SWIMMABLE.sprite = classData.swimming;
-  const levelNumber =
+export function getPresetLoadout(name: PresetName) {
+  if (name === "menu") return { level: undefined, items: [], equipment: [] };
+  const level =
     name === "dungeon"
       ? 1
       : name === "island" || name === "bandit"
@@ -117,13 +89,6 @@ export function createPresetWorld(name: PresetName) {
       : name === "worm"
       ? 6
       : 3;
-  const stats = getLevelStats("rogue", levelNumber);
-  Object.assign(hero.STATS, stats, {
-    level: levelNumber,
-    xp: 0,
-    hp: stats.maxHp,
-    mp: stats.maxMp,
-  });
   const equipment: Omit<Item, "carrier">[] = [];
   const items: Omit<Item, "carrier" | "bound">[] = [];
   const potion = (
@@ -215,6 +180,44 @@ export function createPresetWorld(name: PresetName) {
     potion("hp", "wood", 10);
     potion("mp", "wood", 5);
   }
+  return { level, items, equipment };
+}
+
+export function createPresetWorld(name: PresetName) {
+  const preset = presets[name];
+  const nativeRandom = Math.random;
+  let world: ReturnType<typeof createTestWorld>;
+  try {
+    Math.random = createRng(islandPreviewSeed);
+    world = createTestWorld({ level: preset.level as LevelName });
+  } finally {
+    Math.random = nativeRandom;
+  }
+  if (name === "menu") return world;
+  const hero = world.assertComponents(assertHero(world), [
+    "INVENTORY",
+    "POSITION",
+    "STATS",
+    "SPAWNABLE",
+    "LIGHT",
+  ]);
+  for (const item of world.getEntities(["ITEM"]))
+    if (item.ITEM.carrier === world.getEntityId(hero))
+      disposeEntity(world, item, false);
+  hero.INVENTORY.items = [];
+  hero.EQUIPPABLE = {};
+  const classData = getClassData("rogue", hero.SPAWNABLE.hairColor);
+  hero.SPAWNABLE.classKey = "rogue";
+  hero.SPRITE = classData.sprite;
+  if (hero.SWIMMABLE) hero.SWIMMABLE.sprite = classData.swimming;
+  const { level: levelNumber, items, equipment } = getPresetLoadout(name);
+  const stats = getLevelStats("rogue", levelNumber!);
+  Object.assign(hero.STATS, stats, {
+    level: levelNumber,
+    xp: 0,
+    hp: stats.maxHp,
+    mp: stats.maxMp,
+  });
   populateInventory(world, hero, items, equipment);
   hero.LIGHT = getEntityVision(world, hero);
   const level = world.metadata.gameEntity[LEVEL];

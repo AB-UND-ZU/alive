@@ -1,3 +1,5 @@
+import { getIdentifierAndComponents } from "../engine/utils";
+import { wormSide } from "../game/assets/sprites";
 import { getParticles } from "../engine/systems/sequence";
 import { bossDiagrams, createBossWorld } from "./BossDiagram";
 import { getLimbs } from "../engine/systems/damage";
@@ -43,7 +45,27 @@ test("Worm diagram uses its generated cave with the mouth centered over the lake
     .find((entity) => entity.IDENTIFIABLE.name === "wormRoom")!;
   expect(boss.POSITION).toEqual(center.POSITION);
   expect(boss.TOOLTIP?.dialogs).toEqual([]);
+  expect(
+    getIdentifierAndComponents(world, "worm_bait", ["POSITION"])
+  ).toBeUndefined();
+  expect(
+    world
+      .getEntities(["SPRITE", "POSITION"])
+      .some(
+        (entity) =>
+          entity.SPRITE === wormSide &&
+          entity.POSITION.x === center.POSITION.x &&
+          entity.POSITION.y === center.POSITION.y + 1
+      )
+  ).toBe(true);
+  expect(
+    world
+      .getEntities(["TOOLTIP", "SEQUENCABLE"])
+      .every((entity) => !entity.SEQUENCABLE.states.dialog)
+  ).toBe(true);
   expect(getParticles(world, boss).length).toBeGreaterThan(1);
+  const sign = getIdentifierAndComponents(world, "worm_sign", ["SEQUENCABLE"])!;
+  expect(getParticles(world, sign)).toEqual([]);
 });
 
 test("Golem unfolds its factory stones into native body and arm fragments after damage", () => {

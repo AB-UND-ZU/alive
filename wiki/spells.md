@@ -4,7 +4,9 @@
 popup equip:spell
 ```
 
-[[key:Space]] casts the equipped spell. Each cast requires mana.
+[[key:Space]] Cast.
+
+Each cast requires mana.
 
 [Elements](elements.md) change spell and equipment effects.
 

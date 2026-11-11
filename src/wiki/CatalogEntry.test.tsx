@@ -1,6 +1,13 @@
 import { render, screen, within } from "@testing-library/react";
 import { ReactNode } from "react";
-import { ItemCatalogEntry, UnitCatalogEntry } from "./CatalogEntry";
+import {
+  CatalogDescription,
+  getCatalogDescription,
+  ItemCatalogEntry,
+  UnitCatalogEntry,
+} from "./CatalogEntry";
+import { getItemSprite } from "../game/assets/utils";
+import { commandItems } from "../game/assets/commands";
 import { ReferenceContext } from "./references";
 
 beforeAll(() => {
@@ -130,4 +137,35 @@ test("unit attacks share one Damage row with native stat names", () => {
   expect(
     screen.getAllByRole("row", { name: (name) => name.startsWith("Damage") })
   ).toHaveLength(1);
+});
+
+test("native description sprites stay inside the entity link even when their internal name differs from the printed label", () => {
+  render(
+    <ReferenceContext.Provider
+      value={{
+        features: { sand: { href: "resources.html#sand", kind: "item" } },
+        decorations: {
+          sand: {
+            sprite: getItemSprite(commandItems.sand, "display"),
+            name: "Sand",
+          },
+        },
+        entries: {
+          sand: { href: "resources.html#sand", kind: "item" },
+          water: { href: "terrain.html#water", kind: "feature" },
+        },
+        link,
+      }}
+    >
+      <CatalogDescription rows={getCatalogDescription(commandItems.sand)} />
+    </ReferenceContext.Provider>
+  );
+  const water = screen.getByRole("link", { name: /Water/ });
+  expect(water).toHaveAttribute("href", "terrain.html#water");
+  expect(screen.getByRole("link", { name: /Sand/ })).toHaveAttribute(
+    "href",
+    "resources.html#sand"
+  );
+  expect(water).toHaveTextContent("Water");
+  expect(within(water).getByLabelText("water_shallow")).toBeInTheDocument();
 });

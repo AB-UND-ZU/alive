@@ -100,7 +100,15 @@ test("catalog comparisons show supported variants with their real stats", async 
 }) => {
   await page.goto("/game-design/items/gear.html#sword");
   const sword = page.locator('[data-catalog-item="sword"]');
-  const headers = await sword.locator("thead th.GridValue").allTextContents();
+  const headers = await sword
+    .locator("thead th.GridValue")
+    .evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const copy = node.cloneNode(true);
+        copy.querySelectorAll(".Pixels").forEach((sprite) => sprite.remove());
+        return copy.textContent.trim();
+      })
+    );
   const earth = headers.indexOf("Ruby Earth");
   expect(earth).toBeGreaterThan(0);
   const melee = sword

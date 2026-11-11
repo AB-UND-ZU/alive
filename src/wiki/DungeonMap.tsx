@@ -128,11 +128,14 @@ export function DungeonMap() {
         />
         <PlainTable
           headers={["Room", "Points Of Interest"]}
-          rows={tutorialRooms.map((room) => {
+          rows={[...tutorialRooms].reverse().map((room) => {
             const index = tutorialRooms.indexOf(room);
             const note = roomNotes[room.name];
             return [
-              <span className="DungeonLegendEntry">
+              <span
+                className="DungeonLegendEntry"
+                style={{ whiteSpace: "nowrap" }}
+              >
                 <Literal>{String(index + 1)}</Literal>{" "}
                 <Text color={colors.white}>{note.title}</Text>
               </span>,

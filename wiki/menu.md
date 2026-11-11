@@ -4,7 +4,9 @@
 play menu
 ```
 
-Move to a menu item and activate it with [[key:Enter]]. The preview uses the normal game menu.
+The preview uses the normal game menu. Move to a menu item.
+
+[[key:Enter]] Activate.
 
 | Menu item | Description |
 | --- | --- |

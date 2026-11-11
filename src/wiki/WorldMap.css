@@ -39,7 +39,7 @@
 }
 
 .DungeonMap .TableScroll {
-  width: 612px;
+  width: 756px;
   flex: none;
 }
 .DungeonLegendDetails {
@@ -48,8 +48,19 @@
   gap: 18px;
 }
 
-.WorldMapLegend > div { display: flex; gap: 0; }
+.WorldMapLegend > div {
+  display: flex;
+  gap: 0;
+}
 
-.TownMap .WorldDiagram { margin-bottom: 32px; }
-.TownLegendUnit { display: inline-flex; align-items: start; gap: 18px; }
-.TownLegend { margin-bottom: 32px; }
+.TownMap .WorldDiagram {
+  margin-bottom: 32px;
+}
+.TownLegendUnit {
+  display: inline-flex;
+  align-items: start;
+  gap: 18px;
+}
+.TownLegend {
+  margin-bottom: 32px;
+}

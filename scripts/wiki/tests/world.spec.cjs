@@ -68,7 +68,16 @@ for (const [level, preset] of [
         "Controls",
         "Credits",
       ])
-        await expect(page.locator("main table")).toContainText(item);
+        await expect(
+          page
+            .locator("main table")
+            .filter({
+              has: page.getByRole("columnheader", {
+                name: "Menu item",
+                exact: true,
+              }),
+            })
+        ).toContainText(item);
     }
   });
 }

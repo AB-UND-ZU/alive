@@ -4,10 +4,10 @@
 popup equip:skill
 ```
 
-| Key | Action |
-| --- | --- |
-| [[key:Shift]] | Use the equipped skill |
-| [[key:Q]] | Switch between skill and tool |
+[[key:Shift]] Use skill.
+
+[[key:Q]] Tool / skill.
+
 
 ```widget
 items skills

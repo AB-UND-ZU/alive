@@ -23,3 +23,5 @@ type Navigate = (route: string) => void;
 ```
 
 Entity mentions keep their sprite/name destination even for repeated or same-page references. Gameplay tables also resolve entity names from the native reference index; source prose keeps its code-only linking policy.
+
+Simple linked entity labels and authored links use the same native decoration data as automatic mentions. Links that already contain a sprite keep their authored composition. Keyboard instructions use short key-first paragraphs so native key cells do not split prose into flex rows.

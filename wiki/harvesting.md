@@ -1,6 +1,8 @@
 # Harvesting
 
-[[key:Shift]] activates the tool. Choose a direction when prompted.
+[[key:Shift]] Use tool.
+
+Choose a direction when prompted.
 
 ```widget
 harvesting

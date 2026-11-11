@@ -13,3 +13,5 @@
 Enemy overview groups distinguish Ilex and Oak Adds from ordinary roaming enemies. Hedge entries stay in the detailed comparisons but are omitted from that overview. Golem Limb is the right-hand column of the Golem comparison. Sign remains under Units. Torch and Boots are separate accessory comparisons so every reachable upgrade stays visible.
 
 `getWikiUnitSprite` uses complete native unit portraits and the existing Rotten Tree stump for its otherwise invisible root entity. Non-default quest chests appear as reward frames outside the default chest comparison. Spawned remains belong inside each unit's Drops frame.
+
+`getWikiUnitName` uses full unit keys for NPC names and full comparison headings, while ordinary mentions keep native creature names. Animals with a sprite but no printed native name fall back to the unit name.
