@@ -4,6 +4,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { deserialize } = require("node:v8");
 const { gunzipSync } = require("node:zlib");
+const currentVersion = require("../../../package.json").version;
+const futureVersion = `${Number(currentVersion.split(".")[0]) + 1}.0.0`;
 
 let bundle;
 const fixture = deserialize(
@@ -192,9 +194,9 @@ test("loading the save list upgrades a genuine 0.4 world before opening its nati
     };
   });
   expect(result).toMatchObject({
-    version: "0.5.0",
-    summaryVersion: "0.5.0",
-    cacheVersion: "0.5.0",
+    version: currentVersion,
+    summaryVersion: currentVersion,
+    cacheVersion: currentVersion,
     id: fixture.id,
     name: fixture.name,
     classKey: "scout",
@@ -226,7 +228,7 @@ test("an upgraded save list reads summaries only and writes nothing", async ({
   });
   expect(result).toEqual({
     trace: { reads: [], writes: [] },
-    version: "0.5.0",
+    version: currentVersion,
   });
 });
 
@@ -262,8 +264,12 @@ test("a migrated historical world restores and accepts native movement", async (
 test("a stale summary is refreshed without rewriting an already-current world", async ({
   page,
 }) => {
-  const result = await page.evaluate(async () => {
-    const current = { ...originalSave, version: "0.5.0", playtime: 12345 };
+  const result = await page.evaluate(async (currentVersion) => {
+    const current = {
+      ...originalSave,
+      version: currentVersion,
+      playtime: 12345,
+    };
     await saveTest.put(current, {
       ...SaveMigration.getSummary(originalSave),
       playtime: 1,
@@ -274,20 +280,23 @@ test("a stale summary is refreshed without rewriting an already-current world", 
       trace: saveTest.trace,
       summary: SaveMigration.getSaveSummaries()[0],
     };
+  }, currentVersion);
+  expect(result.summary).toMatchObject({
+    version: currentVersion,
+    playtime: 12345,
   });
-  expect(result.summary).toMatchObject({ version: "0.5.0", playtime: 12345 });
   expect(result.trace.reads).toEqual(["saves"]);
   expect(result.trace.writes).toEqual([
-    { store: "summaries", version: "0.5.0" },
+    { store: "summaries", version: currentVersion },
   ]);
 });
 
 test("a future world behind an old summary is untouched and denied by the native dialog", async ({
   page,
 }) => {
-  const result = await page.evaluate(async () => {
+  const result = await page.evaluate(async (futureVersion) => {
     await saveTest.put(
-      { ...originalSave, version: "0.6.0" },
+      { ...originalSave, version: futureVersion },
       SaveMigration.getSummary(originalSave)
     );
     saveTest.resetTrace();
@@ -312,10 +321,10 @@ test("a future world behind an old summary is untouched and denied by the native
       refused,
       dialog: saveTest.openDialog(true),
     };
-  });
+  }, futureVersion);
   expect(result).toMatchObject({
-    version: "0.6.0",
-    cacheVersion: "0.6.0",
+    version: futureVersion,
+    cacheVersion: futureVersion,
     loadable: false,
     sameSnapshot: true,
     refused: true,
@@ -351,14 +360,14 @@ test("missing worlds and snapshots are not stamped or replaced", async ({
     hasSnapshot: false,
     absent: true,
     absentVersion: "0.4.0",
-    validVersion: "0.5.0",
+    validVersion: currentVersion,
   });
 });
 
 test("a failed summary write rolls back the world and preserves the original error and cache", async ({
   page,
 }) => {
-  const result = await page.evaluate(async () => {
+  const result = await page.evaluate(async (currentVersion) => {
     SaveMigration.setSaveSummaries([
       { ...SaveMigration.getSummary(originalSave), name: "cached-before" },
     ]);
@@ -366,7 +375,7 @@ test("a failed summary write rolls back the world and preserves the original err
       put = IDBObjectStore.prototype.put;
     let injected, caught;
     IDBObjectStore.prototype.put = function (value, ...args) {
-      if (this.name === "summaries" && value.version === "0.5.0") {
+      if (this.name === "summaries" && value.version === currentVersion) {
         try {
           return put.call(this, { ...value, uncloneable: () => {} }, ...args);
         } catch (error) {
@@ -391,7 +400,7 @@ test("a failed summary write rolls back the world and preserves the original err
       saveVersion: record.save.version,
       summaryVersion: record.summary.version,
     };
-  });
+  }, currentVersion);
   expect(result).toEqual({
     errorName: "DataCloneError",
     sameError: true,
@@ -404,8 +413,8 @@ test("a failed summary write rolls back the world and preserves the original err
 test("a queued newer writer cannot be overwritten by an old migration read", async ({
   page,
 }) => {
-  const result = await page.evaluate(async () => {
-    const newer = { ...originalSave, version: "0.6.0", playtime: 98765 };
+  const result = await page.evaluate(async (futureVersion) => {
+    const newer = { ...originalSave, version: futureVersion, playtime: 98765 };
     const tx = saveTest.database.transaction(
         ["saves", "summaries"],
         "readwrite"
@@ -429,11 +438,11 @@ test("a queued newer writer cannot be overwritten by an old migration read", asy
       summaryVersion: last.summary.version,
       cacheVersion: SaveMigration.getSaveSummaries()[0].version,
     };
-  });
+  }, futureVersion);
   expect(result).toEqual({
-    first: { version: "0.6.0", playtime: 98765 },
-    last: { version: "0.6.0", playtime: 98765 },
-    summaryVersion: "0.6.0",
-    cacheVersion: "0.6.0",
+    first: { version: futureVersion, playtime: 98765 },
+    last: { version: futureVersion, playtime: 98765 },
+    summaryVersion: futureVersion,
+    cacheVersion: futureVersion,
   });
 });

@@ -140,6 +140,17 @@ describe("save games", () => {
 });
 
 describe("save upgrades", () => {
+  it("upgrades previous-release saves without changing their world", () => {
+    const previous = {
+      ...createSave(createAreaWorld(area), savedAt),
+      version: "0.5.0",
+    };
+    const upgraded = upgradeSave(previous);
+
+    expect(upgraded).toEqual({ ...previous, version: saveVersion });
+    expect(upgraded.snapshot).toBe(previous.snapshot);
+  });
+
   const save = { version: "0.4.0", name: "old" } as SaveGame;
   const upgrades = [
     {

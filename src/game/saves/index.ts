@@ -46,6 +46,7 @@ export const saveUpgrades: {
 }[] = [
   // World data is unchanged; refresh the stored release and its summary.
   { version: "0.5.0", upgrade: (save) => save },
+  { version: "0.6.0", upgrade: (save) => save },
 ];
 
 export const compareVersions = (left: string, right: string) => {

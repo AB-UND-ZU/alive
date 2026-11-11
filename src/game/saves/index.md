@@ -26,7 +26,7 @@ Some systems keep values from previous updates to react to changes. Systems are 
 
 ## Upgrading saves
 
-Each save stores the package version. When a release changes world data, such as component fields or sprite names, add an entry to `saveUpgrades` with that release's version. `upgradeSave` passes a save through every upgrade newer than its version, in version order, and sets the version after each step. An entry can also advance the stored release without changing world data. The [[data:0.5.0]] entry keeps the snapshot unchanged.
+Each save stores the package version. When a release changes world data, such as component fields or sprite names, add an entry to `saveUpgrades` with that release's version. `upgradeSave` passes a save through every upgrade newer than its version, in version order, and sets the version after each step. An entry can also advance the stored release without changing world data. The [[data:0.5.0]] and [[data:0.6.0]] entries keep the snapshot unchanged.
 
 Loading the save list upgrades older records automatically in one transaction across the summary and snapshot stores. No confirmation or load action is needed. The cache changes only after that transaction commits. Missing worlds or snapshots stay unchanged. A newer actual save is never downgraded; its cached summary carries the actual version even if its stored summary is stale.
 
