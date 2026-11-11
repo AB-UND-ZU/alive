@@ -176,14 +176,19 @@ test("game-frame sound is silent for autoplay, audible during interaction and si
   expect(await frame.evaluate(() => window.__audioOutput.gain.value)).toBe(0);
   expect(await frame.evaluate(() => window.__audioStarts)).toBe(0);
   await iframe.click();
-  await page.keyboard.down("ArrowRight");
-  try {
-    await expect
-      .poll(() => frame.evaluate(() => window.__audioStarts))
-      .toBeGreaterThan(0);
-  } finally {
-    await page.keyboard.up("ArrowRight");
-  }
+  let direction = 0;
+  await expect
+    .poll(
+      async () => {
+        await page.keyboard.press(
+          ["ArrowRight", "ArrowUp", "ArrowLeft", "ArrowDown"][direction++ % 4],
+          { delay: 350 }
+        );
+        return frame.evaluate(() => window.__audioStarts);
+      },
+      { timeout: 10000 }
+    )
+    .toBeGreaterThan(0);
   await page.locator("main h1").click();
   await expect
     .poll(() => frame.evaluate(() => window.__audioOutput.gain.value))

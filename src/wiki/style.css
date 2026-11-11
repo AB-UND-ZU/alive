@@ -710,3 +710,7 @@ nav {
 .PauseSnapshot .Cover,.PauseSnapshot .Resume { display:none; }
 .PauseSnapshot .Overlay { position:static; height:auto; display:flex; justify-content:flex-start; }
 .PauseSnapshot .PauseButton { pointer-events:none; }
+
+.SpriteGalleryPages { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; margin: 32px 0; }
+
+.ScenarioChoices .Choice > .Choices { flex-wrap: wrap; overflow: visible; }

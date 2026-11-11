@@ -41,3 +41,9 @@ export const woodStickAir2: Sprite = {
 ```scene
 sprites
 ```
+
+## Existing sprites
+
+```widget
+sprite-gallery
+```

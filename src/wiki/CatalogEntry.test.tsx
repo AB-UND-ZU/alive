@@ -104,14 +104,18 @@ test("potions and elemental totems group their actual effects", () => {
 test("Oak Boss lists its native post-vanish chest without inventing other spawns", () => {
   render(<UnitCatalogEntry keys={["oakBoss"]} />);
   const row = screen.getByRole("row", {
-    name: (name) => name.replace(/\s/g, "").startsWith("Spawns"),
+    name: (name) => name.replace(/\s/g, "").startsWith("Drops"),
   });
   expect(within(row).getByLabelText("Chest")).toBeInTheDocument();
 });
 
 test("an empty drop outcome does not create an empty dialog", () => {
   render(<UnitCatalogEntry keys={["rotten"]} />);
-  expect(screen.getByLabelText("Rotten Tree")).toBeInTheDocument();
+  expect(
+    within(
+      screen.getByRole("row", { name: (name) => name.startsWith("Sprite") })
+    ).getByLabelText("Rotten Tree")
+  ).toBeInTheDocument();
   expect(screen.getByLabelText("70%")).toBeInTheDocument();
   expect(screen.queryByLabelText("30%")).not.toBeInTheDocument();
 });

@@ -1,9 +1,11 @@
-import { useEffect, useMemo } from "react";
+import { createContext, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { lightHeight, shadowHeight } from "./utils";
 
 // a fixed oversized cover is clipped by the camera and only depends on the
 // radius, so the ring is not rebuilt on every step
+export const LightingContext = createContext(true);
+
 const ringCover = 1000;
 
 type InvertedRingProps = {

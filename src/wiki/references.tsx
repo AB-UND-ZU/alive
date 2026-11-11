@@ -1,9 +1,24 @@
 import { createContext, ReactNode, useContext } from "react";
-import { Text, Pixels, LinkStyleContext } from "./visuals";
+import { Text, Pixels, LinkStyleContext, TableContext } from "./visuals";
 import { colors } from "../game/assets/colors";
 import { Sprite } from "../engine/components/sprite";
 import {
   mapDiscovery,
+  chairRight,
+  table,
+  boat,
+  jetty,
+  campfire,
+  pot,
+  bench,
+  anvil,
+  kettle,
+  sand,
+  path,
+  tree1,
+  palm1,
+  bush,
+  grass,
   stats,
   logging,
   mining,
@@ -11,12 +26,33 @@ import {
   farming,
   build,
   aura,
+  mapHouse,
+  mapFortress,
 } from "../game/assets/sprites";
 import { shop, forge, brew, craft } from "../game/assets/ui";
 
 export const featureSprites: Record<string, Sprite> = {
+  "wood house": mapHouse,
+  "desert fort": mapFortress,
   level: mapDiscovery,
   levels: mapDiscovery,
+  chair: chairRight,
+  table,
+  boat,
+  dock: jetty,
+  jetty,
+  bonfire: campfire,
+  vase: pot,
+  bench,
+  workbench: bench,
+  anvil,
+  kettle,
+  desert: sand,
+  path,
+  tree: tree1,
+  palm: palm1,
+  bush,
+  grass,
   menu: mapDiscovery,
   dungeon: mapDiscovery,
   portals: mapDiscovery,
@@ -88,6 +124,7 @@ export function ReferenceText({
     implementation: sourcePage,
   } = useContext(ReferenceContext);
   const insideLink = useContext(LinkStyleContext);
+  const inTable = useContext(TableContext);
   if (insideLink.linked)
     return (
       <Text color={color} suffix={suffix} code={implementation}>
@@ -122,7 +159,12 @@ export function ReferenceText({
     <>
       {chunks.map((chunk, index) => {
         const key = chunk.text.toLowerCase();
-        const reference = features[key];
+        const candidate = entries[key];
+        const reference =
+          features[key] ||
+          (inTable && (candidate?.kind === "unit" || candidate?.kind === "item")
+            ? candidate
+            : undefined);
         const nativeFeature = featureSprites[key];
         const decoration = nativeFeature
           ? {

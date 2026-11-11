@@ -15,3 +15,5 @@ Every feature preview uses the same controls layout, regardless of which scene o
 Feature previews supply the terminal center to the shared controls using `--controls-center-y`. It includes the scene’s retained stat rows, aligning interaction prompts and all popup hit areas after unused HUD rows are removed. The normal game keeps its existing window-center default.
 
 Visible autoplay is silent. A pointer, touch or keyboard interaction enables the frame audio activity gate and resumes its AudioContext. Blur, pause and page unload disable the gate. This is separate from the player's Sound FX setting, so refocusing never overrides a muted game.
+
+The Light scene exposes a Shadows lever. It updates native lighting in the existing frame without resetting exploration or changing fog of war.

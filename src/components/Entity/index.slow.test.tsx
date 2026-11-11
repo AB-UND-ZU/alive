@@ -224,3 +224,49 @@ describe("Entity", () => {
     });
   });
 });
+
+it("can hide circular lighting without changing unit glyphs or fog visibility", async () => {
+  const { LightingContext } = await import("./CoveredLight");
+  const world = createAreaWorld(area);
+  const hero = world.assertComponents(assertHero(world), [
+    POSITION,
+    SPRITE,
+    RENDERABLE,
+    "LIGHT",
+  ]);
+  hero.LIGHT.brightness = 5;
+  const visibility = world
+    .getEntities(["FOG"])
+    .map((entity) => entity.FOG.visibility);
+  const scene = (enabled: boolean) => (
+    <LightingContext.Provider value={enabled}>
+      <Entity
+        entity={hero}
+        x={hero.POSITION.x}
+        y={hero.POSITION.y}
+        generation={getEntityGeneration(world, hero)}
+        inRadius
+        inside={false}
+        outside={false}
+      />
+    </LightingContext.Provider>
+  );
+  const { renderer } = await renderScene(world, scene(true));
+  expect(
+    renderer.scene.findAll((node) => node.instance instanceof THREE.PointLight)
+  ).toHaveLength(1);
+  const before = getGlyphs(renderer.scene);
+  await renderer.update(
+    <WorldProvider value={createWorldContext(world)}>
+      {scene(false)}
+    </WorldProvider>
+  );
+  expect(
+    renderer.scene.findAll((node) => node.instance instanceof THREE.PointLight)
+  ).toHaveLength(0);
+  expect(getGlyphs(renderer.scene)).toEqual(before);
+  expect(
+    world.getEntities(["FOG"]).map((entity) => entity.FOG.visibility)
+  ).toEqual(visibility);
+  await renderer.unmount();
+});

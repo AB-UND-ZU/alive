@@ -11,3 +11,7 @@ Push [[unit:box]] into a free cell. A wall or another [[unit:box]] behind it blo
 ```scene
 pushing
 ```
+
+```widget
+reward-containers
+```

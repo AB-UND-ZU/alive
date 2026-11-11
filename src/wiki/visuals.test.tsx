@@ -105,10 +105,10 @@ it.each(["rock1", "rock2"] as const)(
     expect(text(view)).toContain(unit === "rock1" ? "Rock1" : "Rock2");
   }
 );
-it("does not invent an icon or name for an intentionally invisible unit", () => {
+it("uses the native Rotten Tree stump for its wiki icon", () => {
   const view = renderToStaticMarkup(<UnitView unit="rotten" />);
-  expect(view).not.toContain("TextPrefix");
-  expect(text(view)).toBe("");
+  expect(view).toContain("Rotten Tree");
+  expect(view).toContain("TextPrefix");
 });
 
 it.each([

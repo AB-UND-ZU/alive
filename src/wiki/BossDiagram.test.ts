@@ -1,3 +1,4 @@
+import { getParticles } from "../engine/systems/sequence";
 import { bossDiagrams, createBossWorld } from "./BossDiagram";
 import { getLimbs } from "../engine/systems/damage";
 import { golem, golemBody, golemArm, rock2 } from "../game/assets/sprites";
@@ -29,18 +30,20 @@ test("Golem diagram includes all four native orbiting segments", () => {
       )
     ).toBe(true);
 });
-test("Worm diagram includes the oriented mouth fragments without the fixture hero", () => {
-  const rows = bossDiagrams("wormBoss");
-  expect(rows).toHaveLength(2);
-  expect(rows[0]).toHaveLength(3);
-  const mouth = rows
-    .flat()
-    .filter((sprite) =>
-      sprite.layers.some(
-        (layer) => layer.color !== "#000000" && layer.char.trim()
-      )
-    );
-  expect(mouth.length).toBeGreaterThanOrEqual(5);
+test("Worm diagram uses its generated cave with the mouth centered over the lake", () => {
+  const { world, bounds, hasRoom } = createBossWorld("wormBoss");
+  expect(hasRoom).toBe(true);
+  expect(bounds.width).toBeGreaterThan(15);
+  expect(bounds.height).toBeGreaterThan(10);
+  const boss = world
+    .getEntities(["NPC", "POSITION"])
+    .find((entity) => entity.NPC.type === "wormBoss")!;
+  const center = world
+    .getEntities(["IDENTIFIABLE", "POSITION"])
+    .find((entity) => entity.IDENTIFIABLE.name === "wormRoom")!;
+  expect(boss.POSITION).toEqual(center.POSITION);
+  expect(boss.TOOLTIP?.dialogs).toEqual([]);
+  expect(getParticles(world, boss).length).toBeGreaterThan(1);
 });
 
 test("Golem unfolds its factory stones into native body and arm fragments after damage", () => {

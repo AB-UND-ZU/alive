@@ -1,3 +1,4 @@
+import { getWikiUnitSprite } from "./catalog";
 import { PresetName } from "./presets";
 import { muteAudio, setAudioActive } from "../game/sound/resumable";
 import { underlineImage } from "./underline";
@@ -22,7 +23,7 @@ import {
   Reference,
   featureSprites,
 } from "./references";
-import { getItemSprite, getUnitSprite } from "../game/assets/utils";
+import { getItemSprite } from "../game/assets/utils";
 import { UnitKey } from "../game/balancing/units";
 import { generateUnitData } from "../game/balancing/units";
 import { DungeonMap } from "./DungeonMap";
@@ -269,6 +270,26 @@ const featureAliases: Record<string, string> = {
   keyboard: "keyboard-mouse",
   keys: "keyboard-mouse",
   workbench: "crafting",
+  bench: "crafting",
+  door: "structures#doors",
+  doors: "structures#doors",
+  jetty: "structures#jetty",
+  bonfire: "structures#bonfire",
+  furniture: "structures#furniture",
+  chair: "structures#furniture",
+  table: "structures#furniture",
+  house: "structures#wood-house",
+  tree: "plants#world-tree",
+  palm: "plants#world-palm",
+  bush: "plants#world-bush",
+  grass: "plants#world-grass",
+  "rotten tree": "plants#rotten",
+  dock: "structures#jetty",
+  desert: "terrain",
+  path: "terrain",
+  vase: "containers#pot",
+  workstations: "structures#workstations",
+  boat: "structures#boat",
   kettle: "brewing",
   anvil: "forging",
   mine: "harvesting",
@@ -339,7 +360,7 @@ if (decorations.blast) decorations.blast.name = "Blast";
 for (const name of Object.keys(unitDefinitions).filter(isWikiUnit)) {
   const data = generateUnitData(name as UnitKey);
   const decoration = {
-    sprite: { ...getUnitSprite(name as UnitKey), name: data.sprite.name },
+    sprite: { ...getWikiUnitSprite(name as UnitKey), name: data.sprite.name },
     color:
       data.faction === "wild"
         ? colors.maroon
@@ -351,6 +372,45 @@ for (const name of Object.keys(unitDefinitions).filter(isWikiUnit)) {
   const display = name.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
   decorations[display] = decoration;
   decorations[display + "s"] = decoration;
+}
+const nativeUnitNames = new Map<string, UnitKey[]>();
+for (const key of Object.keys(unitDefinitions).filter(
+  isWikiUnit
+) as UnitKey[]) {
+  const name = (
+    key === "rotten" ? "Rotten Tree" : unitDefinitions[key].sprite.name
+  )
+    .replace(/_/g, " ")
+    .toLowerCase();
+  if (name && !name.includes("?"))
+    nativeUnitNames.set(name, [...(nativeUnitNames.get(name) || []), key]);
+}
+for (const [name, keys] of nativeUnitNames) {
+  const pages = new Set(
+    keys.map((key) => references["unit:" + key].href.split("#")[0])
+  );
+  if (pages.size !== 1) continue;
+  references[name] =
+    keys.length === 1
+      ? references["unit:" + keys[0]]
+      : { href: [...pages][0], kind: "unit" };
+  decorations[name] = decorations[keys[0].toLowerCase()];
+}
+const nativeItemNames = new Map<string, string[]>();
+for (const [key, item] of Object.entries(commandItems)) {
+  if (references[key]?.kind !== "item") continue;
+  const sprite =
+    getEffectSprite(previewItem(item)) ||
+    getItemSprite(previewItem(item), "display");
+  const name = sprite.name.replace(/_/g, " ").toLowerCase();
+  if (name && !name.includes("?"))
+    nativeItemNames.set(name, [...(nativeItemNames.get(name) || []), key]);
+}
+for (const [name, keys] of nativeItemNames) {
+  const targets = new Set(keys.map((key) => references[key].href));
+  if (targets.size !== 1) continue;
+  references[name] = references[keys[0]];
+  decorations[name] = decorations[keys[0].toLowerCase()];
 }
 for (const name of displayedClasses)
   decorations[name] = {
@@ -367,7 +427,7 @@ for (const [element, color] of Object.entries({
   water: colors.blue,
   air: colors.silver,
 }))
-  decorations[element] = { color };
+  decorations[element] = { ...decorations[element], color };
 decorations["earth town"] = {
   sprite: mapHouse,
   name: "Earth Town",
@@ -386,7 +446,14 @@ decorations["fire haven"] = {
 for (const [name, color] of Object.entries(colors))
   decorations[name] = { color: color === colors.black ? colors.silver : color };
 const automaticFeatures = Object.fromEntries(
-  Object.entries(features).filter(
+  [
+    ...Object.entries(references).filter(
+      ([name, reference]) =>
+        !name.includes(":") &&
+        (reference.kind === "item" || reference.kind === "unit")
+    ),
+    ...Object.entries(features),
+  ].filter(
     ([name]) =>
       ![
         "world",
@@ -446,7 +513,7 @@ function Link({
     !automatic && destination?.source.startsWith("wiki/")
       ? featureSprites[destination.source.slice(5, -3)]
       : undefined;
-  if (policy && !/^(https?:|mailto:)/.test(href)) {
+  if (policy && !navigation && !/^(https?:|mailto:)/.test(href)) {
     const [route, anchor] = href.split("#");
     const target = canonicalRoute(route || policy.route);
     if (
@@ -752,8 +819,24 @@ function Markdown({
         return <DungeonMap key={index} />;
       if (token.lang === "widget" && token.text!.trim() === "world-map")
         return <WorldMap key={index} />;
-      if (token.lang === "widget" && token.text!.trim() === "play")
-        return <Play key={index} base={base} />;
+      if (
+        token.lang === "widget" &&
+        token.text!.trim().split(" ")[0] === "play"
+      )
+        return (
+          <Play
+            key={`${source}:${index}`}
+            base={base}
+            page={
+              token.text!.trim().split(" ")[1] as
+                | "menu"
+                | "dungeon"
+                | "island"
+                | "bosses"
+                | undefined
+            }
+          />
+        );
       if (token.lang === "widget" && token.text!.trim() === "interface")
         return <InterfaceDiagram key={index} base={base} />;
       if (token.lang === "widget")

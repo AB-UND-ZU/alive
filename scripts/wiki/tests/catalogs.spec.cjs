@@ -5,18 +5,20 @@ test("class choices match the game selector and show compact progression", async
 }) => {
   await page.goto("/game-design/characters/classes.html");
   const table = page.locator("main table").first();
-  expect(await table.locator("thead th").allTextContents()).toEqual([
-    "Class",
-    "Rogue",
-    "Knight",
-    "Mage",
-    "???",
-  ]);
-  const labels = await table.locator('tbody th[scope="row"]').evaluateAll(nodes => nodes.map(node => {
-    const copy = node.cloneNode(true);
-    copy.querySelectorAll(".Pixels").forEach(sprite => sprite.remove());
-    return copy.textContent;
-  }));
+  expect(
+    (await table.locator("thead th").allTextContents()).map((value) =>
+      value.trim()
+    )
+  ).toEqual(["Class", "Rogue", "Knight", "Mage", "???"]);
+  const labels = await table
+    .locator('tbody th[scope="row"]')
+    .evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const copy = node.cloneNode(true);
+        copy.querySelectorAll(".Pixels").forEach((sprite) => sprite.remove());
+        return copy.textContent;
+      })
+    );
   expect(labels.map((label) => label.toLowerCase())).toContain("extra stats");
   expect(labels.find((label) => label.startsWith("Level"))).toBe(
     "Level" + Array.from({ length: 10 }, (_, i) => "#" + (i + 1)).join("")
@@ -121,7 +123,9 @@ test("item comparisons show native consumption, aura and elemental bonuses", asy
   const row = (entry, label) =>
     entry
       .locator('th[scope="row"]')
-      .filter({ hasText: new RegExp(label.split(" ").join("[\\s\\S]*") + "$", "i") })
+      .filter({
+        hasText: new RegExp(label.split(" ").join("[\\s\\S]*") + "$", "i"),
+      })
       .locator("..");
   await page.goto("/game-design/characters/animals.html#fish");
   const fish = page.locator('[data-catalog-item="fish"]');

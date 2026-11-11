@@ -9,7 +9,7 @@ import { isInteractable } from "../engine/systems/freeze";
 import { getHero } from "../testing/harness";
 import { Button } from "./visuals";
 import { createRoot } from "react-dom/client";
-import { CSSProperties, useEffect } from "react";
+import { CSSProperties, useEffect, useState } from "react";
 import World from "../components/World";
 import { useWorld } from "../bindings/hooks";
 import Dimensions from "../components/Dimensions";
@@ -47,7 +47,7 @@ function DemoActions() {
     </div>
   );
 }
-function Bridge() {
+function Bridge({ setShadows }: { setShadows: (enabled: boolean) => void }) {
   const { ecs, setPaused, setInitial } = useWorld();
   useEffect(() => {
     let visible = false;
@@ -197,6 +197,7 @@ function Bridge() {
     const listener = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
       const action = event.data?.type;
+      if (action === "shadows") setShadows(event.data.enabled !== false);
       if (action === "pause") {
         setAudioActive(false);
         visible = false;
@@ -303,56 +304,63 @@ function Bridge() {
       window.removeEventListener("blur", blur);
       window.removeEventListener("message", listener);
     };
-  }, [ecs, setPaused, setInitial]);
+  }, [ecs, setPaused, setInitial, setShadows]);
   return null;
 }
-createRoot(document.getElementById("root")!).render(
-  <Dimensions
-    className={`App ${
-      name === "game"
-        ? ""
-        : name === "interface"
-        ? "preview-interface"
-        : "preview preview-" + name
-    }`}
-    style={
-      name === "game" || name === "interface"
-        ? undefined
-        : ({
-            "--controls-center-y": `calc(var(--terminal-height) / 2 + ${
-              sceneLayout(name).topHudRows
-            } * var(--cell-height))`,
-          } as CSSProperties)
-    }
-    options={
-      name === "game" || name === "interface"
-        ? undefined
-        : {
-            visibleColumns: 23,
-            visibleRows: sceneLayout(name).rows,
-            topHudRows: sceneLayout(name).topHudRows,
-          }
-    }
-  >
-    <World
-      persistent={name === "game"}
-      createInitialWorld={
+function Preview() {
+  const [shadows, setShadows] = useState(true);
+  useEffect(() => {
+    document.body.dataset.shadows = String(shadows);
+  }, [shadows]);
+  return (
+    <Dimensions
+      className={`App ${
         name === "game"
-          ? option && option !== "menu"
-            ? () => createPresetWorld(option as PresetName)
-            : undefined
-          : () => createPreviewWorld(name, decodeURIComponent(option))
+          ? ""
+          : name === "interface"
+          ? "preview-interface"
+          : "preview preview-" + name
+      }`}
+      style={
+        name === "game" || name === "interface"
+          ? undefined
+          : ({
+              "--controls-center-y": `calc(var(--terminal-height) / 2 + ${
+                sceneLayout(name).topHudRows
+              } * var(--cell-height))`,
+            } as CSSProperties)
+      }
+      options={
+        name === "game" || name === "interface"
+          ? undefined
+          : {
+              visibleColumns: 23,
+              visibleRows: sceneLayout(name).rows,
+              topHudRows: sceneLayout(name).topHudRows,
+            }
       }
     >
-      <Stats />
-      <Terminal>
-        {name !== "game" && name !== "interface" && <DemoFrame />}
-      </Terminal>
-      <Controls compact={name !== "game" && name !== "interface"}>
-        <DemoActions />
-      </Controls>
-      {name === "touch" && <TouchCursor />}
-      <Bridge />
-    </World>
-  </Dimensions>
-);
+      <World
+        persistent={name === "game"}
+        createInitialWorld={
+          name === "game"
+            ? option && option !== "menu"
+              ? () => createPresetWorld(option as PresetName)
+              : undefined
+            : () => createPreviewWorld(name, decodeURIComponent(option))
+        }
+      >
+        <Stats />
+        <Terminal shadows={shadows}>
+          {name !== "game" && name !== "interface" && <DemoFrame />}
+        </Terminal>
+        <Controls compact={name !== "game" && name !== "interface"}>
+          <DemoActions />
+        </Controls>
+        {name === "touch" && <TouchCursor />}
+        <Bridge setShadows={setShadows} />
+      </World>
+    </Dimensions>
+  );
+}
+createRoot(document.getElementById("root")!).render(<Preview />);

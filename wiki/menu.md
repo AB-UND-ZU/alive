@@ -1,7 +1,7 @@
 # Menu
 
-```scene
-game/menu
+```widget
+play menu
 ```
 
 Move to a menu item and activate it with [[key:Enter]]. The preview uses the normal game menu.

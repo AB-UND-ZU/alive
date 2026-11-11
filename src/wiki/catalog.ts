@@ -1,3 +1,5 @@
+import { stemRottenRight } from "../game/assets/sprites";
+import { getUnitSprite } from "../game/assets/utils";
 import { fishingDistributionLevels } from "../game/balancing/fishing";
 import { craftingIngredients } from "../game/balancing/crafting";
 import { brewingRecipes } from "../game/balancing/brewing";
@@ -424,3 +426,8 @@ export const unitOverviewGroup = (key: UnitKey) => {
     ? "Elites"
     : "Units";
 };
+
+export const getWikiUnitSprite = (unit: UnitKey) =>
+  unit === "rotten"
+    ? { ...stemRottenRight, name: "Rotten Tree" }
+    : getUnitSprite(unit);

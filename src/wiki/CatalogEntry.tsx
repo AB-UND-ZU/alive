@@ -1,3 +1,4 @@
+import { unitPage, getWikiUnitSprite } from "./catalog";
 import {
   consumptionConfigs,
   getItemConsumption,
@@ -12,11 +13,7 @@ import { Faction } from "../engine/components/belongable";
 import { UnitKey, unitDefinitions } from "../game/balancing/units";
 import { colors } from "../game/assets/colors";
 import { getItemDescription } from "../game/assets/descriptions";
-import {
-  getItemConfig,
-  getItemSprite,
-  getUnitSprite,
-} from "../game/assets/utils";
+import { getItemConfig, getItemSprite } from "../game/assets/utils";
 import { getItemStats, getEquipmentStats } from "../game/balancing/equipment";
 import {
   referenceId,
@@ -34,6 +31,7 @@ import {
   Pixels,
   PlainTable,
   Text,
+  Heading,
   StatLabel,
   UnitView,
 } from "./visuals";
@@ -193,26 +191,29 @@ export function CatalogDescription({ rows }: { rows: Sprite[][] }) {
             return (
               <span key={index}>
                 {index > 0 && " "}
-                <span className="Word">
-                  {runs.map((run, runIndex) =>
-                    run.sprite ? (
-                      <ReferenceLink
-                        key={runIndex}
-                        name={run.sprite.name}
-                        sprite
-                      >
-                        <Pixels rows={[[run.sprite]]} label={run.sprite.name} />
-                      </ReferenceLink>
-                    ) : (
-                      <ReferenceText
-                        key={runIndex}
-                        text={run.text!}
-                        color={run.color}
-                        decorate={false}
-                      />
-                    )
-                  )}
-                </span>
+                <ReferenceLink
+                  name={runs.find((run) => run.sprite)?.sprite?.name || ""}
+                  sprite
+                >
+                  <span className="Word">
+                    {runs.map((run, runIndex) =>
+                      run.sprite ? (
+                        <Pixels
+                          key={runIndex}
+                          rows={[[run.sprite]]}
+                          label={run.sprite.name}
+                        />
+                      ) : (
+                        <ReferenceText
+                          key={runIndex}
+                          text={run.text!}
+                          color={run.color}
+                          decorate={!runs.some((run) => run.sprite)}
+                        />
+                      )
+                    )}
+                  </span>
+                </ReferenceLink>
               </span>
             );
           })}
@@ -298,20 +299,29 @@ export function ItemCatalogEntry({
       <PlainTable
         headers={[
           title || sprite.name,
-          ...variants.map((item) =>
-            family
-              ? getItemSprite(item, "display").name
-              : variants.length === 1
-              ? ""
-              : [
-                  item.material,
-                  item.element,
-                  item.consume === "potion" ? item.stat : "",
-                ]
-                  .filter(Boolean)
-                  .map((value) => displayName(value!))
-                  .join(" ")
-          ),
+          ...variants.map((item, index) => (
+            <ReferenceLink
+              name={"item:" + (family?.[index].name || name)}
+              sprite
+            >
+              <Text
+                prefix={<Pixels rows={[[getItemSprite(item, "display")]]} />}
+              >
+                {family
+                  ? getItemSprite(item, "display").name
+                  : variants.length === 1
+                  ? ""
+                  : [
+                      item.material,
+                      item.element,
+                      item.consume === "potion" ? item.stat : "",
+                    ]
+                      .filter(Boolean)
+                      .map((value) => displayName(value!))
+                      .join(" ")}
+              </Text>
+            </ReferenceLink>
+          )),
         ]}
         rows={[
           [
@@ -399,10 +409,12 @@ export function ItemCatalogEntry({
           ...(values.some((value) => auraKeys.some((stat) => value[stat]))
             ? [
                 [
-                  <span>
-                    <Pixels rows={[[aura]]} />
-                    <Text>Aura</Text>
-                  </span>,
+                  <ReferenceLink name="aura" sprite>
+                    <span>
+                      <Pixels rows={[[aura]]} />
+                      <Text>Aura</Text>
+                    </span>
+                  </ReferenceLink>,
                   ...values.map((value) => (
                     <div className="CatalogLines">
                       {auraKeys.map((stat) =>
@@ -510,7 +522,7 @@ export function ItemCatalogEntry({
 export function UnitCatalogEntry({ keys }: { keys: UnitKey[] }) {
   const units = keys.map((key) => unitDefinitions[key]);
   const comparisons = keys.map(unitComparisonStats);
-  const portraits = keys.map((key) => getUnitSprite(key));
+  const portraits = keys.map((key) => getWikiUnitSprite(key));
   const bounds = previewBounds(portraits);
   const stats = Array.from(
     new Set(
@@ -534,13 +546,27 @@ export function UnitCatalogEntry({ keys }: { keys: UnitKey[] }) {
     >
       <PlainTable
         headers={[
-          displayName(unitFamily(keys[0])),
-          ...keys.map((key) => displayName(key)),
+          keys.some(
+            (key) => unitPage(key, unitDefinitions[key]) === "bosses"
+          ) ? (
+            "Name"
+          ) : (
+            <ReferenceLink name={"unit:" + keys[0]} sprite>
+              <Text prefix={<Pixels rows={[[getWikiUnitSprite(keys[0])]]} />}>
+                {displayName(unitFamily(keys[0]))}
+              </Text>
+            </ReferenceLink>
+          ),
+          ...keys.map((key) => <UnitView unit={key} />),
         ]}
         rows={[
           ...[
             [
-              "Sprite",
+              keys.some(
+                (key) => unitPage(key, unitDefinitions[key]) === "bosses"
+              )
+                ? "Preview"
+                : "Sprite",
               ...keys.map((key, index) => (
                 <span id={index ? referenceId(key) : undefined} data-unit={key}>
                   {key === "rotten" ? (
@@ -567,6 +593,11 @@ export function UnitCatalogEntry({ keys }: { keys: UnitKey[] }) {
               )),
             ],
           ],
+          ...(keys.some(
+            (key) => unitPage(key, unitDefinitions[key]) === "bosses"
+          )
+            ? [["Sprite", ...keys.map((key) => <UnitView unit={key} />)]]
+            : []),
           [
             "Faction",
             ...units.map((unit) => <FactionLabel faction={unit.faction} />),
@@ -643,24 +674,24 @@ export function UnitCatalogEntry({ keys }: { keys: UnitKey[] }) {
             ),
           ],
           [
-            "Spawns",
-            ...units.map((unit) =>
-              unit.vanish?.cells.length ? (
-                <div className="CatalogSpawns">
-                  {unit.vanish.cells.map(({ cell }, index) => (
-                    <div key={index}>
-                      <UnitView unit={cell as UnitKey} />
-                    </div>
-                  ))}
-                </div>
-              ) : null
-            ),
-          ],
-          [
             "Drops",
             ...units.map((unit) =>
-              unit.drops.length ? (
+              unit.drops.length || unit.vanish?.cells.length ? (
                 <div className="CatalogDrops">
+                  {!!unit.vanish?.cells.length && (
+                    <Frame
+                      label="Remains"
+                      title="Remains"
+                      className="DropDialog"
+                      compact
+                    >
+                      {unit.vanish.cells.map(({ cell }, index) => (
+                        <div key={index}>
+                          <UnitView unit={cell as UnitKey} />
+                        </div>
+                      ))}
+                    </Frame>
+                  )}
                   {unit.drops
                     .filter(
                       (drop) =>
@@ -684,5 +715,33 @@ export function UnitCatalogEntry({ keys }: { keys: UnitKey[] }) {
         ]}
       />
     </section>
+  );
+}
+
+export function RewardContainers() {
+  return (
+    <>
+      <Heading text="Quest rewards" level={2} />
+      <div className="CatalogDrops">
+        {(Object.keys(unitDefinitions) as UnitKey[])
+          .filter(
+            (key) =>
+              /Chest$/.test(key) &&
+              !/^(wood|iron|gold|diamond|ruby)Chest$/.test(key)
+          )
+          .map((key) => (
+            <section key={key} id={referenceId(key)}>
+              <Frame title="Reward" label={key} compact>
+                <UnitView unit={key} />
+                {unitDefinitions[key].drops.map((drop, index) => (
+                  <div key={index}>
+                    <Parts items={drop.items} />
+                  </div>
+                ))}
+              </Frame>
+            </section>
+          ))}
+      </div>
+    </>
   );
 }

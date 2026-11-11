@@ -1,5 +1,7 @@
-# Play Page
+# Play and Scenario Pages
 
-The game appears before the preset table. Load remounts the game frame with the chosen preset. Test Mode starts disabled. Its lever controls the frame's `?test` flag, using the same flag the game reads for commands.
+Shows the game before its scenario selector. Selecting a scenario remounts the frame; its normal game controls remain active. Play keeps its optional Test Mode lever and links every scenario to the level or boss page. Menu, Dungeon and Island pages expose their relevant scenarios. Bosses has one preview and a short load table for its four encounters.
 
-Presets use the real level generators, inventory factory and named locations. They remain normal playable worlds, including local saves. See [preset creation](presets.md).
+Presets use native generators, item factories and class leveling. See [preset creation](presets.md). All previews keep native font and sprite dimensions.
+
+Scenario links include a `scenario-` fragment so their destination page loads the requested world directly into its top preview. Choosing a scenario also updates that fragment for reloads and sharing.

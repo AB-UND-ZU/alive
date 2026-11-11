@@ -1,6 +1,5 @@
 const { test, expect } = require("./fixtures.cjs");
 
-
 const fills = (locator) =>
   locator.evaluateAll((roots) => {
     const nodes = roots
@@ -13,9 +12,7 @@ const fills = (locator) =>
       ...new Set(
         nodes.map(
           (node) =>
-            getComputedStyle(node)[
-              node.matches("rect") ? "fill" : "color"
-            ]
+            getComputedStyle(node)[node.matches("rect") ? "fill" : "color"]
         )
       ),
     ];
@@ -127,9 +124,11 @@ test("catalog comparisons show supported variants with their real stats", async 
   await expect(page.locator('.CatalogIndex a[href="#sword"]')).toHaveCount(1);
   await page.goto("/game-design/characters/classes.html");
   const classes = page.locator("main table");
-  expect(await classes.locator("thead th.GridValue").allTextContents()).toEqual(
-    ["Class", "Rogue", "Knight", "Mage", "???"]
-  );
+  expect(
+    (await classes.locator("thead th.GridValue").allTextContents()).map(
+      (value) => value.trim()
+    )
+  ).toEqual(["Class", "Rogue", "Knight", "Mage", "???"]);
   await expect(classes.locator(".ClassLevel")).toHaveCount(40);
   const progression = classes
     .locator('th[scope="row"]')
@@ -159,8 +158,12 @@ test("catalog comparisons show supported variants with their real stats", async 
     .locator('th[scope="row"]')
     .filter({ hasText: /^Extra.*stats$/i })
     .locator("..");
-  await expect(extra.locator('[data-column="1"]')).toContainText(/\+\s*1.*Power/);
-  await expect(extra.locator('[data-column="1"]')).toContainText(/\+\s*1.*Haste/);
+  await expect(extra.locator('[data-column="1"]')).toContainText(
+    /\+\s*1.*Power/
+  );
+  await expect(extra.locator('[data-column="1"]')).toContainText(
+    /\+\s*1.*Haste/
+  );
   await expect(page.locator("main .CatalogVariant")).toHaveCount(0);
   await page.goto("/game-design/characters/enemies.html#prism");
   await expect(
@@ -199,14 +202,24 @@ test("long commands wrap inside the native phone chat", async ({ page }) => {
   await expect(preview).toHaveClass(/active/);
   await expect(frame.locator("#keyboard")).toBeVisible();
   await page.keyboard.type("/give sword 1 diamond earth");
-  expect((await iframe.boundingBox()).width).toBeLessThanOrEqual((await preview.locator(".PreviewScroll").boundingBox()).width);
+  expect((await iframe.boundingBox()).width).toBeLessThanOrEqual(
+    (await preview.locator(".PreviewScroll").boundingBox()).width
+  );
   const keyboard = await frame.locator("#keyboard").boundingBox();
-  expect(keyboard.width).toBeLessThanOrEqual((await iframe.boundingBox()).width);
-  const reset = await frame.getByRole("button", { name: "Reset", exact: true }).boundingBox();
+  expect(keyboard.width).toBeLessThanOrEqual(
+    (await iframe.boundingBox()).width
+  );
+  const reset = await frame
+    .getByRole("button", { name: "Reset", exact: true })
+    .boundingBox();
   expect(reset.y).toBeGreaterThanOrEqual(keyboard.y + keyboard.height - 1);
   await expect(frame.locator("canvas")).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Command", exact: true })).toHaveCount(0);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+  await expect(
+    page.getByRole("textbox", { name: "Command", exact: true })
+  ).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
+    390
+  );
 });
 
 test("large tables scroll sideways with fixed row labels and natural height", async ({
@@ -350,9 +363,10 @@ test("body glyphs use the font while callout lines and native keys keep their ge
     text: element.textContent,
     svg: element.querySelectorAll("svg").length,
   }));
-  await expect(
-    callout.locator(":scope > .Pixels .Layer").first()
-  ).toHaveCSS("color", "rgb(0, 255, 0)");
+  await expect(callout.locator(":scope > .Pixels .Layer").first()).toHaveCSS(
+    "color",
+    "rgb(0, 255, 0)"
+  );
   expect(note.markers).toBe(note.lines);
   expect(note.markers).toBeGreaterThan(1);
   expect(note.text).toContain(

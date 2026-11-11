@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { UnitKey } from "../game/balancing/units";
-import { createAreaWorld, assertHero, advanceUntil } from "../testing/harness";
+import {
+  createAreaWorld,
+  assertHero,
+  advanceUntil,
+  step,
+} from "../testing/harness";
+import { createPresetWorld } from "./presets";
+import { getIdentifierAndComponents } from "../engine/utils";
+import { pixelCircle } from "../game/math/tracing";
+import { wormRadius } from "../game/levels/island/areas";
 import { initializeArea } from "../engine/systems/initialize";
 import { preloadLevel } from "../engine/ecs";
 import { disposeEntity } from "../engine/systems/map";
@@ -14,6 +23,36 @@ import { getLimbs } from "../engine/systems/damage";
 import { colors } from "../game/assets/colors";
 
 export const createBossWorld = (key: UnitKey, activated = false) => {
+  if (key === "wormBoss") {
+    const world = createPresetWorld("worm");
+    const center = getIdentifierAndComponents(world, "wormRoom", [
+      "POSITION",
+    ])!.POSITION;
+    const cells = pixelCircle(center, wormRadius, undefined, true);
+    const left = Math.min(...cells.map((cell) => cell.x)) - 1;
+    const top = Math.min(...cells.map((cell) => cell.y)) - 1;
+    const bounds = {
+      x: left,
+      y: top,
+      width: Math.max(...cells.map((cell) => cell.x)) - left + 2,
+      height: Math.max(...cells.map((cell) => cell.y)) - top + 2,
+    };
+    initializeArea(
+      world,
+      { x: bounds.x, y: bounds.y },
+      { x: bounds.x + bounds.width - 1, y: bounds.y + bounds.height - 1 }
+    );
+    const boss = createCell(world, { ...center }, "worm_boss", "visible").cell;
+    boss.ORIENTABLE = { facing: "up" };
+    for (const entity of world.getEntities(["BEHAVIOUR"]))
+      entity.BEHAVIOUR.patterns = [];
+    step(world);
+    preloadLevel(world);
+    for (const entity of world.getEntities(["TOOLTIP"]))
+      entity.TOOLTIP.dialogs = [];
+    disposeEntity(world, assertHero(world), false);
+    return { world, bounds, hasRoom: true };
+  }
   const area =
     key === "ilexElite"
       ? ilexArea
@@ -39,7 +78,7 @@ export const createBossWorld = (key: UnitKey, activated = false) => {
   if (!area || key === "tutorialBoss") {
     const room = tutorialRooms.find((room) => room.name === "north4")!;
     const wave = room.waves![0].position;
-    const created = createCell(
+    createCell(
       world,
       key === "tutorialBoss"
         ? {
@@ -47,11 +86,9 @@ export const createBossWorld = (key: UnitKey, activated = false) => {
             y: (height - 1) / 2 + 1 + wave.y - room.offsetY,
           }
         : { x: Math.floor(width / 2), y: Math.floor(height / 2) },
-      key === "wormBoss" ? "worm_boss" : key,
+      key,
       "visible"
     );
-    if (key === "wormBoss" && created.cell?.ORIENTABLE)
-      created.cell.ORIENTABLE.facing = "right";
   }
   for (const entity of world.getEntities(["BEHAVIOUR"]))
     if (key !== "golem" || entity.NPC?.type !== "golem")

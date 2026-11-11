@@ -1,3 +1,4 @@
+import { leverOff, leverOn } from "../game/assets/sprites";
 import { Sprite } from "../engine/components/sprite";
 import { SpriteCode } from "./SpriteCode";
 import { useEffect, useRef, useState } from "react";
@@ -26,6 +27,7 @@ export function GamePreview({
     pending = useRef<string>(),
     ready = useRef(false),
     visible = useRef(false);
+  const [shadows, setShadows] = useState(true);
   const [loaded, setLoaded] = useState(false);
   const [isReady, setReady] = useState(false);
   const [active, setActive] = useState(false),
@@ -137,9 +139,17 @@ export function GamePreview({
       document.removeEventListener("visibilitychange", visibility);
     };
   }, [name]);
+  useEffect(() => {
+    if (name === "light" && isReady)
+      frame.current?.contentWindow?.postMessage(
+        { type: "shadows", enabled: shadows },
+        window.location.origin
+      );
+  }, [name, isReady, shadows]);
   return (
     <section
       ref={container}
+      id={name === "game" && preset ? "scenario-" + preset : undefined}
       className={`Preview ${active ? "active" : ""}`}
       data-scene={name}
       aria-label={sceneDefinitions[name].title}
@@ -218,6 +228,17 @@ export function GamePreview({
           </Text>
         </GridCenteredNote>
       </div>
+      {name === "light" && (
+        <button
+          className="ModeLever"
+          aria-label="Shadows"
+          aria-pressed={shadows}
+          onClick={() => setShadows(!shadows)}
+        >
+          <Pixels rows={[[shadows ? leverOn : leverOff]]} />
+          <Text>Shadows</Text>
+        </button>
+      )}
       {name === "sprites" && <SpriteCode sprite={state.sprite} />}
     </section>
   );

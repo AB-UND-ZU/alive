@@ -1,6 +1,6 @@
 # Structures
 
-Open a door and enter to see the interior. Locked doors consume a matching [[item:key]] once. Roofs hide the interior while outside; entering reveals the rooms and hides the surrounding world.
+Open a door and enter to see the interior. Wood doors open without a key. Other locks need a matching material or element [[item:key]]. Roofs hide the interior while outside; entering reveals the rooms and hides the surrounding world.
 
 ```widget
 structure-overview

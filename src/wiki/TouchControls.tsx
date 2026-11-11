@@ -116,7 +116,7 @@ export function TouchCursor() {
   return (
     <style
       data-touch-cursor
-    >{`body, body.no-cursor { cursor: ${cursor}; } body.wiki-touch-held:has(.Controls .Joystick) { cursor:none; }`}</style>
+    >{`body, body.no-cursor { cursor: ${cursor}; } body.wiki-touch-held:has(:is(.Controls, .ControlsFlipped) .Joystick) { cursor:none; }`}</style>
   );
 }
 

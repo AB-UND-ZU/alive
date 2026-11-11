@@ -14,6 +14,7 @@ export function TextGallery({ name }: { name: string }) {
     return (
       <div id="palette">
         <PlainTable
+          headerColor={colors.grey}
           headers={["Color", "Name", "Color", "Name"]}
           rows={Array.from({ length: 8 }, (_, index) =>
             [index, index + 8].flatMap((colorIndex) => {
@@ -44,6 +45,7 @@ export function TextGallery({ name }: { name: string }) {
       aria-label="256 CP437 characters in byte order"
     >
       <PlainTable
+        headerColor={colors.grey}
         compact
         headers={["", ...hex]}
         rows={Array.from({ length: 16 }, (_, row) => [

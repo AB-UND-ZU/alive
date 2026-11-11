@@ -15,3 +15,5 @@ type InvertedRingProps = {
   segments?: number;
 };
 ```
+
+`LightingContext` controls whether native entities receive shadows and draw circular light covers. It defaults to enabled.

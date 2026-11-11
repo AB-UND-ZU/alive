@@ -4,13 +4,15 @@ import { populateInventory } from "../bindings/creation";
 import { LEVEL, LevelName } from "../engine/components/level";
 import { Item } from "../engine/components/item";
 import { getIdentifierAndComponents } from "../engine/utils";
-import { moveEntity } from "../engine/systems/map";
+import { getClassData } from "../game/balancing/classes";
+import { getLevelStats } from "../engine/systems/leveling";
+import { getEntityVision } from "../engine/systems/visibility";
+import { disposeEntity, moveEntity } from "../engine/systems/map";
 import { findAdjacentDroppable } from "../engine/systems/drop";
 import { initializeCell } from "../engine/systems/initialize";
 import { preloadLevel } from "../engine/ecs";
 import { normalize } from "../game/math/std";
 import { up4Center } from "../game/levels/tutorial/areas";
-import { calculateVision } from "../engine/systems/visibility";
 import { commandItems } from "../game/assets/commands";
 
 export const presets = {
@@ -21,7 +23,7 @@ export const presets = {
   },
   dungeon: {
     title: "Dungeon",
-    description: "Tutorial start with a wood sword and healing supplies.",
+    description: "Begin the Dungeon empty-handed at level 1.",
     level: "LEVEL_TUTORIAL",
   },
   bandit: {
@@ -31,7 +33,8 @@ export const presets = {
   },
   island: {
     title: "Island",
-    description: "Island start with an iron sword, map and harvesting tools.",
+    description:
+      "Continue after the Dungeon at level 2 with a wood sword and supplies.",
     level: "LEVEL_ISLAND",
   },
   earth: {
@@ -48,14 +51,15 @@ export const presets = {
   },
   oak: {
     title: "Oak Boss",
-    description: "Oak encounter with a gold sword and fire beam.",
+    description:
+      "Quest equipment at level 4: iron sword, beam, slash and wood potions.",
     level: "LEVEL_ISLAND",
     cell: "oak_boss",
   },
   worm: {
     title: "Worm Boss",
     description:
-      "Cave encounter with a gold sword, fire beam and pickaxe. Attack the small worm to begin.",
+      "Level 6 with a gold sword, earth wave, iron bubble and exploration tools. Attack the small worm to begin.",
     level: "LEVEL_ISLAND",
     cell: "worm_bait",
   },
@@ -94,57 +98,125 @@ export function createPresetWorld(name: PresetName) {
     "SPAWNABLE",
     "LIGHT",
   ]);
-  const advanced = name !== "dungeon";
-  const material =
-    name === "oak" || name === "worm" ? "gold" : advanced ? "iron" : "wood";
-  const equipment: Omit<Item, "carrier">[] = [
-    { weapon: "sword", material, amount: 1, bound: false },
-    {
-      skill: name === "bandit" || name === "nomad" ? "bow" : "slash",
-      material,
-      amount: 1,
-      bound: false,
-    },
-    { ...commandItems.map, amount: 1, bound: false },
-    { ...commandItems.compass, amount: 1, bound: false },
-  ];
-  if (advanced)
-    equipment.push(
-      { offhand: "shield", material, amount: 1, bound: false },
-      { tool: "axe", material: "iron", amount: 1, bound: false }
-    );
-  if (name === "ilex" || name === "oak" || name === "worm")
+  for (const item of world.getEntities(["ITEM"]))
+    if (item.ITEM.carrier === world.getEntityId(hero))
+      disposeEntity(world, item, false);
+  hero.INVENTORY.items = [];
+  hero.EQUIPPABLE = {};
+  const classData = getClassData("rogue", hero.SPAWNABLE.hairColor);
+  hero.SPAWNABLE.classKey = "rogue";
+  hero.SPRITE = classData.sprite;
+  if (hero.SWIMMABLE) hero.SWIMMABLE.sprite = classData.swimming;
+  const levelNumber =
+    name === "dungeon"
+      ? 1
+      : name === "island" || name === "bandit"
+      ? 2
+      : name === "oak"
+      ? 4
+      : name === "worm"
+      ? 6
+      : 3;
+  const stats = getLevelStats("rogue", levelNumber);
+  Object.assign(hero.STATS, stats, {
+    level: levelNumber,
+    xp: 0,
+    hp: stats.maxHp,
+    mp: stats.maxMp,
+  });
+  const equipment: Omit<Item, "carrier">[] = [];
+  const items: Omit<Item, "carrier" | "bound">[] = [];
+  const potion = (
+    stat: "hp" | "mp",
+    material: Item["material"],
+    amount: number
+  ) => items.push({ consume: "potion", stat, material, amount });
+  if (name !== "dungeon")
     equipment.push({
-      spell: name === "ilex" ? "wave" : "beam",
-      material: "iron",
-      element: "fire",
+      weapon: "sword",
+      material: name === "island" ? "wood" : name === "worm" ? "gold" : "iron",
       amount: 1,
       bound: false,
     });
-  populateInventory(
-    world,
-    hero,
-    [
-      { stackable: "apple", amount: 20 },
-      { stackable: "coin", amount: 99 },
-      { stackable: "arrow", amount: 99 },
-      { stackable: "charge", amount: 99 },
-      { consume: "potion", stat: "hp", material, amount: 10 },
-      { stackable: "resource", material: "wood", amount: 99 },
-      { stackable: "ore", amount: 99 },
-      { tool: "pickaxe", material: "iron", amount: 1 },
-      { tool: "hammer", material: "iron", amount: 1 },
-    ],
-    equipment
-  );
-  if (hero.STATS)
-    Object.assign(hero.STATS, {
-      hp: advanced ? 50 : 25,
-      maxHp: advanced ? 50 : 25,
-      mp: 25,
-      maxMp: 25,
-    });
-  if (hero.LIGHT) Object.assign(hero.LIGHT, calculateVision(advanced ? 9 : 6));
+  if (name === "island") {
+    potion("hp", "wood", 10);
+    items.push(
+      { stackable: "resource", material: "iron", amount: 1 },
+      { stackable: "coin", amount: 5 },
+      { stackable: "apple", amount: 3 },
+      { stackable: "banana", amount: 2 }
+    );
+  } else if (name === "oak" || name === "worm") {
+    const worm = name === "worm";
+    equipment.push(
+      { ...commandItems.compass, amount: 1, bound: false },
+      {
+        spell: worm ? "wave" : "beam",
+        material: worm ? "iron" : "wood",
+        ...(worm ? { element: "earth" as const } : {}),
+        amount: 1,
+        bound: false,
+      },
+      {
+        skill: worm ? "block" : "slash",
+        material: worm ? "iron" : "wood",
+        amount: 1,
+        bound: false,
+      },
+      {
+        tool: worm ? "pickaxe" : "axe",
+        material: "wood",
+        amount: 1,
+        bound: false,
+      }
+    );
+    if (worm) {
+      equipment.push({
+        accessory: "boots",
+        material: "iron",
+        amount: 1,
+        bound: false,
+      });
+      items.push(
+        { tool: "hook", material: "wood", amount: 1 },
+        { stackable: "worm", amount: 10 }
+      );
+    }
+    items.push({ stackable: "charge", amount: worm ? 20 : 10 });
+    potion("hp", worm ? "iron" : "wood", 20);
+    potion("mp", worm ? "iron" : "wood", 10);
+  } else if (name !== "dungeon") {
+    equipment.push(
+      { ...commandItems.compass, amount: 1, bound: false },
+      { offhand: "shield", material: "iron", amount: 1, bound: false },
+      {
+        skill: name === "bandit" || name === "nomad" ? "bow" : "slash",
+        material: "iron",
+        amount: 1,
+        bound: false,
+      },
+      { tool: "axe", material: "wood", amount: 1, bound: false }
+    );
+    if (name === "ilex")
+      equipment.push({
+        spell: "wave",
+        material: "iron",
+        element: "fire",
+        amount: 1,
+        bound: false,
+      });
+    items.push(
+      { stackable: "coin", amount: 20 },
+      { stackable: "apple", amount: 5 },
+      { stackable: "charge", amount: 10 },
+      { stackable: "arrow", amount: 20 },
+      { stackable: "resource", material: "wood", amount: 10 }
+    );
+    potion("hp", "wood", 10);
+    potion("mp", "wood", 5);
+  }
+  populateInventory(world, hero, items, equipment);
+  hero.LIGHT = getEntityVision(world, hero);
   const level = world.metadata.gameEntity[LEVEL];
   let target =
     name === "bandit"

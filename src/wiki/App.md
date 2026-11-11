@@ -21,3 +21,5 @@ The navigation uses dialog arrow, track and handle sprites over a native scroll 
 ```ts src/wiki/App.tsx
 type Navigate = (route: string) => void;
 ```
+
+Entity mentions keep their sprite/name destination even for repeated or same-page references. Gameplay tables also resolve entity names from the native reference index; source prose keeps its code-only linking policy.

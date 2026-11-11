@@ -267,6 +267,7 @@
   {"source": "src/wiki/Widgets.md", "title": "Data Widgets", "route": "development/wiki/widgets.html", "aliases": ["development/src/wiki/Widgets.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/WorldDiagram.md", "title": "World Diagrams", "route": "development/wiki/worlddiagram.html", "aliases": ["development/src/wiki/WorldDiagram.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/WorldMap.md", "title": "Island Maps", "route": "development/wiki/worldmap.html", "aliases": ["development/src/wiki/WorldMap.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
+  {"source": "src/wiki/SpriteGallery.md", "title": "Sprite Gallery", "route": "development/wiki/spritegallery.html", "aliases": [], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/WorldPlants.md", "title": "World Plants", "route": "development/wiki/worldplants.html", "aliases": ["development/src/wiki/WorldPlants.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/catalog.md", "title": "Catalog", "route": "development/wiki/catalog.html", "aliases": ["development/src/wiki/catalog.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/codePage.md", "title": "Dos Code Page", "route": "development/wiki/codepage.html", "aliases": ["development/src/wiki/codePage.html"], "chapter": "Development", "group": "Wiki", "navigation": true},

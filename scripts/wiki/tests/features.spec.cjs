@@ -3,9 +3,15 @@ const fs = require("node:fs");
 const path = require("node:path");
 const logicalText = (element) => {
   const copy = element.cloneNode(true);
-  copy.querySelectorAll(".Cell").forEach(cell => cell.replaceWith(
-    cell.getAttribute("data-glyph") || Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " "
-  ));
+  copy
+    .querySelectorAll(".Cell")
+    .forEach((cell) =>
+      cell.replaceWith(
+        cell.getAttribute("data-glyph") ||
+          Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent ||
+          " "
+      )
+    );
   return copy.textContent;
 };
 async function expectColor(locator, color) {
@@ -14,10 +20,7 @@ async function expectColor(locator, color) {
       locator.evaluateAll(
         (roots, color) =>
           roots
-            .flatMap((root) => [
-              root,
-              ...root.querySelectorAll("*"),
-            ])
+            .flatMap((root) => [root, ...root.querySelectorAll("*")])
             .some(
               (node) =>
                 getComputedStyle(node)[
@@ -96,9 +99,16 @@ test("Welcome is the index page and links use the credits underline", async ({
     .evaluateAll((elements) =>
       elements.map((el) => {
         const copy = el.cloneNode(true);
-        copy.querySelectorAll(".Cell").forEach(cell => cell.replaceWith(
-          cell.getAttribute("data-glyph") || Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " "
-        ));
+        copy
+          .querySelectorAll(".Cell")
+          .forEach((cell) =>
+            cell.replaceWith(
+              cell.getAttribute("data-glyph") ||
+                Array.from(cell.querySelectorAll(".Layer")).pop()
+                  ?.textContent ||
+                " "
+            )
+          );
         return { text: copy.textContent, y: el.getBoundingClientRect().y };
       })
     );
@@ -199,9 +209,9 @@ test("CSS navigation hover keeps the current solid highlight and moves only the 
   await expect(current).toBeHidden();
   await expect(touch.locator(".NavHoverPointer")).toBeVisible();
   expect(
-    await touch.locator(".ShadedText").evaluate((node) =>
-      getComputedStyle(node, "::before").clipPath
-    )
+    await touch
+      .locator(".ShadedText")
+      .evaluate((node) => getComputedStyle(node, "::before").clipPath)
   ).toBe("inset(50% 0px 0px)");
   await expect(solid).toBeVisible();
   expect(
@@ -300,7 +310,9 @@ test("focused previews capture keys, release focus on Escape and reset", async (
     .boundingBox();
   const viewport = await iframe.boundingBox();
   expect(reset.y).toBeGreaterThanOrEqual(boundary.y + boundary.height);
-  expect(reset.y + reset.height).toBeLessThanOrEqual(viewport.y + viewport.height);
+  expect(reset.y + reset.height).toBeLessThanOrEqual(
+    viewport.y + viewport.height
+  );
   const previousFrame = await iframe.elementHandle();
   await frame.getByRole("button", { name: "Reset", exact: true }).click();
   await expect
@@ -397,9 +409,11 @@ test("item, unit, class and type links resolve to their own anchors", async ({
   await page.locator('main a[href$="gear.html#sword"]').first().click();
   await expect(page.locator("#sword")).toBeVisible();
   await page.goto("/game-design/characters/enemies.html");
-  await expect(page.locator('main a[href$="enemies.html#prism"]')).toHaveCount(
-    0
-  );
+  expect(
+    await page.locator('main a[href$="enemies.html#prism"]').count()
+  ).toBeGreaterThan(0);
+  await page.locator('main a[href$="enemies.html#prism"]').first().click();
+  await expect(page.locator("#prism")).toBeVisible();
   await page.goto("/game-design/characters/enemies.html#prism");
   await expect(page.locator("#prism")).toBeVisible();
   await page.goto("/game-design/characters/classes.html");
@@ -502,7 +516,8 @@ test("the damage tool keeps fractional health with distinct attacker and defende
 }) => {
   await page.goto("/game-design/combat/damage.html");
   const trueRow = page.getByRole("row", {
-    name: "True Ignored Ignored", exact: true,
+    name: "True Ignored Ignored",
+    exact: true,
   });
   await expect(trueRow).toHaveCount(1);
   const tool = page.locator("[data-widget=damage]");
@@ -578,8 +593,12 @@ test("command reference and chat preview use native game commands", async ({
   await page.keyboard.press("Enter");
   await expect(iframe).toHaveAttribute("data-hp", "12");
 
-  await expect(page.getByRole("textbox", { name: "Search items" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Run", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("textbox", { name: "Search items" })).toHaveCount(
+    0
+  );
+  await expect(
+    page.getByRole("button", { name: "Run", exact: true })
+  ).toHaveCount(0);
 });
 
 test("the Interface diagram is static, labels controls and places text underneath", async ({
@@ -594,7 +613,9 @@ test("the Interface diagram is static, labels controls and places text underneat
   ).toBe("none");
   const frame = await (await diagram.elementHandle()).contentFrame();
   await expect(frame.locator("canvas")).toBeVisible();
-  expect(await frame.locator(".InterfaceLabels").evaluate(logicalText)).toContain("(auto-save)");
+  expect(
+    await frame.locator(".InterfaceLabels").evaluate(logicalText)
+  ).toContain("(auto-save)");
   for (const title of [
     "Pause",
     "Stats",
@@ -607,7 +628,9 @@ test("the Interface diagram is static, labels controls and places text underneat
     "Spell",
     "Gear",
   ])
-    expect(await frame.locator(".InterfaceLabels").evaluate(logicalText)).toContain(title);
+    expect(
+      await frame.locator(".InterfaceLabels").evaluate(logicalText)
+    ).toContain(title);
   for (const label of ["BAG", "EQUIP", "GEAR", "STATS", "MAP"])
     await expect(
       frame.locator(`.InterfaceLabels [data-quick-action="${label}"]`)
@@ -680,10 +703,9 @@ test("Play starts with the game and loads presets with optional Test Mode", asyn
   ).toBe("game");
   const table = page.locator("main table");
   await expect(table.locator("tbody tr:not(.GridRule)")).toHaveCount(10);
-  await table
-    .locator("tbody tr:not(.GridRule)")
-    .filter({ hasText: "Dungeon" })
-    .getByRole("button", { name: "Load", exact: true })
+  await page
+    .getByRole("tablist", { name: "Scenario" })
+    .getByRole("tab", { name: "Dungeon", exact: true })
     .click();
   const iframe = page.locator('[data-scene="game"] iframe');
   await expect(iframe).toHaveAttribute("src", /preview.html#game\/dungeon$/);
@@ -701,10 +723,9 @@ test("Play starts with the game and loads presets with optional Test Mode", asyn
   await page.keyboard.up("ArrowDown");
   expect(await page.evaluate(() => scrollY)).toBe(before);
   await expect(frame.locator("canvas")).toBeVisible();
-  await table
-    .locator("tbody tr:not(.GridRule)")
-    .filter({ hasText: "Worm Boss" })
-    .getByRole("button", { name: "Load", exact: true })
+  await page
+    .getByRole("tablist", { name: "Scenario" })
+    .getByRole("tab", { name: "Worm Boss", exact: true })
     .click();
   await expect(iframe).toHaveAttribute("src", /\?test#game\/worm$/);
   await expect(iframe).toHaveAttribute("data-hp", /\d+/, { timeout: 15000 });

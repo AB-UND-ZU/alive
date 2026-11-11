@@ -1,3 +1,5 @@
+import { ReferenceContext } from "./references";
+import { getItemSprite } from "../game/assets/utils";
 import { render, screen, within } from "@testing-library/react";
 import { GridTable } from "./GridTable";
 import { LinkStyleContext, Text } from "./visuals";
@@ -84,4 +86,52 @@ test("multiword links preserve selectable whitespace beneath the underline", () 
   const label = screen.getByText("Max HP");
   expect(label).toHaveClass("NativeText", "LinkText");
   expect(label.textContent).toBe("Max HP");
+});
+
+test("a literal zero column header remains visible in a gray native atlas", () => {
+  render(
+    <GridTable
+      compact
+      headerColor={colors.grey}
+      headers={["", "0", "1"]}
+      rows={[["00", "a", "b"]]}
+    />
+  );
+  expect(screen.getByRole("columnheader", { name: "0" })).toHaveTextContent(
+    "0"
+  );
+  expect(screen.getByText("0")).toHaveStyle({ color: colors.grey });
+});
+
+test("entity text in a table receives its native sprite and destination", () => {
+  const sword = {
+    href: "game-design/gear/weapons.html#sword",
+    kind: "item" as const,
+  };
+  render(
+    <ReferenceContext.Provider
+      value={{
+        entries: { sword },
+        features: { sword },
+        decorations: {
+          sword: {
+            sprite: getItemSprite({ weapon: "sword", material: "wood" }),
+          },
+        },
+        pattern: /\b(sword)\b/gi,
+        link: (href, children) => <a href={href}>{children}</a>,
+      }}
+    >
+      <GridTable
+        headers={["Entity", "Use"]}
+        rows={[[<Text>Sword</Text>, "Sword"]]}
+      />
+    </ReferenceContext.Provider>
+  );
+  const links = screen.getAllByRole("link");
+  expect(links).toHaveLength(2);
+  for (const link of links) {
+    expect(link).toHaveAttribute("href", sword.href);
+    expect(within(link).getByLabelText("Sword")).toBeInTheDocument();
+  }
 });

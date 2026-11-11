@@ -1,3 +1,6 @@
+import { RewardContainers } from "./CatalogEntry";
+import { SpriteGallery } from "./SpriteGallery";
+import { getWikiUnitSprite } from "./catalog";
 import { TownMap } from "./WorldMap";
 import { StructureOverview } from "./StructureOverview";
 import { Minimap } from "./Minimap";
@@ -84,7 +87,7 @@ import { Item, elements } from "../engine/components/item";
 import { gearStats } from "../game/balancing/equipment";
 import { abilityStats } from "../game/balancing/abilities";
 import { slots, equipments } from "../engine/components/equippable";
-import { getItemSprite, getUnitSprite } from "../game/assets/utils";
+import { getItemSprite } from "../game/assets/utils";
 import { getItemDescription } from "../game/assets/descriptions";
 import "./catalog.css";
 
@@ -319,10 +322,12 @@ export function Widget({ name }: { name: string }) {
               ];
             }),
           [
-            <span className="Item" id="aura">
-              <Pixels rows={[[aura]]} label="Aura" />
-              <Text color={colors.white}>Aura</Text>
-            </span>,
+            <ReferenceLink name="aura" sprite>
+              <span className="Item" id="aura">
+                <Pixels rows={[[aura]]} label="Aura" />
+                <Text color={colors.white}>Aura</Text>
+              </span>
+            </ReferenceLink>,
             <div className="CatalogLines">
               {Object.keys(equipmentStatDescriptions)
                 .filter((key) => key.startsWith("add"))
@@ -527,6 +532,8 @@ export function Widget({ name }: { name: string }) {
         ])}
       />
     );
+  if (name === "reward-containers") return <RewardContainers />;
+  if (name === "sprite-gallery") return <SpriteGallery />;
   if (name === "sprite-layers")
     return (
       <>
@@ -551,7 +558,7 @@ export function Widget({ name }: { name: string }) {
             {
               key: "chick",
               kind: "unit",
-              sprite: { ...getUnitSprite("chick"), name: "Chick" },
+              sprite: { ...getWikiUnitSprite("chick"), name: "Chick" },
             },
             {
               key: "worm",
@@ -715,7 +722,13 @@ export function Widget({ name }: { name: string }) {
     );
   if (name === "unit-catalog" || kind === "units") {
     const keys = (Object.keys(unitDefinitions) as UnitKey[]).filter(
-      (key) => !category || unitPage(key, unitDefinitions[key]) === category
+      (key) =>
+        (!category || unitPage(key, unitDefinitions[key]) === category) &&
+        !(
+          category === "containers" &&
+          /chest/i.test(key) &&
+          !/^(wood|iron|gold|diamond|ruby)Chest$/.test(key)
+        )
     );
     const groups = unitGroups(keys);
     return (
@@ -725,7 +738,7 @@ export function Widget({ name }: { name: string }) {
             ...(category === "plants"
               ? worldPlantGroups().map((family) => ({
                   key: "world-" + family.name.toLowerCase(),
-                  group: "plants",
+                  group: family.name === "Palm" ? "Desert" : "Forest",
                   sprite: { ...family.plants[0].sprites[0], name: family.name },
                   color: colors.grey,
                 }))
@@ -742,14 +755,18 @@ export function Widget({ name }: { name: string }) {
                   key,
                   kind: "unit" as const,
                   group:
-                    category === "enemies"
+                    category === "plants"
+                      ? unitFamily(key) === "cactus"
+                        ? "Desert"
+                        : "Forest"
+                      : category === "enemies"
                       ? unitOverviewGroup(key)
                       : unitPage(key, unit),
                   redirected: Boolean(
                     category && unitPage(key, unit) !== category
                   ),
                   sprite: {
-                    ...getUnitSprite(key),
+                    ...getWikiUnitSprite(key),
                     name:
                       group.length > 1
                         ? displayName(unitFamily(key))
@@ -933,10 +950,7 @@ export function Widget({ name }: { name: string }) {
             </span>
           </ReferenceLink>,
           <Parts items={p.parts} />,
-          <span>
-            <StatLabel stat="build" value={p.level} showName={false} />
-            <Text>Building</Text>
-          </span>,
+          <StatLabel stat="build" value={p.level} showName={false} />,
           String(p.effort),
           <div className="CatalogLines">
             {p.grounds.map((cell) => (
@@ -952,6 +966,8 @@ export function Widget({ name }: { name: string }) {
     return (
       <PlainTable
         headers={["Target", "Tool", "Work", "Drops"]}
+        className="HarvestingTable"
+        columnLimits={[14]}
         rows={Object.entries(harvestTools).map(([key, tool]) => {
           const resource = key as Resource;
           const data = getHarvestConfig(resource);

@@ -1404,9 +1404,25 @@ export default function Controls({
       ) : (
         <>
           <Row
+            className="ActionButtons"
             cells={
               compact
-                ? skillOrToolAction
+                ? skillOrToolAction && spellAction
+                  ? [
+                      ...leftButton.slice(0, -1),
+                      getButtonSeparator(
+                        skillOrToolAction.palette,
+                        skillOrToolAction.disabled,
+                        skillHighlighted,
+                        !!skill,
+                        spellAction.palette,
+                        spellAction.disabled,
+                        spellHighlighted,
+                        !!spell
+                      ),
+                      ...rightButton.slice(1),
+                    ]
+                  : skillOrToolAction
                   ? leftButton
                   : spellAction
                   ? rightButton
@@ -1445,8 +1461,17 @@ export default function Controls({
             }
           />
           <Row
+            className="ActionActivation"
             cells={
-              flipped
+              compact
+                ? skillOrToolAction && spellAction
+                  ? [...skillActivation, none, ...spellActivation]
+                  : skillOrToolAction
+                  ? skillActivation
+                  : spellAction
+                  ? spellActivation
+                  : []
+                : flipped
                 ? [
                     ...equipmentRows[1],
                     ...spellActivation,

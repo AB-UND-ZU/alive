@@ -36,14 +36,15 @@ body {
   display: flex;
   z-index: 4;
 }
-.preview .Controls {
+.preview :is(.Controls, .ControlsFlipped) {
   top: var(--bottom-offset);
   z-index: 3;
 }
 .preview .KeyboardOverlay {
   bottom: var(--cell-height);
 }
-.preview .Controls > .Row:nth-of-type(3) {
+.preview :is(.Controls, .ControlsFlipped) > .ActionButtons,
+.preview :is(.Controls, .ControlsFlipped) > .ActionActivation {
   justify-content: flex-start;
   padding-left: calc((100% - 23 * var(--cell-width)) / 2);
 }
@@ -94,13 +95,13 @@ body {
   bottom: 0;
 }
 .preview .Stats .StatBorder,
-.preview .Controls > .Row:nth-of-type(2) {
+.preview :is(.Controls, .ControlsFlipped) > .ControlsEdge {
   visibility: hidden;
 }
-.preview-light .Controls > .Row,
-.preview-movement .Controls > .Row,
-.preview-water .Controls > .Row,
-.preview-pushing .Controls > .Row {
+.preview-light :is(.Controls, .ControlsFlipped) > .Row,
+.preview-movement :is(.Controls, .ControlsFlipped) > .Row,
+.preview-water :is(.Controls, .ControlsFlipped) > .Row,
+.preview-pushing :is(.Controls, .ControlsFlipped) > .Row {
   visibility: hidden;
 }
 .preview-movement .Skill,
@@ -113,4 +114,17 @@ body {
 }
 .preview-interface {
   pointer-events: none;
+}
+
+.preview-abilities :is(.Controls, .ControlsFlipped) > .Spell {
+  left: 0;
+  right: auto;
+  width: calc(var(--cell-width) * 6);
+  transform: none;
+}
+
+.preview-abilities
+  :is(.Controls, .ControlsFlipped):not(:has(#keyboard))
+  .DemoActions {
+  bottom: calc(var(--cell-height) * 2);
 }

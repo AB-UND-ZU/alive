@@ -61,3 +61,70 @@ test("Worm Boss preset equips the hero beside the bait and starts the encounter"
     30000
   );
 }, 120000);
+
+const carried = (world: ReturnType<typeof createPresetWorld>) => {
+  const hero = assertHero(world);
+  return world
+    .getEntities([ITEM])
+    .filter((entity) => entity.ITEM.carrier === world.getEntityId(hero))
+    .map((entity) => entity.ITEM);
+};
+test("Dungeon begins empty-handed at level one", () => {
+  const world = createPresetWorld("dungeon");
+  expect(assertHero(world).STATS?.level).toBe(1);
+  expect(carried(world)).toEqual([]);
+}, 120000);
+test.each([
+  ["island", 2],
+  ["oak", 4],
+  ["worm", 6],
+] as const)(
+  "%s has its progression equipment and full mana at level %s",
+  (name, level) => {
+    const world = createPresetWorld(name);
+    const hero = assertHero(world);
+    expect(hero.STATS?.level).toBe(level);
+    expect(hero.STATS?.mp).toBe(hero.STATS?.maxMp);
+    const items = carried(world);
+    const worm = name === "worm";
+    expect(items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          weapon: "sword",
+          material: name === "island" ? "wood" : worm ? "gold" : "iron",
+        }),
+        expect.objectContaining({
+          consume: "potion",
+          stat: "hp",
+          material: worm ? "iron" : "wood",
+          amount: name === "island" ? 10 : 20,
+        }),
+      ])
+    );
+    if (name === "island") return;
+    expect(items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          spell: worm ? "wave" : "beam",
+          material: worm ? "iron" : "wood",
+          ...(worm ? { element: "earth" } : {}),
+        }),
+        expect.objectContaining({
+          skill: worm ? "block" : "slash",
+          material: worm ? "iron" : "wood",
+        }),
+        expect.objectContaining({
+          stackable: "charge",
+          amount: worm ? 20 : 10,
+        }),
+        expect.objectContaining({
+          consume: "potion",
+          stat: "mp",
+          amount: 10,
+          material: worm ? "iron" : "wood",
+        }),
+      ])
+    );
+  },
+  120000
+);

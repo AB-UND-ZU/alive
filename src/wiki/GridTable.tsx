@@ -2,6 +2,8 @@ import {
   CSSProperties,
   ReactNode,
   isValidElement,
+  cloneElement,
+  Fragment,
   useCallback,
   useContext,
   useLayoutEffect,
@@ -17,7 +19,12 @@ import {
   TextColorContext,
   Count,
 } from "./visuals";
-import { ReferenceContext, ReferenceText } from "./references";
+import {
+  ReferenceContext,
+  ReferenceText,
+  ReferenceLink,
+  featureSprites,
+} from "./references";
 import { colors } from "../game/assets/colors";
 import "./GridTable.css";
 const edgeSprite = {
@@ -40,11 +47,17 @@ export function GridTable({
   rows,
   compact = false,
   rowHeaders = true,
+  headerColor = colors.white,
+  columnLimits = [],
+  className = "",
 }: {
   headers: ReactNode[];
   rows: ReactNode[][];
   compact?: boolean;
   rowHeaders?: boolean;
+  headerColor?: string;
+  columnLimits?: number[];
+  className?: string;
 }) {
   const { decorations = {} } = useContext(ReferenceContext);
   const visibleRows = rows.filter((row) =>
@@ -71,7 +84,7 @@ export function GridTable({
     const cells = headers.map((_, column) =>
       Array.from(
         table.current!.querySelectorAll<HTMLElement>(
-          `tbody [data-column="${column}"]`
+          `.GridValue[data-column="${column}"]`
         )
       )
     );
@@ -106,16 +119,18 @@ export function GridTable({
               (compact ? 0 : 2)
           )
         ),
-        ...cells[column].flatMap((cell) =>
-          Array.from(cell.querySelectorAll(".Item, .RichMention"))
-            .filter((mention) => mention.querySelector(".Pixels"))
-            .map(
-              (mention) =>
-                Math.ceil(mention.getBoundingClientRect().width / 18) +
-                (compact ? 0 : 2) +
-                (mention.closest(".FrameScroll") ? 2 : 0)
-            )
-        ),
+        ...(columnLimits[column]
+          ? []
+          : cells[column].flatMap((cell) =>
+              Array.from(cell.querySelectorAll(".Item, .RichMention, .Word"))
+                .filter((mention) => mention.querySelector(".Pixels"))
+                .map(
+                  (mention) =>
+                    Math.ceil(mention.getBoundingClientRect().width / 18) +
+                    (compact ? 0 : 2) +
+                    (mention.closest(".FrameScroll") ? 2 : 0)
+                )
+            )),
         ...[headerText[column], ...values].flatMap((value) =>
           (value.match(/\S+/g) || []).map(
             (word) => word.length + (compact ? 0 : 2)
@@ -127,7 +142,7 @@ export function GridTable({
       Math.max(
         minima[column],
         Math.min(
-          24,
+          columnLimits[column] || 24,
           Math.max(
             headerText[column].length + (compact ? 0 : 2),
             ...values.map((value) => value.length + (compact ? 0 : 2))
@@ -158,7 +173,7 @@ export function GridTable({
     setWidths((previous) =>
       previous.join() === next.join() ? previous : next
     );
-  }, [headers, compact]);
+  }, [headers, compact, columnLimits]);
   useLayoutEffect(layout, [layout, visibleRows]);
   useLayoutEffect(() => {
     const observer = new ResizeObserver(layout);
@@ -203,6 +218,36 @@ export function GridTable({
     }
     return <ReferenceText text={value} />;
   };
+  const richValue = (value: ReactNode): ReactNode => {
+    if (
+      !isValidElement<{
+        children?: ReactNode;
+        prefix?: ReactNode;
+        color?: string;
+        code?: boolean;
+      }>(value)
+    )
+      return value;
+    if (value.type === Text && value.props.code) return value;
+    if (value.type === Text && typeof value.props.children === "string") {
+      return value.props.prefix ? (
+        <ReferenceLink name={value.props.children} sprite>
+          {value}
+        </ReferenceLink>
+      ) : (
+        <ReferenceText text={value.props.children} color={value.props.color} />
+      );
+    }
+    if (["span", "div", Fragment].includes(value.type as typeof Fragment))
+      return cloneElement(
+        value,
+        {},
+        Array.isArray(value.props.children)
+          ? value.props.children.map(richValue)
+          : richValue(value.props.children)
+      );
+    return value;
+  };
   const cells = (values: ReactNode[], header = false, rowIndex = 0) => {
     return [
       ...values.flatMap((value, column) => {
@@ -235,20 +280,27 @@ export function GridTable({
             }}
           >
             <div>
-              {emptyCell(value) ? null : typeof value === "string" ? (
+              {!header &&
+              column !== 0 &&
+              emptyCell(value) ? null : typeof value === "string" ? (
                 header ? (
-                  <Text color={colors.white}>{value}</Text>
+                  decorations[value.toLowerCase()]?.sprite ||
+                  featureSprites[value.toLowerCase()] ? (
+                    <ReferenceText text={value} />
+                  ) : (
+                    <Text color={headerColor}>{value}</Text>
+                  )
                 ) : (
                   cellText(value)
                 )
               ) : typeof value === "number" ? (
                 <Count value={value} />
               ) : header ? (
-                <TextColorContext.Provider value={colors.white}>
+                <TextColorContext.Provider value={headerColor}>
                   {value}
                 </TextColorContext.Provider>
               ) : (
-                value
+                richValue(value)
               )}
             </div>
           </Tag>,
@@ -258,7 +310,7 @@ export function GridTable({
   };
   return (
     <TableContext.Provider value>
-      <div className="TableScroll" ref={container}>
+      <div className={`TableScroll ${className}`} ref={container}>
         <table
           ref={table}
           className={`GridTable ${compact ? "CompactGrid" : ""}`}

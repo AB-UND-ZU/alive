@@ -32,3 +32,5 @@ type Action = {
   palette: Palette;
 };
 ```
+
+Compact controls keep spell activation under its spell button, and align both activation groups when both actions exist. Normal game controls retain their full equipment rows.

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useSpring } from "@react-spring/three";
 import { useDimensions } from "../Dimensions";
 import { SPRITE } from "../../engine/components/sprite";
@@ -9,7 +9,7 @@ import { SWIMMABLE } from "../../engine/components/swimmable";
 import { colors } from "../../game/assets/colors";
 import { updateLocalMatrix } from "./matrixUpdates";
 import Animated from "./Animated";
-import CoveredLight from "./CoveredLight";
+import CoveredLight, { LightingContext } from "./CoveredLight";
 import { useWorld } from "../../bindings/hooks";
 import {
   getLayerCount,
@@ -61,6 +61,7 @@ function Entity({
   outside: boolean;
 }) {
   const dimensions = useDimensions();
+  const shadows = useContext(LightingContext);
   const { ecs, paused } = useWorld();
   const config = entity[MOVABLE]?.spring;
   const isBumpable = !!entity[BUMPABLE];
@@ -110,7 +111,7 @@ function Entity({
     isTransparent,
     darkness: spring.opacity,
     opacity: isUnit ? spring.opacity : undefined,
-    receiveShadow: !isAir && !isOpaque && !isFloat && !inside,
+    receiveShadow: shadows && !isAir && !isOpaque && !isFloat && !inside,
     colorFactor: outside ? shadowFactor : undefined,
   };
 
@@ -149,7 +150,7 @@ function Entity({
         layerProps: {
           isTransparent,
           opacity: spring.dotsOpacity,
-          receiveShadow: !isOpaque && inRadius && !inside,
+          receiveShadow: shadows && !isOpaque && inRadius && !inside,
           colorFactor: outside ? shadowFactor : undefined,
         },
       });
@@ -209,7 +210,9 @@ function Entity({
         <Stack segments={particleSegments} layerCount={lootLayers} />
       )}
 
-      {isBright && <CoveredLight brightness={entity[LIGHT]!.brightness} />}
+      {shadows && isBright && (
+        <CoveredLight brightness={entity[LIGHT]!.brightness} />
+      )}
 
       {!!entity[SWIMMABLE] && !isFlying && (
         <Swimming

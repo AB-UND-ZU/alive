@@ -1,7 +1,7 @@
 # Island
 
-```scene
-game/island
+```widget
+play island
 ```
 
 Explore the jungle, desert, glacier and ocean. The playable preview and town cutouts use seed **2026**. Settlements and shorelines vary with the seed in normal games.

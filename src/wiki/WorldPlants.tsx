@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { ReferenceContext, MentionStyle } from "./references";
+import { useState, useContext } from "react";
 import { worldRows } from "./WorldDiagram";
 import { createCell } from "../bindings/creation";
 import { createAreaWorld } from "../testing/harness";
@@ -7,7 +8,7 @@ import { Item } from "../engine/components/item";
 import { getHarvestConfig, harvestTools } from "../game/balancing/harvesting";
 import { Parts } from "./CatalogEntry";
 import { LargePreview, previewBounds } from "./LargePreview";
-import { ItemView, PlainTable } from "./visuals";
+import { ItemView, PlainTable, Pixels, Text } from "./visuals";
 
 import { Sprite } from "../engine/components/sprite";
 import {
@@ -136,6 +137,17 @@ export const worldPlantGroups = () =>
 
 export function WorldPlants() {
   const [groups] = useState(worldPlantGroups);
+  const { features = {}, link } = useContext(ReferenceContext);
+  const header = (name: string, sprite: Sprite, anchor: string) => {
+    const content = (
+      <MentionStyle preserveColor>
+        <Text prefix={<Pixels rows={[[sprite]]} />}>{name}</Text>
+      </MentionStyle>
+    );
+    return features.plants
+      ? link(features.plants.href + "#" + anchor, content, true)
+      : content;
+  };
   return (
     <>
       {groups.map(({ name, cells, plants, titles }) => (
@@ -146,17 +158,27 @@ export function WorldPlants() {
         >
           <PlainTable
             headers={[
-              name,
-              ...cells.map(
-                (cell, index) =>
+              header(
+                name,
+                plants[0].sprites.find((sprite) => sprite.layers.length) ||
+                  plants[0].sprites[0],
+                "world-" + name.toLowerCase()
+              ),
+              ...cells.map((cell, index) =>
+                header(
                   titles?.[index] ||
-                  (cell === "berry_one"
-                    ? "Berry"
-                    : cell === "flower_one"
-                    ? "Flower"
-                    : cell === "leaves"
-                    ? "Oak"
-                    : cell.charAt(0).toUpperCase() + cell.slice(1))
+                    (cell === "berry_one"
+                      ? "Berry"
+                      : cell === "flower_one"
+                      ? "Flower"
+                      : cell === "leaves"
+                      ? "Oak"
+                      : cell.charAt(0).toUpperCase() + cell.slice(1)),
+                  plants[index].sprites.find(
+                    (sprite) => sprite.layers.length
+                  ) || plants[index].sprites[0],
+                  "world-" + name.toLowerCase()
+                )
               ),
             ]}
             rows={[

@@ -53,3 +53,10 @@
     left: 0;
   }
 }
+
+.HarvestingTable .GridValue[data-column="0"] .Item,
+.HarvestingTable .GridValue[data-column="0"] .RichMention {
+  display: inline;
+  white-space: normal;
+}
+.HarvestingTable .GridValue[data-column="0"] .Text { white-space: normal; }

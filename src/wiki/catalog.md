@@ -11,3 +11,5 @@
 `unitComparisonStats` creates only equipment records in a minimal ECS and calls `getEntityDisplayStats`, so displayed attributes include equipped bonuses and the same haste/vision offsets as the game. The Damage row uses the NPC caster's balancing overrides, including concealed weapons. Stat pickup entries require a production recipe, trade or unit reference; command-only aliases remain available in the command wiki.
 
 Enemy overview groups distinguish Ilex and Oak Adds from ordinary roaming enemies. Hedge entries stay in the detailed comparisons but are omitted from that overview. Golem Limb is the right-hand column of the Golem comparison. Sign remains under Units. Torch and Boots are separate accessory comparisons so every reachable upgrade stays visible.
+
+`getWikiUnitSprite` uses complete native unit portraits and the existing Rotten Tree stump for its otherwise invisible root entity. Non-default quest chests appear as reward frames outside the default chest comparison. Spawned remains belong inside each unit's Drops frame.

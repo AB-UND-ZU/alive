@@ -1,4 +1,9 @@
-import { previewItem, displayName, getEffectSprite } from "./catalog";
+import {
+  previewItem,
+  displayName,
+  getEffectSprite,
+  getWikiUnitSprite,
+} from "./catalog";
 import { ReferenceLink } from "./references";
 import {
   useState,
@@ -470,31 +475,37 @@ const slotSprites: Record<Equipment, Sprite> = {
 export function SlotLabel({ slot }: { slot: Equipment }) {
   const sprite = slotSprites[slot];
   return (
-    <span className="Item" style={{ gap: 0 }}>
-      <Text
-        color={colors.grey}
-        prefix={
-          <Pixels
-            rows={[[mergeSprites(emptySlot, sprite)]]}
-            label={sprite.name}
-          />
-        }
-      >
-        {sprite.name}
-      </Text>
-    </span>
+    <ReferenceLink name="slots" sprite>
+      <span className="Item" style={{ gap: 0 }}>
+        <Text
+          color={colors.grey}
+          prefix={
+            <Pixels
+              rows={[[mergeSprites(emptySlot, sprite)]]}
+              label={sprite.name}
+            />
+          }
+        >
+          {sprite.name}
+        </Text>
+      </span>
+    </ReferenceLink>
   );
 }
 export function UnitView({ unit }: { unit: UnitKey }) {
-  const [sprite, ...nameSprites] = createUnitName(unit);
+  const [nativeSprite, ...nameSprites] = createUnitName(unit);
+  const sprite = unit === "rotten" ? getWikiUnitSprite(unit) : nativeSprite;
   const nativeName = nameSprites
     .map((part) => part.layers[part.layers.length - 1]?.char || "")
     .join("");
-  const name = nativeName
-    ? displayName(nativeName.replace(/_/g, " "))
-    : unitDefinitions[unit].sprite.layers.length
-    ? displayName(unit)
-    : "";
+  const name =
+    unit === "rotten"
+      ? "Rotten Tree"
+      : nativeName
+      ? displayName(nativeName.replace(/_/g, " "))
+      : unitDefinitions[unit].sprite.layers.length
+      ? displayName(unit)
+      : "";
   if (!name && !sprite.layers.length) return null;
   return (
     <ReferenceLink name={"unit:" + unit} sprite>

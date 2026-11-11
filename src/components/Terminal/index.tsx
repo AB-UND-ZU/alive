@@ -11,6 +11,7 @@ import { overscanRows } from "../Dimensions/sizing";
 import { ExtendedStats } from "../Debug";
 import { createText } from "../../game/assets/ui";
 import { InstanceRoot } from "../Entity/Instances";
+import { LightingContext } from "../Entity/CoveredLight";
 import ShadowCache from "../Entity/ShadowCache";
 
 const stats = false;
@@ -18,7 +19,10 @@ const controls = false;
 
 export const frameColor = colors.silver;
 
-export default function Terminal({ children }: React.PropsWithChildren) {
+export default function Terminal({
+  children,
+  shadows = true,
+}: React.PropsWithChildren<{ shadows?: boolean }>) {
   const dimensions = useDimensions();
 
   return (
@@ -30,14 +34,16 @@ export default function Terminal({ children }: React.PropsWithChildren) {
           )
         )}
       </div>
-      <Canvas shadows="basic" flat>
-        {stats && <ExtendedStats />}
-        {controls && <OrbitControls />}
-        <InstanceRoot />
-        <ShadowCache />
-        <ambientLight intensity={Math.PI / 8} />
-        <Camera />
-        <Systems />
+      <Canvas shadows={shadows ? "basic" : false} flat>
+        <LightingContext.Provider value={shadows}>
+          {stats && <ExtendedStats />}
+          {controls && <OrbitControls />}
+          <InstanceRoot />
+          <ShadowCache />
+          <ambientLight intensity={shadows ? Math.PI / 8 : Math.PI} />
+          <Camera />
+          <Systems />
+        </LightingContext.Provider>
       </Canvas>
       <div className="RightEdge">
         {Array.from({ length: dimensions.renderedRows - overscanRows + 1 }).map(
