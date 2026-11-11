@@ -9,7 +9,7 @@ Renders Markdown tokens in React and follows browser history. Every page also ha
 | Rendering and browser navigation | `App.tsx` |
 | Canonical routes, aliases and anchors | Route registry and source-reference index |
 
-Routes follow `game-design/<group>/<page>.html` and `development/<group>/<source>.html`; Welcome remains `index.html`. Old URLs redirect to the canonical route while retaining their anchor.
+Routes follow `game-design/<group>/<page>.html` and `development/<group>/<source>.html`; Welcome remains `index.html`. Old URLs redirect to the canonical route while retaining their anchor. Navigation keeps the current page and controls visible while the next Markdown file loads. Content, active navigation, title and scroll position switch together once it is ready; failed requests report an alert without discarding the current page.
 
 Automatic prose links omit the current page and repeat a destination only once in each section. Explicit indexes and source references retain their precise anchor. Development inline code resolves exact local/imported symbols and full source paths; ordinary prose keeps its original words.
 

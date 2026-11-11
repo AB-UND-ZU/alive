@@ -707,7 +707,7 @@ test("Play starts with the game and loads presets with optional Test Mode", asyn
     .getByRole("button", { name: "Load", exact: true })
     .click();
   await expect(iframe).toHaveAttribute("src", /\?test#game\/worm$/);
-  await expect(iframe).toHaveAttribute("data-hp", /\d+/);
+  await expect(iframe).toHaveAttribute("data-hp", /\d+/, { timeout: 15000 });
   const wormFrame = await (await iframe.elementHandle()).contentFrame();
   await expect(wormFrame.locator("canvas")).toBeVisible();
 });

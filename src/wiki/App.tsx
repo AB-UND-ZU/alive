@@ -1073,18 +1073,20 @@ function WikiHeader({ navigate }: { navigate: Navigate }) {
 
 function App() {
   const [route, setRoute] = useState(currentRoute);
-  const page =
+  const requestedPage =
     manifest.pages.find((p) => p.route === route) || manifest.pages[0];
   const [loaded, setLoaded] = useState<WikiPage>();
   const [error, setError] = useState("");
+  const page = loaded
+    ? manifest.pages.find((page) => page.route === loaded.route)!
+    : requestedPage;
   useEffect(() => {
     const controller = new AbortController();
-    setLoaded(undefined);
     setError("");
     const url = sourceFiles(
-      page.source.startsWith("wiki/")
-        ? "./wiki/pages/" + page.source.slice(5)
-        : "./" + page.source.slice(4)
+      requestedPage.source.startsWith("wiki/")
+        ? "./wiki/pages/" + requestedPage.source.slice(5)
+        : "./" + requestedPage.source.slice(4)
     ) as string;
     void fetch(url, { signal: controller.signal })
       .then(async (response) => {
@@ -1092,16 +1094,16 @@ function App() {
           !response.ok ||
           response.headers.get("content-type")?.includes("text/html")
         )
-          throw new Error(`Could not load ${page.source}`);
+          throw new Error(`Could not load ${requestedPage.source}`);
         return response.text();
       })
       .then((text) => {
         if (!controller.signal.aborted)
           setLoaded({
-            ...page,
+            ...requestedPage,
             tokens: parseMarkdown(
               text,
-              page,
+              requestedPage,
               manifest.pages,
               manifest.references
             ),
@@ -1112,8 +1114,8 @@ function App() {
           setError(String(cause.message || cause));
       });
     return () => controller.abort();
-  }, [page]);
-  const ready = loaded?.source === page.source;
+  }, [requestedPage]);
+  const ready = loaded?.source === requestedPage.source;
   const navigate: Navigate = (path) => {
     const [target, hash] = path.split("#");
     const url = new URL(
@@ -1130,14 +1132,18 @@ function App() {
           newURL: url.href,
         })
       );
-    if (url.hash)
-      requestAnimationFrame(() =>
-        document.getElementById(url.hash.slice(1))?.scrollIntoView()
-      );
+    if (canonicalRoute(target) === page.route)
+      requestAnimationFrame(() => {
+        if (url.hash)
+          document.getElementById(url.hash.slice(1))?.scrollIntoView();
+        else window.scrollTo(0, 0);
+      });
   };
   useEffect(() => {
     const pop = () => {
-      setRoute(currentRoute());
+      const nextRoute = currentRoute();
+      setRoute(nextRoute);
+      if (nextRoute !== page.route) return;
       requestAnimationFrame(() => {
         if (window.location.hash)
           document
@@ -1149,7 +1155,7 @@ function App() {
     window.addEventListener("popstate", pop);
     window.history.scrollRestoration = "manual";
     return () => window.removeEventListener("popstate", pop);
-  }, []);
+  }, [page.route]);
   useLayoutEffect(() => {
     const canonical = new URL(page.route + window.location.hash, base);
     if (window.location.pathname !== canonical.pathname)
@@ -1207,29 +1213,32 @@ function App() {
             tabIndex={-1}
             aria-busy={!ready && !error}
           >
-            {error ? (
+            {error && (
               <p role="alert">
                 <Text>{error}</Text>
               </p>
-            ) : ready ? (
+            )}
+            {loaded && (
               <Markdown
                 tokens={loaded.tokens}
                 navigate={navigate}
                 source={page.source}
               />
-            ) : (
-              <p>
-                <Text>Loading...</Text>
-              </p>
             )}
-            <div className="PageControls">
-              {back && (
-                <Button onClick={() => navigate(back.route)}>{"< Back"}</Button>
-              )}
-              {next && (
-                <Button onClick={() => navigate(next.route)}>{"Next >"}</Button>
-              )}
-            </div>
+            {loaded && (
+              <div className="PageControls">
+                {back && (
+                  <Button onClick={() => navigate(back.route)}>
+                    {"< Back"}
+                  </Button>
+                )}
+                {next && (
+                  <Button onClick={() => navigate(next.route)}>
+                    {"Next >"}
+                  </Button>
+                )}
+              </div>
+            )}
           </main>
         </div>
       </div>
