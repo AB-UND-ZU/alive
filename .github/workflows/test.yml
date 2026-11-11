@@ -16,7 +16,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Install browser
-        run: npx playwright install --with-deps chromium
+        run: sh scripts/install-browser.sh
       # separate steps instead of check:fast to run all tests in one jest run
       - name: Type check
         run: npm run typecheck
@@ -25,7 +25,7 @@ jobs:
       - name: Run game and generation tests with coverage
         run: npm run test:ci
       - name: Report coverage
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && hashFiles('coverage/coverage-summary.json') != '' }}
         run: node scripts/coverage-summary.mjs >> "$GITHUB_STEP_SUMMARY"
       - name: Upload coverage report
         if: ${{ !cancelled() }}
