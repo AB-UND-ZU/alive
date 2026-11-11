@@ -77,7 +77,7 @@ import { closePopup, getActivePopup } from "./popup";
 import { Affectable, AFFECTABLE } from "../components/affectable";
 import { extinguishEntity } from "./burn";
 import { FRAGMENT } from "../components/fragment";
-import { getFragment, isFragment } from "./enter";
+import { isFragment } from "./enter";
 import { CONDITIONABLE } from "../components/conditionable";
 import { isDecaying, isHarvested } from "./drop";
 import { STRUCTURABLE } from "../components/structurable";
@@ -247,18 +247,16 @@ export const getAttackables = (
       return;
     }
 
-    const fragmentEntity = getFragment(world, position);
-
-    if (!fragmentEntity) return;
+    if (!isFragment(world, target)) return;
 
     const structurableEntity = world.getEntityById(
-      fragmentEntity[FRAGMENT].structure
+      target[FRAGMENT].structure
     );
 
     if (!structurableEntity) return;
 
     if (fragment && isAttackable(world, structurableEntity)) {
-      attackables.push(fragmentEntity);
+      attackables.push(target);
       return;
     }
 

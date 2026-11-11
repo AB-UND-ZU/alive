@@ -6,7 +6,13 @@ import { FRAGMENT } from "../../engine/components/fragment";
 import { PLAYER } from "../../engine/components/player";
 import { STATS } from "../../engine/components/stats";
 import { isDead } from "../../engine/systems/damage";
-import { advanceUntil, holdMove } from "../../testing/harness";
+import { createCell } from "../../bindings/creation";
+import {
+  advanceUntil,
+  findInArea,
+  holdMove,
+  step,
+} from "../../testing/harness";
 import {
   advanceTicks,
   countDrops,
@@ -18,23 +24,44 @@ import {
   giveSword,
   toughen,
 } from "./helpers";
+import { castAs } from "../spells/helpers";
 import { CASTABLE } from "../../engine/components/castable";
-import { moveEntity } from "../../engine/systems/map";
+import { moveEntity, registerEntity } from "../../engine/systems/map";
 import { getFragment } from "../../engine/systems/enter";
 import { add } from "../../game/math/std";
+import { MOVABLE } from "../../engine/components/movable";
+import { invertOrientation } from "../../game/math/path";
 import { orientationPoints } from "../../engine/components/orientable";
 
-const setup = () => {
-  const { world, hero } = createCreatureWorld(
-    `
+const area = `
 |           |
 |     G     |
 |           |
 |           |
 |     ♀     |
-`,
-    { G: "golem" }
-  );
+`;
+
+const setup = (terrainFirst?: boolean) => {
+  const { world, hero } = createCreatureWorld(area, {
+    G: terrainFirst === undefined ? "golem" : "air",
+  });
+  if (terrainFirst !== undefined) {
+    const origin = findInArea(area, "G");
+    const create = (position: typeof origin, cell: string) => {
+      for (const entity of createCell(world, position, cell, "visible").all) {
+        registerEntity(world, entity);
+      }
+    };
+    const createFloor = () => {
+      for (const side of ["left", "right"] as const) {
+        create(add(origin, orientationPoints[side]), "sand");
+      }
+    };
+    if (terrainFirst) createFloor();
+    create(origin, "golem");
+    if (!terrainFirst) createFloor();
+    step(world);
+  }
   toughen(hero);
   giveSword(world, hero);
   const golem = getCreature(world, "golem");
@@ -170,6 +197,70 @@ describe("golem", () => {
     expect(received.melee).toBeGreaterThan(melee);
     expect(hero[POSITION]).not.toEqual(position);
     expect(getSpells(world, golem)).toHaveLength(0);
+  });
+
+  it.each([
+    { side: "left", terrainFirst: false },
+    { side: "right", terrainFirst: false },
+    { side: "left", terrainFirst: true },
+    { side: "right", terrainFirst: true },
+  ] as const)(
+    "detaches the $side arm before root death (terrain first: $terrainFirst)",
+    ({ side, terrainFirst }) => {
+      const { world, hero, golem, phases } = setup(terrainFirst);
+      provoke(world, golem);
+      advanceUntil(world, () => phases().includes(11), 10000);
+      world.removeComponentFromEntity(golem, BEHAVIOUR, false);
+      golem[MOVABLE].orientations = [];
+      const delta = orientationPoints[side];
+      const arm = world.assertComponents(
+        getFragment(world, add(golem[POSITION], delta))!,
+        [STATS, POSITION]
+      );
+      moveEntity(world, hero, add(arm[POSITION], delta));
+      const rootHp = golem[STATS].hp;
+      const armHp = arm[STATS].hp;
+      holdMove(world, [invertOrientation(side)]);
+      advanceUntil(world, () => golem[STATS].hp < rootHp, 3000);
+      holdMove(world, []);
+
+      expect(arm[STATS].hp).toBeLessThan(armHp);
+      expect(rootHp - golem[STATS].hp).toBe(armHp - arm[STATS].hp);
+
+      holdMove(world, [invertOrientation(side)]);
+      advanceUntil(
+        world,
+        () => isDead(world, arm) || isDead(world, golem),
+        20000
+      );
+      holdMove(world, []);
+      expect(isDead(world, arm)).toBe(true);
+      expect(isDead(world, golem)).toBeFalsy();
+      const armId = world.getEntityId(arm);
+      advanceUntil(world, () => !world.getEntityById(armId), 10000);
+      expect(world.getEntityId(golem)).toBeDefined();
+    }
+  );
+
+  it("damages the arm hit by a beam over older terrain", () => {
+    const { world, hero, golem, phases } = setup(true);
+    provoke(world, golem);
+    advanceUntil(world, () => phases().includes(11), 10000);
+    world.removeComponentFromEntity(golem, BEHAVIOUR, false);
+    golem[MOVABLE].orientations = [];
+    const arm = world.assertComponents(
+      getFragment(world, add(golem[POSITION], { x: 1, y: 0 }))!,
+      [STATS, POSITION]
+    );
+    moveEntity(world, hero, add(arm[POSITION], { x: 1, y: 0 }));
+    const rootHp = golem[STATS].hp;
+    const armHp = arm[STATS].hp;
+
+    castAs(world, hero, { spell: "beam", material: "wood" }, "left");
+    advanceUntil(world, () => golem[STATS].hp < rootHp, 3000);
+
+    expect(arm[STATS].hp).toBeLessThan(armHp);
+    expect(rootHp - golem[STATS].hp).toBe(armHp - arm[STATS].hp);
   });
 
   it("casts bolts at the hero once both arms are broken off", () => {

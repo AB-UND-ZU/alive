@@ -52,7 +52,7 @@ import { pickupOptions, play } from "../../game/sound";
 import { LEVEL } from "../components/level";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { CONDITIONABLE } from "../components/conditionable";
-import { getFragment, isStructurable } from "./enter";
+import { isFragment, isStructurable } from "./enter";
 import { FRAGMENT } from "../components/fragment";
 import { HOMING } from "../components/homing";
 import { ATTACKABLE } from "../components/attackable";
@@ -91,18 +91,16 @@ export const getAffectables = (
       return;
     }
 
-    const fragmentEntity = getFragment(world, position);
-
-    if (!fragmentEntity) return;
+    if (!isFragment(world, target)) return;
 
     const structurableEntity = world.getEntityById(
-      fragmentEntity[FRAGMENT].structure
+      target[FRAGMENT].structure
     );
 
     if (!structurableEntity) return;
 
     if (fragment && isAffectable(world, structurableEntity)) {
-      affectables.push(fragmentEntity);
+      affectables.push(target);
       return;
     }
 
