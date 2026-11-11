@@ -1,15 +1,16 @@
 #!/bin/sh
 set -eu
 
-# Avoid dependency downloads through the runner-specific Azure mirror.
-for source in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/sources.list.d/*.list; do
-  [ -f "$source" ] || continue
-  sudo sed -i \
-    -e 's|mirror+file:/etc/apt/apt-mirrors.txt|https://archive.ubuntu.com/ubuntu|g' \
-    -e 's|mirror+file:/etc/apt/apt-security-mirrors.txt|https://security.ubuntu.com/ubuntu|g' \
-    -e 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' \
-    -e 's|https://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' \
-    "$source"
-done
+# GitHub's Ubuntu image provides browser libraries; the game bundles its font.
+npx playwright install chromium
 
-npx playwright install --with-deps chromium
+node <<'JS'
+const { chromium } = require("@playwright/test");
+chromium.launch({ args: ["--disable-gpu"] }).then(async (browser) => {
+  console.log(`Chromium launch verified: ${browser.version()}`);
+  await browser.close();
+}).catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
+JS
