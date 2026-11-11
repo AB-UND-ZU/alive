@@ -26,3 +26,6 @@ yarn-error.log*
 /.wiki-build
 /playwright-report
 /test-results
+
+# generated wiki source links
+/src/wiki/sourceReferences.json

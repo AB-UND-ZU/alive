@@ -31,8 +31,8 @@
     "prismjs": "^1.30.0"
   },
   "scripts": {
-    "start": "FAST_REFRESH=false react-scripts start",
-    "build": "react-scripts build",
+    "start": "npm run wiki:references && FAST_REFRESH=false react-scripts start",
+    "build": "npm run wiki:references && react-scripts build",
     "test": "react-scripts test --testPathIgnorePatterns='\\.generation\\.test\\.'",
     "test:fast": "CI=true react-scripts test --watchAll=false --testPathIgnorePatterns='\\.(slow|generation)\\.test\\.'",
     "test:slow": "CI=true react-scripts test --watchAll=false --testPathPattern='\\.slow\\.test\\.'",
@@ -46,11 +46,12 @@
     "prepare": "git config core.hooksPath .githooks || true",
     "media:titles": "node scripts/regenerate-titles.cjs",
     "wiki:types": "node scripts/wiki/types.mjs",
-    "wiki:build": "REACT_APP_WIKI=true PUBLIC_URL=${PUBLIC_URL:-/alive/wiki} BUILD_PATH=${BUILD_PATH:-.wiki-build} react-scripts build && node scripts/wiki/routes.mjs",
+    "wiki:build": "npm run wiki:references && REACT_APP_WIKI=true PUBLIC_URL=${PUBLIC_URL:-/alive/wiki} BUILD_PATH=${BUILD_PATH:-.wiki-build} react-scripts build && node scripts/wiki/routes.mjs",
     "wiki:minimap": "node scripts/wiki/minimap-snapshot.mjs",
-    "wiki:dev": "echo \"Wiki: http://127.0.0.1:${PORT:-4173}\" && REACT_APP_WIKI=true PUBLIC_URL=/ PORT=${PORT:-4173} HOST=127.0.0.1 BROWSER=none react-scripts start",
-    "wiki:test": "node --test scripts/wiki/types.test.mjs scripts/wiki/item-sources.test.mjs scripts/wiki/routes.test.mjs && playwright test && WIKI_TEST_DEV=true playwright test",
-    "wiki:sources": "node scripts/wiki/item-sources.mjs"
+    "wiki:dev": "npm run wiki:references && echo \"Wiki: http://127.0.0.1:${PORT:-4173}\" && REACT_APP_WIKI=true PUBLIC_URL=/ PORT=${PORT:-4173} HOST=127.0.0.1 BROWSER=none react-scripts start",
+    "wiki:test": "node --test scripts/wiki/types.test.mjs scripts/wiki/references.test.mjs scripts/wiki/item-sources.test.mjs scripts/wiki/routes.test.mjs && playwright test && WIKI_TEST_DEV=true playwright test",
+    "wiki:sources": "node scripts/wiki/item-sources.mjs",
+    "wiki:references": "node scripts/wiki/references.mjs"
   },
   "eslintConfig": {
     "extends": [

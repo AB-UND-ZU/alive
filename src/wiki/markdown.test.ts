@@ -94,28 +94,15 @@ test("invalid documentation links and unknown scenes report the page error", () 
 
 test("every registered wiki page resolves its links and native scenes", () => {
   const { readFileSync } = require("node:fs");
-  const index = require("./sourceReferences.json") as {
-    references: Record<string, { href: string; kind: "code" | "type" }>;
-    pages: Record<
-      string,
-      Record<string, { href: string; kind: "code" | "type" }>
-    >;
-  };
   const pages = (require("./pages.json") as Omit<WikiPage, "tokens">[]).map(
     (page) => ({
       ...page,
       tokens: [],
-      references: index.pages[page.source],
     })
   );
   for (const page of pages)
     expect(() =>
-      parseMarkdown(
-        readFileSync(page.source, "utf8"),
-        page,
-        pages,
-        index.references
-      )
+      parseMarkdown(readFileSync(page.source, "utf8"), page, pages, {})
     ).not.toThrow();
 }, 30000);
 

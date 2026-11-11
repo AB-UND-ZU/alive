@@ -14,7 +14,7 @@ Markdown -> WikiToken[]
 | `WikiPage` | Source path, canonical route, menu group, content and source-local references |
 | `WikiManifest` | Game version, pages, title and reference destinations |
 
-A page alias preserves an older URL. `navigation` controls menu inclusion; `disabled` retains an unavailable entry. Prism computes syntax tokens when a page loads. Code links use the committed source-reference index, which is refreshed explicitly with `wiki:types`.
+A page alias preserves an older URL. `navigation` controls menu inclusion; `disabled` retains an unavailable entry. Prism computes syntax tokens when a page loads. Code links use the source-reference index generated before previews and builds.
 <!-- source-types -->
 
 ## WikiToken
