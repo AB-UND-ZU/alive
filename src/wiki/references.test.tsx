@@ -19,7 +19,8 @@ test("the Map item stays yellow while world and Levels references use the green 
   const map = screen.getByLabelText("Map").innerHTML;
   expect(map).toContain(`fill="${colors.yellow}"`);
   expect(map).not.toContain(`fill="${colors.lime}"`);
-  expect(featureSprites.levels).toBe(mapDiscovery);
+  for (const key of ["level", "levels", "menu", "dungeon", "island"])
+    expect(featureSprites[key]).toBe(mapDiscovery);
   expect(featureSprites.world).toBe(mapDiscovery);
   expect(featureSprites["world map"]).toBe(mapDiscovery);
 });

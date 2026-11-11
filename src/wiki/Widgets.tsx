@@ -3,7 +3,7 @@ import { StructureOverview } from "./StructureOverview";
 import { Minimap } from "./Minimap";
 import { FarmingProgression } from "./FarmingProgression";
 import { Sounds } from "./Sounds";
-import { WarpMap, LevelMap, PortalPreview } from "./WarpMap";
+import { WarpMap, PortalPreview } from "./WarpMap";
 import { Literal, TableContext } from "./visuals";
 import { Damage } from "./Damage";
 import { CellReference, HarvestTarget } from "./CellReference";
@@ -366,20 +366,6 @@ export function Widget({ name }: { name: string }) {
   if (name === "timers") return <TimerData />;
   if (name === "earth-town-map") return <TownMap town="earth" />;
   if (name === "fire-haven-map") return <TownMap town="fire" />;
-  if (name.startsWith("level-map-"))
-    return (
-      <LevelMap
-        level={
-          (
-            {
-              menu: "LEVEL_MENU",
-              dungeon: "LEVEL_TUTORIAL",
-              island: "LEVEL_ISLAND",
-            } as const
-          )[name.slice(10) as "menu" | "dungeon" | "island"]
-        }
-      />
-    );
   if (name === "levels") return <WarpMap />;
   if (name === "portal") return <PortalPreview />;
   if (name === "minimap") return <Minimap />;

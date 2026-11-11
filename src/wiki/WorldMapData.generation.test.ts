@@ -1,20 +1,30 @@
 import { prepareIslandMaps } from "./WorldMapData";
 import { islandPreviewSeed } from "./presets";
+import { getUnitSprite } from "../game/assets/utils";
+import { UnitKey } from "../game/balancing/units";
 
 jest.setTimeout(120000);
 
-test("the seeded Island reference contains the full native map and revealed settlement interiors", () => {
+test("the seeded town references reveal interiors and complete NPC portraits with meaningful interactions", () => {
   const sample = prepareIslandMaps();
   expect(sample.seed).toBe(islandPreviewSeed);
-  expect(sample.overview).toHaveLength(15);
-  expect(sample.overview.every((row) => row.length === 15)).toBe(true);
   for (const town of [sample.earth, sample.fire]) {
     expect(town.rows).toHaveLength(town.bounds.height);
     expect(town.rows.every((row) => row.length === town.bounds.width)).toBe(
       true
     );
     expect(town.legend.some((entry) => entry.unit)).toBe(true);
-    expect(town.legend.some((entry) => entry.tabs.length)).toBe(true);
+    expect(
+      town.legend.some((entry) =>
+        ["Bench", "Anvil", "Kettle"].includes(entry.name)
+      )
+    ).toBe(true);
+    for (const entry of town.legend.filter((entry) => entry.unit))
+      expect(sample.sprites[entry.sprite].layers).toEqual(
+        getUnitSprite(entry.unit as UnitKey).layers
+      );
+    for (const entry of town.legend.filter((entry) => !entry.unit))
+      expect(["Bench", "Anvil", "Kettle"]).toContain(entry.name);
   }
   expect(sample.earth.legend.map((entry) => entry.unit)).toContain(
     "earthChief"

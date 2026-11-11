@@ -1,17 +1,95 @@
 import snapshot from "./island.json";
 import { WorldDiagram } from "./WorldDiagram";
+import { UnitKey } from "../game/balancing/units";
 import { Sprite } from "../engine/components/sprite";
 import { colors } from "../game/assets/colors";
-import { mapFortress, mapHouse, mapSpawn } from "../game/assets/sprites";
-import { Pixels, Text, Literal, UnitView } from "./visuals";
+import {
+  boat,
+  grass,
+  ice,
+  ilex,
+  mapFortress,
+  mapHouse,
+  mapNomad,
+  mapSpawn,
+  oakBossUnit,
+  sand,
+  wall,
+  waterDeep,
+  waterShallow,
+} from "../game/assets/sprites";
+import {
+  Pixels,
+  Text,
+  Literal,
+  UnitView,
+  PlainTable,
+  textSprites,
+} from "./visuals";
 import { useContext } from "react";
 import { ReferenceContext, MentionStyle } from "./references";
 import { levelConfig } from "../game/levels";
 import "./WorldMap.css";
 
-const rows = snapshot.overview.map((row) =>
-  row.map((index) => snapshot.sprites[index])
-);
+const terrain: Record<string, Sprite> = {
+  "~": waterDeep,
+  ".": waterShallow,
+  i: ice,
+  ",": grass,
+  "#": wall,
+  ":": sand,
+};
+
+// The generator rotates the mainland and moves the settlements each game.
+const layout = [
+  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+  "~~iiiiiiii~~~~~~~~~~~~~~~~~~~~~~",
+  "~iiiiiiiiii~~~~~~~~~~~~~..~~~~~~",
+  "~~iiiiiiii~~~~~~~~~~~~~~::~~~~~~",
+  "~~~iiiiii~~~~~~....~~~~~~~~~~~~~",
+  "~~~~~~~~~~...,,##::...~~~~~~~~~~",
+  "~~~~~~~~..,,,,,##:::::..~~~~~~~~",
+  "~~~~~~~.,,,,,,,##:::::::.~~~~~~~",
+  "~~~~~~.,,,,,,,,##::::::::.~~~~~~",
+  "~~~~~.,,,,,,,,,##:::::::::.~~~~~",
+  "~~~~.,,,,,,,,,,##::::::::::.~~~~",
+  "~~~~.,,,,,,,,,,,,,:::::::::.~~~~",
+  "~~~~.,,,,,,,,,,##::::::::::.~~~~",
+  "~~~~~.,,,,,,,,,##:::::::::.~~~~~",
+  "~~~~~~.,,,,,,,,##::::::::.~~~~~~",
+  "~~~~~~~.,,,,,,,##:::::::.~~~~~~~",
+  "~~~~~~~~..,,,,,##:::::..~~~~~~~~",
+  "~~~~~~~~~~...,,##::...~~~~~~~~~~",
+  "~~~..~~~~~~~~~~....~~~~~~~~~~~~~",
+  "~~~::~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+];
+
+const rows = layout.map((row) => [...row].map((cell) => terrain[cell]));
+const label = (x: number, y: number, title: string, sprite?: Sprite) => {
+  const cells = [
+    ...(sprite ? [sprite] : []),
+    ...textSprites(title, colors.white),
+  ];
+  cells.forEach((cell, index) => {
+    rows[y][x + index] = {
+      ...cell,
+      layers: [{ char: "█", color: colors.black }, ...cell.layers],
+    };
+  });
+};
+
+label(2, 2, "Glacier");
+label(12, 0, "Ocean");
+label(8, 7, "", ilex);
+label(6, 9, "Jungle");
+label(8, 11, "", mapHouse);
+label(15, 10, "", oakBossUnit);
+label(19, 8, "Desert");
+label(24, 10, "", mapFortress);
+label(7, 14, "", mapSpawn);
+label(21, 15, "", mapNomad);
+label(27, 10, "", boat);
 
 export function WorldMap() {
   const { features = {}, link } = useContext(ReferenceContext);
@@ -41,11 +119,11 @@ export function WorldMap() {
       <div className="WorldMapContent">
         <Pixels
           rows={rows}
-          label={`Generated Island map, seed ${snapshot.seed}, fully revealed`}
+          label="Island schematic: ocean and glacier; jungle with the start, Earth Town and Ilex; central mountains and Oak; desert with Fire Haven and the Nomad"
         />
         <div className="WorldMapLegend">
           <div>
-            <Literal>{`${levelConfig.LEVEL_ISLAND.size} x ${levelConfig.LEVEL_ISLAND.size}; seed ${snapshot.seed}`}</Literal>
+            <Literal>{`${levelConfig.LEVEL_ISLAND.size} x ${levelConfig.LEVEL_ISLAND.size}`}</Literal>
           </div>
           <div>
             <UnitView unit="ilexElite" />
@@ -54,11 +132,12 @@ export function WorldMap() {
             <UnitView unit="oakBoss" />
           </div>
           {mention(mapSpawn, "Start", "respawn")}
-          {mention(mapHouse, "Earth Town", "island", "#earth-town")}
-          {mention(mapFortress, "Fire Haven", "island", "#fire-haven")}
+          {mention(mapHouse, "Earth Town", "quests", "#earth-town")}
+          {mention(mapFortress, "Fire Haven", "quests", "#fire-haven")}
           <div>
             <UnitView unit="fireNomad" />
           </div>
+          {mention(boat, "Boat", "building", "#plan-boat")}
         </div>
       </div>
     </div>
@@ -86,58 +165,42 @@ const stations: Record<string, string> = {
   Anvil: "Forge equipment once unlocked.",
   Kettle: "Brew potions once unlocked.",
 };
-const interactions: Record<string, string> = {
-  craft: "Craft equipment.",
-  forge: "Forge equipment.",
-  brew: "Brew potions.",
-  buy: "Buy goods.",
-  sell: "Sell goods.",
-  info: "Read the sign or speak when prompted.",
-  quest: "Speak about quests.",
-};
 export function TownMap({ town }: { town: "earth" | "fire" }) {
   const sample = snapshot[town];
   const name = town === "earth" ? "Earth Town" : "Fire Haven";
   return (
-    <section
-      className={`TownMap${sample.bounds.width > 32 ? " TownMapCompact" : ""}`}
-      data-town={town}
-    >
+    <section className="TownMap" data-town={town}>
       <WorldDiagram
         rows={sample.rows.map((row) =>
           row.map((index) => snapshot.sprites[index])
         )}
         label={`${name}, seed ${snapshot.seed}, all buildings shown from inside`}
       />
-      <dl
+      <div
         className="TownLegend"
         aria-label={`${name} interactions and residents`}
       >
-        {sample.legend.map((entry) => (
-          <div key={entry.unit || entry.name}>
-            <dt className="TownLegendUnit">
-              <Pixels rows={[[snapshot.sprites[entry.sprite]]]} />
-              <Text>
-                {entry.name + (entry.count > 1 ? ` x${entry.count}` : "")}
-              </Text>
-            </dt>
-            <dd>
-              <Text>
-                {(entry.unit && townRoles[entry.unit]) ||
-                  (entry.lock
-                    ? "Open when prompted; some locks need a matching key."
-                    : "") ||
-                  stations[entry.name] ||
-                  entry.tabs
-                    .map((tab) => interactions[tab])
-                    .filter(Boolean)
-                    .join(" ") ||
-                  "Interact when the game shows a prompt."}
-              </Text>
-            </dd>
-          </div>
-        ))}
-      </dl>
+        <PlainTable
+          headers={["Element", "Interaction"]}
+          rows={sample.legend.map((entry) => [
+            <span className="TownLegendUnit">
+              {entry.unit ? (
+                <UnitView unit={entry.unit as UnitKey} />
+              ) : (
+                <Text
+                  prefix={<Pixels rows={[[snapshot.sprites[entry.sprite]]]} />}
+                >
+                  {entry.name}
+                </Text>
+              )}
+              {entry.count > 1 && <Text>{` x${entry.count}`}</Text>}
+            </span>,
+            <Text>
+              {(entry.unit && townRoles[entry.unit]) || stations[entry.name]}
+            </Text>,
+          ])}
+        />
+      </div>
     </section>
   );
 }

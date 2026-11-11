@@ -1,15 +1,13 @@
 import { orientationPoints } from "../engine/components/orientable";
 import { createPresetWorld, islandPreviewSeed } from "./presets";
-import { assertHero } from "../testing/harness";
 import { initializeArea } from "../engine/systems/initialize";
-import { moveEntity } from "../engine/systems/map";
-import { createPopup, openPopup } from "../engine/systems/popup";
 import { getSequence } from "../engine/systems/sequence";
 import { getIdentifierAndComponents } from "../engine/utils";
 import { normalize, signedDistance } from "../game/math/std";
 import { Sprite } from "../engine/components/sprite";
 import { worldRows } from "./WorldDiagram";
-import { popupParticles } from "./DialogSnapshot";
+import { getUnitSprite } from "../game/assets/utils";
+import { UnitKey } from "../game/balancing/units";
 
 export function prepareIslandMaps() {
   const world = createPresetWorld("island");
@@ -117,7 +115,6 @@ export function prepareIslandMaps() {
         sprite: number;
         tabs: string[];
         count: number;
-        lock: boolean;
       }
     >();
     for (const entity of world.getEntities(["POSITION", "SPRITE"])) {
@@ -125,22 +122,10 @@ export function prepareIslandMaps() {
         normalize(entity.POSITION.x - bounds.x, level.size) >= bounds.width ||
         normalize(entity.POSITION.y - bounds.y, level.size) >= bounds.height ||
         (!entity.NPC &&
-          !entity.POPUP &&
-          !entity.LOCKABLE &&
           !["Bench", "Anvil", "Kettle"].includes(entity.SPRITE.name))
       )
         continue;
-      const name = entity.LOCKABLE
-        ? [
-            entity.LOCKABLE.material,
-            entity.LOCKABLE.element,
-            entity.LOCKABLE.type,
-          ]
-            .flatMap((part) =>
-              part ? [part[0].toUpperCase() + part.slice(1)] : []
-            )
-            .join(" ")
-        : entity.SPRITE.name;
+      const name = entity.SPRITE.name;
       const key = entity.NPC?.type || name;
       const previous = entries.get(key);
       if (previous) {
@@ -149,9 +134,10 @@ export function prepareIslandMaps() {
       }
       entries.set(key, {
         name: name || key,
-        lock: Boolean(entity.LOCKABLE),
         unit: entity.NPC?.type,
-        sprite: packSprite(entity.SPRITE),
+        sprite: packSprite(
+          entity.NPC ? getUnitSprite(entity.NPC.type as UnitKey) : entity.SPRITE
+        ),
         tabs: entity.POPUP?.tabs || [],
         count: 1,
       });
@@ -164,47 +150,10 @@ export function prepareIslandMaps() {
   };
   const earth = town("earth_town");
   const fire = town("fire_haven");
-  // The native minimap reads terrain without needing to instantiate every cell.
-  for (const column of level.initialized) column.fill(true);
-  for (const entity of world.getEntities(["FOG"]))
-    entity.FOG.visibility = "visible";
-  const hero = world.assertComponents(assertHero(world), [
-    "POSITION",
-    "EQUIPPABLE",
-  ]);
-  createPopup(world, hero, { tabs: ["map"] });
-  openPopup(world, hero, hero);
-  hero.POPUP!.verticalIndezes[0] = 3;
-  const overview: Sprite[][] = [];
-  // Native zoom four spans sixteen world cells per character. Two adjacent
-  // popup views cover this 240-cell Island without a second map algorithm.
-  for (const y of [-56, 88]) {
-    moveEntity(world, hero, { x: 8, y: normalize(y, level.size) });
-    world.metadata.gameEntity.RENDERABLE.generation = 2 + overview.length * 4;
-    hero.RENDERABLE!.generation++;
-    popupParticles(world, hero);
-    const state = getSequence(world, hero, "popup")!;
-    const remaining = Math.min(9, 15 - overview.length);
-    for (let row = 0; row < remaining; row++) {
-      overview.push(
-        Array.from(
-          { length: 15 },
-          (_, column) =>
-            world.assertByIdAndComponents(
-              state.particles[`popup-content-${row}-${column}`],
-              ["SPRITE"]
-            ).SPRITE
-        )
-      );
-    }
-  }
-  if (level.size !== 240)
-    throw Error("Update the full-Island native map view for this level size");
   return {
     seed: islandPreviewSeed,
     size: level.size,
     sprites,
-    overview: pack(overview),
     earth,
     fire,
   };

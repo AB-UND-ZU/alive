@@ -30,6 +30,12 @@ test("Portals composes native green frames with sizes and onward connections", a
     expect(row.y - mapBox.y).toBe(offset * 32);
     expect(row.height).toBe(5 * 32);
   }
+  const levelLinks = table.locator(
+    'a[href$="/menu.html"], a[href$="/dungeon.html"], a[href$="/island.html"]'
+  );
+  await expect(levelLinks).toHaveCount(5);
+  for (const link of await levelLinks.all())
+    await expect(link.locator('.Pixels[aria-label="Map"]')).toHaveCount(1);
   await expect(page).toHaveURL(/world\/portals.html$/);
   await page.goto("/game-design/world/dungeon.html");
   await expect(page.locator(".DungeonMap .DungeonLegendEntry")).toHaveCount(7);
@@ -37,9 +43,12 @@ test("Portals composes native green frames with sizes and onward connections", a
   expect((await dungeon.boundingBox()).height).toBeLessThanOrEqual(416);
   await page.goto("/game-design/world/island.html");
   await expect(
-    page.getByLabel("Generated Island map, seed 2026, fully revealed", {
-      exact: true,
-    })
+    page.getByLabel(
+      "Island schematic: ocean and glacier; jungle with the start, Earth Town and Ilex; central mountains and Oak; desert with Fire Haven and the Nomad",
+      {
+        exact: true,
+      }
+    )
   ).toHaveCount(1);
 });
 

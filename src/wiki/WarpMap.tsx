@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { createAreaWorld } from "../testing/harness";
 import { getWarpMap, getWarpSelection } from "../game/assets/warp";
 import { overlay } from "../game/assets/pixels";
@@ -7,7 +7,7 @@ import { LevelName } from "../engine/components/level";
 import { portal, portalVortex } from "../game/assets/sprites";
 import { colors } from "../game/assets/colors";
 import "./WorldMap.css";
-import { ReferenceContext } from "./references";
+import { ReferenceText } from "./references";
 import { LargePreview } from "./LargePreview";
 import { Pixels, PlainTable, Text, Literal } from "./visuals";
 
@@ -34,32 +34,11 @@ export function completePortalMap() {
   );
 }
 
-export function LevelMap({ level }: { level: LevelName }) {
-  const [{ world, portal }] = useState(() =>
-    portalMap(level, level === "LEVEL_ISLAND" ? "LEVEL_TUTORIAL" : "LEVEL_MENU")
-  );
-  const rows = getWarpMap(world, portal).content.slice(
-    levelConfig[level].mapOffsetY,
-    levelConfig[level].mapOffsetY + 5
-  );
-  return <Pixels rows={rows} label={levelConfig[level].name + " portal map"} />;
-}
-
 export function WarpMap() {
   const [rows] = useState(completePortalMap);
-  const { features = {}, link } = useContext(ReferenceContext);
-  const levelLink = (level: LevelName) => {
-    const name = levelConfig[level].name;
-    return features[name.toLowerCase()] ? (
-      link(
-        features[name.toLowerCase()].href,
-        <Text>{name}</Text>,
-        true
-      )
-    ) : (
-      <Text>{name}</Text>
-    );
-  };
+  const levelLink = (level: LevelName) => (
+    <ReferenceText text={levelConfig[level].name} />
+  );
   return (
     <div className="InterfaceScroll WarpMap">
       <div className="WorldMapContent">

@@ -14,11 +14,3 @@ Move to a menu item and activate it with [[key:Enter]]. The preview uses the nor
 | Sound FX | Toggle game sound effects. |
 | Controls | Show the game's keyboard and touch controls. |
 | Credits | Show the game credits. |
-
-## Portal map
-
-```widget
-level-map-menu
-```
-
-The Menu portal leads to the [Dungeon](dungeon.md). See [Portals](portals.md) for the connections between levels.

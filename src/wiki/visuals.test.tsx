@@ -1,5 +1,9 @@
 /* eslint-disable testing-library/no-node-access -- inspect serialized sprite media separately from its text labels */
 import { renderToStaticMarkup } from "react-dom/server";
+import { unitDefinitions, UnitKey } from "../game/balancing/units";
+import { getUnitSprite } from "../game/assets/utils";
+import { getFacingLayers } from "../game/assets/ui";
+import { characterMarkup } from "../components/Row/characters";
 import { readRows } from "../components/Controls/testing";
 import { render, screen } from "@testing-library/react";
 import {
@@ -206,3 +210,12 @@ it.each(["constructor", "toString", "__proto__"])(
     expect(text(renderToStaticMarkup(<Text>{value}</Text>))).toBe(value);
   }
 );
+
+it.each(
+  (Object.keys(unitDefinitions) as UnitKey[]).filter(
+    (key) => unitDefinitions[key].backdrop
+  )
+)("renders the full native %s portrait including its backdrop", (unit) => {
+  const view = renderToStaticMarkup(<UnitView unit={unit} />);
+  expect(view).toContain(characterMarkup(getFacingLayers(getUnitSprite(unit))));
+});

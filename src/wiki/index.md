@@ -9,7 +9,7 @@
 | `npm run wiki:types`                       | Refresh adjacent type documentation                                                   |
 | `npm run wiki:references`                  | Refresh generated source links during a running preview                               |
 | `npm run wiki:sources`                     | Explicitly refresh item acquisition metadata                                          |
-| `npm run wiki:world`                       | Explicitly rebuild seeded Island and town maps                                       |
+| `npm run wiki:world`                       | Explicitly rebuild seeded town maps                                       |
 | `npm run wiki:minimap`                     | Explicitly regenerate the minimap snapshot                                            |
 
 The game and wiki use the same stock CRA entry. `.env` defaults `REACT_APP_WIKI` to `false`, so CRA excludes the wiki import from the game dependency graph. Only wiki commands set it to `true`. There are no webpack overrides or separate file watchers. Use `PORT=4185 npm run wiki:dev` to select another development port.
@@ -42,4 +42,4 @@ Readable symbol aliases use the existing stacked text sprites over a selectable 
 
 Write a module's purpose and contracts in its adjacent Markdown before running `wiki:types`. It refreshes declarations below `<!-- source-types -->`, preserving authored examples above. A missing source note stops generation before changing files. The workflow uses Node 24 on Ubuntu 24.04, builds the game and wiki, and publishes `build/` to GitHub Pages.
 
-The Menu, Dungeon and Island pages use `game/menu`, `game/dungeon` and `game/island` scene fences. Island seed 2026 also supplies the full native map and interior settlement references. `wiki:world` explicitly refreshes `island.json`; previews and builds reuse it. Static wiki content has inactive audio output. Samples on Sounds are deliberate; game-frame audio is enabled during interaction and muted on blur, pause or unload.
+The Menu, Dungeon and Island pages use `game/menu`, `game/dungeon` and `game/island` scene fences. Island seed 2026 also supplies the interior settlement references; the Island overview keeps its schematic. `wiki:world` explicitly refreshes `island.json`; previews and builds reuse it. Static wiki content has inactive audio output. Samples on Sounds are deliberate; game-frame audio is enabled during interaction and muted on blur, pause or unload.

@@ -51,20 +51,5 @@
 .WorldMapLegend > div { display: flex; gap: 0; }
 
 .TownMap .WorldDiagram { margin-bottom: 32px; }
-.TownMapCompact .WorldDiagram {
-  --cell-width: 9px;
-  --cell-height: 16px;
-  --pixel-size: 1px;
-  font-size: 16px;
-  line-height: 16px;
-}
-.TownLegendUnit { display: inline-flex; gap: 18px; align-items: start; }
-.TownLegend {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 288px), 1fr));
-  gap: 32px 36px;
-  margin: 0 0 32px;
-}
-.TownLegend dt { margin: 0 0 8px; }
-.TownLegend dd { margin: 0; }
-.TownLegend .NativeText { white-space: normal; }
+.TownLegendUnit { display: inline-flex; align-items: start; gap: 18px; }
+.TownLegend { margin-bottom: 32px; }

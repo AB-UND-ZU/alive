@@ -4,7 +4,7 @@
 game/island
 ```
 
-Explore the jungle, desert, glacier and ocean. The preview and maps below use seed **2026**. Settlements and shorelines vary with the seed in normal games.
+Explore the jungle, desert, glacier and ocean. The playable preview and town cutouts use seed **2026**. Settlements and shorelines vary with the seed in normal games.
 
 ## Map
 
@@ -12,7 +12,7 @@ Explore the jungle, desert, glacier and ocean. The preview and maps below use se
 world-map
 ```
 
-This overview shows the actual generated Island, fully revealed. The [Minimap](map.md) page keeps its separate explored-world examples.
+This schematic shows the Island's main regions and landmarks. The [Minimap](map.md) page keeps its separate explored-world examples.
 
 ## Earth Town
 
@@ -31,11 +31,3 @@ fire-haven-map
 Fire Haven is the desert settlement, with stone buildings, workshops, guards and the Fire Chief. The cutout includes the jetty and its harbor guard. Visit the chief for the town's story and use the workstations to prepare your equipment. Buildings are shown from inside to reveal their contents.
 
 See [Quests](quests.md#fire-haven) for the settlements' progression and [Trading](shops.md) for buying and selling.
-
-## Portal map
-
-```widget
-level-map-island
-```
-
-The Island has no onward portal in normal play.

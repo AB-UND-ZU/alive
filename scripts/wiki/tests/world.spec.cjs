@@ -56,14 +56,9 @@ for (const [level, preset] of [
       timeout: 30000,
     });
     await expect(
-      page.locator(
-        `[aria-label="${
-          level === "dungeon"
-            ? "Dungeon"
-            : level[0].toUpperCase() + level.slice(1)
-        } portal map"]`
-      )
-    ).toHaveCount(1);
+      page.getByRole("heading", { name: "Portal map", exact: true })
+    ).toHaveCount(0);
+    await expect(page.locator('[aria-label$=" portal map"]')).toHaveCount(0);
     if (level === "menu") {
       for (const item of [
         "Tutorial",
@@ -83,9 +78,12 @@ test("Island town cutouts show interiors and their actual interaction legends un
 }, info) => {
   await page.goto("/game-design/world/island.html");
   await expect(
-    page.getByLabel("Generated Island map, seed 2026, fully revealed", {
-      exact: true,
-    })
+    page.getByLabel(
+      "Island schematic: ocean and glacier; jungle with the start, Earth Town and Ilex; central mountains and Oak; desert with Fire Haven and the Nomad",
+      {
+        exact: true,
+      }
+    )
   ).toBeVisible();
   for (const town of ["earth", "fire"]) {
     const section = page.locator(`[data-town="${town}"]`);
@@ -97,6 +95,24 @@ test("Island town cutouts show interiors and their actual interaction legends un
     await expect(section.locator(".TownLegend")).toContainText("Chief");
     await expect(section.locator(".TownLegend")).toContainText("Smith");
     await expect(section.locator(".TownLegend")).toContainText("Druid");
+    await expect(section.locator(".TownLegend table")).toHaveCount(1);
+    await expect(section.locator(".TownLegend")).not.toContainText(
+      /Wood Door|Wood Gate|Wood Port|Iron Door/
+    );
+    const dimensions = await section
+      .locator(".WorldDiagram .Cell")
+      .first()
+      .evaluate((cell) => {
+        const css = getComputedStyle(cell);
+        return [
+          css.getPropertyValue("--cell-width").trim(),
+          css.getPropertyValue("--cell-height").trim(),
+          css.getPropertyValue("--pixel-size").trim(),
+          cell.getBoundingClientRect().width,
+          cell.getBoundingClientRect().height,
+        ];
+      });
+    expect(dimensions).toEqual(["18px", "32px", "2px", 18, 32]);
     const map = await section.locator(".WorldDiagram").boundingBox();
     const table = await section.locator(".TownLegend").boundingBox();
     expect(table.y).toBeGreaterThanOrEqual(map.y + map.height);
