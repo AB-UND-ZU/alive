@@ -111,7 +111,7 @@ export default function Paused() {
           <>
             <Row
               cells={createDialog(
-                loadingSounds ? "Loading sounds..." : "Loading map..."
+                loadingSounds ? "Loading game..." : "Loading map..."
               )}
             />
             <Row />

@@ -70,14 +70,14 @@ describe("App", () => {
         <App />
       </StrictMode>
     );
-    expect(readOverlay(container)).toContain("Loading sounds...");
+    expect(readOverlay(container)).toContain("Loading game...");
     expect(container.querySelector("#resume")).not.toBeInTheDocument();
     await act(async () => {
       jest.advanceTimersByTime(32);
     });
     const world = mockWorlds[mockWorlds.length - 1];
     expect(world.getEntities(["PLAYER", "POSITION"])).toHaveLength(0);
-    expect(readOverlay(container)).toContain("Loading sounds...");
+    expect(readOverlay(container)).toContain("Loading game...");
     await act(async () => {
       finish();
       await Promise.resolve();
@@ -115,7 +115,7 @@ describe("App", () => {
   it("shows loading screen, then title screen once the level is ready", async () => {
     const { container, loading } = await boot();
 
-    expect(loading).toContain("Loading sounds...");
+    expect(loading).toContain("Loading game...");
     expect(readOverlay(container)).toContain("to start the game");
     expect(container.querySelector(".Terminal")).toBeInTheDocument();
   });
