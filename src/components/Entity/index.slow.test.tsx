@@ -29,6 +29,9 @@ import { REFERENCE } from "../../engine/components/reference";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
 import { smokeLight } from "../../game/assets/sprites";
 import { particleHeight } from "./utils";
+import { LightingContext } from "./CoveredLight";
+import { createCell } from "../../bindings/creation";
+import { LIGHT } from "../../engine/components/light";
 
 // the font is loaded over the network, provide it from disk instead.
 // glyphs are tagged with their char to be found in the scene
@@ -267,5 +270,99 @@ it("can hide circular lighting without changing unit glyphs or fog visibility", 
   expect(
     world.getEntities(["FOG"]).map((entity) => entity.FOG.visibility)
   ).toEqual(visibility);
+  await renderer.unmount();
+});
+
+it.each([
+  ["hidden", false, 0, true],
+  ["hidden", true, 1, true],
+  ["fog", false, 0, true],
+  ["fog", true, 1, true],
+  ["visible", false, 0, true],
+  ["visible", true, 1, true],
+  ["hidden", true, 0, false],
+  ["fog", true, 0, false],
+  ["visible", true, 0, false],
+] as const)(
+  "renders %s walls with caster selection %s (%s casters, lighting %s)",
+  async (visibility, castShadow, count, shadows) => {
+    const world = createAreaWorld(area);
+    const wall = world.assertComponents(
+      createCell(world, { x: 3, y: 2 }, "mountain", visibility).cell,
+      [POSITION, SPRITE, RENDERABLE, LIGHT]
+    );
+    wall[LIGHT].orientation = "left";
+    const { renderer } = await renderScene(
+      world,
+      <LightingContext.Provider value={shadows}>
+        <Entity
+          entity={wall}
+          x={3}
+          y={2}
+          generation={0}
+          inRadius
+          inside={false}
+          outside={false}
+          castShadow={castShadow}
+        />
+      </LightingContext.Provider>
+    );
+    const casters = renderer.scene.findAll((node) => node.instance.castShadow);
+    expect(casters).toHaveLength(count);
+    const widths = casters.map((node) => {
+      const mesh = node.instance as THREE.Mesh;
+      mesh.geometry.computeBoundingBox();
+      return (
+        mesh.geometry.boundingBox!.max.x - mesh.geometry.boundingBox!.min.x
+      );
+    });
+    expect(widths).toEqual(Array(count).fill(0.25));
+    const bodies = renderer.scene.findAll(
+      (node) => node.instance instanceof THREE.Mesh
+    );
+    // The black wall body is also part of its visible appearance.
+    expect(bodies).toHaveLength(visibility === "visible" || count > 0 ? 1 : 0);
+    expect(
+      renderer.scene.findAll((node) => node.instance.type === "Object3D")
+    ).toHaveLength(visibility === "hidden" ? 0 : 1);
+    await renderer.unmount();
+  }
+);
+
+it("updates a retained wall when its caster flag changes and removes nonopaque blockers", async () => {
+  const world = createAreaWorld(area);
+  const wall = world.assertComponents(
+    createCell(world, { x: 3, y: 2 }, "mountain", "fog").cell,
+    [POSITION, SPRITE, RENDERABLE, LIGHT]
+  );
+  const content = (castShadow: boolean) => (
+    <Entity
+      entity={wall}
+      x={3}
+      y={2}
+      generation={0}
+      inRadius
+      inside={false}
+      outside={false}
+      castShadow={castShadow}
+    />
+  );
+  const { renderer } = await renderScene(world, content(true));
+  const casters = () =>
+    renderer.scene.findAll((node) => node.instance.castShadow);
+  expect(casters()).toHaveLength(1);
+  await renderer.update(
+    <WorldProvider value={createWorldContext(world)}>
+      {content(false)}
+    </WorldProvider>
+  );
+  expect(casters()).toHaveLength(0);
+  wall[LIGHT].darkness = 0;
+  await renderer.update(
+    <WorldProvider value={createWorldContext(world)}>
+      {content(true)}
+    </WorldProvider>
+  );
+  expect(casters()).toHaveLength(0);
   await renderer.unmount();
 });

@@ -224,6 +224,7 @@ export default function createWorld() {
       playtime: 0,
       elapsed: 0,
       renderTime: 0,
+      occlusionGeneration: 0,
       // stored game this world was loaded from or saved to
       saveId: undefined as string | undefined,
       loadGame: (saveId: string) => {},

@@ -15,11 +15,12 @@ import { Renderable, RENDERABLE } from "../../engine/components/renderable";
 import { useDimensions } from "../Dimensions";
 import { getEntityGeneration } from "../../engine/systems/renderer";
 import { getCell } from "../../engine/systems/map";
+import { traceCircularVisiblity } from "../../game/math/tracing";
 import { getDistance, normalize, random } from "../../game/math/std";
 import { LEVEL } from "../../engine/components/level";
 import { PLAYER } from "../../engine/components/player";
 import { getEnterable, isOutside } from "../../engine/systems/enter";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { LAYER } from "../../engine/components/layer";
 import { LIGHT } from "../../engine/components/light";
 import { FRAGMENT } from "../../engine/components/fragment";
@@ -42,7 +43,48 @@ export default function Systems() {
   const { position, fraction, viewable, jump } = useViewpoint();
   const overscan = useOverscan(position.x, position.y, suspended || jump);
   const game = useGame();
-  const hero = useHero();
+  const hero = useHero() || ecs?.getEntities([RENDERABLE, PLAYER, POSITION])[0];
+  const previousHero = useRef(hero);
+  const heroX = hero?.[POSITION].x || 0;
+  const heroY = hero?.[POSITION].y || 0;
+  const lightOverscan = useOverscan(
+    heroX,
+    heroY,
+    suspended || jump || previousHero.current !== hero
+  );
+  previousHero.current = hero;
+  const brightness = hero?.[LIGHT]?.brightness || 0;
+  const occlusionGeneration = ecs?.metadata.occlusionGeneration || 0;
+  const shadowCasters = useMemo(() => {
+    const casters = new Set<number>();
+    if (!ecs || !hero || brightness <= 0) return casters;
+
+    // Keep both footprints while the light travels between grid positions.
+    const origins = [{ x: heroX, y: heroY }];
+    if (lightOverscan.x || lightOverscan.y) {
+      origins.push({ x: heroX - lightOverscan.x, y: heroY - lightOverscan.y });
+    }
+    for (const origin of origins) {
+      for (const point of traceCircularVisiblity(ecs, origin, brightness)) {
+        const cell = getCell(ecs, point);
+        for (const id in cell) {
+          if (cell[id][LIGHT]?.darkness > 0) casters.add(Number(id));
+        }
+      }
+    }
+    return casters;
+    // Walls can change without changing the light coordinates.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    ecs,
+    hero,
+    heroX,
+    heroY,
+    lightOverscan.x,
+    lightOverscan.y,
+    brightness,
+    occlusionGeneration,
+  ]);
   const structure = hero?.[LAYER]?.structure;
   const damageReceived =
     (hero?.[PLAYER].receivedStats.melee || 0) +
@@ -307,6 +349,7 @@ export default function Systems() {
                 size
               ) < (hero?.[LIGHT]?.brightness || Infinity)
             }
+            castShadow={shadowCasters.has(Number(entityId))}
             outside={!inside && isOutside(ecs, entity, structure)}
             inside={inside}
             generation={getEntityGeneration(ecs, entity)}

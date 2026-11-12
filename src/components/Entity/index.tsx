@@ -51,6 +51,7 @@ function Entity({
   inRadius,
   inside,
   outside,
+  castShadow,
 }: {
   entity: TypedEntity<"POSITION" | "SPRITE" | "RENDERABLE">;
   generation: number;
@@ -59,6 +60,7 @@ function Entity({
   inRadius: boolean;
   inside: boolean;
   outside: boolean;
+  castShadow?: boolean;
 }) {
   const dimensions = useDimensions();
   const shadows = useContext(LightingContext);
@@ -117,15 +119,35 @@ function Entity({
 
   const [opacity, setOpacity] = useState(layerProps.isTransparent ? 0 : 1);
 
+  if (!ecs) return null;
+
+  const castsShadow = shadows && isOpaque && (castShadow ?? isVisible);
+  const occluder = isOpaque && (isVisible || castsShadow) && (
+    <Box
+      height={wallHeight}
+      castShadow={castsShadow}
+      orientation={opaqueOrientation}
+    >
+      <meshBasicMaterial color={colors.black} />
+    </Box>
+  );
+
   if (
-    !ecs ||
-    (opacity === 0 &&
-      layerProps.isTransparent &&
-      !isUnit &&
-      !isObject &&
-      !isFocusable)
+    opacity === 0 &&
+    layerProps.isTransparent &&
+    !isUnit &&
+    !isObject &&
+    !isFocusable
   )
-    return null;
+    return castsShadow ? (
+      <group
+        matrixAutoUpdate={false}
+        onUpdate={updateLocalMatrix}
+        position={[x * dimensions.aspectRatio, -y, 0]}
+      >
+        {occluder}
+      </group>
+    ) : null;
 
   const orderedSegments = getSegments(ecs, entity, layerProps, inside);
   const orderedLayers = getLayerCount(orderedSegments) + 1;
@@ -194,11 +216,7 @@ function Entity({
         ? { entity }
         : { matrixAutoUpdate: false, onUpdate: updateLocalMatrix })}
     >
-      {isOpaque && isVisible && (
-        <Box height={wallHeight} castShadow orientation={opaqueOrientation}>
-          <meshBasicMaterial color={colors.black} />
-        </Box>
-      )}
+      {occluder}
       {orderedSegments.length > 0 && (
         <Stack segments={orderedSegments} layerCount={0} />
       )}
@@ -244,6 +262,7 @@ const MemoizedEntity = React.memo(
     prevProps.generation === nextProps.generation &&
     prevProps.inRadius === nextProps.inRadius &&
     prevProps.inside === nextProps.inside &&
+    prevProps.castShadow === nextProps.castShadow &&
     prevProps.outside === nextProps.outside
 );
 

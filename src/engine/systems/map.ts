@@ -3,6 +3,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { LEVEL } from "../components/level";
+import { LIGHT } from "../components/light";
 import { add, normalize } from "../../game/math/std";
 import { isWalkable } from "./movement";
 import {
@@ -21,6 +22,10 @@ import { RENDERABLE } from "../components/renderable";
 import { MOVABLE } from "../components/movable";
 import { POPUP } from "../components/popup";
 import { removePopup } from "./popup";
+
+export const invalidateOcclusion = (world: World) => {
+  world.metadata.occlusionGeneration += 1;
+};
 
 export const updateWalkable = (world: World, position: Position) => {
   // update walkable map after initialization
@@ -76,6 +81,7 @@ export const registerEntity = (world: World, entity: Entity) => {
   entity[POSITION].x = normalizedX;
   entity[POSITION].y = normalizedY;
 
+  if (entity[LIGHT]?.darkness > 0) invalidateOcclusion(world);
   updateWalkable(world, position);
 };
 
@@ -123,6 +129,7 @@ const unregisterEntity = (world: World, entity: Entity) => {
     console.warn("Unable to unregister", entity, "at position", position, "!");
   }
 
+  if (entity[LIGHT]?.darkness > 0) invalidateOcclusion(world);
   updateWalkable(world, position);
 };
 

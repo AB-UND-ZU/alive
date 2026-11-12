@@ -19,6 +19,7 @@ import {
   moveEntity,
   registerEntity,
   updateWalkable,
+  invalidateOcclusion,
 } from "./map";
 import {
   canUnlock,
@@ -482,6 +483,7 @@ export const openDoor = (world: World, entity: Entity) => {
     world.removeComponentFromEntity(entity as TypedEntity<"STATS">, STATS);
   }
 
+  invalidateOcclusion(world);
   rerenderEntity(world, entity);
   updateWalkable(world, entity[POSITION]);
 };
@@ -494,6 +496,7 @@ export const lockDoor = (world: World, entity: Entity) => {
   });
   entity[LIGHT].orientation = undefined;
   entity[TOOLTIP].override = undefined;
+  invalidateOcclusion(world);
   rerenderEntity(world, entity);
   updateWalkable(world, entity[POSITION]);
 };
