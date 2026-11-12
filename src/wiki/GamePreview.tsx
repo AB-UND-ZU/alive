@@ -110,7 +110,8 @@ export function GamePreview({
       else show();
     };
     const observer = new IntersectionObserver(
-      ([entry]) => {
+      (entries) => {
+        const entry = entries[entries.length - 1];
         visible.current = entry.isIntersecting;
         if (entry.isIntersecting) show();
         else pause();
