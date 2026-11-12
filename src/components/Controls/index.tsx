@@ -278,6 +278,7 @@ export default function Controls({
   const popupTab = ecs && popup && getTab(ecs, popup);
   const pressedOrientations = useRef<Orientation[]>([]);
   const touchMoved = useRef(false);
+  const scrollGesture = useRef(false);
   const touchOrigin = useRef<[number, number] | undefined>(undefined);
   const [joystickOrientations, setJoystickOrientations] = useState<
     Orientation[]
@@ -841,6 +842,14 @@ export default function Controls({
         offsetY = event.touches[0].clientY - rect.top;
       }
 
+      if (
+        offsetX < 0 ||
+        offsetY < 0 ||
+        offsetX >= rect.width ||
+        offsetY >= rect.height
+      )
+        return;
+
       const totalWidth = rect.width;
       const columnWidth = totalWidth / (frameWidth - 2);
       const columnIndex = Math.min(
@@ -1144,10 +1153,26 @@ export default function Controls({
       const paused = pausedRef.current;
       const popup = ecs && hero && getActivePopup(ecs, hero);
       const popupTab = ecs && popup && getTab(ecs, popup);
-      if (event.type === "touchstart" && event.touches.length === 1)
+      if (event.type === "touchstart" && event.touches.length === 1) {
         touchMoved.current = false;
+        const target = event.changedTouches[0]?.target;
+        const scrollControl =
+          target instanceof Element
+            ? target.closest(".PopupUp,.PopupDown")
+            : null;
+        scrollGesture.current = !!scrollControl;
+        if (scrollControl)
+          handleMove([scrollControl.id === "up" ? "up" : "down"]);
+      }
       if (!paused) {
         ensureAudio();
+      }
+
+      // A scrollbar owns the entire gesture, including its release click.
+      if (scrollGesture.current) {
+        event.preventDefault();
+        if (event.touches.length !== 1) releaseTouch();
+        return false;
       }
 
       const onKeyboard = [...event.changedTouches].some((touch) =>
@@ -1253,6 +1278,7 @@ export default function Controls({
   const handleDeactivate = useCallback(() => {
     releaseTouch();
     touchMoved.current = false;
+    scrollGesture.current = false;
     setPaused(true);
   }, [releaseTouch, setPaused]);
 
@@ -1274,20 +1300,26 @@ export default function Controls({
 
   useEffect(() => {
     const suppressSwipeClick = (event: MouseEvent) => {
-      if (!touchMoved.current || event.detail === 0) return;
+      if ((!touchMoved.current && !scrollGesture.current) || event.detail === 0)
+        return;
       event.preventDefault();
       event.stopImmediatePropagation();
     };
     const startPointer = (event: PointerEvent) => {
+      if (event.pointerType === "touch" && event.isPrimary === false) return;
       // A browser can deliver pointer events without the matching touchstart.
       touchMoved.current = false;
+      scrollGesture.current =
+        event.target instanceof Element &&
+        !!event.target.closest(".PopupUp,.PopupDown");
       if (event.pointerType === "touch" && event.isPrimary) {
         touchOrigin.current = [event.clientX, event.clientY];
       }
     };
     // A touch target can disappear after moving away from an interaction.
     const releasePointer = (event: PointerEvent) => {
-      if (event.pointerType === "touch") releaseTouch();
+      if (event.pointerType === "touch" || scrollGesture.current)
+        releaseTouch();
     };
     window.addEventListener("click", suppressSwipeClick, true);
     window.addEventListener("pointerdown", startPointer, true);

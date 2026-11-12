@@ -68,6 +68,7 @@ const popupState = (page) =>
       tab: popup?.POPUP.tabs[popup.POPUP.horizontalIndex],
       moving: popup?.POPUP.sprite?.moving,
       layers: popup?.POPUP.sprite?.sprites[0]?.layers,
+      scroll: popup?.SEQUENCABLE.states.popup?.args.scrollIndex || 0,
     };
   });
 
@@ -172,3 +173,206 @@ test("Play keeps the normal game's input center", async ({ page }) => {
       )
   ).toBe("");
 });
+
+for (const viewport of [
+  { width: 390, height: 844, touch: true },
+  { width: 414, height: 576, touch: true },
+  { width: 1440, height: 1000, touch: false },
+]) {
+  test.describe(`popup input at ${viewport.width}x${viewport.height}`, () => {
+    test.use({
+      viewport: { width: viewport.width, height: viewport.height },
+      hasTouch: viewport.touch,
+      isMobile: viewport.touch,
+    });
+
+    const openList = async (page) => {
+      await page.addInitScript(() => {
+        if (!location.protocol.startsWith("http")) return;
+        localStorage.setItem(
+          "alive.sprites",
+          JSON.stringify(
+            Array.from({ length: 24 }, (_, index) => ({
+              name: `Sprite ${index + 1}`,
+              layers: [{ char: "A", color: "#ffffff" }],
+            }))
+          )
+        );
+      });
+      await open(page, "sprites");
+      await expect(page.locator("#content")).toBeVisible();
+      await expect
+        .poll(
+          async () =>
+            (
+              await nativePoint(page, "popup", "popup-content-8-10")
+            ).char
+        )
+        .toBe("9");
+    };
+
+    test("popup hit areas match native cells without overlaps or scrollbar gaps", async ({
+      page,
+    }, testInfo) => {
+      await openList(page);
+      const rows = Number(
+        await page.locator("#content").getAttribute("data-rows")
+      );
+      const first = await nativePoint(page, "popup", "popup-content-0-0");
+      const last = await nativePoint(
+        page,
+        "popup",
+        `popup-content-${rows - 1}-16`
+      );
+      const bar = await nativePoint(page, "popup", "popup-right-0");
+      const content = await page.locator("#content").boundingBox();
+      const up = await page.locator("#up").boundingBox();
+      const down = await page.locator("#down").boundingBox();
+      await page.screenshot({
+        path: testInfo.outputPath("popup-hit-areas.png"),
+      });
+      expect(content.x).toBeCloseTo(first.x - first.cellWidth / 2, 1);
+      expect(content.y).toBeCloseTo(first.y - first.cellHeight / 2, 1);
+      expect(content.x + content.width).toBeCloseTo(
+        last.x + last.cellWidth / 2,
+        1
+      );
+      expect(content.y + content.height).toBeCloseTo(
+        last.y + last.cellHeight / 2,
+        1
+      );
+      expect(up.x).toBeCloseTo(bar.x - bar.cellWidth / 2, 1);
+      expect(down.x).toBeCloseTo(up.x, 1);
+      expect(up.width).toBeCloseTo(bar.cellWidth, 1);
+      expect(down.width).toBeCloseTo(bar.cellWidth, 1);
+      expect(up.y).toBeCloseTo(content.y, 1);
+      expect(up.y + up.height).toBeCloseTo(down.y, 1);
+      expect(down.y + down.height).toBeCloseTo(content.y + content.height, 1);
+      const areas = await page
+        .locator(
+          ".PopupContent,.PopupUp,.PopupDown,.PopupLeft,.PopupRight,.PopupClose,.PopupTab"
+        )
+        .evaluateAll((elements) =>
+          elements.map((element) => ({
+            id: element.id,
+            rect: element.getBoundingClientRect().toJSON(),
+          }))
+        );
+      for (let i = 0; i < areas.length; i += 1) {
+        for (const other of areas.slice(i + 1)) {
+          const { rect, id } = areas[i];
+          const width =
+            Math.min(rect.right, other.rect.right) -
+            Math.max(rect.left, other.rect.left);
+          const height =
+            Math.min(rect.bottom, other.rect.bottom) -
+            Math.max(rect.top, other.rect.top);
+          expect(
+            width > 0.05 && height > 0.05,
+            `${id} overlaps ${other.id}`
+          ).toBe(false);
+        }
+      }
+      const x = up.x + up.width / 2;
+      const y = up.y + up.height;
+      expect(
+        await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.id, {
+          x,
+          y,
+        })
+      ).toBe("down");
+    });
+
+    test("scrollbar gestures cannot jump rows, confirm rows or change tabs on release", async ({
+      page,
+    }, testInfo) => {
+      await openList(page);
+      const point = await nativePoint(page, "popup", "popup-right-6");
+      const end = { x: point.x - point.cellWidth / 2 - 0.4, y: point.y };
+      await page.evaluate(() => {
+        window.addEventListener(
+          "pointerup",
+          () => {
+            const terminal = document.querySelector(".Terminal");
+            let fiber =
+              terminal[
+                Object.keys(terminal).find((key) =>
+                  key.startsWith("__reactFiber")
+                )
+              ];
+            while (fiber && !fiber.memoizedProps?.value?.ecs)
+              fiber = fiber.return;
+            const world = fiber.memoizedProps.value.ecs;
+            const hero = world.getEntities(["PLAYER"])[0];
+            const popup = world.getEntityById(hero.PLAYER.popup);
+            window.popupAtRelease = {
+              row: popup.POPUP.verticalIndezes[popup.POPUP.horizontalIndex],
+              tab: popup.POPUP.tabs[popup.POPUP.horizontalIndex],
+            };
+          },
+          { capture: true, once: true }
+        );
+      });
+      let client;
+      if (viewport.touch) {
+        client = await page.context().newCDPSession(page);
+        await client.send("Input.dispatchTouchEvent", {
+          type: "touchStart",
+          touchPoints: [{ x: point.x, y: point.y, id: 1 }],
+        });
+      } else {
+        await page.mouse.move(point.x, point.y);
+        await page.mouse.down();
+      }
+      await expect
+        .poll(async () => (await popupState(page)).row)
+        .toBeGreaterThanOrEqual(3);
+      const held = await popupState(page);
+      if (viewport.touch) {
+        await client.send("Input.dispatchTouchEvent", {
+          type: "touchMove",
+          touchPoints: [{ ...end, id: 1 }],
+        });
+        await client.send("Input.dispatchTouchEvent", {
+          type: "touchEnd",
+          touchPoints: [],
+        });
+      } else {
+        await page.mouse.move(end.x, end.y);
+        await page.mouse.up();
+      }
+      await page.waitForTimeout(300);
+      const atRelease = await page.evaluate(() => window.popupAtRelease);
+      const released = await popupState(page);
+      expect(released.tab).toBe(held.tab);
+      expect(released.tab).toBe(atRelease.tab);
+      expect(released.row).toBeGreaterThanOrEqual(atRelease.row);
+      expect(released.row).toBeLessThanOrEqual(atRelease.row + 1);
+      await page.waitForTimeout(250);
+      expect(await popupState(page)).toMatchObject({
+        row: released.row,
+        tab: released.tab,
+      });
+      const up = await page.locator("#up").boundingBox();
+      const down = await page.locator("#down").boundingBox();
+      const center = {
+        x: down.x + down.width / 2,
+        y: (up.y + up.height + down.y) / 2,
+      };
+      if (viewport.touch) await page.touchscreen.tap(center.x, center.y);
+      else await page.mouse.click(center.x, center.y);
+      await page.waitForTimeout(250);
+      expect((await popupState(page)).tab).toBe(held.tab);
+      await page.screenshot({
+        path: testInfo.outputPath("scrollbar-release.png"),
+      });
+      const beforeTap = await popupState(page);
+      const row = await nativePoint(page, "popup", "popup-content-0-3");
+      if (viewport.touch) await page.touchscreen.tap(row.x, row.y);
+      else await page.mouse.click(row.x, row.y);
+      await expect
+        .poll(async () => (await popupState(page)).row)
+        .toBe(beforeTap.scroll);
+    });
+  });
+}

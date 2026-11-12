@@ -24,6 +24,7 @@ import {
 } from "../../engine/systems/popup";
 import { stackableConsumptions } from "../../engine/systems/consume";
 import { assertIdentifierAndComponents } from "../../engine/utils";
+import { getSequence } from "../../engine/systems/sequence";
 import { POPUP } from "../../engine/components/popup";
 import { getLock, getPrompt } from "../../features/doors/helpers";
 import { playedSounds } from "../../testing/env";
@@ -1049,6 +1050,130 @@ describe("touch controls", () => {
 
     expect(hero[ACTIONABLE].toolEquipped).toBe(true);
   });
+
+  it.each(["up", "down"] as const)(
+    "releasing a held %s scrollbar cannot click a content row",
+    (direction) => {
+      const { world, hero, container, trader } = setupShop();
+      press("Enter");
+      runUntil(world, () => hero[PLAYER].popup === world.getEntityId(trader));
+      runUntil(world, () => !hero[PLAYER].actionTriggered);
+      act(() => setVerticalIndex(world, trader, direction === "up" ? 8 : 0));
+      const content = getTouchArea(container, "content");
+      jest.spyOn(content, "getBoundingClientRect").mockReturnValue({
+        left: 0,
+        top: 0,
+        width: 170,
+        height: 90,
+      } as DOMRect);
+      const bar = getTouchArea(container, direction);
+      fireEvent.pointerDown(bar);
+      touch("touchStart", [[175, 45]], bar);
+      tick(world, 15);
+      touch("touchMove", [[168, 45]], bar);
+      fireEvent.pointerUp(bar);
+      touch("touchEnd", [], bar);
+      tick(world, 5);
+      const selected = getVerticalIndex(world, trader);
+      expect(selected).not.toBe(direction === "up" ? 8 : 0);
+
+      fireEvent.click(content, { clientX: 168, clientY: 5, detail: 1 });
+      tick(world, 5);
+      expect(getVerticalIndex(world, trader)).toBe(selected);
+      expect(getTabSelections(world, trader)).toEqual([]);
+
+      const firstRow =
+        getSequence(world, trader, "popup")?.args.scrollIndex || 0;
+      touch("touchStart", [[45, 5]], content);
+      touch("touchEnd", [], content);
+      fireEvent.click(content, { clientX: 45, clientY: 5, detail: 1 });
+      runUntil(world, () => getVerticalIndex(world, trader) === firstRow);
+    }
+  );
+
+  it("a scrollbar press owns horizontal finger movement", () => {
+    const { world, hero, container, trader } = setupShop();
+    press("Enter");
+    runUntil(world, () => hero[PLAYER].popup === world.getEntityId(trader));
+    const down = getTouchArea(container, "down");
+    fireEvent.pointerDown(down);
+    touch("touchStart", [[175, 45]], down);
+    touch("touchMove", [[220, 45]], down);
+    expect(hero[MOVABLE].orientations).toEqual(["down"]);
+    fireEvent.pointerUp(down);
+    touch("touchEnd", [], down);
+    expect(hero[MOVABLE].orientations).toEqual([]);
+  });
+
+  it("releasing the scrollbar cannot confirm a sprite row and change tabs", () => {
+    localStorage.setItem(
+      "alive.sprites",
+      JSON.stringify(
+        Array.from({ length: 24 }, (_, i) => ({
+          name: `Sprite ${i}`,
+          layers: [],
+        }))
+      )
+    );
+    const { world, hero, container } = setup();
+    act(() => {
+      openSpriteBuilder(world, hero);
+      step(world, 30);
+    });
+    runUntil(world, () => !!isInPopup(world, hero));
+    const popup = world.assertByIdAndComponents(hero[PLAYER].popup, [POPUP]);
+    const content = getTouchArea(container, "content");
+    jest.spyOn(content, "getBoundingClientRect").mockReturnValue({
+      left: 0,
+      top: 0,
+      width: 170,
+      height: 90,
+    } as DOMRect);
+    const down = getTouchArea(container, "down");
+    fireEvent.pointerDown(down);
+    touch("touchStart", [[175, 45]], down);
+    tick(world, 10);
+    fireEvent.pointerUp(down);
+    touch("touchEnd", [], down);
+    tick(world, 5);
+    const row = getVerticalIndex(world, popup);
+    expect(row).toBeGreaterThan(0);
+
+    fireEvent.click(content, {
+      clientX: 168,
+      clientY: row * 10 + 5,
+      detail: 1,
+    });
+    tick(world, 5);
+    expect(getTab(world, popup)).toBe("pack");
+    expect(getVerticalIndex(world, popup)).toBe(row);
+  });
+
+  it.each([
+    [-1, 5],
+    [171, 5],
+    [45, -1],
+    [45, 91],
+  ])(
+    "ignores content clicks outside its displayed bounds (%s, %s)",
+    (clientX, clientY) => {
+      const { world, hero, container, trader } = setupShop();
+      press("Enter");
+      runUntil(world, () => hero[PLAYER].popup === world.getEntityId(trader));
+      runUntil(world, () => !hero[PLAYER].actionTriggered);
+      act(() => setVerticalIndex(world, trader, 4));
+      const content = getTouchArea(container, "content");
+      jest.spyOn(content, "getBoundingClientRect").mockReturnValue({
+        left: 0,
+        top: 0,
+        width: 170,
+        height: 90,
+      } as DOMRect);
+      fireEvent.click(content, { clientX, clientY });
+      tick(world, 5);
+      expect(getVerticalIndex(world, trader)).toBe(4);
+    }
+  );
 
   it.each([false, true])(
     "a dialog swipe cannot tap its release row, including after pointer release: %s",
