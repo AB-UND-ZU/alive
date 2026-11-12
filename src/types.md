@@ -33,6 +33,7 @@
 | [CatalogIndexEntry](wiki/Widgets.md#type-catalogindexentry) | `src/wiki/Widgets.tsx` |
 | [CellSprite](components/Row/index.md#type-cellsprite) | `src/components/Row/index.tsx` |
 | [CellType](bindings/creation.md#type-celltype) | `src/bindings/creation.ts` |
+| [Change](engine/systems/visibility.md#type-change) | `src/engine/systems/visibility.ts` |
 | [ClassDefinition](game/balancing/classes.md#type-classdefinition) | `src/game/balancing/classes.ts` |
 | [ClassKey](game/balancing/classes.md#type-classkey) | `src/game/balancing/classes.ts` |
 | [Clickable](engine/components/clickable.md#type-clickable) | `src/engine/components/clickable.ts` |
@@ -157,7 +158,6 @@
 | [Particle](engine/components/particle.md#type-particle) | `src/engine/components/particle.ts` |
 | [PatchedWorld](engine/ecs.md#type-patchedworld) | `src/engine/ecs.ts` |
 | [Pattern](engine/components/behaviour.md#type-pattern) | `src/engine/components/behaviour.ts` |
-| [PendingChanges](engine/systems/visibility.md#type-pendingchanges) | `src/engine/systems/visibility.ts` |
 | [PerishSequence](engine/components/sequencable.md#type-perishsequence) | `src/engine/components/sequencable.ts` |
 | [Player](engine/components/player.md#type-player) | `src/engine/components/player.ts` |
 | [Poi](engine/components/poi.md#type-poi) | `src/engine/components/poi.ts` |
@@ -202,6 +202,7 @@
 | [Sequence](engine/components/sequencable.md#type-sequence) | `src/engine/components/sequencable.ts` |
 | [SfxOptions](game/sound/index.md#type-sfxoptions) | `src/game/sound/index.ts` |
 | [Shootable](engine/components/shootable.md#type-shootable) | `src/engine/components/shootable.ts` |
+| [Sight](engine/systems/visibility.md#type-sight) | `src/engine/systems/visibility.ts` |
 | [Skill](engine/components/item.md#type-skill) | `src/engine/components/item.ts` |
 | [SlashSequence](engine/components/sequencable.md#type-slashsequence) | `src/engine/components/sequencable.ts` |
 | [Slot](engine/components/equippable.md#type-slot) | `src/engine/components/equippable.ts` |

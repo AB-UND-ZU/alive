@@ -8,7 +8,7 @@ import {
   Orientation,
   orientationPoints,
 } from "../../engine/components/orientable";
-import { getCell } from "../../engine/systems/map";
+import { getCellEntities } from "../../engine/systems/map";
 import { add, normalize, Point, reversed } from "./std";
 
 type Interval = { start: number; end: number };
@@ -257,13 +257,7 @@ const isVisible = (
 };
 
 const getObstructing = (world: World, point: Point) => {
-  const cell = getCell(world, point);
-
-  if (!cell) return;
-
-  for (const entityId in cell) {
-    const entity = cell[entityId];
-
+  for (const entity of getCellEntities(world, point)) {
     if (LIGHT in entity && entity[LIGHT].darkness > 0) return entity;
   }
 
@@ -278,6 +272,17 @@ export const getOpaqueOrientation = (world: World, entity: Entity) => {
   }
 
   return entity[LIGHT].orientation;
+};
+
+// tracing reads cells only through this, so equal obstructions give equal sight
+export const getObstruction = (
+  world: World,
+  point: Point
+): Orientation | "full" | undefined => {
+  const entity = getObstructing(world, point);
+  if (!entity) return;
+
+  return getOpaqueOrientation(world, entity) || "full";
 };
 
 // manually adjusted extension of radius
@@ -324,10 +329,13 @@ const processCell = ({
 
   visibleCells.push(normalized);
 
-  const obstructingEntity = getObstructing(world, normalized);
-  if (obstructingEntity) {
-    const opaqueOrientation = getOpaqueOrientation(world, obstructingEntity);
-    const cellIntervals = cellToIntervals(iteration, delta, opaqueOrientation);
+  const obstruction = getObstruction(world, normalized);
+  if (obstruction) {
+    const cellIntervals = cellToIntervals(
+      iteration,
+      delta,
+      obstruction === "full" ? undefined : obstruction
+    );
 
     // the cell is visible therefore there is at least one overlap, or an interval within the cell boundaries
     for (const cellInterval of cellIntervals) {
@@ -397,9 +405,7 @@ export const traceCircularVisiblity = (
 
   const visibleCells: Point[] = [point];
   // if standing within full obstructed terrain
-  const obstructingCenter = getObstructing(world, point);
-  if (obstructingCenter && !obstructingCenter[LIGHT].orientation)
-    return visibleCells;
+  if (getObstruction(world, point) === "full") return visibleCells;
 
   const level = world.metadata.gameEntity[LEVEL];
   let visibleIntervals: Interval[] = [{ start: 0, end: 360 }];
