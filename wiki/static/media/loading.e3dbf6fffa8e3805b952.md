@@ -5,3 +5,5 @@ The menu waits for the finite sound catalog to finish loading. The catalog inclu
 Unsupported, blocked or failed workers fall back to the same synthesis on the main thread while the loading screen is visible. The catalog promise is shared across callers, so returning to the menu reuses the loaded buffers. Playback does not start background synthesis.
 
 Sounds use the original 44,100 Hz sample rate and oversampling, retaining the high-frequency detail lost at 22,050 Hz. Waveform generation, gain and silent-tail trimming are unchanged. Sounds with additional synthesis parameters outside the catalog are cached on first use.
+
+`createWorker.ts` is a browser bootstrap: Webpack resolves its `import.meta.url` when bundling the worker. Jest mocks this adapter, and its CommonJS coverage instrumentation cannot parse that module URL syntax, so the adapter is explicitly excluded from Istanbul coverage. `loading.test.ts` covers worker messages, termination, failure and fallback; the sound-worker browser test covers construction and sample transfer with the real bundled worker.

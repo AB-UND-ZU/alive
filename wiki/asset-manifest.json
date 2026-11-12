@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.js": "/alive/wiki/static/js/main.74d2bf8b.js",
+    "main.js": "/alive/wiki/static/js/main.45caa71d.js",
     "static/js/669.435e07ed.chunk.js": "/alive/wiki/static/js/669.435e07ed.chunk.js",
     "static/css/223.0f4bb13e.chunk.css": "/alive/wiki/static/css/223.0f4bb13e.chunk.css",
     "static/js/223.5911deda.chunk.js": "/alive/wiki/static/js/223.5911deda.chunk.js",
     "static/css/212.9bea584d.chunk.css": "/alive/wiki/static/css/212.9bea584d.chunk.css",
     "static/js/212.d3a1844c.chunk.js": "/alive/wiki/static/js/212.d3a1844c.chunk.js",
     "static/css/926.5c0e5d6d.chunk.css": "/alive/wiki/static/css/926.5c0e5d6d.chunk.css",
-    "static/js/926.23b80530.chunk.js": "/alive/wiki/static/js/926.23b80530.chunk.js",
+    "static/js/926.873b5a2d.chunk.js": "/alive/wiki/static/js/926.873b5a2d.chunk.js",
     "static/js/706.efb4bff5.chunk.js": "/alive/wiki/static/js/706.efb4bff5.chunk.js",
     "static/js/918.92d44741.chunk.js": "/alive/wiki/static/js/918.92d44741.chunk.js",
     "static/js/577.a780203b.chunk.js": "/alive/wiki/static/js/577.a780203b.chunk.js",
@@ -37,10 +37,10 @@
     "static/media/catalog.md": "/alive/wiki/static/media/catalog.d9380bcde2fd526ca7b8.md",
     "static/media/popup.md": "/alive/wiki/static/media/popup.329cc643091595456f89.md",
     "static/media/forging.md": "/alive/wiki/static/media/forging.452766e27559417ad4f8.md",
+    "static/media/GamePreview.md": "/alive/wiki/static/media/GamePreview.555124550f4bfd403cd2.md",
     "static/media/spriteBuilder.md": "/alive/wiki/static/media/spriteBuilder.ddde505ab5c777fc08c7.md",
     "static/media/utils.md": "/alive/wiki/static/media/utils.bb4fe87e24c667114736.md",
     "static/media/ecs.md": "/alive/wiki/static/media/ecs.fc40b48c610263cd7462.md",
-    "static/media/GamePreview.md": "/alive/wiki/static/media/GamePreview.069aa88c600ced39a1ad.md",
     "static/media/snapshot.md": "/alive/wiki/static/media/snapshot.744236231468fce7e471.md",
     "static/media/CatalogEntry.md": "/alive/wiki/static/media/CatalogEntry.5ed892a0377006fcd2a5.md",
     "static/media/hooks.md": "/alive/wiki/static/media/hooks.ce7c2a486bc259103c30.md",
@@ -64,6 +64,7 @@
     "static/media/savegames.md": "/alive/wiki/static/media/savegames.63b28162d126b04d3a27.md",
     "static/media/GridTable.md": "/alive/wiki/static/media/GridTable.167df64cb15dd71c737b.md",
     "static/media/harvesting.md": "/alive/wiki/static/media/harvesting.83f66fa7344619e6e549.md",
+    "static/media/loading.md": "/alive/wiki/static/media/loading.e3dbf6fffa8e3805b952.md",
     "static/media/sequence.md": "/alive/wiki/static/media/sequence.0f72f44da783cd8c1f08.md",
     "static/media/Widgets.md": "/alive/wiki/static/media/Widgets.717019896493febb189c.md",
     "static/media/level.md": "/alive/wiki/static/media/level.216005123a614cc19442.md",
@@ -83,7 +84,6 @@
     "static/media/behaviour.md": "/alive/wiki/static/media/behaviour.5a94f873b7097dda0c28.md",
     "static/media/sprite.md": "/alive/wiki/static/media/sprite.fe444f6d79f9aefbc79e.md",
     "static/media/testing.md": "/alive/wiki/static/media/testing.6e91bc998663003d11a4.md",
-    "static/media/loading.md": "/alive/wiki/static/media/loading.10a6af3fbf9734804119.md",
     "static/media/sprites.md": "/alive/wiki/static/media/sprites.0c062db39d4521af25a1.md",
     "static/media/resumable.md": "/alive/wiki/static/media/resumable.971cc770203668af682c.md",
     "static/media/magic.md": "/alive/wiki/static/media/magic.f674811d0701ccf24755.md",
@@ -270,14 +270,14 @@
     "static/media/resources.md": "/alive/wiki/static/media/resources.4d0ff883aecb25156f3e.md",
     "static/media/slots.md": "/alive/wiki/static/media/slots.e1a5535eb873fbf594c1.md",
     "static/media/play.md": "/alive/wiki/static/media/play.c478ffcd7be9b508d981.md",
-    "main.74d2bf8b.js.map": "/alive/wiki/static/js/main.74d2bf8b.js.map",
+    "main.45caa71d.js.map": "/alive/wiki/static/js/main.45caa71d.js.map",
     "669.435e07ed.chunk.js.map": "/alive/wiki/static/js/669.435e07ed.chunk.js.map",
     "223.0f4bb13e.chunk.css.map": "/alive/wiki/static/css/223.0f4bb13e.chunk.css.map",
     "223.5911deda.chunk.js.map": "/alive/wiki/static/js/223.5911deda.chunk.js.map",
     "212.9bea584d.chunk.css.map": "/alive/wiki/static/css/212.9bea584d.chunk.css.map",
     "212.d3a1844c.chunk.js.map": "/alive/wiki/static/js/212.d3a1844c.chunk.js.map",
     "926.5c0e5d6d.chunk.css.map": "/alive/wiki/static/css/926.5c0e5d6d.chunk.css.map",
-    "926.23b80530.chunk.js.map": "/alive/wiki/static/js/926.23b80530.chunk.js.map",
+    "926.873b5a2d.chunk.js.map": "/alive/wiki/static/js/926.873b5a2d.chunk.js.map",
     "706.efb4bff5.chunk.js.map": "/alive/wiki/static/js/706.efb4bff5.chunk.js.map",
     "918.92d44741.chunk.js.map": "/alive/wiki/static/js/918.92d44741.chunk.js.map",
     "577.a780203b.chunk.js.map": "/alive/wiki/static/js/577.a780203b.chunk.js.map",
@@ -288,6 +288,6 @@
     "537.33508eff.chunk.js.map": "/alive/wiki/static/js/537.33508eff.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/main.74d2bf8b.js"
+    "static/js/main.45caa71d.js"
   ]
 }

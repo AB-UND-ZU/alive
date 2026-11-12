@@ -1,6 +1,6 @@
 # Game Previews
 
-Loads a scene when it reaches the viewport and pauses it when hidden. Feature demos follow the page's reference material. A single scene-specific instruction sits beside the frame, or below it on a narrow screen. Beside the frame, GridCenteredNote centers it on whole 32-pixel rows. Feature viewports use 576 pixels without a stat row and 608 pixels with HP or MP. Their frames keep 23 by 15 cells at the same two-pixel glyph size. Clicking inside gives the iframe normal keyboard focus; Escape releases focus after any dialog has closed.
+Loads a scene when it reaches the viewport and pauses it when hidden. When visibility notifications arrive in a batch, the most recent entry controls the final state, so a resize or full-page capture cannot leave a visible scene paused. Feature demos follow the page's reference material. A single scene-specific instruction sits beside the frame, or below it on a narrow screen. Beside the frame, GridCenteredNote centers it on whole 32-pixel rows. Feature viewports use 576 pixels without a stat row and 608 pixels with HP or MP. Their frames keep 23 by 15 cells at the same two-pixel glyph size. Clicking inside gives the iframe normal keyboard focus; Escape releases focus after any dialog has closed.
 
 Autoplay resumes when focus leaves. The red Reset button shares the game footer with the required action control. Reset reloads the scene and returns to autoplay while visible. The Sprite Builder reloads its saved localStorage pack. The Interface page uses a native `StaticInterface` instead of a game frame.
 
