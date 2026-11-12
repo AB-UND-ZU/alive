@@ -75,6 +75,7 @@
       "!src/features/**",
       "!src/wiki/**",
       "!src/testing/**",
+      "!src/game/sound/createWorker.ts",
       "!src/index.tsx"
     ],
     "coverageReporters": [
