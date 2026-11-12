@@ -24,9 +24,10 @@ import {
   disposeSequence,
   getCellEntities,
   moveEntity,
+  registerEntity,
 } from "./map";
 import { POSITION, Position } from "../components/position";
-import { createSequence, getSequence } from "./sequence";
+import { createSequence, replaceSequence, getSequence } from "./sequence";
 import { DiscoverySequence, PopupSequence } from "../components/sequencable";
 import { VIEWABLE } from "../components/viewable";
 import { UnitStats, STATS } from "../components/stats";
@@ -651,7 +652,7 @@ export const createPopup = (
   const idle = popupIdles[getDiscoveryTab(world, { [POPUP]: popup })];
 
   if (idle) {
-    createSequence<"discovery", DiscoverySequence>(
+    replaceSequence<"discovery", DiscoverySequence>(
       world,
       entity,
       "discovery",
@@ -664,11 +665,19 @@ export const createPopup = (
     );
   }
 
+  if (!idle && getSequence(world, entity, "discovery"))
+    disposeSequence(world, entity, "discovery");
+  if (entity[POPUP]) {
+    const previousViewpoint = world.assertById(entity[POPUP].viewpoint);
+    disposeEntity(world, previousViewpoint);
+  }
+
   const viewpointEntity = entities.createViewpoint(world, {
     [POSITION]: add(entity[POSITION], { x: 0, y: (frameHeight + 1) / -2 }),
     [RENDERABLE]: { generation: 0 },
     [VIEWABLE]: { active: false, priority: 90 },
   });
+  registerEntity(world, viewpointEntity);
   const component = {
     active: false,
     verticalIndezes: Array.from({ length: popup.tabs.length }, () => 0),

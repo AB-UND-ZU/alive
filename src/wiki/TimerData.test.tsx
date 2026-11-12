@@ -1,8 +1,17 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { render, screen } from "@testing-library/react";
 import { TimerData } from "./Widgets";
 
+beforeAll(() => {
+  global.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+});
+
 test("timers show the world reference and each haste from minus one through five", () => {
-  const text = renderToStaticMarkup(<TimerData />).replace(/<[^>]*>/g, "");
+  render(<TimerData />);
+  const text = screen.getByRole("table").textContent!;
   expect(text).toContain("World reference");
   expect(text.match(/350 ms/g)).toHaveLength(2);
   for (const interval of [300, 266, 242, 225, 211, 200])

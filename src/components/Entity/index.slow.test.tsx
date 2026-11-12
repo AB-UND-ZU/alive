@@ -32,13 +32,12 @@ import { particleHeight } from "./utils";
 
 // the font is loaded over the network, provide it from disk instead.
 // glyphs are tagged with their char to be found in the scene
-jest.mock("@react-three/drei", () => {
+jest.mock("@react-three/drei/core/useFont", () => {
   const { Font } = require("three-stdlib");
   const font = new Font(
     require("../../../public/fonts/MostPerfectDOSVGA.json")
   );
   return {
-    ...jest.requireActual("@react-three/drei"),
     useFont: () => font,
   };
 });

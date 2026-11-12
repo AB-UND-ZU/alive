@@ -248,7 +248,13 @@ export function GridTable({
         value,
         {},
         Array.isArray(value.props.children)
-          ? value.props.children.map(richValue)
+          ? value.props.children.map((child, index) => (
+              <Fragment
+                key={isValidElement(child) ? child.key ?? index : index}
+              >
+                {richValue(child)}
+              </Fragment>
+            ))
           : richValue(value.props.children)
       );
     return value;

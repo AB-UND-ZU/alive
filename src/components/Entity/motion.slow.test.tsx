@@ -18,13 +18,16 @@ import Systems from "../Systems";
 import Camera from "../Camera";
 import { InstanceRoot } from "./Instances";
 
-jest.mock("@react-three/drei", () => {
+jest.mock("@react-three/drei/core/useFont", () => {
   const { Font } = require("three-stdlib");
-  const React = require("react");
   return {
-    ...jest.requireActual("@react-three/drei"),
     useFont: () =>
       new Font(require("../../../public/fonts/MostPerfectDOSVGA.json")),
+  };
+});
+jest.mock("@react-three/drei/core/OrthographicCamera", () => {
+  const React = require("react");
+  return {
     OrthographicCamera: React.forwardRef((props: any, ref: any) => (
       <orthographicCamera ref={ref} {...props} />
     )),

@@ -40,3 +40,16 @@ test("stack dots show amounts above one and stop at ten", () => {
   expect(view).not.toContain('class="Dot"');
   expect(utils.match(/class="Dot"/g)).toHaveLength(10);
 });
+
+test("native sprites remain inside their paragraph when serialized and parsed", () => {
+  const element = document.createElement("div");
+  element.innerHTML = renderToStaticMarkup(
+    <p>
+      <Row cells={createText("Bag")} />
+    </p>
+  );
+  expect(element.children).toHaveLength(1);
+  expect(element.firstElementChild!.tagName).toBe("P");
+  expect(element.firstElementChild!.querySelectorAll(".Cell")).toHaveLength(3);
+  expect(element.firstElementChild!.querySelector("div")).toBeNull();
+});

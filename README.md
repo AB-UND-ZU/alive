@@ -40,6 +40,10 @@ npm run wiki:test
 
 Fast checks cover types, lint, and small feature tests. `test:slow` checks game integration and rendering; `test:all` runs both test groups. The pre-commit hook runs lint only, so run the checks above before committing code changes. The wiki browser suite checks live examples, navigation, and responsive layout.
 
+CRA still requests Babel's former proposal-plugin name. The development dependency aliases that name to the maintained private-property transform, with the same plugin interface. Drei imports name the used modules directly so unused face-tracking dependencies are excluded from the build graph. Jest transforms those ESM modules and their runtime helpers.
+
+The wiki test script clears `NO_COLOR` for Playwright because its workers force `FORCE_COLOR=1`; passing both flags causes a Node warning.
+
 Run `npm run test:generation` only when changing level generation or generation-dependent fixtures. CI uses `npm run test:ci` to run game and generation tests together, report coverage and enforce the thresholds in `package.json`.
 
 ## Version bumps

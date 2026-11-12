@@ -8,10 +8,9 @@ import { WorldProvider } from "../../bindings/hooks";
 import { DimensionsContext } from "../Dimensions/sizing";
 import { InstanceRoot } from "./Instances";
 
-jest.mock("@react-three/drei", () => {
+jest.mock("@react-three/drei/core/useFont", () => {
   const { Font } = require("three-stdlib");
   return {
-    ...jest.requireActual("@react-three/drei"),
     useFont: () =>
       new Font(require("../../../public/fonts/MostPerfectDOSVGA.json")),
   };

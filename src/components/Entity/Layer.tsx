@@ -1,6 +1,6 @@
 import type { Entity } from "ecs";
 import * as THREE from "three";
-import { useFont } from "@react-three/drei";
+import { useFont } from "@react-three/drei/core/useFont";
 import { useDimensions } from "../Dimensions";
 import { Layer as LayerType } from "../../engine/components/sprite";
 import { colors } from "../../game/assets/colors";

@@ -29,6 +29,7 @@ import { RENDERABLE } from "../components/renderable";
 import { rerenderEntity } from "./renderer";
 import { getEntityHaste, getHasteInterval } from "./movement";
 import { World } from "../ecs";
+import { getCellEntities } from "./map";
 import { TypedEntity } from "../entities";
 
 // ♀ hero, ¾ credits sign
@@ -83,6 +84,24 @@ describe("popup interaction", () => {
     expect(hero[PLAYER].popup).toBeUndefined();
     step(world);
     expect(world.getEntityById(viewpoint)).toBeUndefined();
+  });
+
+  it("replacing a popup removes its old viewpoint and registers the replacement immediately", () => {
+    const { world } = setup();
+    const sign = getSign(world);
+    const old = world.assertByIdAndComponents(sign[POPUP].viewpoint, [
+      POSITION,
+    ]);
+    createPopup(world, sign, { tabs: ["quest"], lines: [[]] });
+    const current = world.assertByIdAndComponents(sign[POPUP].viewpoint, [
+      POSITION,
+    ]);
+    expect(getCellEntities(world, current.POSITION)).toContain(current);
+    expect(getCellEntities(world, old.POSITION)).not.toContain(old);
+    removePopup(world, sign);
+    world.cleanup();
+    expect(world.getEntityId(old)).toBeUndefined();
+    expect(world.getEntityId(current)).toBeUndefined();
   });
 
   it("opens, scrolls and closes the credits popup", () => {

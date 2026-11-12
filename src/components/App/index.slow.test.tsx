@@ -1,4 +1,5 @@
 /* eslint-disable testing-library/no-node-access, testing-library/no-container -- UI is drawn as glyph spans without accessible roles */
+import { installFakeIndexedDB } from "../../game/saves/testing";
 import { StrictMode } from "react";
 import { act, fireEvent, render } from "@testing-library/react";
 import App from ".";
@@ -48,7 +49,10 @@ const boot = async () => {
 const start = (container: HTMLElement) =>
   fireEvent.click(container.querySelector("#resume")!);
 
+const fake = installFakeIndexedDB();
+
 beforeEach(() => {
+  fake.clear();
   jest.useFakeTimers();
 });
 

@@ -19,16 +19,16 @@
     "ecs": "^0.21.0",
     "javascript-astar": "^0.4.1",
     "jsfxr": "^1.2.2",
+    "marked": "^15.0.12",
     "o9n": "^2.1.1",
+    "prismjs": "^1.30.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
     "simplex-noise": "^4.0.3",
     "three": "^0.169.0",
     "typescript": "^4.9.5",
-    "web-vitals": "^2.1.4",
-    "marked": "^15.0.12",
-    "prismjs": "^1.30.0"
+    "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "FAST_REFRESH=false react-scripts start",
@@ -49,7 +49,7 @@
     "wiki:build": "npm run wiki:references && REACT_APP_WIKI=true PUBLIC_URL=${PUBLIC_URL:-/alive/wiki} BUILD_PATH=${BUILD_PATH:-.wiki-build} react-scripts build && node scripts/wiki/routes.mjs",
     "wiki:minimap": "node scripts/wiki/minimap-snapshot.mjs",
     "wiki:dev": "npm run wiki:references && echo \"Wiki: http://127.0.0.1:${PORT:-4173}\" && REACT_APP_WIKI=true PUBLIC_URL=/ PORT=${PORT:-4173} HOST=127.0.0.1 BROWSER=none react-scripts start",
-    "wiki:test": "node --test scripts/wiki/types.test.mjs scripts/wiki/references.test.mjs scripts/wiki/item-sources.test.mjs scripts/wiki/routes.test.mjs && playwright test && WIKI_TEST_DEV=true playwright test",
+    "wiki:test": "node --test scripts/wiki/types.test.mjs scripts/wiki/references.test.mjs scripts/wiki/item-sources.test.mjs scripts/wiki/routes.test.mjs && env -u NO_COLOR playwright test && env -u NO_COLOR WIKI_TEST_DEV=true playwright test",
     "wiki:sources": "node scripts/wiki/item-sources.mjs",
     "wiki:references": "node scripts/wiki/references.mjs",
     "wiki:world": "WIKI_WORLD_SNAPSHOT=true CI=true react-scripts test --watchAll=false --runInBand --runTestsByPath src/wiki/WorldMapData.generation.test.ts"
@@ -65,7 +65,7 @@
   },
   "jest": {
     "transformIgnorePatterns": [
-      "node_modules/(?!(ecs|remove-array-items|three/src)/)"
+      "node_modules/(?!(ecs|remove-array-items|three/src|@react-three/drei|@babel/runtime/helpers/esm)/)"
     ],
     "collectCoverageFrom": [
       "src/**/*.{ts,tsx}",
@@ -107,7 +107,8 @@
     ]
   },
   "devDependencies": {
-    "@playwright/test": "^1.56.1",
+    "@babel/plugin-proposal-private-property-in-object": "npm:@babel/plugin-transform-private-property-in-object@^7.29.7",
+    "@playwright/test": "^1.65.0",
     "@react-three/test-renderer": "^8.2.4",
     "@types/body-scroll-lock": "^3.1.2",
     "@types/javascript-astar": "^0.0.35",

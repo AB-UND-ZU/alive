@@ -92,7 +92,6 @@ describe("worm", () => {
 |           |
 `);
     const [worm] = giveItems(world, hero, [{ stackable: "worm", amount: 1 }]);
-    hero[INVENTORY].items = [];
     dropEntity(
       world,
       { [INVENTORY]: { items: [world.getEntityId(worm)] } },

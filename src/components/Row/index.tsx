@@ -14,7 +14,7 @@ function Cell({
   stackableAmount?: number;
 }) {
   return (
-    <div
+    <span
       className="Cell"
       data-glyph={
         layers.length > 1 ? layers[layers.length - 1].char : undefined
@@ -55,7 +55,7 @@ function Cell({
           )}
         </>
       )}
-    </div>
+    </span>
   );
 }
 
@@ -67,7 +67,7 @@ export default function Row({
   className?: string;
 }) {
   return (
-    <div className={`Row${className ? ` ${className}` : ""}`}>
+    <span className={`Row${className ? ` ${className}` : ""}`}>
       {cells.map((cell, index) => (
         <Cell
           key={index}
@@ -75,6 +75,6 @@ export default function Row({
           stackableAmount={cell.stackableAmount}
         />
       ))}
-    </div>
+    </span>
   );
 }

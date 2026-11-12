@@ -2,7 +2,7 @@ import { Canvas } from "@react-three/fiber";
 import "./index.css";
 import Systems from "../Systems";
 import Camera from "../Camera";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei/core/OrbitControls";
 import Paused from "../Paused";
 import { useDimensions } from "../Dimensions";
 import Row from "../Row";

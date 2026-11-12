@@ -48,7 +48,12 @@ import {
   UnlockSequence,
   VisionSequence,
 } from "../components/sequencable";
-import { createSequence, getParticles, getSequence } from "./sequence";
+import {
+  createSequence,
+  replaceSequence,
+  getParticles,
+  getSequence,
+} from "./sequence";
 import { shootArrow } from "./ballistics";
 import { emptyUnitStats, STATS } from "../components/stats";
 import { TypedEntity } from "../entities";
@@ -196,7 +201,7 @@ const enterPortal = (
   portal[TOOLTIP].changed = true;
   portal[TOOLTIP].override = "visible";
 
-  createSequence<"vision", VisionSequence>(
+  replaceSequence<"vision", VisionSequence>(
     world,
     entity,
     "vision",
@@ -221,7 +226,7 @@ const revealWorld = (
     world.metadata.resume();
 
     setTimeout(() => {
-      createSequence<"vision", VisionSequence>(
+      replaceSequence<"vision", VisionSequence>(
         world,
         entity,
         "vision",
@@ -724,7 +729,7 @@ export const applyCondition = (
     amount,
   };
 
-  createSequence<"condition", ConditionSequence>(
+  replaceSequence<"condition", ConditionSequence>(
     world,
     entity,
     "condition",

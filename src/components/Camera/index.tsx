@@ -1,4 +1,4 @@
-import { OrthographicCamera } from "@react-three/drei";
+import { OrthographicCamera } from "@react-three/drei/core/OrthographicCamera";
 import { OrthographicCamera as CameraObject, Vector3Tuple } from "three";
 import { useFrame } from "@react-three/fiber";
 import { useLayoutEffect, useRef } from "react";

@@ -3,7 +3,11 @@ import { Entity } from "ecs";
 import { entities, World } from "../../engine";
 import type * as npcTypes from "./npcs";
 import type * as questTypes from "./quests";
-import { createSequence, getSequence } from "../../engine/systems/sequence";
+import {
+  createSequence,
+  replaceSequence,
+  getSequence,
+} from "../../engine/systems/sequence";
 import {
   Message,
   MessageSequence,
@@ -114,7 +118,7 @@ export const questSequence = (
   memory: any,
   giver?: Entity
 ) =>
-  createSequence<"quest", QuestSequence>(world, entity, "quest", name, {
+  replaceSequence<"quest", QuestSequence>(world, entity, "quest", name, {
     step: START_STEP,
     memory,
     giver: giver && world.getEntityId(giver),

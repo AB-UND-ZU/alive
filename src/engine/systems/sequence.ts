@@ -76,7 +76,6 @@ export const createSequence = <T extends keyof Sequencable["states"], A>(
     });
   }
 
-  // unsafely abort previous instance of sequence
   if (entity[SEQUENCABLE].states[type]) {
     console.warn(
       `Aborting previous sequence "${type}" of following entity:`,
@@ -92,6 +91,18 @@ export const createSequence = <T extends keyof Sequencable["states"], A>(
     args,
     particles: {},
   };
+};
+
+export const replaceSequence: typeof createSequence = (
+  world,
+  entity,
+  type,
+  name,
+  args,
+  sequenceEntity
+) => {
+  if (getSequence(world, entity, type)) disposeSequence(world, entity, type);
+  createSequence(world, entity, type, name, args, sequenceEntity);
 };
 
 const hasStates = (sequencable: Sequencable) => {
