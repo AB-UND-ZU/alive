@@ -6,6 +6,7 @@ import { World } from "../../engine";
 import { ACTIONABLE } from "../../engine/components/actionable";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { LOCKABLE } from "../../engine/components/lockable";
+import { INVENTORY } from "../../engine/components/inventory";
 import { MOVABLE } from "../../engine/components/movable";
 import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
@@ -537,6 +538,32 @@ describe("pausing", () => {
     expect(setPaused).toHaveBeenCalledWith(true);
   });
 
+  it.each(["blur", "pagehide"])(
+    "%s pauses and releases held movement without a visibility event",
+    (type) => {
+      const setPaused = jest.fn();
+      const { hero } = setup([], { setPaused });
+      press("ArrowRight");
+      expect(hero[MOVABLE].orientations).toEqual(["right"]);
+
+      fireEvent(window, new Event(type));
+
+      expect(setPaused).toHaveBeenCalledWith(true);
+      expect(hero[MOVABLE].orientations).toEqual([]);
+    }
+  );
+
+  it("moving focus between page controls doesn't pause or release movement", () => {
+    const setPaused = jest.fn();
+    const { hero, container } = setup([], { setPaused });
+    press("ArrowRight");
+
+    fireEvent.blur(getTouchArea(container, "spell"));
+
+    expect(setPaused).not.toHaveBeenCalled();
+    expect(hero[MOVABLE].orientations).toEqual(["right"]);
+  });
+
   it("ignores action keys while paused", () => {
     const { world, hero, tick } = setup(
       [
@@ -842,6 +869,77 @@ describe("touch controls", () => {
       touches: points.map(([clientX, clientY]) => ({ clientX, clientY })),
       changedTouches: [{ target }],
     });
+
+  it.each([
+    ["menu", 1],
+    ["quick", "use"],
+    ["spell", true],
+  ] as const)(
+    "a fresh touch pointer can activate %s after a swipe without a touchstart event",
+    (id, expected) => {
+      const world = createAreaWorld(area);
+      const hero = world.assertComponents(assertHero(world), [
+        ACTIONABLE,
+        PLAYER,
+        INVENTORY,
+        POSITION,
+      ]);
+      giveItems(world, hero, [{ spell: "wave", material: "wood", amount: 1 }]);
+      const setPaused = jest.fn();
+      const { container, tick } = renderHud(
+        world,
+        <>
+          <Stats />
+          <Controls />
+        </>,
+        { setPaused }
+      );
+      tick(5);
+      touch("touchStart", [[100, 100]]);
+      touch("touchMove", [[160, 100]]);
+      touch("touchEnd", []);
+      tick(20);
+
+      const button = getTouchArea(container, id);
+      for (const type of ["pointerdown", "pointerup"]) {
+        const event = new Event(type, { bubbles: true });
+        Object.defineProperty(event, "pointerType", { value: "touch" });
+        fireEvent(button, event);
+      }
+      fireEvent.click(button, { detail: 1 });
+
+      const outcomes = {
+        menu: setPaused.mock.calls.length,
+        quick: hero[PLAYER].actionTriggered,
+        spell: hero[ACTIONABLE].spellTriggered,
+      };
+      expect(outcomes[id]).toBe(expected);
+    }
+  );
+
+  it("a drag uses its pointer origin when touchstart is absent", () => {
+    const { world, hero } = setup();
+    const x = hero[POSITION].x;
+    const start = new MouseEvent("pointerdown", {
+      bubbles: true,
+      clientX: 100,
+      clientY: 100,
+    });
+    Object.defineProperties(start, {
+      pointerType: { value: "touch" },
+      isPrimary: { value: true },
+    });
+    fireEvent(document.body, start);
+
+    touch("touchMove", [[160, 100]]);
+
+    expect(hero[MOVABLE].orientations).toEqual(["right"]);
+    runUntil(world, () => hero[POSITION].x === x + 1);
+    const end = new Event("pointerup", { bubbles: true });
+    Object.defineProperty(end, "pointerType", { value: "touch" });
+    fireEvent(window, end);
+    expect(hero[MOVABLE].orientations).toEqual([]);
+  });
 
   it("tapping the spell button casts the spell", () => {
     const { world, hero, container } = setup([

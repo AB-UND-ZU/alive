@@ -9,7 +9,9 @@ World-aligned hit areas use `--controls-center-y`, with the normal window midpoi
 | `compact` | Show the smaller action row used by feature previews |
 | `children` | Add content beside the action controls |
 
-Touch release and pointer cancellation clear the drag origin and held directions. A gesture that crossed the swipe threshold suppresses its following touch click, even after returning to its origin or releasing. The next touch or mouse press starts a new gesture. A fresh dialog direction press wakes one immediate step; holding it then uses the normal dialog repeat interval. The interaction hit area stays mounted while hidden so a drag that started on its prompt can still deliver its native touchend. Touch listeners can prevent browser panning; control hit areas preserve their own taps.
+Touch release and pointer cancellation clear the drag origin and held directions. A gesture that crossed the swipe threshold suppresses its following touch click, even after returning to its origin or releasing. Every pointer press starts a new gesture; a primary touch pointer also records the drag origin so a missing touchstart cannot retain click suppression or lose the start of a swipe. Legacy touch events still initialize gestures when pointer events are unavailable. A fresh dialog direction press wakes one immediate step; holding it then uses the normal dialog repeat interval. The interaction hit area stays mounted while hidden so a drag that started on its prompt can still deliver its native touchend. Touch listeners can prevent browser panning; control hit areas preserve their own taps.
+
+Window blur, pagehide and a hidden document pause the game and clear held movement, the joystick and gesture suppression. Returning to the page leaves it paused until the player resumes.
 
 Backspace activates the left dialog action. Escape follows a rendered ←BACK button, or PLACE while positioning a sprite layer; otherwise it closes the popup. The popup sequence records whether that arrow is present, so all dialogs use their displayed action.
 

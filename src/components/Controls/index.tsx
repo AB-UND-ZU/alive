@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { isTouch, useDimensions } from "../Dimensions";
 import "./index.css";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1243,11 +1250,27 @@ export default function Controls({
     [handleMove, releaseTouch, setJoystickOrientations, ecs]
   );
 
+  const handleDeactivate = useCallback(() => {
+    releaseTouch();
+    touchMoved.current = false;
+    setPaused(true);
+  }, [releaseTouch, setPaused]);
+
   const handleVisibility = useCallback(() => {
-    if (document.hidden) {
-      setPaused(true);
-    }
-  }, [setPaused]);
+    if (document.hidden) handleDeactivate();
+  }, [handleDeactivate]);
+
+  // Keep lifecycle listeners stable and register before preview focus policies.
+  useLayoutEffect(() => {
+    window.addEventListener("blur", handleDeactivate);
+    window.addEventListener("pagehide", handleDeactivate);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.removeEventListener("blur", handleDeactivate);
+      window.removeEventListener("pagehide", handleDeactivate);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [handleDeactivate, handleVisibility]);
 
   useEffect(() => {
     const suppressSwipeClick = (event: MouseEvent) => {
@@ -1256,7 +1279,11 @@ export default function Controls({
       event.stopImmediatePropagation();
     };
     const startPointer = (event: PointerEvent) => {
-      if (event.pointerType !== "touch") touchMoved.current = false;
+      // A browser can deliver pointer events without the matching touchstart.
+      touchMoved.current = false;
+      if (event.pointerType === "touch" && event.isPrimary) {
+        touchOrigin.current = [event.clientX, event.clientY];
+      }
     };
     // A touch target can disappear after moving away from an interaction.
     const releasePointer = (event: PointerEvent) => {
@@ -1276,8 +1303,6 @@ export default function Controls({
 
     window.addEventListener("mousemove", handleMouseMove);
 
-    document.addEventListener("visibilitychange", handleVisibility);
-
     return () => {
       window.removeEventListener("click", suppressSwipeClick, true);
       window.removeEventListener("pointerdown", startPointer, true);
@@ -1292,16 +1317,8 @@ export default function Controls({
       window.removeEventListener("touchcancel", handleTouchMove);
 
       window.removeEventListener("mousemove", handleMouseMove);
-
-      document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [
-    handleKey,
-    handleMouseMove,
-    handleTouchMove,
-    handleVisibility,
-    releaseTouch,
-  ]);
+  }, [handleKey, handleMouseMove, handleTouchMove, releaseTouch]);
 
   const emptySpell = createButton(
     isTouch ? "SPELL" : "SPACE",

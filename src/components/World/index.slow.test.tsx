@@ -199,18 +199,28 @@ describe("World", () => {
     expect(readSaves()).toHaveLength(1);
   });
 
-  it("pauses and saves when switching browser tabs", async () => {
-    renderGame(true);
-    act(() => context.setPaused(false));
-    const hidden = jest.spyOn(document, "hidden", "get").mockReturnValue(true);
+  it.each(["visibilitychange", "blur", "pagehide"])(
+    "%s pauses and saves without resuming on focus",
+    async (type) => {
+      renderGame(true);
+      act(() => context.setPaused(false));
+      const hidden = jest
+        .spyOn(document, "hidden", "get")
+        .mockReturnValue(type === "visibilitychange");
 
-    fireEvent(document, new Event("visibilitychange"));
-    hidden.mockRestore();
-    await flush();
+      fireEvent(
+        type === "visibilitychange" ? document : window,
+        new Event(type)
+      );
+      hidden.mockRestore();
+      await flush();
 
-    expect(context.paused).toBe(true);
-    expect(readSaves()).toHaveLength(1);
-  });
+      expect(context.paused).toBe(true);
+      expect(readSaves()).toHaveLength(1);
+      fireEvent.focus(window);
+      expect(context.paused).toBe(true);
+    }
+  );
 
   it("saves with the SAVE button of the pause screen", async () => {
     const { container, saveText } = renderGame();
