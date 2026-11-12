@@ -10,3 +10,5 @@ ECS components
 ```
 
 `generation` refreshes an entity after engine changes. `inRadius`, `inside` and `outside` provide the viewpoint and cover tests calculated by the surrounding renderer.
+
+`castShadow` selects opaque blockers from the surrounding renderer's cached light footprints. Retained blockers can stay mounted while their artwork is hidden. A visible wall keeps its existing black body even when it does not cast a shadow. Without this prop, standalone entity renders keep visibility-based shadows.
