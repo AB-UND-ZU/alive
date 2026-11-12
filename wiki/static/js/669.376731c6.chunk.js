@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunkalive=self.webpackChunkalive||[]).push([[669],{34669:(e,i,l)=>{l.r(i);const n=window.location.pathname.split("/").pop();"preview.html"===n?Promise.all([l.e(918),l.e(577),l.e(335),l.e(317),l.e(61),l.e(537),l.e(223)]).then(l.bind(l,7382)):"interface-preview.html"===n?Promise.all([l.e(918),l.e(577),l.e(335),l.e(317),l.e(61),l.e(212)]).then(l.bind(l,75040)):(document.body.className="App Wiki",Promise.all([l.e(918),l.e(577),l.e(267),l.e(317),l.e(537),l.e(524)]).then(l.bind(l,85554)))}}]);
-//# sourceMappingURL=669.376731c6.chunk.js.map
