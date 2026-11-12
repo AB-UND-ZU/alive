@@ -1,3 +1,4 @@
+import { bumpEntity } from "../motion";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -156,8 +157,7 @@ export default function setupSpike(world: World) {
         entity[MOVABLE].lastInteraction = entityReference;
 
         if (entity[BUMPABLE]) {
-          entity[BUMPABLE].generation = entity[RENDERABLE].generation;
-          entity[BUMPABLE].orientation = targetOrientation;
+          bumpEntity(world, entity, targetOrientation);
         }
       }
     }

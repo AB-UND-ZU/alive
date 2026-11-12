@@ -7,6 +7,7 @@ import {
   holdMove,
   step,
 } from "../../testing/harness";
+import { getBumpMotion, sampleMotion } from "../../engine/motion";
 import { playedSounds } from "../../testing/env";
 import { World } from "../../engine";
 import { BAITABLE } from "../../engine/components/baitable";
@@ -131,6 +132,9 @@ describe("hook", () => {
       30000
     );
     expect(playedSounds).toContain("fish");
+    const bump = getBumpMotion(getBait(world))!;
+    expect(bump).toBeDefined();
+    expect(sampleMotion(bump, bump.startedAt).y).toBeCloseTo(0.225);
 
     act(world, "skill");
     advanceUntil(world, () => !hero[CONDITIONABLE].hook, 3000);

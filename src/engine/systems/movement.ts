@@ -1,4 +1,4 @@
-import { updateBumpMotion } from "../motion";
+import { bumpEntity } from "../motion";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { MOVABLE } from "../components/movable";
@@ -424,9 +424,7 @@ export default function setupMovement(world: World) {
           }
 
           if (entity[BUMPABLE]) {
-            entity[BUMPABLE].generation = entity[RENDERABLE].generation;
-            entity[BUMPABLE].orientation = "up";
-            updateBumpMotion(world, entity);
+            bumpEntity(world, entity, "up");
             rerenderEntity(world, entity);
           }
         }

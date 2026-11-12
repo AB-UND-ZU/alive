@@ -4,6 +4,7 @@ import type { World } from "./ecs";
 import { MOVABLE } from "./components/movable";
 import { PARTICLE } from "./components/particle";
 import { POSITION } from "./components/position";
+import { RENDERABLE } from "./components/renderable";
 import { BUMPABLE } from "./components/bumpable";
 import { Orientation, orientationPoints } from "./components/orientable";
 import { signedDistance } from "../game/math/std";
@@ -252,8 +253,15 @@ export const moveMotion = (
 
 export const getMotion = (entity: Entity) => motions.get(entity);
 
-export const updateBumpMotion = (world: World, entity: Entity) => {
+export const bumpEntity = (
+  world: World,
+  entity: Entity,
+  orientation: Orientation | undefined,
+  generation = entity[RENDERABLE].generation
+) => {
   const bump = entity[BUMPABLE];
+  bump.generation = generation;
+  bump.orientation = orientation;
   if (!bump?.orientation || bumps.get(entity)?.generation === bump.generation)
     return;
   const direction = orientationPoints[bump.orientation as Orientation];

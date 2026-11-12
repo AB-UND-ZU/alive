@@ -1,4 +1,4 @@
-import { syncMovementSpring } from "../motion";
+import { bumpEntity, syncMovementSpring } from "../motion";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
@@ -614,8 +614,7 @@ export default function setupAi(world: World) {
                     )) ||
                   farmable
                 ) {
-                  entity[BUMPABLE].generation = generation;
-                  entity[BUMPABLE].orientation = hack;
+                  bumpEntity(world, entity, hack, generation);
 
                   // pick crop seed
                   if (
@@ -3874,8 +3873,7 @@ export default function setupAi(world: World) {
             );
             const limbs = getLimbs(world, entity);
             limbs.forEach((limb) => {
-              limb[BUMPABLE].generation = generation;
-              limb[BUMPABLE].orientation = "down";
+              bumpEntity(world, limb, "down", generation);
               rerenderEntity(world, limb);
             });
 

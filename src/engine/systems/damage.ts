@@ -1,4 +1,4 @@
-import { updateBumpMotion } from "../motion";
+import { bumpEntity } from "../motion";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -730,9 +730,7 @@ export const knockEntity = (
       moveEntity(world, entity, target);
       rerenderEntity(world, entity);
     } else if (entity[BUMPABLE]) {
-      entity[BUMPABLE].generation = entity[RENDERABLE].generation;
-      entity[BUMPABLE].orientation = orientation;
-      updateBumpMotion(world, entity);
+      bumpEntity(world, entity, orientation);
     }
 
     // knock into spikes but prevent tornadoes killing all mobs in desert
@@ -1012,9 +1010,12 @@ export default function setupDamage(world: World) {
 
         for (const limb of limbs) {
           if (limb[BUMPABLE]) {
-            limb[BUMPABLE].generation = entity[RENDERABLE].generation;
-            limb[BUMPABLE].orientation = targetOrientation;
-            updateBumpMotion(world, limb);
+            bumpEntity(
+              world,
+              limb,
+              targetOrientation,
+              entity[RENDERABLE].generation
+            );
           }
 
           if (!rigid && limb[ORIENTABLE]) {

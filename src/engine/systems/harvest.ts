@@ -1,3 +1,4 @@
+import { bumpEntity } from "../motion";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -354,8 +355,7 @@ export const performHarvest = (
     const targetLimbs = getLimbs(world, rangeTarget);
     targetLimbs.forEach((limb) => {
       if (limb[BUMPABLE]) {
-        limb[BUMPABLE].generation = limb[RENDERABLE].generation;
-        limb[BUMPABLE].orientation = bumpOrientation;
+        bumpEntity(world, limb, bumpOrientation);
         rerenderEntity(world, limb);
       }
     });

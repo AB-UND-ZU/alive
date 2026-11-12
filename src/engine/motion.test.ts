@@ -9,6 +9,7 @@ import {
   getCameraMotion,
   releaseCameraMotion,
   getMotion,
+  getBumpMotion,
   retargetMotion,
   sampleMotion,
 } from "./motion";
@@ -17,6 +18,7 @@ import {
   createAreaWorld,
   advanceUntil,
   trigger,
+  holdMove,
 } from "../testing/harness";
 import { moveEntity } from "./systems/map";
 import { MOVABLE } from "./components/movable";
@@ -234,4 +236,25 @@ test("changing movement duration mid-flight preserves its progress without a new
   expect(sampleMotion(getMotion(hero)!, world.metadata.elapsed).x).toBeCloseTo(
     x + 0.75
   );
+});
+
+test.each([
+  ["coin", "∙"],
+  ["apple", "."],
+  ["ore", "◘"],
+  ["switch", "L"],
+])("bumping into a %s records its animation before a render", (_name, cell) => {
+  const world = createAreaWorld(`|     |\n| ♀${cell}  |\n|     |`, {
+    legend: { L: "lever" },
+  });
+  const hero = assertHero(world);
+  const origin = { ...hero[POSITION] };
+  holdMove(world, ["right"]);
+  advanceUntil(world, () => hero.BUMPABLE?.orientation === "right", 1000);
+  holdMove(world, []);
+  expect(hero[POSITION]).toEqual(origin);
+  const bump = getBumpMotion(hero);
+  expect(bump).toBeDefined();
+  expect(sampleMotion(bump!, bump!.startedAt).x).toBeCloseTo(0.225);
+  expect(sampleMotion(bump!, bump!.startedAt + 2000).x).toBeCloseTo(0);
 });

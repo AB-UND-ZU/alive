@@ -6,6 +6,7 @@ import {
   step,
   walk,
 } from "../../testing/harness";
+import { getBumpMotion, sampleMotion } from "../../engine/motion";
 import { playedSounds } from "../../testing/env";
 import { World } from "../../engine";
 import { CONDITIONABLE } from "../../engine/components/conditionable";
@@ -67,6 +68,9 @@ describe("shovel", () => {
     expect(getSoil(world, position)?.[FARMABLE].watered).toBe(false);
     expect(hero[CONDITIONABLE].shovel).toBeUndefined();
     expect(playedSounds).toContain("dig");
+    const bump = getBumpMotion(hero)!;
+    expect(bump).toBeDefined();
+    expect(sampleMotion(bump, bump.startedAt).y).toBeCloseTo(0.225);
   });
 
   it("digs wet soil close to water", () => {

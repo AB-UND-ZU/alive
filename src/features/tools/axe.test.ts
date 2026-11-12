@@ -1,11 +1,13 @@
 import {
   act,
+  advanceUntil,
   countItems,
   findInArea,
   getItems,
   holdMove,
   step,
 } from "../../testing/harness";
+import { getBumpMotion, sampleMotion } from "../../engine/motion";
 import { playedSounds } from "../../testing/env";
 import { ACTIONABLE } from "../../engine/components/actionable";
 import { CONDITIONABLE } from "../../engine/components/conditionable";
@@ -32,6 +34,20 @@ const sword = { weapon: "sword", material: "wood", amount: 1 } as const;
 const woodAxe = { tool: "axe", material: "wood", amount: 1 } as const;
 
 describe("axe", () => {
+  it("bumps a tree immediately when an axe hit lands", () => {
+    const { world } = setupTools(area, [sword, woodAxe]);
+    const treeEntity = getResource(world, tree)!;
+    const amount = treeEntity[HARVESTABLE].amount;
+    act(world, "skill");
+    holdMove(world, ["right"]);
+    advanceUntil(world, () => treeEntity[HARVESTABLE].amount < amount, 2000);
+    holdMove(world, []);
+    const bump = getBumpMotion(treeEntity)!;
+    expect(bump).toBeDefined();
+    expect(bump.startedAt).toBe(world.metadata.elapsed);
+    expect(sampleMotion(bump, bump.startedAt).x).toBeCloseTo(0.225);
+  });
+
   it("activates with the skill button when only a tool is equipped", () => {
     const { world, hero } = setupTools(area, [woodAxe]);
 

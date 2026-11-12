@@ -1,3 +1,4 @@
+import { bumpEntity } from "../../engine/motion";
 import { setParticleMotion } from "../../engine/motion";
 import { displaySpriteBuilder } from "./spriteBuilder";
 import { completeCommand } from "./commands";
@@ -1099,8 +1100,7 @@ export const shovelCondition: Sequence<ConditionSequence> = (
     performDig(world, entity, toolEntity);
 
     if (entity[BUMPABLE]) {
-      entity[BUMPABLE].generation = entity[RENDERABLE].generation;
-      entity[BUMPABLE].orientation = "down";
+      bumpEntity(world, entity, "down");
       rerenderEntity(world, entity);
     }
 

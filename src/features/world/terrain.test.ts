@@ -6,6 +6,7 @@ import {
   getEntitiesAt,
   step,
 } from "../../testing/harness";
+import { getBumpMotion, sampleMotion } from "../../engine/motion";
 import { AFFECTABLE } from "../../engine/components/affectable";
 import { COVERABLE } from "../../engine/components/coverable";
 import { MOVABLE } from "../../engine/components/movable";
@@ -106,6 +107,10 @@ describe("terrain", () => {
     hold(world, ["right"]);
     advanceUntil(world, () => !isSnowy(), 1000);
     expect(hero[POSITION]).toEqual({ x: 2, y: 1 });
+    const bump = getBumpMotion(hero)!;
+    expect(bump).toBeDefined();
+    expect(sampleMotion(bump, world.metadata.elapsed).x).toBeGreaterThan(0);
+    expect(sampleMotion(bump, bump.startedAt).x).toBeCloseTo(0.225);
 
     advanceUntil(world, () => hero[POSITION].x === 3, 1000);
     hold(world, []);

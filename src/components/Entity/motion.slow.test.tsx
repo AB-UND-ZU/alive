@@ -2,13 +2,23 @@ import ReactThreeTestRenderer from "@react-three/test-renderer";
 import * as THREE from "three";
 import { WorldProvider } from "../../bindings/hooks";
 import { createWorldContext, renderScene } from "../../testing/render";
-import { act, createAreaWorld, giveItems, step } from "../../testing/harness";
+import {
+  act,
+  createAreaWorld,
+  giveItems,
+  step,
+  assertHero,
+  holdMove,
+  advanceUntil,
+} from "../../testing/harness";
 import {
   AnvilEntity,
   getShopper,
   openStation,
   selectRow,
 } from "../../features/workstations/helpers";
+import { getBumpMotion } from "../../engine/motion";
+import Animated from "./Animated";
 import { FORGABLE } from "../../engine/components/forgable";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
 import { forgeTicks, hittingWidth } from "../../game/balancing/forging";
@@ -150,5 +160,39 @@ test("a paused animated entity keeps its initial cached world transform", async 
   expect(anchor.getWorldPosition(new THREE.Vector3()).toArray()).toEqual([
     4, 5, 0,
   ]);
+  await renderer.unmount();
+});
+
+test("a pickup bump renders immediately and settles without another React commit", async () => {
+  const world = createAreaWorld("|     |\n| ♀∙  |\n|     |");
+  const hero = assertHero(world);
+  const { aspectRatio } = world.metadata.dimensions;
+  const position: [number, number, number] = [
+    hero.POSITION.x * aspectRatio,
+    -hero.POSITION.y,
+    0,
+  ];
+  const { renderer, advanceFrames } = await renderScene(
+    world,
+    <DimensionsContext.Provider value={world.metadata.dimensions}>
+      <Animated entity={hero} position={position} />
+    </DimensionsContext.Provider>
+  );
+  const group = renderer.scene.children[0].instance;
+  holdMove(world, ["right"]);
+  advanceUntil(world, () => hero.BUMPABLE?.orientation === "right", 1000);
+  holdMove(world, []);
+  expect(hero.POSITION.x * aspectRatio).toBe(position[0]);
+  await advanceFrames(1);
+  expect(group.position.x).toBeCloseTo(position[0] + 0.225 * aspectRatio);
+  const bump = getBumpMotion(hero)!;
+  world.metadata.renderTime = bump.startedAt + 100;
+  await advanceFrames(1);
+  expect(group.position.x).toBeGreaterThan(position[0]);
+  expect(group.position.x).toBeLessThan(position[0] + 0.225 * aspectRatio);
+  world.metadata.renderTime = bump.startedAt + 2000;
+  await advanceFrames(1);
+  expect(group.position.x).toBeCloseTo(position[0]);
+  expect(group.position.y).toBeCloseTo(position[1]);
   await renderer.unmount();
 });

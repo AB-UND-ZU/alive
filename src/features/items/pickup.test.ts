@@ -10,6 +10,7 @@ import {
   step,
   walk,
 } from "../../testing/harness";
+import { getBumpMotion } from "../../engine/motion";
 import { playedSounds } from "../../testing/env";
 import { INVENTORY } from "../../engine/components/inventory";
 import { LOOTABLE } from "../../engine/components/lootable";
@@ -133,6 +134,7 @@ describe("item pickup", () => {
     expect(getItems(world, hero)).toEqual([]);
     expect(drop[INVENTORY].items).toHaveLength(1);
     expect(playedSounds).not.toContain("pickup");
+    expect(getBumpMotion(hero)).toBeUndefined();
   });
 });
 

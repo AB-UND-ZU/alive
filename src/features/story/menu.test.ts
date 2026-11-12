@@ -1,3 +1,5 @@
+import { getBumpMotion, sampleMotion } from "../../engine/motion";
+import { clickEntity } from "../../engine/systems/click";
 import { CLICKABLE } from "../../engine/components/clickable";
 import { COVERABLE } from "../../engine/components/coverable";
 import { POSITION } from "../../engine/components/position";
@@ -177,7 +179,7 @@ describe("main menu", () => {
   });
 
   it("sends a colored ripple from a clicked title block", () => {
-    const { world } = setupMenu();
+    const { world, hero } = setupMenu();
     const blocks = world
       .getEntities([CLICKABLE, POSITION, SPRITE])
       .filter((entity) => !entity[SEQUENCABLE] && !entity[COVERABLE]);
@@ -186,7 +188,10 @@ describe("main menu", () => {
       blocks.map((entity) => entity[SPRITE].layers[0].color).join();
     const before = colors();
 
-    click(block);
+    clickEntity(world, hero, block, "up");
+    const bump = getBumpMotion(hero)!;
+    expect(bump).toBeDefined();
+    expect(sampleMotion(bump, bump.startedAt).y).toBeCloseTo(-0.225);
     advance(world, 2500);
 
     expect(block[CLICKABLE].clicked).toBe(false);

@@ -1,3 +1,4 @@
+import { bumpEntity } from "../motion";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -528,8 +529,7 @@ export default function setupCollect(world: World) {
         entity[ORIENTABLE].facing = targetOrientation;
       }
       if (collected && entity[BUMPABLE]) {
-        entity[BUMPABLE].generation = entity[RENDERABLE].generation;
-        entity[BUMPABLE].orientation = targetOrientation;
+        bumpEntity(world, entity, targetOrientation);
       }
 
       // mark as interacted

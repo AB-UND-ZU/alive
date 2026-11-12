@@ -1,3 +1,4 @@
+import { bumpEntity } from "../motion";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -17,7 +18,6 @@ import { PLAYER } from "../components/player";
 import { rerenderEntity } from "./renderer";
 import { isFragment } from "./enter";
 import { FRAGMENT } from "../components/fragment";
-import { BUMPABLE } from "../components/bumpable";
 import { MOUNTABLE } from "../components/mountable";
 
 export const isClickable = (world: World, entity: Entity) =>
@@ -53,8 +53,7 @@ export const clickEntity = (
   if (entity[ORIENTABLE]) {
     entity[ORIENTABLE].facing = orientation;
   }
-  entity[BUMPABLE].generation = entity[RENDERABLE].generation;
-  entity[BUMPABLE].orientation = orientation;
+  bumpEntity(world, entity, orientation);
   target[CLICKABLE].clicked = true;
   rerenderEntity(world, entity);
 };

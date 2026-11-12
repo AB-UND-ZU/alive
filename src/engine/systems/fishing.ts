@@ -1,3 +1,4 @@
+import { bumpEntity } from "../motion";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -136,8 +137,7 @@ export default function setupFishing(world: World) {
         hookable[HOOKABLE].casting = undefined;
         entity[BAITABLE].caught = hookableId;
         play("fish", { variant: 3 });
-        entity[BUMPABLE].orientation = "down";
-        entity[BUMPABLE].generation = entity[RENDERABLE].generation;
+        bumpEntity(world, entity, "down");
         rerenderEntity(world, entity);
       }
     }
@@ -200,13 +200,11 @@ export default function setupFishing(world: World) {
         // escape on next movement
         entity[HOOKABLE].escaping = true;
         play("fish", { variant: 4 });
-        baitEntity[BUMPABLE].orientation = "down";
-        baitEntity[BUMPABLE].generation = baitEntity[RENDERABLE].generation;
+        bumpEntity(world, baitEntity, "down");
         rerenderEntity(world, baitEntity);
 
         if (entity[BUMPABLE]) {
-          entity[BUMPABLE].generation = entity[RENDERABLE].generation;
-          entity[BUMPABLE].orientation = targetOrientation;
+          bumpEntity(world, entity, targetOrientation);
         }
       }
 
