@@ -31,6 +31,7 @@ import { getClosestQuadrant } from "../../game/math/path";
 import { STICKY } from "../../engine/components/sticky";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { HOMING } from "../../engine/components/homing";
+import { orientationPoints } from "../../engine/components/orientable";
 
 const shakeFactor = 0.1;
 const shakeSpring = { duration: 50 };
@@ -44,27 +45,17 @@ export default function Systems() {
   const overscan = useOverscan(position.x, position.y, suspended || jump);
   const game = useGame();
   const hero = useHero() || ecs?.getEntities([RENDERABLE, PLAYER, POSITION])[0];
-  const previousHero = useRef(hero);
   const heroX = hero?.[POSITION].x || 0;
   const heroY = hero?.[POSITION].y || 0;
-  const lightOverscan = useOverscan(
-    heroX,
-    heroY,
-    suspended || jump || previousHero.current !== hero
-  );
-  previousHero.current = hero;
   const brightness = hero?.[LIGHT]?.brightness || 0;
   const occlusionGeneration = ecs?.metadata.occlusionGeneration || 0;
   const shadowCasters = useMemo(() => {
     const casters = new Set<number>();
     if (!ecs || !hero || brightness <= 0) return casters;
 
-    // Keep both footprints while the light travels between grid positions.
-    const origins = [{ x: heroX, y: heroY }];
-    if (lightOverscan.x || lightOverscan.y) {
-      origins.push({ x: heroX - lightOverscan.x, y: heroY - lightOverscan.y });
-    }
-    for (const origin of origins) {
+    // Prepare blockers before the light moves into a neighboring cell.
+    for (const offset of [{ x: 0, y: 0 }, ...Object.values(orientationPoints)]) {
+      const origin = { x: heroX + offset.x, y: heroY + offset.y };
       for (const point of traceCircularVisiblity(ecs, origin, brightness)) {
         const cell = getCell(ecs, point);
         for (const id in cell) {
@@ -80,8 +71,6 @@ export default function Systems() {
     hero,
     heroX,
     heroY,
-    lightOverscan.x,
-    lightOverscan.y,
     brightness,
     occlusionGeneration,
   ]);

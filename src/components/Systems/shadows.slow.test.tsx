@@ -11,6 +11,11 @@ import { POSITION } from "../../engine/components/position";
 import { REFERENCE } from "../../engine/components/reference";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { MOVABLE } from "../../engine/components/movable";
+import {
+  orientationPoints,
+  Orientation,
+} from "../../engine/components/orientable";
+import { Point } from "../../game/math/std";
 import { TypedEntity } from "../../engine/entities";
 import {
   disposeEntity,
@@ -104,7 +109,60 @@ const wallAt = (world: World, x: number, y: number) => {
 };
 
 describe("light shadow footprints", () => {
-  it("starts with the current light footprint and keeps a corner blocker through one cell transition", async () => {
+  it.each(["up", "right", "down", "left"] as const)(
+    "prepares a corner blocker before the hero steps %s",
+    async (direction) => {
+      const world = createAreaWorld("|♀|", { size: 64 });
+      const hero = world.assertComponents(assertHero(world), [LIGHT, POSITION]);
+      hero[LIGHT].brightness = 3.55;
+      const origin = { x: 6, y: 6 };
+      moveEntity(world, hero, origin);
+      const rotations: Record<Orientation, (point: Point) => Point> = {
+        left: (point) => point,
+        right: (point) => ({ x: -point.x, y: point.y }),
+        up: (point) => ({ x: -point.y, y: point.x }),
+        down: (point) => ({ x: point.y, y: -point.x }),
+      };
+      const walls = [
+        { x: 0, y: -1 },
+        { x: 0, y: -2 },
+        { x: 0, y: -3 },
+        { x: 1, y: -3 },
+        { x: 2, y: -3 },
+      ].map((offset) => {
+        const rotated = rotations[direction](offset);
+        const wall = createCell(
+          world,
+          { x: origin.x + rotated.x, y: origin.y + rotated.y },
+          "mountain",
+          "hidden"
+        ).cell;
+        registerEntity(world, wall);
+        return world.assertComponents(wall, [POSITION]);
+      });
+      const farWall = walls[2];
+      const step = orientationPoints[direction];
+      const destination = { x: origin.x + step.x, y: origin.y + step.y };
+      expect(
+        tracing.traceCircularVisiblity(world, origin, hero[LIGHT].brightness)
+      ).not.toContainEqual(farWall[POSITION]);
+      expect(
+        tracing.traceCircularVisiblity(
+          world,
+          destination,
+          hero[LIGHT].brightness
+        )
+      ).toContainEqual(farWall[POSITION]);
+      const { renderer, refresh } = await mount(world);
+      expect(hasCaster(renderer.scene, farWall)).toBe(true);
+      moveEntity(world, hero, destination);
+      await refresh();
+      expect(hasCaster(renderer.scene, farWall)).toBe(true);
+      await renderer.unmount();
+    }
+  );
+
+  it("prepares nearby corner blockers and releases them beyond the light range", async () => {
     const { world, hero } = createCorner();
     const upperWall = wallAt(world, 3, 1);
     const { renderer, refresh } = await mount(world);
@@ -120,17 +178,25 @@ describe("light shadow footprints", () => {
     await renderer.unmount();
   });
 
-  it("does not invent a previous origin while the hero subscription starts", async () => {
+  it("selects blockers near the actual hero before its subscription starts", async () => {
     const { world, hero } = createCorner();
     moveEntity(world, hero, { x: 3, y: 4 });
     const upperWall = wallAt(world, 3, 1);
+    const distantWall = createCell(
+      world,
+      { x: 0, y: 0 },
+      "mountain",
+      "hidden"
+    ).cell;
+    registerEntity(world, distantWall);
     const { renderer } = await mount(world);
-    expect(hasCaster(renderer.scene, upperWall)).toBe(false);
+    expect(hasCaster(renderer.scene, distantWall)).toBe(false);
+    expect(hasCaster(renderer.scene, upperWall)).toBe(true);
     expect(hasCaster(renderer.scene, wallAt(world, 3, 3))).toBe(true);
     await renderer.unmount();
   });
 
-  it("preserves the previous footprint across blocked input and unrelated reference ticks", async () => {
+  it("keeps nearby blockers prepared across blocked input and unrelated reference ticks", async () => {
     const { world, hero } = createCorner();
     const upperWall = wallAt(world, 3, 1);
     const { renderer, refresh } = await mount(world);
@@ -206,7 +272,7 @@ describe("light shadow footprints", () => {
     await renderer.unmount();
   });
 
-  it("retains and releases the correct footprint across the map wrap", async () => {
+  it("prepares nearby blockers across the map wrap and releases distant ones", async () => {
     const { world, hero } = createCorner();
     for (const y of [1, 2, 3]) {
       const wall = createCell(world, { x: 0, y }, "mountain", "hidden").cell;
@@ -228,11 +294,11 @@ describe("light shadow footprints", () => {
   it("refreshes occlusion when a door opens or closes while the hero stays still", async () => {
     const world = createAreaWorld(
       `
-|  █  |
-|     |
-|  D  |
-|     |
-|  ♀  |
+|   █   |
+|       |
+|  █D█  |
+|       |
+|   ♀   |
 `,
       { size: 64, legend: { D: "wood_door" } }
     );
@@ -242,8 +308,8 @@ describe("light shadow footprints", () => {
       POSITION,
     ]);
     hero[LIGHT].brightness = 6;
-    const rearWall = wallAt(world, 2, 0);
-    const door = world.assertComponents(wallAt(world, 2, 2), [LOCKABLE]);
+    const rearWall = wallAt(world, 3, 0);
+    const door = world.assertComponents(wallAt(world, 3, 2), [LOCKABLE]);
     const { renderer, refresh } = await mount(world);
     expect(hasCaster(renderer.scene, door)).toBe(true);
     expect(hasCaster(renderer.scene, rearWall)).toBe(false);
@@ -259,30 +325,30 @@ describe("light shadow footprints", () => {
   it("updates stationary light when an opaque blocker moves", async () => {
     const world = createAreaWorld(
       `
-|  █  |
-|     |
-|  █  |
-|     |
-|  ♀  |
+|   █   |
+|       |
+|  ███  |
+|       |
+|   ♀   |
 `,
       { size: 64 }
     );
     const hero = world.assertComponents(assertHero(world), [LIGHT]);
     hero[LIGHT].brightness = 6;
-    const frontWall = wallAt(world, 2, 2);
-    const rearWall = wallAt(world, 2, 0);
+    const frontWall = wallAt(world, 3, 2);
+    const rearWall = wallAt(world, 3, 0);
     const { renderer, refresh } = await mount(world);
     expect(hasCaster(renderer.scene, rearWall)).toBe(false);
-    moveEntity(world, frontWall, { x: 4, y: 2 });
+    moveEntity(world, frontWall, { x: 5, y: 2 });
     await refresh();
     expect(hasCaster(renderer.scene, rearWall)).toBe(true);
-    moveEntity(world, frontWall, { x: 2, y: 2 });
+    moveEntity(world, frontWall, { x: 3, y: 2 });
     await refresh();
     expect(hasCaster(renderer.scene, rearWall)).toBe(false);
     await renderer.unmount();
   });
 
-  it("removes destroyed blockers instead of retaining their old footprint membership", async () => {
+  it("removes destroyed blockers from the prepared footprint", async () => {
     const { world, hero } = createCorner();
     const upperWall = wallAt(world, 3, 1);
     const { renderer, refresh } = await mount(world);
@@ -295,7 +361,7 @@ describe("light shadow footprints", () => {
     await renderer.unmount();
   });
 
-  it("resets retained footprints while a scene is suspended", async () => {
+  it("restores nearby blockers when a suspended scene resumes", async () => {
     const { world, hero } = createCorner();
     const upperWall = wallAt(world, 3, 1);
     const { renderer, refresh } = await mount(world);
@@ -305,11 +371,11 @@ describe("light shadow footprints", () => {
     await refresh(world, "scene", true);
     expect(hasCaster(renderer.scene, upperWall)).toBe(false);
     await refresh();
-    expect(hasCaster(renderer.scene, upperWall)).toBe(false);
+    expect(hasCaster(renderer.scene, upperWall)).toBe(true);
     await renderer.unmount();
   });
 
-  it("resets history when the hero is replaced at the same position", async () => {
+  it("updates the prepared footprint when the hero is replaced", async () => {
     const { world, hero } = createCorner();
     const upperWall = wallAt(world, 3, 1);
     const { renderer, refresh } = await mount(world);
@@ -317,7 +383,7 @@ describe("light shadow footprints", () => {
     await refresh();
     expect(hasCaster(renderer.scene, upperWall)).toBe(true);
     disposeEntity(world, hero, false);
-    const replacement = createCell(world, { x: 3, y: 4 }, "player", "visible");
+    const replacement = createCell(world, { x: 3, y: 6 }, "player", "visible");
     for (const entity of replacement.all) {
       if (POSITION in entity) registerEntity(world, entity);
     }
@@ -333,14 +399,14 @@ describe("light shadow footprints", () => {
     await renderer.unmount();
   });
 
-  it("starts a new world without retaining the previous world's footprint", async () => {
+  it("prepares the new world around its own hero", async () => {
     const { world, hero } = createCorner();
     const { renderer, refresh } = await mount(world);
     moveEntity(world, hero, { x: 3, y: 4 });
     await refresh();
     expect(hasCaster(renderer.scene, wallAt(world, 3, 1))).toBe(true);
     const next = createCorner();
-    moveEntity(next.world, next.hero, { x: 3, y: 4 });
+    moveEntity(next.world, next.hero, { x: 3, y: 6 });
     await refresh(next.world, "next-world");
     expect(hasCaster(renderer.scene, wallAt(next.world, 3, 1))).toBe(false);
     await renderer.unmount();
