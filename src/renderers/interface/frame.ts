@@ -13,9 +13,12 @@ import { LIQUID } from "../../engine/components/liquid";
 import { PROJECTILE } from "../../engine/components/projectile";
 import { INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
-import { ORIENTABLE } from "../../engine/components/orientable";
+import { Orientation, ORIENTABLE } from "../../engine/components/orientable";
 import { PARTICLE } from "../../engine/components/particle";
 import { STICKY } from "../../engine/components/sticky";
+import { SWIMMABLE } from "../../engine/components/swimmable";
+import { MOVABLE } from "../../engine/components/movable";
+import { BUMPABLE } from "../../engine/components/bumpable";
 import { STATS } from "../../engine/components/stats";
 import { ATTACKABLE } from "../../engine/components/attackable";
 import { BUILDABLE } from "../../engine/components/buildable";
@@ -40,6 +43,7 @@ import {
   lootHeight,
   oreHeight,
   particleHeight,
+  immersibleHeight,
 } from "./segments";
 
 export type SceneSprite = {
@@ -51,6 +55,8 @@ export type SceneSprite = {
   sprite: Sprite;
   amount?: number;
   entity: Entity;
+  hidden?: boolean;
+  swimming?: boolean;
   dots?: number;
   hp?: {
     value: number;
@@ -68,7 +74,8 @@ export const getSceneFrame = (
   world: World,
   columns: number,
   rows: number,
-  state: SceneState = { stickyCastables: {} }
+  state: SceneState = { stickyCastables: {} },
+  { includeHidden = false }: { includeHidden?: boolean } = {}
 ): SceneSprite[] => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const hero = world.getEntities([PLAYER, POSITION])[0];
@@ -132,18 +139,31 @@ export const getSceneFrame = (
       (outside && !(entity[FOG]?.fixed && visible));
     let px = x - camera.x + (columns - 1) / 2;
     let py = y - camera.y + (rows - 1) / 2;
-    const motion = !entity[STICKY] && getMotion(entity);
+    const animated =
+      !entity[STICKY] && (entity[MOVABLE]?.spring || entity[BUMPABLE]);
+    const motion = animated && getMotion(entity);
     if (motion) {
       const point = sampleMotion(motion, world.metadata.renderTime);
       px += point.x - motion.x;
       py += point.y - motion.y;
     }
-    const bump = getBumpMotion(entity);
+    const bump = animated && getBumpMotion(entity);
     if (bump) {
       const point = sampleMotion(bump, world.metadata.renderTime);
       px += point.x;
       py += point.y;
     }
+    const origin = motion || entity[POSITION];
+    const copyX = entity[STICKY]
+      ? 0
+      : Math.round(
+          (x - camera.x - signedDistance(camera.x, origin.x, size)) / size
+        );
+    const copyY = entity[STICKY]
+      ? 0
+      : Math.round(
+          (y - camera.y - signedDistance(camera.y, origin.y, size)) / size
+        );
     const add = (
       sprite: Sprite,
       key: string,
@@ -151,10 +171,10 @@ export const getSceneFrame = (
       sx = 0,
       sy = 0,
       amount?: number,
-      facing = entity[ORIENTABLE]?.facing
+      facing?: Orientation
     ) => {
       const entry: SceneSprite = {
-        key: `${id}:${x}:${y}:${key}`,
+        key: `${id}:${copyX}:${copyY}:${key}`,
         x: px + sx,
         y: py + sy,
         z,
@@ -166,14 +186,14 @@ export const getSceneFrame = (
       scene.push(entry);
       return entry;
     };
-    if (!hidden) {
+    if (!hidden || includeHidden) {
       for (const [index, segment] of getSegments(
         world,
         entity,
         { isTransparent: false, receiveShadow: false },
         inside
       ).entries()) {
-        add(
+        const entry = add(
           segment.sprite,
           `body${index}`,
           segment.offsetZ + index / 1000,
@@ -182,7 +202,21 @@ export const getSceneFrame = (
           segment.amount,
           segment.facing
         );
+        entry.hidden = hidden;
       }
+    }
+    if (
+      entity[SWIMMABLE] &&
+      !entity[MOVABLE]?.flying &&
+      (entity[SWIMMABLE].swimming || includeHidden)
+    ) {
+      const entry = add(
+        { name: "swimming", layers: [] },
+        "swimming",
+        immersibleHeight
+      );
+      entry.swimming = true;
+      entry.hidden = hidden || !entity[SWIMMABLE].swimming;
     }
     const lootVisible =
       (isLootable(world, entity) || isCollecting(world, entity)) &&
@@ -216,7 +250,7 @@ export const getSceneFrame = (
     }
     for (const [index, particle] of getParticles(world, entity).entries()) {
       if (!particle?.[SPRITE]) continue;
-      const motion = getMotion(particle);
+      const motion = particle[PARTICLE].animatedOrigin && getMotion(particle);
       const point = motion
         ? sampleMotion(motion, world.metadata.renderTime)
         : particle[PARTICLE];
@@ -224,13 +258,13 @@ export const getSceneFrame = (
         particle[SPRITE],
         `particle${index}`,
         particle[PARTICLE].offsetZ,
-        motion ? point.x : particle[PARTICLE].offsetX,
-        motion ? point.y : particle[PARTICLE].offsetY,
+        particle[PARTICLE].offsetX + (motion ? point.x - motion.x : 0),
+        particle[PARTICLE].offsetY + (motion ? point.y - motion.y : 0),
         particle[PARTICLE].amount,
         particle[ORIENTABLE]?.facing
       );
     }
-    if (
+    const needsFog =
       visibility === "fog" &&
       !entity[LIQUID] &&
       !(
@@ -240,10 +274,15 @@ export const getSceneFrame = (
       ) &&
       !((opaque || entity[FOG]?.type === "float") && inRadius) &&
       !hidden &&
-      !lootVisible
-    )
-      add(fogOfWar, "fog", fogHeight);
-    if (visible && entity[STATS] && (entity[ATTACKABLE] || entity[BUILDABLE])) {
+      !lootVisible;
+    if (needsFog || includeHidden) {
+      add(fogOfWar, "fog", fogHeight).hidden = !needsFog;
+    }
+    if (
+      (visible || includeHidden) &&
+      entity[STATS] &&
+      (entity[ATTACKABLE] || entity[BUILDABLE])
+    ) {
       const stats = entity[STATS];
       const neutral = entity[BUILDABLE] || isNeutral(world, entity);
       if (
@@ -251,7 +290,13 @@ export const getSceneFrame = (
         stats.maxHp > 0 &&
         !(neutral && stats.hp >= stats.maxHp)
       ) {
-        add({ name: "health", layers: [] }, "hp", particleHeight + 0.01).hp = {
+        const entry = add(
+          { name: "health", layers: [] },
+          "hp",
+          particleHeight + 0.01
+        );
+        entry.hidden = !visible;
+        entry.hp = {
           value: Math.max(0, Math.floor(stats.hp)),
           maximum: stats.maxHp,
           color: neutral

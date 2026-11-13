@@ -1,9 +1,13 @@
 import { act, render, screen } from "@testing-library/react";
 import HtmlRenderer from ".";
 import * as sceneFrame from "../interface/frame";
+import * as motion from "../../engine/motion";
 import { systemsFrame } from "../interface/clock";
 import { createAreaWorld, assertHero } from "../../testing/harness";
 import { colors } from "../../game/assets/colors";
+import { PLAYER } from "../../engine/components/player";
+import { WorldProvider } from "../interface/hooks";
+import { createWorldContext } from "../../testing/context";
 import { Sprite } from "../../engine/components/sprite";
 
 const createWorld = () =>
@@ -19,6 +23,10 @@ const createWorld = () =>
 let time = 0;
 let nextFrame = 0;
 let frames: Map<number, FrameRequestCallback>;
+const devicePixelRatio = Object.getOwnPropertyDescriptor(
+  window,
+  "devicePixelRatio"
+)!;
 
 beforeEach(() => {
   time = 0;
@@ -35,7 +43,10 @@ beforeEach(() => {
   });
 });
 
-afterEach(() => jest.restoreAllMocks());
+afterEach(() => {
+  jest.restoreAllMocks();
+  Object.defineProperty(window, "devicePixelRatio", devicePixelRatio);
+});
 
 const advanceFrame = (deltaMs: number) => {
   time += deltaMs;
@@ -127,6 +138,110 @@ it("keeps a single glyph as selectable text and resolves stacked layers into one
     world,
     11,
     7,
-    expect.any(Object)
+    expect.any(Object),
+    { includeHidden: true }
   );
+});
+
+it("keeps neighboring cells rigid while snapping the camera to device pixels", () => {
+  const world = createWorld();
+  const entity = assertHero(world);
+  const sprite: Sprite = {
+    name: "Letter",
+    layers: [{ char: "A", color: colors.white }],
+  };
+  const camera = motion.createMotion(0, 0, world.metadata.renderTime, {
+    duration: 100,
+  });
+  camera.x = 1.4;
+  camera.y = 0.7;
+  Object.defineProperty(window, "devicePixelRatio", {
+    configurable: true,
+    value: 1.25,
+  });
+  jest.spyOn(motion, "getCameraMotion").mockReturnValue(camera);
+  jest.spyOn(sceneFrame, "getSceneFrame").mockImplementation(() => {
+    const position = motion.sampleMotion(camera, world.metadata.renderTime);
+    return [4, 5].map((x) => ({
+      key: String(x),
+      x: x - position.x,
+      y: 3 - position.y,
+      z: 0,
+      layers: sprite.layers,
+      sprite,
+      entity,
+    }));
+  });
+  const props = {
+    world,
+    ...dimensions,
+    cellWidth: 18.125,
+    cellHeight: 32.222,
+    paused: true,
+  };
+  const { rerender } = render(<HtmlRenderer {...props} />);
+  // eslint-disable-next-line testing-library/no-node-access
+  const first = screen.getAllByText("A")[0].parentElement!;
+  // eslint-disable-next-line testing-library/no-node-access
+  const second = screen.getAllByText("A")[1].parentElement!;
+  for (const elapsed of [0, 25, 50, 100]) {
+    world.metadata.renderTime = camera.startedAt + elapsed;
+    rerender(<HtmlRenderer {...props} />);
+    expect(first).toHaveStyle({ left: "calc(50% + -27.1875px)" });
+    expect(second).toHaveStyle({ left: "calc(50% + -9.0625px)" });
+  }
+  world.metadata.renderTime = camera.startedAt + 50;
+  rerender(<HtmlRenderer {...props} />);
+  // eslint-disable-next-line testing-library/no-node-access
+  expect(first.parentElement).toHaveStyle({
+    transform: "translate(-12.8px, -11.2px)",
+  });
+  expect(
+    screen
+      .getByLabelText("Game world")
+      .style.getPropertyValue("--html-cell-width")
+  ).toBe("18.125px");
+  expect(
+    screen
+      .getByLabelText("Game world")
+      .style.getPropertyValue("--html-cell-height")
+  ).toBe("32.222px");
+});
+
+it("hides the game scene and stops simulation while map generation is suspended", () => {
+  const world = createWorld();
+  const update = jest.spyOn(world, "update");
+  render(
+    <WorldProvider value={createWorldContext(world, { suspended: true })}>
+      <HtmlRenderer world={world} {...dimensions} paused={false} />
+    </WorldProvider>
+  );
+  advanceFrame(1000);
+  expect(screen.queryByLabelText("Game world")).not.toBeInTheDocument();
+  expect(update).not.toHaveBeenCalled();
+});
+
+it("shakes after new damage and returns to the normal camera position", () => {
+  const world = createWorld();
+  const hero = assertHero(world);
+  hero[PLAYER].receivedStats.melee = 2;
+  jest.spyOn(Math, "random").mockReturnValue(0.25);
+  const { rerender } = render(
+    <HtmlRenderer world={world} {...dimensions} paused />
+  );
+  // eslint-disable-next-line testing-library/no-node-access
+  const camera = screen.getByLabelText("Game world").firstElementChild!;
+  expect(camera).toHaveStyle({ transform: "translate(0px, 0px)" });
+  rerender(<HtmlRenderer world={world} {...dimensions} paused />);
+  hero[PLAYER].receivedStats.melee += 9;
+  rerender(<HtmlRenderer world={world} {...dimensions} paused />);
+  world.metadata.renderTime += 49;
+  rerender(<HtmlRenderer world={world} {...dimensions} paused />);
+  expect(camera).toHaveStyle({ transform: "translate(-36px, -32px)" });
+  world.metadata.renderTime += 51;
+  rerender(<HtmlRenderer world={world} {...dimensions} paused />);
+  expect(camera).toHaveStyle({ transform: "translate(-23px, -32px)" });
+  world.metadata.renderTime += 50;
+  rerender(<HtmlRenderer world={world} {...dimensions} paused />);
+  expect(camera).toHaveStyle({ transform: "translate(-36px, -32px)" });
 });
