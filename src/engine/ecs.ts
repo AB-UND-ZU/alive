@@ -226,6 +226,8 @@ export default function createWorld() {
       renderTime: 0,
       occlusionGeneration: 0,
       visibleCells: new Set<number>(),
+      // Client view ownership; undefined retains the single-player default.
+      localPlayerId: undefined as number | undefined,
       // stored game this world was loaded from or saved to
       saveId: undefined as string | undefined,
       loadGame: (saveId: string) => {},

@@ -1,4 +1,5 @@
 import { spawnerPulse } from "../../game/assets/sprites";
+import { getClosestPlayer } from "../players";
 import { bumpEntity, syncMovementSpring } from "../motion";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -431,7 +432,7 @@ export default function setupAi(world: World) {
             pattern.memory.move = 0;
           }
 
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
+          const heroEntity = getClosestPlayer(world, entity[POSITION], [
             POSITION,
           ]);
           const proximity = heroEntity
@@ -560,7 +561,7 @@ export default function setupAi(world: World) {
           }
 
           // flee from hero
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
+          const heroEntity = getClosestPlayer(world, entity[POSITION], [
             POSITION,
           ]);
           if (!movement && heroEntity) {
@@ -800,7 +801,7 @@ export default function setupAi(world: World) {
         } else if (pattern.name === "eye") {
           if (!entity[TOOLTIP] || !entity[FOG]) continue;
 
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
+          const heroEntity = getClosestPlayer(world, entity[POSITION], [
             POSITION,
           ]);
           const distance = heroEntity
@@ -854,7 +855,7 @@ export default function setupAi(world: World) {
             entity[TOOLTIP].changed = true;
           }
         } else if (pattern.name === "chase" || pattern.name === "chase_slow") {
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
+          const heroEntity = getClosestPlayer(world, entity[POSITION], [
             POSITION,
           ]);
 
@@ -964,7 +965,7 @@ export default function setupAi(world: World) {
           const range = pattern.name === "violet" ? 6 : 9;
           const gap = pattern.name === "violet" ? 1 : 2;
 
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
+          const heroEntity = getClosestPlayer(world, entity[POSITION], [
             POSITION,
           ]);
           const circularDistance = heroEntity
@@ -1166,7 +1167,7 @@ export default function setupAi(world: World) {
           rerenderEntity(world, entity);
           break;
         } else if (pattern.name === "fairy") {
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
+          const heroEntity = getClosestPlayer(world, entity[POSITION], [
             POSITION,
           ]);
           const distance = heroEntity
@@ -1460,7 +1461,7 @@ export default function setupAi(world: World) {
             continue;
           }
 
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
+          const heroEntity = getClosestPlayer(world, entity[POSITION], [
             POSITION,
           ]);
           const distance = heroEntity
@@ -1540,7 +1541,7 @@ export default function setupAi(world: World) {
             continue;
           }
 
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
+          const heroEntity = getClosestPlayer(world, entity[POSITION], [
             POSITION,
           ]);
           const distance = heroEntity
@@ -1652,7 +1653,7 @@ export default function setupAi(world: World) {
             continue;
           }
 
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
+          const heroEntity = getClosestPlayer(world, entity[POSITION], [
             POSITION,
           ]);
           const flee =
@@ -1693,7 +1694,7 @@ export default function setupAi(world: World) {
             continue;
           }
 
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
+          const heroEntity = getClosestPlayer(world, entity[POSITION], [
             POSITION,
           ]);
 
@@ -2298,7 +2299,7 @@ export default function setupAi(world: World) {
             }
           }
         } else if (pattern.name === "ilex") {
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
+          const heroEntity = getClosestPlayer(world, entity[POSITION], [
             POSITION,
           ]);
 
@@ -2580,7 +2581,7 @@ export default function setupAi(world: World) {
           });
           rerenderEntity(world, entity);
         } else if (pattern.name === "oak_boss") {
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
+          const heroEntity = getClosestPlayer(world, entity[POSITION], [
             POSITION,
           ]);
           const castableEntity = getFragment(
@@ -3493,7 +3494,7 @@ export default function setupAi(world: World) {
           pattern.memory.progress += 1;
           const progress = pattern.memory.progress;
 
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
+          const heroEntity = getClosestPlayer(world, entity[POSITION], [
             POSITION,
           ]);
           const limbs = getLimbs(world, entity);
@@ -4324,7 +4325,7 @@ export default function setupAi(world: World) {
           }
           break;
         } else if (pattern.name === "worm_boss") {
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
+          const heroEntity = getClosestPlayer(world, entity[POSITION], [
             POSITION,
           ]);
           const room = getIdentifierAndComponents(world, "wormRoom", [
