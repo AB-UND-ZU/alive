@@ -1,3 +1,4 @@
+import { getPopupInputs, getPopupView, PopupView } from "./popupView";
 import { getIdentifierAndComponents } from "../../engine/utils";
 import { updateParticleMotion } from "../../engine/motion";
 import { Entity } from "ecs";
@@ -17,6 +18,7 @@ import {
   QuestSequence,
   SEQUENCABLE,
   SequenceState,
+  Sequence,
 } from "../../engine/components/sequencable";
 import { colors } from "./colors";
 import { Popup, POPUP } from "../../engine/components/popup";
@@ -282,19 +284,42 @@ quickSprites.separatorSelected = quickSeparatorSelected;
 quickSprites.centerStart = quickCenterStart;
 quickSprites.centerEnd = quickCenterEnd;
 
+export function displayPopupView(
+  build: (
+    world: World,
+    entity: Entity,
+    state: SequenceState<PopupSequence>
+  ) => PopupView | undefined
+): Sequence<PopupSequence> {
+  return (world, entity, state) =>
+    renderPopup(
+      world,
+      entity,
+      state,
+      getPopupInputs(world, entity, state),
+      () => build(world, entity, state)
+    );
+}
+
 export const renderPopup = (
   world: World,
   entity: Entity,
   state: SequenceState<PopupSequence>,
-  icon: Sprite | undefined = undefined,
-  content: Sprite[][],
-  selection?: PopupSelection,
-  details?: Sprite[][],
-  overscan = 0,
-  rightButton?: Sprite[],
-  leftButton?: Sprite[],
-  windowHeight = frameHeight
+  inputs: string,
+  build: () => PopupView | undefined
 ) => {
+  const { cached, changed } = getPopupView(state, inputs, build);
+  if (!cached.view) return { updated: false, finished: true };
+  const {
+    icon,
+    content,
+    selection,
+    details,
+    overscan = 0,
+    rightButton,
+    leftButton,
+    windowHeight = frameHeight,
+  } = cached.view;
   let updated = false;
   let finished = !isShowingPopup(world, entity);
   state.args.backButton = !!leftButton?.some((sprite) =>
@@ -305,13 +330,12 @@ export const renderPopup = (
   const generation =
     entity[RENDERABLE].generation + (hero?.[RENDERABLE].generation || 0);
   const popupMiddle = { x: 0, y: (windowHeight + 1) / -2 };
-  const initial = !state.args.generation;
+  const initial = state.args.generation === undefined;
   const spriteConfig = state.args.instant ? quickSprites : popupSprites;
   const windowChanged = state.args.windowHeight !== windowHeight;
   const detailsPadding = details ? detailsHeight : 0;
   const detailsChanged = state.args.detailsPadding !== detailsPadding;
-  const generationChanged =
-    state.args.generation !== generation || windowChanged || detailsChanged;
+  const generationChanged = changed || windowChanged || detailsChanged;
   const heightChanged = state.args.contentHeight !== content.length;
   const verticalIndex = getVerticalIndex(world, entity);
   const horizontalIndex = entity[POPUP].horizontalIndex;
@@ -378,7 +402,7 @@ export const renderPopup = (
   const scrolled = verticalIndex !== state.args.verticalIndex;
   let renderContent = generationChanged;
   let renderTabs = horizontalIndex !== state.args.horizontalIndex;
-  let renderDetails = settled;
+  let renderDetails = settled && (generationChanged || !cached.settled);
   let renderSeparator = details && renderTabs;
   let renderButtons = generationChanged;
   let renderHint =
@@ -929,7 +953,7 @@ export const renderPopup = (
       }
       updateParticleMotion(world, particleEntity);
     }
-  } else if (settled && !state.args.instant) {
+  } else if (settled && !cached.settled && !state.args.instant) {
     // stop animating settled popup
     for (const particleName in state.particles) {
       if (!particleName.startsWith("popup-")) continue;
@@ -1122,6 +1146,9 @@ export const renderPopup = (
     }
   }
 
+  cached.settled =
+    settled && (state.args.instant || (!initial && !windowChanged));
+  state.args.generation = generation;
   return { finished, updated };
 };
 

@@ -79,7 +79,6 @@ export type Popup = {
     color: number;
     colorMode: boolean;
     layer?: number;
-    blink?: boolean;
     moving?: boolean;
   };
   deals: Deal[];

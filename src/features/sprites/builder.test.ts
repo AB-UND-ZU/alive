@@ -244,7 +244,11 @@ it("lists a single New row and brackets only the selected layer character", () =
   };
   act(world, "right");
   advance(world, 2000);
-  advanceUntil(world, () => editor.blink === true, 5000);
+  advanceUntil(
+    world,
+    () => world.metadata.gameEntity.RENDERABLE.generation % 2 === 0,
+    5000
+  );
   expect(lines()[0].slice(1)).toBe(`01[${editor.sprites[0].layers[0].char}]`);
   expect(lines()[1].slice(1)).toBe("New  ");
   act(world, "down");
@@ -299,13 +303,21 @@ it("blinks the brackets and large layer preview while keeping the small characte
         cell(row, column + 6).layers.map((layer) => layer.color)
       )
     ).flat(2);
-  advanceUntil(world, () => editor.blink === true, 5000);
+  advanceUntil(
+    world,
+    () => world.metadata.gameEntity.RENDERABLE.generation % 2 === 0,
+    5000
+  );
   expect(cell(0, 3).layers).toContainEqual({ char: "[", color: colors.white });
   expect(cell(0, 4).layers).toContainEqual(editor.sprites[0].layers[0]);
   expect(cell(0, 5).layers).toContainEqual({ char: "]", color: colors.white });
   expect(previewColors()).toContain(colors.maroon);
   const corner = cell(0, 6);
-  advanceUntil(world, () => editor.blink === false, 5000);
+  advanceUntil(
+    world,
+    () => world.metadata.gameEntity.RENDERABLE.generation % 2 !== 0,
+    5000
+  );
   expect(cell(0, 3).layers).not.toContainEqual({
     char: "[",
     color: colors.white,
@@ -340,11 +352,19 @@ it("moves an edited layer with blinking digits and places it without changing it
       [SPRITE]
     )[SPRITE];
   };
-  advanceUntil(world, () => editor.blink === true, 5000);
+  advanceUntil(
+    world,
+    () => world.metadata.gameEntity.RENDERABLE.generation % 2 === 0,
+    5000
+  );
   expect(cell(2).layers).toContainEqual({ char: "2", color: colors.white });
   const bracket = cell(3),
     char = cell(4);
-  advanceUntil(world, () => editor.blink === false, 5000);
+  advanceUntil(
+    world,
+    () => world.metadata.gameEntity.RENDERABLE.generation % 2 !== 0,
+    5000
+  );
   expect(cell(2).layers).not.toContainEqual({
     char: "2",
     color: colors.white,
@@ -430,7 +450,11 @@ it("inverts black layer rows while leaving the existing selection gutter clear",
     { char: "!", color: colors.red },
   ];
   act(world, "right");
-  advanceUntil(world, () => editor.blink === true, 5000);
+  advanceUntil(
+    world,
+    () => world.metadata.gameEntity.RENDERABLE.generation % 2 === 0,
+    5000
+  );
   const cell = (row: number, column: number) => {
     const sequence = getSequence(world, popup, "popup")!;
     return world.assertByIdAndComponents(
@@ -464,7 +488,11 @@ it("inverts black layer rows while leaving the existing selection gutter clear",
     color: colors.grey,
   });
   act(world, "left");
-  advanceUntil(world, () => editor.blink === true, 5000);
+  advanceUntil(
+    world,
+    () => world.metadata.gameEntity.RENDERABLE.generation % 2 === 0,
+    5000
+  );
   expect(cell(1, 1).layers).toContainEqual({ char: "0", color: colors.black });
   expect(cell(0, 3).layers).toContainEqual({ char: "[", color: colors.black });
   expect(cell(0, 4).layers).toContainEqual({ char: "A", color: colors.black });

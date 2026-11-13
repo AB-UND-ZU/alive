@@ -1,6 +1,7 @@
 import { spendItem } from "../../engine/systems/trigger";
 import { SPRITE } from "../../engine/components/sprite";
 import { composeCharacterPixels } from "../../components/Row/characters";
+import { forgeHit, forgeMiss } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { getMotion, sampleMotion } from "../../engine/motion";
 import { getSequence } from "../../engine/systems/sequence";
@@ -108,6 +109,29 @@ describe("forging at an anvil", () => {
     expect(Math.abs(after - before)).toBeLessThan(1);
     expect(anvil[FORGABLE].progress).toBe(1);
   });
+  it("shows the next hit area as soon as a successful hit advances the step", () => {
+    const { world, anvil } = setup([ironSword, materialUpgrade.add]);
+    openStation(world);
+    selectItems(world, anvil, [0, 1]);
+    act(world, "right");
+    anvil[FORGABLE].steps[0].offset = 0;
+    anvil[FORGABLE].steps[1].offset =
+      hittingArea - anvil[FORGABLE].steps[1].width;
+    hitStep(world, anvil);
+    expect(anvil[FORGABLE].progress).toBe(1);
+    const next = anvil[FORGABLE].steps[1];
+    const state = getSequence(world, anvil, "popup")!;
+    for (let index = 0; index < hittingArea; index += 1) {
+      const id = state.particles[`popup-content-4-${hittingOffset + index}`];
+      const layers = world.assertByIdAndComponents(id, [SPRITE])[SPRITE].layers;
+      const marker =
+        index >= next.offset && index < next.offset + next.width
+          ? forgeHit
+          : forgeMiss;
+      expect(layers.slice(-marker.layers.length)).toEqual(marker.layers);
+    }
+  });
+
   it("keeps the silver air marking on a forged gold spear", () => {
     const spear: GivenItem = {
       weapon: "spear",

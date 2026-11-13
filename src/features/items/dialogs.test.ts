@@ -19,6 +19,7 @@ import { INVENTORY } from "../../engine/components/inventory";
 import { POPUP, Popup } from "../../engine/components/popup";
 import { PLAYER } from "../../engine/components/player";
 import { SPRITE } from "../../engine/components/sprite";
+import { RENDERABLE } from "../../engine/components/renderable";
 import { STATS } from "../../engine/components/stats";
 import { getSequence } from "../../engine/systems/sequence";
 import {
@@ -34,6 +35,7 @@ import { rerenderEntity } from "../../engine/systems/renderer";
 import { spendItem } from "../../engine/systems/trigger";
 import { colors } from "../../game/assets/colors";
 import { createText } from "../../game/assets/ui";
+import { displayPopup } from "../../game/assets/sequences";
 import { frameHeight, frameWidth, renderPopup } from "../../game/assets/utils";
 import { displayedClasses, hairColors } from "../../game/assets/pixels";
 import { credits } from "../../game/assets/credits";
@@ -196,9 +198,48 @@ describe("live dialog content", () => {
     advance(world, 700);
     const before = text(world);
     hero[STATS].power += 3;
-    rerenderEntity(world, hero);
     step(world);
     expect(text(world)).not.toBe(before);
+  });
+
+  it("leaves settled rows and details untouched until their inputs change", () => {
+    const { world, hero } = setup([{ stackable: "apple", amount: 20 }]);
+    const popup = open(world, { tabs: ["inspect"] });
+    advance(world, 3000);
+    const state = getSequence(world, popup, "popup")!;
+    const particles = () =>
+      Object.entries(state.particles)
+        .filter(([name]) => name.startsWith("popup-content-"))
+        .map(
+          ([, id]) =>
+            world.assertByIdAndComponents(id, [RENDERABLE])[RENDERABLE]
+              .generation
+        );
+    const before = particles();
+    for (let frame = 0; frame < 30; frame += 1)
+      displayPopup(world, popup, state);
+    expect(particles()).toEqual(before);
+    const item = world.assertByIdAndComponents(hero[INVENTORY].items[0], [
+      ITEM,
+    ]);
+    item[ITEM].amount = 19;
+    displayPopup(world, popup, state);
+    expect(text(world, popup)).toContain("19");
+    expect(particles()).not.toEqual(before);
+  });
+
+  it("refreshes edited dialog text without a render generation change", () => {
+    const { world } = setup();
+    const popup = open(world, {
+      tabs: ["info"],
+      lines: [[createText("Before")]],
+    });
+    const generation = popup.RENDERABLE!.generation;
+    popup[POPUP].lines[0][0] = createText("After");
+    displayPopup(world, popup, getSequence(world, popup, "popup")!);
+    expect(popup.RENDERABLE!.generation).toBe(generation);
+    expect(text(world, popup)).toContain("After");
+    expect(text(world, popup)).not.toContain("Before");
   });
 
   it("updates buy affordability when funds change in the background", () => {
@@ -247,24 +288,16 @@ describe("live dialog content", () => {
     const { world } = setup();
     const popup = open(world, { tabs: ["inspect"] });
     const sequence = getSequence(world, popup, "popup")!;
-    renderPopup(
-      world,
-      popup,
-      sequence,
-      undefined,
-      [createText("Item")],
-      "selected",
-      [createText("Long description"), createText("Old second line")]
-    );
-    renderPopup(
-      world,
-      popup,
-      sequence,
-      undefined,
-      [createText("Item")],
-      "selected",
-      [createText("Short")]
-    );
+    renderPopup(world, popup, sequence, "view-0", () => ({
+      content: [createText("Item")],
+      selection: "selected",
+      details: [createText("Long description"), createText("Old second line")],
+    }));
+    renderPopup(world, popup, sequence, "view-1", () => ({
+      content: [createText("Item")],
+      selection: "selected",
+      details: [createText("Short")],
+    }));
     expect(text(world, popup)).toContain("Short");
     expect(text(world, popup)).not.toContain("description");
     expect(text(world, popup)).not.toContain("Old second line");
@@ -611,11 +644,13 @@ it("restores the frame when details disappear without changing the number of row
   const content = Array.from({ length: frameHeight - 2 }, () =>
     createText("Item")
   );
-  renderPopup(world, popup, sequence, undefined, content, "selected", [
-    createText("Details"),
-  ]);
+  renderPopup(world, popup, sequence, "view-2", () => ({
+    content: content,
+    selection: "selected",
+    details: [createText("Details")],
+  }));
   expect(sequence.args.scrollMax).toBeGreaterThan(0);
-  renderPopup(world, popup, sequence, undefined, content);
+  renderPopup(world, popup, sequence, "view-3", () => ({ content: content }));
   expect(sequence.args.scrollMax).toBeUndefined();
   expect(side[SPRITE]).toBe(original);
   expect(side.ORIENTABLE.facing).toBe("right");

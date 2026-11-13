@@ -1,3 +1,7 @@
+import type { Entity } from "ecs";
+import type { World } from "../../engine";
+import type { SequenceState } from "../../engine/components/sequencable";
+import { getPopupInputs, isPopupViewCurrent, PopupView } from "./popupView";
 import { RESTORABLE } from "../../engine/components/restorable";
 import { bumpEntity } from "../../engine/motion";
 import { trapActivation } from "../balancing/abilities";
@@ -316,6 +320,7 @@ import {
 import {
   decayTime,
   renderPopup,
+  displayPopupView,
   frameHeight,
   frameWidth,
   getItemSprite,
@@ -3944,8 +3949,7 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
   if (
     hero &&
     !entity[POPUP].sprite &&
-    state.args.generation !==
-      entity[RENDERABLE].generation + hero[RENDERABLE].generation
+    !isPopupViewCurrent(state, getPopupInputs(world, entity, state))
   ) {
     updatePopupSelection(world, hero, entity);
   }
@@ -3999,7 +4003,7 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
   return handler(world, entity, state);
 };
 
-export const displayBuy: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayBuy = displayPopupView((world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
   const icon = shop;
   const verticalIndex = getVerticalIndex(world, entity);
@@ -4071,30 +4075,23 @@ export const displayBuy: Sequence<PopupSequence> = (world, entity, state) => {
     ? getItemDescription(selectedDeal.item)
     : undefined;
 
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
+  return {
     icon,
     content,
-    deals.length === 0
-      ? undefined
-      : selectedDeal?.stock === 0
-      ? "blocked"
-      : shoppable
-      ? "active"
-      : "selected",
+    selection:
+      deals.length === 0
+        ? undefined
+        : selectedDeal?.stock === 0
+        ? "blocked"
+        : shoppable
+        ? "active"
+        : "selected",
     details,
-    undefined,
-    createButton("BUY", 5, !shoppable, false, false, "lime")
-  );
-  return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+    rightButton: createButton("BUY", 5, !shoppable, false, false, "lime"),
   };
-};
+});
 
-export const displaySell: Sequence<PopupSequence> = (world, entity, state) => {
+export const displaySell = displayPopupView((world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
   const inventoryItems = heroEntity
     ? (heroEntity[INVENTORY] as Inventory).items.map((itemId) =>
@@ -4169,36 +4166,27 @@ export const displaySell: Sequence<PopupSequence> = (world, entity, state) => {
     ? []
     : undefined;
 
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
-    shop,
-    content,
-    !hasItems ? undefined : selectedItem && sellable ? "active" : "blocked",
-    details,
-    undefined,
-    createButton("SELL", 6, !sellable, false, false, "lime")
-  );
-
   return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+    icon: shop,
+    content,
+    selection: !hasItems
+      ? undefined
+      : selectedItem && sellable
+      ? "active"
+      : "blocked",
+    details,
+    rightButton: createButton("SELL", 6, !sellable, false, false, "lime"),
   };
-};
+});
 
-export const displayInspect: Sequence<PopupSequence> = (
-  world,
-  entity,
-  state
-) => {
+export const displayInspect = displayPopupView((world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [
     INVENTORY,
     POSITION,
   ]);
 
   if (!heroEntity) {
-    return { updated: false, finished: true };
+    return undefined;
   }
 
   const bagItems = (heroEntity[INVENTORY] as Inventory).items.filter(
@@ -4301,38 +4289,29 @@ export const displayInspect: Sequence<PopupSequence> = (
   const selectedUsable = selectedItem && getItemConsumption(selectedItem);
   const details = selectedItem && getItemDescription(selectedItem[ITEM]);
 
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
-    undefined,
+  return {
     content,
-    selectedUsable ? "active" : hasItems ? "selected" : undefined,
+    selection: selectedUsable ? "active" : hasItems ? "selected" : undefined,
     details,
-    undefined,
-    createButton(
+    rightButton: createButton(
       selectedUsable ? "EAT" : "USE",
       5,
       !selectedUsable,
       false,
       false,
       "lime"
-    )
-  );
-  return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+    ),
   };
-};
+});
 
-export const displayPlant: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayPlant = displayPopupView((world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [
     INVENTORY,
     POSITION,
   ]);
 
   if (!heroEntity) {
-    return { updated: false, finished: true };
+    return undefined;
   }
 
   const plantItems = (heroEntity[INVENTORY] as Inventory).items.filter((item) =>
@@ -4399,22 +4378,13 @@ export const displayPlant: Sequence<PopupSequence> = (world, entity, state) => {
   );
   const details = selectedItem && getItemDescription(selectedItem[ITEM]);
 
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
-    undefined,
-    content,
-    hasItems ? "selected" : undefined,
-    details,
-    undefined,
-    createButton("PLANT", 6, !hasItems, false, false, "lime")
-  );
   return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+    content,
+    selection: hasItems ? "selected" : undefined,
+    details,
+    rightButton: createButton("PLANT", 6, !hasItems, false, false, "lime"),
   };
-};
+});
 
 const buildSeparator = 9;
 
@@ -4472,149 +4442,157 @@ export const displayBuild: Sequence<PopupSequence> = (world, entity, state) => {
     canConstruct(world, heroEntity, selectedConstruction);
   const selectedBuildable = selectedShoppable && selectedConstructable;
 
-  let content = [createText("Nothing to build.", colors.grey)];
-
-  if (heroEntity && selectedConstruction) {
-    const scrollIndex =
-      verticalIndex -
-      scrolledVerticalIndex(
-        world,
-        entity,
-        state,
-        Array.from({ length: entityConstructions.length }),
-        "selected",
-        []
-      );
-    const constructionLines = [
-      ...selectedConstruction.parts
-        .map((item, index) => {
-          const existingPart = existingFund(world, heroEntity, item);
-          const itemLine = [
-            ...createText(existingPart.toString()),
-            ...createText("/", colors.grey),
-            ...createText(
-              item.amount.toString(),
-              existingPart >= item.amount ? colors.lime : colors.red
-            ),
-            getItemSprite(item),
-          ];
-          const padding =
-            selectedConstruction.parts.length === 1 && index === 0;
-          return [
-            ...(padding
-              ? [
-                  [
-                    selectedBuildable ? buildLeftActive : buildLeft,
-                    ...repeat(none, frameWidth - 3 - buildSeparator),
-                  ],
-                ]
-              : []),
-            [
-              selectedBuildable ? buildLeftActive : buildLeft,
-              ...createText(getItemSprite(item).name, colors.grey),
-            ],
-            [
-              selectedBuildable ? buildLeftActive : buildLeft,
-              ...repeat(
-                none,
-                frameWidth - 3 - buildSeparator - itemLine.length
-              ),
-              ...itemLine,
-            ],
-            ...(padding
-              ? [
-                  [
-                    selectedBuildable ? buildLeftActive : buildLeft,
-                    ...repeat(none, frameWidth - 3 - buildSeparator),
-                  ],
-                ]
-              : []),
-          ];
-        })
-        .flat(),
-      selectedBuildable
-        ? [
-            buildDownLeftActive,
-            ...repeat(buildDownActive, frameWidth - 3 - buildSeparator),
-          ]
-        : [
-            buildDownLeft,
-            ...repeat(buildDown, frameWidth - 3 - buildSeparator),
-          ],
-    ];
-    content = entityConstructions.map((construction, rowIndex) => {
-      const selected = verticalIndex === rowIndex;
-      const textColor = selected ? colors.white : colors.grey;
-      const itemSprite = construction.sprite;
-
-      const rowShoppable = canShop(
-        world,
-        heroEntity,
-        getBuildingDeal(construction)
-      );
-      const rowConstructable = canConstruct(world, heroEntity, construction);
-      const itemLine = [
-        ...createText(
-          selected ? itemSprite.name : "─".repeat(itemSprite.name.length),
-          textColor
-        ),
-        ...repeat(none, 7 - itemSprite.name.length),
-      ];
-      const visibleIndex = rowIndex - scrollIndex;
-      const line = constructionLines[visibleIndex] || [];
-
-      return [
-        !rowConstructable && !selected
-          ? blocked
-          : rowShoppable && !selected
-          ? recolorSprite(star, colors.lime)
-          : none,
-        itemSprite,
-        ...(selected
-          ? selectedConstructable
-            ? shaded(
-                itemLine,
-                selectedBuildable ? colors.green : colors.grey,
-                selectedBuildable ? "▄" : undefined
-              )
-            : dotted(itemLine, colors.red)
-          : itemLine),
-        ...line,
-      ];
-    });
-  }
-
-  const details = selectedConstructable
-    ? selectedConstruction.description
-    : [
-        [
-          ...createText("Requires ", colors.grey),
-          ...createCountable(
-            { build: selectedConstruction.level },
-            "build",
-            "display"
-          ),
-          ...createText(".", colors.grey),
-        ],
-      ];
   const popupResult = renderPopup(
     world,
     entity,
     state,
-    undefined,
-    content,
-    !selectedConstructable
-      ? "blocked"
-      : selectedShoppable
-      ? "active"
-      : selectedConstruction
-      ? "selected"
-      : undefined,
-    details,
-    undefined,
-    verticalIndex === 0
-      ? createButton("USE", 5, false, false, false, "lime")
-      : createButton("PICK", 6, !selectedBuildable, false, false, "lime")
+    getPopupInputs(world, entity, state),
+    () => {
+      let content = [createText("Nothing to build.", colors.grey)];
+
+      if (heroEntity && selectedConstruction) {
+        const scrollIndex =
+          verticalIndex -
+          scrolledVerticalIndex(
+            world,
+            entity,
+            state,
+            Array.from({ length: entityConstructions.length }),
+            "selected",
+            []
+          );
+        const constructionLines = [
+          ...selectedConstruction.parts
+            .map((item, index) => {
+              const existingPart = existingFund(world, heroEntity, item);
+              const itemLine = [
+                ...createText(existingPart.toString()),
+                ...createText("/", colors.grey),
+                ...createText(
+                  item.amount.toString(),
+                  existingPart >= item.amount ? colors.lime : colors.red
+                ),
+                getItemSprite(item),
+              ];
+              const padding =
+                selectedConstruction.parts.length === 1 && index === 0;
+              return [
+                ...(padding
+                  ? [
+                      [
+                        selectedBuildable ? buildLeftActive : buildLeft,
+                        ...repeat(none, frameWidth - 3 - buildSeparator),
+                      ],
+                    ]
+                  : []),
+                [
+                  selectedBuildable ? buildLeftActive : buildLeft,
+                  ...createText(getItemSprite(item).name, colors.grey),
+                ],
+                [
+                  selectedBuildable ? buildLeftActive : buildLeft,
+                  ...repeat(
+                    none,
+                    frameWidth - 3 - buildSeparator - itemLine.length
+                  ),
+                  ...itemLine,
+                ],
+                ...(padding
+                  ? [
+                      [
+                        selectedBuildable ? buildLeftActive : buildLeft,
+                        ...repeat(none, frameWidth - 3 - buildSeparator),
+                      ],
+                    ]
+                  : []),
+              ];
+            })
+            .flat(),
+          selectedBuildable
+            ? [
+                buildDownLeftActive,
+                ...repeat(buildDownActive, frameWidth - 3 - buildSeparator),
+              ]
+            : [
+                buildDownLeft,
+                ...repeat(buildDown, frameWidth - 3 - buildSeparator),
+              ],
+        ];
+        content = entityConstructions.map((construction, rowIndex) => {
+          const selected = verticalIndex === rowIndex;
+          const textColor = selected ? colors.white : colors.grey;
+          const itemSprite = construction.sprite;
+
+          const rowShoppable = canShop(
+            world,
+            heroEntity,
+            getBuildingDeal(construction)
+          );
+          const rowConstructable = canConstruct(
+            world,
+            heroEntity,
+            construction
+          );
+          const itemLine = [
+            ...createText(
+              selected ? itemSprite.name : "─".repeat(itemSprite.name.length),
+              textColor
+            ),
+            ...repeat(none, 7 - itemSprite.name.length),
+          ];
+          const visibleIndex = rowIndex - scrollIndex;
+          const line = constructionLines[visibleIndex] || [];
+
+          return [
+            !rowConstructable && !selected
+              ? blocked
+              : rowShoppable && !selected
+              ? recolorSprite(star, colors.lime)
+              : none,
+            itemSprite,
+            ...(selected
+              ? selectedConstructable
+                ? shaded(
+                    itemLine,
+                    selectedBuildable ? colors.green : colors.grey,
+                    selectedBuildable ? "▄" : undefined
+                  )
+                : dotted(itemLine, colors.red)
+              : itemLine),
+            ...line,
+          ];
+        });
+      }
+
+      const details = selectedConstructable
+        ? selectedConstruction.description
+        : [
+            [
+              ...createText("Requires ", colors.grey),
+              ...createCountable(
+                { build: selectedConstruction.level },
+                "build",
+                "display"
+              ),
+              ...createText(".", colors.grey),
+            ],
+          ];
+      return {
+        content,
+        selection: !selectedConstructable
+          ? "blocked"
+          : selectedShoppable
+          ? "active"
+          : selectedConstruction
+          ? "selected"
+          : undefined,
+        details,
+        rightButton:
+          verticalIndex === 0
+            ? createButton("USE", 5, false, false, false, "lime")
+            : createButton("PICK", 6, !selectedBuildable, false, false, "lime"),
+      };
+    }
   );
 
   // draw top separator
@@ -4638,14 +4616,14 @@ export const displayBuild: Sequence<PopupSequence> = (world, entity, state) => {
   };
 };
 
-export const displayStats: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayStats = displayPopupView((world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [
     SPAWNABLE,
     POSITION,
   ]);
 
   if (!heroEntity) {
-    return { updated: false, finished: true };
+    return undefined;
   }
 
   const displayStats = getEntityDisplayStats(world, heroEntity);
@@ -4709,20 +4687,12 @@ export const displayStats: Sequence<PopupSequence> = (world, entity, state) => {
   const details = classSelected
     ? getEntityDescription({}, classConfig)
     : getItemDescription({ stat: visibleStats[verticalIndex - 1] });
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
-    undefined,
-    content,
-    "selected",
-    details
-  );
   return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+    content,
+    selection: "selected",
+    details,
   };
-};
+});
 
 const gearShadows: Record<Equipment, Sprite> = {
   weapon: weaponSlot,
@@ -4745,14 +4715,14 @@ const classPixels: Partial<Record<ClassKey, Sprite[][]>> = {
   "???": alienPixels,
 };
 
-export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayGear = displayPopupView((world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [
     EQUIPPABLE,
     SPAWNABLE,
   ]);
 
   if (!heroEntity) {
-    return { updated: false, finished: true };
+    return undefined;
   }
 
   const verticalIndex = getVerticalIndex(world, entity);
@@ -4909,21 +4879,13 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
   ]);
   const gearSelected = heroEntity[EQUIPPABLE][gearSlots[verticalIndex]];
   const details = descriptions[verticalIndex];
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
-    undefined,
-    content,
-    gearSelected ? "selected" : "blocked",
-    details,
-    gearOverscan
-  );
   return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+    content,
+    selection: gearSelected ? "selected" : "blocked",
+    details,
+    overscan: gearOverscan,
   };
-};
+});
 
 const cellColorWeights: Partial<Record<CellType, [string, number]>> = {
   water_shallow: [colors.navy, 2],
@@ -4949,47 +4911,48 @@ const cellColorWeights: Partial<Record<CellType, [string, number]>> = {
 const gridPixels = 2;
 const halfBlockChars = "▀▐▄▌▀▐▄▌";
 
-export const displayMap: Sequence<PopupSequence> = (world, entity, state) => {
+const mapViews = new WeakMap<
+  SequenceState<PopupSequence>,
+  { inputs: string; view: PopupView }
+>();
+
+export const displayMap = displayPopupView((world, entity, state) => {
+  const hero = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const zoom = getVerticalIndex(world, entity);
+  const inputs = JSON.stringify([
+    world.metadata.gameEntity[LEVEL].name,
+    zoom,
+    hero?.[POSITION],
+    hero?.[EQUIPPABLE]?.map,
+  ]);
+  let cached = mapViews.get(state);
+  if (
+    !cached ||
+    cached.inputs !== inputs ||
+    state.args.horizontalIndex !== entity[POPUP].horizontalIndex
+  ) {
+    cached = { inputs, view: buildMapView(world, entity) };
+    mapViews.set(state, cached);
+  }
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
+  if (!hero?.[EQUIPPABLE]?.map || generation % (warpBlink * 2) >= warpBlink)
+    return cached.view;
+
+  const content = cached.view.content.slice();
+  const row = (frameHeight - 3) / 2 + zoom;
+  const column = (frameWidth - 3) / 2;
+  content[row] = content[row].slice();
+  content[row][column] = mergeSprites(content[row][column], mapPlayer);
+  return { ...cached.view, content };
+});
+
+const buildMapView = (world: World, entity: Entity): PopupView => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
 
   if (!heroEntity?.[EQUIPPABLE]?.map) {
-    const popupResult = renderPopup(world, entity, state, undefined, [
-      createText("No map item yet.", colors.grey),
-    ]);
     return {
-      updated: popupResult.updated,
-      finished: popupResult.finished,
+      content: [createText("No map item yet.", colors.grey)],
     };
-  }
-
-  const blinkGeneration = Math.floor(generation / warpBlink) * warpBlink;
-  const showPlayer = generation % (warpBlink * 2) < warpBlink;
-
-  // show blinking player at center
-  if (!state.particles.blink) {
-    const blinkParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: 0,
-        offsetY: 0,
-        offsetZ: particleHeight,
-        amount: blinkGeneration,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: none,
-    });
-    state.particles.blink = world.getEntityId(blinkParticle);
-  }
-
-  const blinkParticle = world.assertByIdAndComponents(state.particles.blink, [
-    PARTICLE,
-  ]);
-  const lastBlinkGeneration = blinkParticle[PARTICLE].amount;
-
-  // rerender content on blinking
-  if (lastBlinkGeneration !== blinkGeneration) {
-    rerenderEntity(world, entity);
-    blinkParticle[PARTICLE].amount = blinkGeneration;
   }
 
   const verticalIndex = getVerticalIndex(world, entity);
@@ -5162,13 +5125,6 @@ export const displayMap: Sequence<PopupSequence> = (world, entity, state) => {
             );
           }
 
-          if (
-            showPlayer &&
-            gridX === (frameWidth - 3) / 2 &&
-            gridY === (frameHeight - 3) / 2
-          )
-            return mergeSprites(cellSprite, mapPlayer);
-
           return cellSprite;
         })
       )
@@ -5183,21 +5139,19 @@ export const displayMap: Sequence<PopupSequence> = (world, entity, state) => {
     content.push([]);
   }
 
-  const popupResult = renderPopup(world, entity, state, undefined, content);
   return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+    content,
   };
 };
 
-export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayUse = displayPopupView((world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [
     EQUIPPABLE,
     PLAYER,
   ]);
 
   if (!heroEntity) {
-    return { updated: false, finished: true };
+    return undefined;
   }
 
   const useButtons: [string, string, boolean][] = [
@@ -5391,21 +5345,18 @@ export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
     });
   }
 
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
-    popupIdles[getTab(world, entity)],
+  return {
+    icon: popupIdles[getTab(world, entity)],
     content,
-    isSelecting && hasItems ? "active" : undefined,
-    isSelecting && hasItems && secondIndex !== undefined
-      ? [
-          createText("Select an item", colors.grey),
-          createText(`for quick slot ${secondIndex}`, colors.grey),
-        ]
-      : undefined,
-    undefined,
-    isEditing
+    selection: isSelecting && hasItems ? "active" : undefined,
+    details:
+      isSelecting && hasItems && secondIndex !== undefined
+        ? [
+            createText("Select an item", colors.grey),
+            createText(`for quick slot ${secondIndex}`, colors.grey),
+          ]
+        : undefined,
+    rightButton: isEditing
       ? undefined
       : createButton(
           isOverview ? "EDIT\u0119" : "PICK",
@@ -5415,18 +5366,14 @@ export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
           false,
           "lime"
         ),
-    isSelecting || isEditing
-      ? createButton("\u011aBACK", 7, false, false, false, "red")
-      : undefined
-  );
-
-  return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+    leftButton:
+      isSelecting || isEditing
+        ? createButton("\u011aBACK", 7, false, false, false, "red")
+        : undefined,
   };
-};
+});
 
-export const displayEquip: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayEquip = displayPopupView((world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [
     ACTIONABLE,
     EQUIPPABLE,
@@ -5435,7 +5382,7 @@ export const displayEquip: Sequence<PopupSequence> = (world, entity, state) => {
   ]);
 
   if (!heroEntity) {
-    return { updated: false, finished: true };
+    return undefined;
   }
 
   const equipItems = (heroEntity[INVENTORY] as Inventory).items.filter((item) =>
@@ -5524,25 +5471,20 @@ export const displayEquip: Sequence<PopupSequence> = (world, entity, state) => {
 
   const details = selectedItem && getItemDescription(selectedItem[ITEM]);
 
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
-    popupIdles[getTab(world, entity)],
-    content,
-    hasItems ? (selectedEquipped ? "selected" : "active") : undefined,
-    hasItems ? details : undefined,
-    undefined,
-    hasItems
-      ? createButton("SWAP", 6, selectedEquipped, false, false, "lime")
-      : undefined
-  );
-
   return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+    icon: popupIdles[getTab(world, entity)],
+    content,
+    selection: hasItems
+      ? selectedEquipped
+        ? "selected"
+        : "active"
+      : undefined,
+    details: hasItems ? details : undefined,
+    rightButton: hasItems
+      ? createButton("SWAP", 6, selectedEquipped, false, false, "lime")
+      : undefined,
   };
-};
+});
 
 const classOverscan = Math.max(6 - displayedClasses.length, 1);
 const classUnlock: Partial<Record<ClassKey, Sprite[][]>> = {
@@ -5573,7 +5515,7 @@ const classUnlock: Partial<Record<ClassKey, Sprite[][]>> = {
   ],
 };
 
-export const displayClass: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayClass = displayPopupView((world, entity, state) => {
   const verticalIndex = getVerticalIndex(world, entity);
   const scrollIndex =
     verticalIndex -
@@ -5652,22 +5594,22 @@ export const displayClass: Sequence<PopupSequence> = (world, entity, state) => {
   const details = selectedAvailable
     ? getEntityDescription({}, entitySprites[selectedClass])
     : classUnlock[selectedClass];
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
-    popupIdles[getTab(world, entity)],
-    content,
-    selectedAvailable ? "selected" : "blocked",
-    details,
-    classOverscan,
-    createButton("PICK", 6, !selectedAvailable, false, false, "lime")
-  );
   return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+    icon: popupIdles[getTab(world, entity)],
+    content,
+    selection: selectedAvailable ? "selected" : "blocked",
+    details,
+    overscan: classOverscan,
+    rightButton: createButton(
+      "PICK",
+      6,
+      !selectedAvailable,
+      false,
+      false,
+      "lime"
+    ),
   };
-};
+});
 
 const styleOverscan = Math.max(6 - hairColors.length, 1);
 const styleSelections = {
@@ -5678,7 +5620,7 @@ const styleSelections = {
   "???": "an ear",
 };
 
-export const displayStyle: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayStyle = displayPopupView((world, entity, state) => {
   const verticalIndex = getVerticalIndex(world, entity);
   const scrollIndex =
     verticalIndex -
@@ -5743,25 +5685,18 @@ export const displayStyle: Sequence<PopupSequence> = (world, entity, state) => {
       ...(lines[content.length - scrollIndex] || []),
     ]);
   }
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
-    popupIdles[getTab(world, entity)],
+  return {
+    icon: popupIdles[getTab(world, entity)],
     content,
-    "selected",
-    [
+    selection: "selected",
+    details: [
       createText(`Choose ${styleSelections[selectedClass]}`),
       createText("color."),
     ],
-    styleOverscan,
-    createButton("PICK", 6, false, false, false, "lime")
-  );
-  return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+    overscan: styleOverscan,
+    rightButton: createButton("PICK", 6, false, false, false, "lime"),
   };
-};
+});
 
 const getHeroSprite = (classKey: ClassKey, hairColor: string) =>
   mergeSprites(
@@ -5771,11 +5706,7 @@ const getHeroSprite = (classKey: ClassKey, hairColor: string) =>
 
 const creditsGap = "   ";
 
-export const displayCredits: Sequence<PopupSequence> = (
-  world,
-  entity,
-  state
-) => {
+export const displayCredits = displayPopupView((world, entity, state) => {
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
   const verticalIndex = getVerticalIndex(world, entity);
   const selectedCredit = credits[verticalIndex];
@@ -5792,31 +5723,6 @@ export const displayCredits: Sequence<PopupSequence> = (
         marqueeOffset + footerWidth
       )
     : footer;
-
-  // value container to rerender content
-  if (!state.particles.blink) {
-    const blinkParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: 0,
-        offsetY: 0,
-        offsetZ: particleHeight,
-        amount: marqueeOffset,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: none,
-    });
-    state.particles.blink = world.getEntityId(blinkParticle);
-  }
-
-  const blinkParticle = world.assertByIdAndComponents(state.particles.blink, [
-    PARTICLE,
-  ]);
-
-  // rerender content on scrolling
-  if (blinkParticle[PARTICLE].amount !== marqueeOffset) {
-    rerenderEntity(world, entity);
-    blinkParticle[PARTICLE].amount = marqueeOffset;
-  }
 
   const content: Sprite[][] = credits.map((credit, rowIndex) => {
     const selected = verticalIndex === rowIndex;
@@ -5839,14 +5745,11 @@ export const displayCredits: Sequence<PopupSequence> = (
       ...(selected ? shaded(line, colors.grey) : line),
     ];
   });
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
-    popupIdles[getTab(world, entity)],
+  return {
+    icon: popupIdles[getTab(world, entity)],
     content,
-    "selected",
-    [
+    selection: "selected",
+    details: [
       ...selectedCredit.thanks.map((thanks) => createText(thanks)),
       ...(selectedCredit.role
         ? [createText(selectedCredit.role, colors.grey)]
@@ -5859,14 +5762,16 @@ export const displayCredits: Sequence<PopupSequence> = (
           )
         : createText(displayedFooter, colors.grey),
     ],
-    undefined,
-    createButton("VISIT", 7, !selectedCredit.link, false, false, "lime")
-  );
-  return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+    rightButton: createButton(
+      "VISIT",
+      7,
+      !selectedCredit.link,
+      false,
+      false,
+      "lime"
+    ),
   };
-};
+});
 
 // align two texts to both sides of a details line
 const spreadText = (left: Sprite[], right: Sprite[]) => [
@@ -5902,111 +5807,125 @@ export const displayLoad: Sequence<PopupSequence> = (world, entity, state) => {
     if (hero) updatePopupSelection(world, hero, entity);
     rerenderEntity(world, entity);
   }
-  const verticalIndex = getVerticalIndex(world, entity);
-  const selectedSave = erasing
-    ? saves.find((save) => save.id === restorable.saveId)
-    : saves[verticalIndex];
 
-  const getSaveRow = (save: SaveSummary, selected: boolean) => {
-    const saveTitle = createText(
-      save.name,
-      !isLoadable(save) ? colors.maroon : selected ? colors.white : colors.grey
-    );
-    const line = [
-      ...saveTitle,
-      ...repeat(none, frameWidth - 4 - saveTitle.length),
-    ];
-
-    return [
-      none,
-      getHeroSprite(save.classKey, save.hairColor),
-      ...(erasing
-        ? shaded(line, colors.maroon, "█")
-        : selected
-        ? shaded(line, colors.grey)
-        : line),
-    ];
-  };
-
-  const content: Sprite[][] =
-    erasing && selectedSave
-      ? [getSaveRow(selectedSave, true)]
-      : saves.length
-      ? saves.map((save, rowIndex) =>
-          getSaveRow(save, verticalIndex === rowIndex)
-        )
-      : [[none, none, ...createText("No saves yet", colors.grey)]];
-
-  let details: Sprite[][] | undefined;
-  if (erasing) {
-    details = eraseQuestion;
-  } else if (selectedSave) {
-    const className = createText(
-      entitySprites[selectedSave.classKey].sprite.name
-    );
-    const itemSprites = (selectedSave.items || []).map((item) =>
-      getItemSprite(item, "display")
-    );
-    details = [
-      spreadText(
-        className,
-        itemSprites.slice(0, frameWidth - 3 - className.length)
-      ),
-      spreadText(createText(`Level#${selectedSave.heroLevel}`, colors.lime), [
-        mergeSprites(portalVortex, portal),
-        ...createText(levelConfig[selectedSave.level].name, colors.silver),
-      ]),
-      spreadText(
-        [
-          tombstone1,
-          ...createText(
-            Math.min(selectedSave.deaths, 99).toString(),
-            colors.grey
-          ),
-          none,
-          kills,
-          ...createText(
-            Math.min(selectedSave.kills, 999).toString(),
-            colors.maroon
-          ),
-        ],
-        [
-          delay,
-          ...createText(formatPlaytime(selectedSave.playtime), colors.olive),
-        ]
-      ),
-    ];
-  } else {
-    details = [createText("Pause the game"), createText("to save it.")];
-  }
-
-  const popupResult = renderPopup(
+  return renderPopup(
     world,
     entity,
     state,
-    popupIdles[getTab(world, entity)],
-    content,
-    erasing ? "blocked" : selectedSave ? "selected" : undefined,
-    details,
-    undefined,
-    erasing
-      ? createButton("YES", 5, false, false, false, "lime")
-      : createButton(
-          "LOAD",
-          6,
-          !selectedSave || !isLoadable(selectedSave),
-          false,
-          false,
-          "lime"
-        ),
-    erasing
-      ? createButton("\u011aBACK", 7, false, false, false, "red")
-      : createButton("ERASE", 7, !selectedSave, false, false, "red")
+    getPopupInputs(world, entity, state),
+    () => {
+      const verticalIndex = getVerticalIndex(world, entity);
+      const selectedSave = erasing
+        ? saves.find((save) => save.id === restorable.saveId)
+        : saves[verticalIndex];
+
+      const getSaveRow = (save: SaveSummary, selected: boolean) => {
+        const saveTitle = createText(
+          save.name,
+          !isLoadable(save)
+            ? colors.maroon
+            : selected
+            ? colors.white
+            : colors.grey
+        );
+        const line = [
+          ...saveTitle,
+          ...repeat(none, frameWidth - 4 - saveTitle.length),
+        ];
+
+        return [
+          none,
+          getHeroSprite(save.classKey, save.hairColor),
+          ...(erasing
+            ? shaded(line, colors.maroon, "█")
+            : selected
+            ? shaded(line, colors.grey)
+            : line),
+        ];
+      };
+
+      const content: Sprite[][] =
+        erasing && selectedSave
+          ? [getSaveRow(selectedSave, true)]
+          : saves.length
+          ? saves.map((save, rowIndex) =>
+              getSaveRow(save, verticalIndex === rowIndex)
+            )
+          : [[none, none, ...createText("No saves yet", colors.grey)]];
+
+      let details: Sprite[][] | undefined;
+      if (erasing) {
+        details = eraseQuestion;
+      } else if (selectedSave) {
+        const className = createText(
+          entitySprites[selectedSave.classKey].sprite.name
+        );
+        const itemSprites = (selectedSave.items || []).map((item) =>
+          getItemSprite(item, "display")
+        );
+        details = [
+          spreadText(
+            className,
+            itemSprites.slice(0, frameWidth - 3 - className.length)
+          ),
+          spreadText(
+            createText(`Level#${selectedSave.heroLevel}`, colors.lime),
+            [
+              mergeSprites(portalVortex, portal),
+              ...createText(
+                levelConfig[selectedSave.level].name,
+                colors.silver
+              ),
+            ]
+          ),
+          spreadText(
+            [
+              tombstone1,
+              ...createText(
+                Math.min(selectedSave.deaths, 99).toString(),
+                colors.grey
+              ),
+              none,
+              kills,
+              ...createText(
+                Math.min(selectedSave.kills, 999).toString(),
+                colors.maroon
+              ),
+            ],
+            [
+              delay,
+              ...createText(
+                formatPlaytime(selectedSave.playtime),
+                colors.olive
+              ),
+            ]
+          ),
+        ];
+      } else {
+        details = [createText("Pause the game"), createText("to save it.")];
+      }
+
+      return {
+        icon: popupIdles[getTab(world, entity)],
+        content,
+        selection: erasing ? "blocked" : selectedSave ? "selected" : undefined,
+        details,
+        rightButton: erasing
+          ? createButton("YES", 5, false, false, false, "lime")
+          : createButton(
+              "LOAD",
+              6,
+              !selectedSave || !isLoadable(selectedSave),
+              false,
+              false,
+              "lime"
+            ),
+        leftButton: erasing
+          ? createButton("\u011aBACK", 7, false, false, false, "red")
+          : createButton("ERASE", 7, !selectedSave, false, false, "red"),
+      };
+    }
   );
-  return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
-  };
 };
 
 const forgeWidth = 7;
@@ -6014,204 +5933,15 @@ const forgeHeight = 3;
 const forgeBlink = 3;
 const forgeSeparator = 2;
 
-export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [INVENTORY]);
-  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+const updateForgeAnimation = (
+  world: World,
+  entity: Entity,
+  state: SequenceState<PopupSequence>
+) => {
   let updated = false;
-
-  const showItem = generation % forgeBlink > 0;
-
-  // value container to rerender content
-  if (!state.particles.blink) {
-    const blinkParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: 0,
-        offsetY: 0,
-        offsetZ: particleHeight,
-        amount: generation,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: none,
-    });
-    state.particles.blink = world.getEntityId(blinkParticle);
-  }
-
-  const blinkParticle = world.assertByIdAndComponents(state.particles.blink, [
-    PARTICLE,
-  ]);
-  const lastBlinkGeneration = blinkParticle[PARTICLE].amount;
-
-  // rerender content on blinking
-  if (lastBlinkGeneration !== generation) {
-    rerenderEntity(world, entity);
-    blinkParticle[PARTICLE].amount = generation;
-  }
-
-  const inventoryItems = heroEntity
-    ? (heroEntity[INVENTORY] as Inventory).items.map((item) =>
-        world.assertByIdAndComponents(item, [ITEM])
-      )
-    : [];
-  const hasItems = inventoryItems.length > 0;
-  const verticalIndex = getVerticalIndex(world, entity);
-  const scrollIndex =
-    verticalIndex -
-    scrolledVerticalIndex(
-      world,
-      entity,
-      state,
-      Array.from({ length: inventoryItems.length }),
-      "selected",
-      []
-    );
-  const selections = getTabSelections(world, entity);
-  const [firstIndex, secondIndex] = selections;
-
-  const isHitting = selections.length === 3;
+  const isHitting = getTabSelections(world, entity).length === 3;
   const hittingDone = isHitting && forgingCompleted(entity);
-  const isCompleted = selections.length === 4;
-  const firstItem = inventoryItems[firstIndex];
-  const secondItem = inventoryItems[secondIndex];
-  const selectedItem = inventoryItems[verticalIndex];
-
-  const {
-    forgeable: selectedForgeable,
-    duplicate: selectedDuplicate,
-    insufficient: selectedInsufficient,
-    baseItem,
-    addItem,
-    resultItem,
-  } = getForgeStatus(world, heroEntity, firstIndex, secondIndex, verticalIndex);
-  const addColor = selectedForgeable
-    ? colors.lime
-    : selectedInsufficient
-    ? colors.yellow
-    : colors.red;
-  const isBasing = !firstItem && !resultItem;
-  const isAdding = firstItem && !resultItem;
-  const isYielding = firstItem && resultItem;
-
-  const baseSprite =
-    isBasing && !showItem
-      ? none
-      : baseItem
-      ? getItemSprite(baseItem, undefined, undefined, 1)
-      : missing;
-  const addSprite =
-    isAdding && !showItem
-      ? none
-      : addItem
-      ? getItemSprite(addItem, undefined, undefined, 1)
-      : missing;
-  const yieldSprite = resultItem
-    ? getItemSprite(resultItem, undefined, undefined, 1)
-    : missing;
-  const resultSprite = isYielding && !showItem ? none : yieldSprite;
-  const selectedSprite = selectedItem
-    ? getItemSprite(selectedItem[ITEM], undefined, undefined, 1)
-    : none;
-  const addingAmount = addItem ? `+${addItem.amount}` : "";
-
-  const resultDiff =
-    baseItem && resultItem && getItemDiff(world, baseItem, resultItem);
-  const resultContent = resultItem && [
-    createText("Preview:  ", colors.grey),
-    [
-      popupActive,
-      yieldSprite,
-      ...shaded(
-        createText(
-          `${yieldSprite.name}${" ".repeat(7 - yieldSprite.name.length)}`
-        ),
-        colors.green,
-        "▄"
-      ),
-      none,
-    ],
-    createText("Changes:  ", colors.grey),
-    ...Object.entries(resultDiff || {})
-      .filter(([key, value]) => value !== 0)
-      .map(([key, value]) => {
-        const stat = key as keyof ItemStats;
-        const statSprite = getStatSprite(stat, "display");
-        const statColor = getStatColor(stat);
-        const valueText = `${value > 0 ? "+" : ""}${value}`;
-        return [
-          ...createText(valueText, statColor),
-          statSprite,
-          ...createText(statSprite.name, statColor),
-          ...repeat(none, 9 - valueText.length - statSprite.name.length),
-        ];
-      }),
-  ];
-  const layers = [
-    [
-      ...repeat([], forgeHeight - 1),
-      ...pixelFrame(
-        forgeWidth,
-        forgeHeight,
-        resultItem ? colors.green : isAdding ? addColor : colors.grey,
-        (isAdding || resultItem) && selectedForgeable ? "solid" : "dotted",
-        [
-          centerSprites(
-            isAdding || resultItem
-              ? [...createText(addingAmount), addSprite]
-              : [...createText("+", colors.grey), none, missing],
-            forgeWidth - 2
-          ),
-        ],
-        isAdding
-          ? [
-              ...addForeground(
-                createText("-", addColor),
-                colors.black,
-                selectedForgeable ? " " : "▒"
-              ),
-              ...createText("Add", addColor),
-            ]
-          : [],
-        true
-      ),
-    ],
-    pixelFrame(
-      forgeWidth,
-      forgeHeight,
-      resultItem ? colors.lime : firstItem ? colors.grey : addColor,
-      baseItem && !addItem && !selectedForgeable ? "dotted" : "solid",
-      [
-        centerSprites(
-          [baseSprite, ...createText(" \u0119 "), resultSprite],
-          forgeWidth - 2
-        ),
-      ],
-      resultItem
-        ? createText("Yield", colors.lime)
-        : firstItem
-        ? []
-        : createText("Base", addColor)
-    ),
-  ];
-  const forgePreview = overlay(
-    ...(isAdding
-      ? selectedForgeable
-        ? reversed(layers)
-        : [
-            ...reversed(layers),
-            [
-              ...repeat([], forgeHeight - 1),
-              [
-                parseSprite(`\x08┘${colorToCode(addColor)}·\x00▌`),
-                ...repeat(none, forgeWidth - 2),
-                parseSprite(`\x08└${colorToCode(addColor)}·\x00▐`),
-              ],
-            ],
-          ]
-      : layers)
-  );
-
   // show hammer for hitting
-  const steps = (entity[FORGABLE] as Forgable).steps;
-  const step = steps[entity[FORGABLE].progress];
   const tick = world.metadata.gameEntity[REFERENCE].tick;
   const hammerGeneration = Math.floor(
     (state.elapsed - entity[FORGABLE].lastElapsed) / tick
@@ -6353,214 +6083,397 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
     }
   }
 
-  let content: Sprite[][] = [createText("Nothing to forge.", colors.grey)];
-  let details: Sprite[][] | undefined = undefined;
+  return { updated, isHitting };
+};
 
-  if (isCompleted) {
-    content = centerLayer(
+export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
+  const animation = updateForgeAnimation(world, entity, state);
+  const inputs = getPopupInputs(world, entity, state);
+  const isHitting = animation.isHitting;
+  let updated = animation.updated;
+  const popupResult = renderPopup(world, entity, state, inputs, () => {
+    const heroEntity = getIdentifierAndComponents(world, "hero", [INVENTORY]);
+    const generation = world.metadata.gameEntity[RENDERABLE].generation;
+
+    const showItem = generation % forgeBlink > 0;
+
+    const inventoryItems = heroEntity
+      ? (heroEntity[INVENTORY] as Inventory).items.map((item) =>
+          world.assertByIdAndComponents(item, [ITEM])
+        )
+      : [];
+    const hasItems = inventoryItems.length > 0;
+    const verticalIndex = getVerticalIndex(world, entity);
+    const scrollIndex =
+      verticalIndex -
+      scrolledVerticalIndex(
+        world,
+        entity,
+        state,
+        Array.from({ length: inventoryItems.length }),
+        "selected",
+        []
+      );
+    const selections = getTabSelections(world, entity);
+    const [firstIndex, secondIndex] = selections;
+
+    const { isHitting } = animation;
+    const hittingDone = isHitting && forgingCompleted(entity);
+    const steps = (entity[FORGABLE] as Forgable).steps;
+    const step = steps[entity[FORGABLE].progress];
+    const isCompleted = selections.length === 4;
+    const firstItem = inventoryItems[firstIndex];
+    const secondItem = inventoryItems[secondIndex];
+    const selectedItem = inventoryItems[verticalIndex];
+
+    const {
+      forgeable: selectedForgeable,
+      duplicate: selectedDuplicate,
+      insufficient: selectedInsufficient,
+      baseItem,
+      addItem,
+      resultItem,
+    } = getForgeStatus(
+      world,
+      heroEntity,
+      firstIndex,
+      secondIndex,
+      verticalIndex
+    );
+    const addColor = selectedForgeable
+      ? colors.lime
+      : selectedInsufficient
+      ? colors.yellow
+      : colors.red;
+    const isBasing = !firstItem && !resultItem;
+    const isAdding = firstItem && !resultItem;
+    const isYielding = firstItem && resultItem;
+
+    const baseSprite =
+      isBasing && !showItem
+        ? none
+        : baseItem
+        ? getItemSprite(baseItem, undefined, undefined, 1)
+        : missing;
+    const addSprite =
+      isAdding && !showItem
+        ? none
+        : addItem
+        ? getItemSprite(addItem, undefined, undefined, 1)
+        : missing;
+    const yieldSprite = resultItem
+      ? getItemSprite(resultItem, undefined, undefined, 1)
+      : missing;
+    const resultSprite = isYielding && !showItem ? none : yieldSprite;
+    const selectedSprite = selectedItem
+      ? getItemSprite(selectedItem[ITEM], undefined, undefined, 1)
+      : none;
+    const addingAmount = addItem ? `+${addItem.amount}` : "";
+
+    const resultDiff =
+      baseItem && resultItem && getItemDiff(world, baseItem, resultItem);
+    const resultContent = resultItem && [
+      createText("Preview:  ", colors.grey),
       [
-        [],
+        popupActive,
+        yieldSprite,
+        ...shaded(
+          createText(
+            `${yieldSprite.name}${" ".repeat(7 - yieldSprite.name.length)}`
+          ),
+          colors.green,
+          "▄"
+        ),
+        none,
+      ],
+      createText("Changes:  ", colors.grey),
+      ...Object.entries(resultDiff || {})
+        .filter(([key, value]) => value !== 0)
+        .map(([key, value]) => {
+          const stat = key as keyof ItemStats;
+          const statSprite = getStatSprite(stat, "display");
+          const statColor = getStatColor(stat);
+          const valueText = `${value > 0 ? "+" : ""}${value}`;
+          return [
+            ...createText(valueText, statColor),
+            statSprite,
+            ...createText(statSprite.name, statColor),
+            ...repeat(none, 9 - valueText.length - statSprite.name.length),
+          ];
+        }),
+    ];
+    const layers = [
+      [
+        ...repeat([], forgeHeight - 1),
         ...pixelFrame(
-          rewardWidth,
-          3,
-          colors.lime,
-          "solid",
+          forgeWidth,
+          forgeHeight,
+          resultItem ? colors.green : isAdding ? addColor : colors.grey,
+          (isAdding || resultItem) && selectedForgeable ? "solid" : "dotted",
           [
             centerSprites(
-              createItemName(entity[FORGABLE].completed),
-              rewardWidth - 2
+              isAdding || resultItem
+                ? [...createText(addingAmount), addSprite]
+                : [...createText("+", colors.grey), none, missing],
+              forgeWidth - 2
             ),
           ],
-          createText("Result", colors.lime)
+          isAdding
+            ? [
+                ...addForeground(
+                  createText("-", addColor),
+                  colors.black,
+                  selectedForgeable ? " " : "▒"
+                ),
+                ...createText("Add", addColor),
+              ]
+            : [],
+          true
         ),
       ],
-      frameWidth - 2
-    );
-    details = getItemDescription(entity[FORGABLE].completed);
-  } else if (isHitting && addItem && entity[FORGABLE]) {
-    const hittingPreview = [
-      hittingDone
-        ? centerSprites([forgeHammer, forgeHandle, forgeHandle], 7)
-        : [],
-      ...pixelFrame(7, 3, colors.grey, undefined, [
-        centerSprites(
-          hittingDone
-            ? createText("Done!")
-            : [
-                ...createText((entity[FORGABLE].progress + 1).toString()),
-                ...createText("/", colors.grey),
-                ...createText(entity[FORGABLE].steps.length.toString()),
-              ],
-          5
-        ),
-      ]),
-    ];
-    const hitBox = step
-      ? [
-          ...repeat(none, hittingOffset),
-          ...repeat(forgeMiss, step.offset),
-          ...repeat(forgeHit, Math.floor((step.width - 1) / 2)),
-          mergeSprites(getItemSprite(step.item), forgeHit),
-          ...repeat(forgeHit, Math.ceil((step.width - 1) / 2)),
-          ...repeat(forgeMiss, hittingArea - step.offset - step.width),
-        ]
-      : resultItem
-      ? [
-          ...repeat(none, hittingOffset + Math.floor((hittingArea - 1) / 2)),
-          getItemSprite(resultItem),
-        ]
-      : [];
-    content = [
-      [
-        ...(hittingDone ? [] : createText("Steps: ")),
-        ...steps
-          .slice(entity[FORGABLE].progress)
-          .map((step) => getItemSprite(step.item)),
-      ],
-      createText("─".repeat(frameWidth - 2), colors.silver),
-      [],
-      [],
-      hitBox,
-      ...overlay(
-        anvilPixels.map((line) => [...repeat(none, hittingOffset), ...line]),
-        hittingPreview.map((line) => [...repeat(none, 10), ...line])
+      pixelFrame(
+        forgeWidth,
+        forgeHeight,
+        resultItem ? colors.lime : firstItem ? colors.grey : addColor,
+        baseItem && !addItem && !selectedForgeable ? "dotted" : "solid",
+        [
+          centerSprites(
+            [baseSprite, ...createText(" \u0119 "), resultSprite],
+            forgeWidth - 2
+          ),
+        ],
+        resultItem
+          ? createText("Yield", colors.lime)
+          : firstItem
+          ? []
+          : createText("Base", addColor)
       ),
     ];
-  } else if (hasItems) {
-    content = Array.from({
-      length: Math.max(5, inventoryItems.length, resultContent?.length || 0),
-    }).map((_, rowIndex) => {
-      const forgeItem = inventoryItems[rowIndex];
+    const forgePreview = overlay(
+      ...(isAdding
+        ? selectedForgeable
+          ? reversed(layers)
+          : [
+              ...reversed(layers),
+              [
+                ...repeat([], forgeHeight - 1),
+                [
+                  parseSprite(`\x08┘${colorToCode(addColor)}·\x00▌`),
+                  ...repeat(none, forgeWidth - 2),
+                  parseSprite(`\x08└${colorToCode(addColor)}·\x00▐`),
+                ],
+              ],
+            ]
+        : layers)
+    );
 
-      if (!forgeItem || resultContent) {
-        return [
-          ...(resultContent?.[rowIndex] || repeat(none, 10)),
-          ...(forgePreview[rowIndex - scrollIndex] || []),
-        ];
-      }
+    let content: Sprite[][] = [createText("Nothing to forge.", colors.grey)];
+    let details: Sprite[][] | undefined = undefined;
 
-      const selected = verticalIndex === rowIndex;
-      const added = rowIndex === firstIndex || rowIndex === secondIndex;
-      const itemSprite = getItemSprite(
-        forgeItem[ITEM],
-        "display",
-        undefined,
-        1
-      );
-      const textColor = selected && !added ? colors.white : colors.grey;
-      const itemText = createText(itemSprite.name, textColor);
-      const forgeOptions = getForgeOptions(
-        firstItem?.[ITEM] || forgeItem[ITEM]
-      );
-      const materialOption = forgeOptions.find((option) =>
-        matchesItem(world, forgeItem[ITEM], option.add)
-      );
-      const insufficientMaterials =
-        materialOption && forgeItem[ITEM].amount < materialOption.add.amount;
-      const forgeable =
-        !added &&
-        ((!firstItem && forgeOptions.length > 0) ||
-          (firstItem &&
-            !secondItem &&
-            materialOption &&
-            !insufficientMaterials));
-
-      if (added) {
-        const placeholder = [
-          itemSprite,
-          ...itemText,
-          ...repeat(none, 7 - itemText.length),
-        ];
-        return [
-          none,
-          ...strikethrough(
-            selected ? dotted(placeholder, colors.red) : placeholder
-          ),
-          none,
-          ...(forgePreview[rowIndex - scrollIndex] || []),
-        ];
-      }
-
-      const line = [...itemText, ...repeat(none, 7 - itemText.length)];
-
-      if (!forgeable) {
-        return [
-          none,
-          itemSprite,
-          ...(selected ? dotted(line, colors.red) : line),
-          none,
-          ...(forgePreview[rowIndex - scrollIndex] || []),
-        ];
-      }
-
-      return [
-        none,
-        itemSprite,
-        ...(selected ? shaded(line, colors.grey) : line),
-        none,
-        ...(forgePreview[rowIndex - scrollIndex] || []),
-      ];
-    });
-
-    details = resultItem
-      ? getItemDescription(resultItem)
-      : selectedForgeable
-      ? getItemDescription(selectedItem[ITEM])
-      : [
-          selectedInsufficient && addItem
-            ? createText(
-                `Only have ${selectedInsufficient.amount} of ${addItem.amount}`,
-                colors.grey
-              )
-            : selectedDuplicate
-            ? createText("Already added", colors.grey)
-            : createText(
-                `Not able to ${isAdding ? "add" : "forge"}`,
-                colors.grey
+    if (isCompleted) {
+      content = centerLayer(
+        [
+          [],
+          ...pixelFrame(
+            rewardWidth,
+            3,
+            colors.lime,
+            "solid",
+            [
+              centerSprites(
+                createItemName(entity[FORGABLE].completed),
+                rewardWidth - 2
               ),
-          createText(`${selectedSprite.name.toLowerCase()}.`, colors.grey),
-        ];
-  }
+            ],
+            createText("Result", colors.lime)
+          ),
+        ],
+        frameWidth - 2
+      );
+      details = getItemDescription(entity[FORGABLE].completed);
+    } else if (isHitting && addItem && entity[FORGABLE]) {
+      const hittingPreview = [
+        hittingDone
+          ? centerSprites([forgeHammer, forgeHandle, forgeHandle], 7)
+          : [],
+        ...pixelFrame(7, 3, colors.grey, undefined, [
+          centerSprites(
+            hittingDone
+              ? createText("Done!")
+              : [
+                  ...createText((entity[FORGABLE].progress + 1).toString()),
+                  ...createText("/", colors.grey),
+                  ...createText(entity[FORGABLE].steps.length.toString()),
+                ],
+            5
+          ),
+        ]),
+      ];
+      const hitBox = step
+        ? [
+            ...repeat(none, hittingOffset),
+            ...repeat(forgeMiss, step.offset),
+            ...repeat(forgeHit, Math.floor((step.width - 1) / 2)),
+            mergeSprites(getItemSprite(step.item), forgeHit),
+            ...repeat(forgeHit, Math.ceil((step.width - 1) / 2)),
+            ...repeat(forgeMiss, hittingArea - step.offset - step.width),
+          ]
+        : resultItem
+        ? [
+            ...repeat(none, hittingOffset + Math.floor((hittingArea - 1) / 2)),
+            getItemSprite(resultItem),
+          ]
+        : [];
+      content = [
+        [
+          ...(hittingDone ? [] : createText("Steps: ")),
+          ...steps
+            .slice(entity[FORGABLE].progress)
+            .map((step) => getItemSprite(step.item)),
+        ],
+        createText("─".repeat(frameWidth - 2), colors.silver),
+        [],
+        [],
+        hitBox,
+        ...overlay(
+          anvilPixels.map((line) => [...repeat(none, hittingOffset), ...line]),
+          hittingPreview.map((line) => [...repeat(none, 10), ...line])
+        ),
+      ];
+    } else if (hasItems) {
+      content = Array.from({
+        length: Math.max(5, inventoryItems.length, resultContent?.length || 0),
+      }).map((_, rowIndex) => {
+        const forgeItem = inventoryItems[rowIndex];
 
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
-    forge,
-    resultContent && !isHitting
-      ? content.slice(0, Math.max(5, resultContent.length))
-      : content,
-    !hasItems || resultItem || isHitting || isCompleted
-      ? undefined
-      : selectedForgeable
-      ? "selected"
-      : "blocked",
-    details,
-    undefined,
-    hittingDone
-      ? createButton("YIELD", 7, false, false, false, "lime")
-      : isHitting
-      ? entity[FORGABLE].hitGeneration
-        ? createButton("NEXT", 6, false, false, false, "lime")
-        : createButton("HIT", 5, false, false, false, "lime")
-      : resultItem
-      ? createButton("START", 7, !selectedForgeable, false, false, "lime")
-      : hasItems && !isCompleted
-      ? createButton(
-          `${isAdding ? "ADD" : "BASE"}\u0119`,
-          isAdding ? 5 : 6,
-          !selectedForgeable,
-          false,
-          false,
-          "lime"
-        )
-      : undefined,
-    isHitting
-      ? createButton("ABORT", 7, false, false, false, "red")
-      : addItem
-      ? createButton("\u011aBACK", 7, false, false, false, "red")
-      : undefined
-  );
+        if (!forgeItem || resultContent) {
+          return [
+            ...(resultContent?.[rowIndex] || repeat(none, 10)),
+            ...(forgePreview[rowIndex - scrollIndex] || []),
+          ];
+        }
+
+        const selected = verticalIndex === rowIndex;
+        const added = rowIndex === firstIndex || rowIndex === secondIndex;
+        const itemSprite = getItemSprite(
+          forgeItem[ITEM],
+          "display",
+          undefined,
+          1
+        );
+        const textColor = selected && !added ? colors.white : colors.grey;
+        const itemText = createText(itemSprite.name, textColor);
+        const forgeOptions = getForgeOptions(
+          firstItem?.[ITEM] || forgeItem[ITEM]
+        );
+        const materialOption = forgeOptions.find((option) =>
+          matchesItem(world, forgeItem[ITEM], option.add)
+        );
+        const insufficientMaterials =
+          materialOption && forgeItem[ITEM].amount < materialOption.add.amount;
+        const forgeable =
+          !added &&
+          ((!firstItem && forgeOptions.length > 0) ||
+            (firstItem &&
+              !secondItem &&
+              materialOption &&
+              !insufficientMaterials));
+
+        if (added) {
+          const placeholder = [
+            itemSprite,
+            ...itemText,
+            ...repeat(none, 7 - itemText.length),
+          ];
+          return [
+            none,
+            ...strikethrough(
+              selected ? dotted(placeholder, colors.red) : placeholder
+            ),
+            none,
+            ...(forgePreview[rowIndex - scrollIndex] || []),
+          ];
+        }
+
+        const line = [...itemText, ...repeat(none, 7 - itemText.length)];
+
+        if (!forgeable) {
+          return [
+            none,
+            itemSprite,
+            ...(selected ? dotted(line, colors.red) : line),
+            none,
+            ...(forgePreview[rowIndex - scrollIndex] || []),
+          ];
+        }
+
+        return [
+          none,
+          itemSprite,
+          ...(selected ? shaded(line, colors.grey) : line),
+          none,
+          ...(forgePreview[rowIndex - scrollIndex] || []),
+        ];
+      });
+
+      details = resultItem
+        ? getItemDescription(resultItem)
+        : selectedForgeable
+        ? getItemDescription(selectedItem[ITEM])
+        : [
+            selectedInsufficient && addItem
+              ? createText(
+                  `Only have ${selectedInsufficient.amount} of ${addItem.amount}`,
+                  colors.grey
+                )
+              : selectedDuplicate
+              ? createText("Already added", colors.grey)
+              : createText(
+                  `Not able to ${isAdding ? "add" : "forge"}`,
+                  colors.grey
+                ),
+            createText(`${selectedSprite.name.toLowerCase()}.`, colors.grey),
+          ];
+    }
+
+    return {
+      icon: forge,
+      content:
+        resultContent && !isHitting
+          ? content.slice(0, Math.max(5, resultContent.length))
+          : content,
+      selection:
+        !hasItems || resultItem || isHitting || isCompleted
+          ? undefined
+          : selectedForgeable
+          ? "selected"
+          : "blocked",
+      details,
+      rightButton: hittingDone
+        ? createButton("YIELD", 7, false, false, false, "lime")
+        : isHitting
+        ? entity[FORGABLE].hitGeneration
+          ? createButton("NEXT", 6, false, false, false, "lime")
+          : createButton("HIT", 5, false, false, false, "lime")
+        : resultItem
+        ? createButton("START", 7, !selectedForgeable, false, false, "lime")
+        : hasItems && !isCompleted
+        ? createButton(
+            `${isAdding ? "ADD" : "BASE"}\u0119`,
+            isAdding ? 5 : 6,
+            !selectedForgeable,
+            false,
+            false,
+            "lime"
+          )
+        : undefined,
+      leftButton: isHitting
+        ? createButton("ABORT", 7, false, false, false, "red")
+        : addItem
+        ? createButton("\u011aBACK", 7, false, false, false, "red")
+        : undefined,
+    };
+  });
 
   // draw side separators
   const leftSeparatorParticle = world.assertByIdAndComponents(
@@ -6610,122 +6523,139 @@ export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
     selectedIngredients &&
     canShop(world, heroEntity, getCraftingDeal(selectedIngredients));
 
-  let content = [createText("Nothing to craft.", colors.grey)];
-
-  if (heroEntity && selectedIngredients) {
-    const scrollIndex =
-      verticalIndex -
-      scrolledVerticalIndex(
-        world,
-        entity,
-        state,
-        Array.from({ length: ingredients.length }),
-        "selected",
-        []
-      );
-    const ingredientLines = [
-      ...selectedIngredients.parts
-        .map((item, index) => {
-          const existingIngredient = existingFund(world, heroEntity, item);
-          const itemLine = [
-            ...createText(existingIngredient.toString()),
-            ...createText("/", colors.grey),
-            ...createText(
-              item.amount.toString(),
-              existingIngredient >= item.amount ? colors.lime : colors.red
-            ),
-            getItemSprite(item),
-          ];
-          const padding = selectedIngredients.parts.length === 1 && index === 0;
-          return [
-            ...(padding
-              ? [
-                  [
-                    selectedShoppable ? craftLeftActive : craftLeft,
-                    ...repeat(none, frameWidth - 3 - craftSeparator),
-                  ],
-                ]
-              : []),
-            [
-              selectedShoppable ? craftLeftActive : craftLeft,
-              ...createText(getItemSprite(item).name, colors.grey),
-            ],
-            [
-              selectedShoppable ? craftLeftActive : craftLeft,
-              ...repeat(
-                none,
-                frameWidth - 3 - craftSeparator - itemLine.length
-              ),
-              ...itemLine,
-            ],
-            ...(padding
-              ? [
-                  [
-                    selectedShoppable ? craftLeftActive : craftLeft,
-                    ...repeat(none, frameWidth - 3 - craftSeparator),
-                  ],
-                ]
-              : []),
-          ];
-        })
-        .flat(),
-      selectedShoppable
-        ? [
-            craftDownLeftActive,
-            ...repeat(craftDownActive, frameWidth - 3 - craftSeparator),
-          ]
-        : [
-            craftDownLeft,
-            ...repeat(craftDown, frameWidth - 3 - craftSeparator),
-          ],
-    ];
-    content = ingredients.map((ingredient, rowIndex) => {
-      const selected = verticalIndex === rowIndex;
-      const craftItem = ingredient.item;
-      const textColor = selected ? colors.white : colors.grey;
-      const itemSprite = getItemSprite(craftItem, "display");
-
-      const ingredientShoppable =
-        heroEntity && canShop(world, heroEntity, getCraftingDeal(ingredient));
-      const itemLine = [
-        ...createText(
-          selected ? itemSprite.name : "─".repeat(itemSprite.name.length),
-          textColor
-        ),
-        ...repeat(none, 7 - itemSprite.name.length),
-      ];
-      const visibleIndex = rowIndex - scrollIndex;
-      const line = ingredientLines[visibleIndex] || [];
-
-      return [
-        ingredientShoppable && !selected
-          ? recolorSprite(star, colors.lime)
-          : none,
-        itemSprite,
-        ...(selected
-          ? shaded(
-              itemLine,
-              selectedShoppable ? colors.green : colors.grey,
-              selectedShoppable ? "▄" : undefined
-            )
-          : itemLine),
-        ...line,
-      ];
-    });
-  }
-
-  const details =
-    selectedIngredients && getItemDescription(selectedIngredients.item);
   const popupResult = renderPopup(
     world,
     entity,
     state,
-    icon,
-    content,
-    selectedShoppable ? "active" : selectedIngredients ? "selected" : undefined,
-    details,
-    undefined,
-    createButton("MAKE", 6, !selectedShoppable, false, false, "lime")
+    getPopupInputs(world, entity, state),
+    () => {
+      let content = [createText("Nothing to craft.", colors.grey)];
+
+      if (heroEntity && selectedIngredients) {
+        const scrollIndex =
+          verticalIndex -
+          scrolledVerticalIndex(
+            world,
+            entity,
+            state,
+            Array.from({ length: ingredients.length }),
+            "selected",
+            []
+          );
+        const ingredientLines = [
+          ...selectedIngredients.parts
+            .map((item, index) => {
+              const existingIngredient = existingFund(world, heroEntity, item);
+              const itemLine = [
+                ...createText(existingIngredient.toString()),
+                ...createText("/", colors.grey),
+                ...createText(
+                  item.amount.toString(),
+                  existingIngredient >= item.amount ? colors.lime : colors.red
+                ),
+                getItemSprite(item),
+              ];
+              const padding =
+                selectedIngredients.parts.length === 1 && index === 0;
+              return [
+                ...(padding
+                  ? [
+                      [
+                        selectedShoppable ? craftLeftActive : craftLeft,
+                        ...repeat(none, frameWidth - 3 - craftSeparator),
+                      ],
+                    ]
+                  : []),
+                [
+                  selectedShoppable ? craftLeftActive : craftLeft,
+                  ...createText(getItemSprite(item).name, colors.grey),
+                ],
+                [
+                  selectedShoppable ? craftLeftActive : craftLeft,
+                  ...repeat(
+                    none,
+                    frameWidth - 3 - craftSeparator - itemLine.length
+                  ),
+                  ...itemLine,
+                ],
+                ...(padding
+                  ? [
+                      [
+                        selectedShoppable ? craftLeftActive : craftLeft,
+                        ...repeat(none, frameWidth - 3 - craftSeparator),
+                      ],
+                    ]
+                  : []),
+              ];
+            })
+            .flat(),
+          selectedShoppable
+            ? [
+                craftDownLeftActive,
+                ...repeat(craftDownActive, frameWidth - 3 - craftSeparator),
+              ]
+            : [
+                craftDownLeft,
+                ...repeat(craftDown, frameWidth - 3 - craftSeparator),
+              ],
+        ];
+        content = ingredients.map((ingredient, rowIndex) => {
+          const selected = verticalIndex === rowIndex;
+          const craftItem = ingredient.item;
+          const textColor = selected ? colors.white : colors.grey;
+          const itemSprite = getItemSprite(craftItem, "display");
+
+          const ingredientShoppable =
+            heroEntity &&
+            canShop(world, heroEntity, getCraftingDeal(ingredient));
+          const itemLine = [
+            ...createText(
+              selected ? itemSprite.name : "─".repeat(itemSprite.name.length),
+              textColor
+            ),
+            ...repeat(none, 7 - itemSprite.name.length),
+          ];
+          const visibleIndex = rowIndex - scrollIndex;
+          const line = ingredientLines[visibleIndex] || [];
+
+          return [
+            ingredientShoppable && !selected
+              ? recolorSprite(star, colors.lime)
+              : none,
+            itemSprite,
+            ...(selected
+              ? shaded(
+                  itemLine,
+                  selectedShoppable ? colors.green : colors.grey,
+                  selectedShoppable ? "▄" : undefined
+                )
+              : itemLine),
+            ...line,
+          ];
+        });
+      }
+
+      const details =
+        selectedIngredients && getItemDescription(selectedIngredients.item);
+      return {
+        icon,
+        content,
+        selection: selectedShoppable
+          ? "active"
+          : selectedIngredients
+          ? "selected"
+          : undefined,
+        details,
+        rightButton: createButton(
+          "MAKE",
+          6,
+          !selectedShoppable,
+          false,
+          false,
+          "lime"
+        ),
+      };
+    }
   );
 
   // draw top separator
@@ -6751,7 +6681,7 @@ export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
   };
 };
 
-export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayBrew = displayPopupView((world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
   const icon = craft;
   const verticalIndex = getVerticalIndex(world, entity);
@@ -6778,33 +6708,7 @@ export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
   const viewedShoppable =
     viewedDeal && heroEntity && canShop(world, heroEntity, viewedDeal);
 
-  // value container to rerender content
   const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
-  if (!state.particles.brew) {
-    const brewParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: 0,
-        offsetY: 0,
-        offsetZ: particleHeight,
-        amount: worldGeneration,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: none,
-    });
-    state.particles.brew = world.getEntityId(brewParticle);
-  }
-
-  const brewParticle = world.assertByIdAndComponents(state.particles.brew, [
-    PARTICLE,
-  ]);
-  const lastBrewGeneration = brewParticle[PARTICLE].amount;
-
-  // rerender content on blinking
-  if (lastBrewGeneration !== worldGeneration) {
-    rerenderEntity(world, entity);
-    brewParticle[PARTICLE].amount = worldGeneration;
-  }
-
   let content = [createText("Nothing to brew.", colors.grey)];
 
   if (heroEntity && viewedRecipe) {
@@ -7053,116 +6957,61 @@ export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
         createText("Not enough items", colors.grey),
         createText(`for ${viewedSprite.name.toLowerCase()}.`, colors.grey),
       ];
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
+  return {
     icon,
     content,
-    viewedDeal || isOverview
-      ? undefined
-      : selectedShoppable
-      ? "active"
-      : "selected",
+    selection:
+      viewedDeal || isOverview
+        ? undefined
+        : selectedShoppable
+        ? "active"
+        : "selected",
     details,
-    undefined,
-    isOverview
+    rightButton: isOverview
       ? createButton("ADD\u0119", 6, false, false, false, "lime")
       : viewedRecipe
       ? createButton("COOK", 6, !viewedShoppable, false, false, "lime")
       : createButton("VIEW\u0119", 7, false, false, false, "lime"),
-    !isOverview
+    leftButton: !isOverview
       ? createButton("\u011aBACK", 7, false, false, false, "red")
-      : undefined
-  );
-  return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+      : undefined,
   };
-};
+});
 
-export const displayWarp: Sequence<PopupSequence> = (world, entity, state) => {
-  const generation = world.metadata.gameEntity[RENDERABLE].generation;
-  const blinkGeneration = Math.floor(generation / warpBlink) * warpBlink;
-
-  // value container to rerender content
-  if (!state.particles.blink) {
-    const blinkParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: 0,
-        offsetY: 0,
-        offsetZ: particleHeight,
-        amount: blinkGeneration,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: none,
-    });
-    state.particles.blink = world.getEntityId(blinkParticle);
-  }
-
-  const blinkParticle = world.assertByIdAndComponents(state.particles.blink, [
-    PARTICLE,
-  ]);
-  const lastBlinkGeneration = blinkParticle[PARTICLE].amount;
-
-  // rerender content on blinking
-  if (lastBlinkGeneration !== blinkGeneration) {
-    rerenderEntity(world, entity);
-    blinkParticle[PARTICLE].amount = blinkGeneration;
-  }
-
+export const displayWarp = displayPopupView((world, entity, state) => {
   const { content, level, lockedLevel, currentLevel } = getWarpMap(
     world,
     entity
   );
 
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
-    popupIdles[getTab(world, entity)],
+  return {
+    icon: popupIdles[getTab(world, entity)],
     content,
-    undefined,
-    undefined,
-    undefined,
-    createButton(
+    rightButton: createButton(
       "GO!",
       5,
       !level || lockedLevel || currentLevel,
       false,
       false,
       "lime"
-    )
-  );
-
-  return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+    ),
   };
-};
+});
 
-export const displayInfo: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayInfo = displayPopupView((world, entity, state) => {
   const content: Sprite[][] = [
     ...(
       (entity[POPUP] as Popup).lines[entity[POPUP].horizontalIndex] || []
     ).map((line) => [...line, ...repeat(none, frameWidth - 4 - line.length)]),
   ];
 
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
-    popupIdles[getTab(world, entity)],
-    content
-  );
-
   return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+    icon: popupIdles[getTab(world, entity)],
+    content,
   };
-};
+});
 
-export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayQuest = displayPopupView((world, entity, state) => {
   const popup = entity[POPUP] as Popup;
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
   const verticalIndex = getVerticalIndex(world, entity);
@@ -7367,72 +7216,42 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
     });
   }
 
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
-    popupIdles[getTab(world, entity)],
+  return {
+    icon: popupIdles[getTab(world, entity)],
     content,
-    selections.length !== 1 ? undefined : completed ? "active" : "blocked",
-    completed && selections.length === 1 && selectedChoice
-      ? getItemDescription(selectedChoice)
-      : undefined,
-    undefined,
-    selections.length === 0 &&
+    selection:
+      selections.length !== 1 ? undefined : completed ? "active" : "blocked",
+    details:
+      completed && selections.length === 1 && selectedChoice
+        ? getItemDescription(selectedChoice)
+        : undefined,
+    rightButton:
+      selections.length === 0 &&
       !completed &&
       popup.focuses[popup.horizontalIndex]
-      ? createButton("FOCUS", 7, false, false, false, "lime")
-      : selections.length < 2
-      ? createButton(
-          popup.choices.length > 0 && selections.length === 0
-            ? "VIEW\u0119"
-            : "CLAIM",
-          7,
-          !completed,
-          false,
-          false,
-          "lime"
-        )
-      : undefined,
-    selections.length === 1
-      ? createButton("\u011aBACK", 7, false, false, false, "red")
-      : undefined
-  );
-  return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+        ? createButton("FOCUS", 7, false, false, false, "lime")
+        : selections.length < 2
+        ? createButton(
+            popup.choices.length > 0 && selections.length === 0
+              ? "VIEW\u0119"
+              : "CLAIM",
+            7,
+            !completed,
+            false,
+            false,
+            "lime"
+          )
+        : undefined,
+    leftButton:
+      selections.length === 1
+        ? createButton("\u011aBACK", 7, false, false, false, "red")
+        : undefined,
   };
-};
+});
 
-export const displayChat: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayChat = displayPopupView((world, entity, state) => {
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
   const showCaret = generation % 2 === 0;
-
-  // show blinking caret
-  if (!state.particles.caret) {
-    const caretParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: 0,
-        offsetY: 0,
-        offsetZ: particleHeight,
-        amount: generation,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: none,
-    });
-    state.particles.caret = world.getEntityId(caretParticle);
-  }
-
-  const caretParticle = world.assertByIdAndComponents(state.particles.caret, [
-    PARTICLE,
-  ]);
-  const lastGeneration = caretParticle[PARTICLE].amount;
-
-  // rerender content on blinking
-  if (lastGeneration !== generation) {
-    rerenderEntity(world, entity);
-    caretParticle[PARTICLE].amount = generation;
-  }
 
   const selections = getTabSelections(world, entity);
   const verticalIndex = getVerticalIndex(world, entity);
@@ -7464,25 +7283,28 @@ export const displayChat: Sequence<PopupSequence> = (world, entity, state) => {
     ...chunked(lines, width).slice(firstRow),
   ];
 
-  const popupResult = renderPopup(
-    world,
-    entity,
-    state,
-    popupIdles[getTab(world, entity)],
-    content,
-    undefined,
-    undefined,
-    undefined,
-    createButton("SEND", 6, selections.length === 0, false, false, "lime"),
-    createButton("CLEAR", 7, selections.length === 0, false, false, "red"),
-    windowHeight
-  );
-
   return {
-    updated: popupResult.updated,
-    finished: popupResult.finished,
+    icon: popupIdles[getTab(world, entity)],
+    content,
+    rightButton: createButton(
+      "SEND",
+      6,
+      selections.length === 0,
+      false,
+      false,
+      "lime"
+    ),
+    leftButton: createButton(
+      "CLEAR",
+      7,
+      selections.length === 0,
+      false,
+      false,
+      "red"
+    ),
+    windowHeight,
   };
-};
+});
 
 /*           ┌─┐
       ┌─┐   ╔┘ └╗

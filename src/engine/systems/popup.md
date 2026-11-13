@@ -27,7 +27,7 @@ Removing an active completed quest may close and remove it in the same operation
 
 Held navigation is consumed once per player reference tick. Redrawing hero stats within that tick cannot repeat the initial Up or Down step.
 
-`getPopupLength` supplies the same row bounds to input handling and display. `updatePopupSelection` runs before reading display data when the hero or popup changes, so a purchase, sale, consumption or tab change cannot leave the cursor outside the current list. Idle frames do not repeat that validation. If a quest loses its gathered requirements while choosing a reward, the dialog returns to its requirements instead of displaying an empty choice screen.
+`getPopupLength` supplies the same row bounds to input handling and display. `updatePopupSelection` runs before reading display data when the [popup view inputs](../../game/assets/popupView.md) change, so a purchase, sale, consumption or tab change cannot leave the cursor outside the current list. Idle frames do not repeat that validation. If a quest loses its gathered requirements while choosing a reward, the dialog returns to its requirements instead of displaying an empty choice screen.
 
 Forge choices are inventory indexes. `removeFromInventory` calls `updateInventorySelections` before splicing the inventory: later choices move with their items, and removing a chosen item cancels that choice and subsequent steps. Insufficient forging ingredients return the dialog to ingredient selection. Yielding marks the completed stage before consuming its inputs, and checks the current deal again.
 

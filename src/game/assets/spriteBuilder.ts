@@ -6,7 +6,6 @@ import { World } from "../../engine/ecs";
 import { POPUP } from "../../engine/components/popup";
 import { Sprite } from "../../engine/components/sprite";
 import { RENDERABLE } from "../../engine/components/renderable";
-import { rerenderEntity } from "../../engine/systems/renderer";
 import { PLAYER } from "../../engine/components/player";
 import { Orientation } from "../../engine/components/orientable";
 import { PopupSequence, Sequence } from "../../engine/components/sequencable";
@@ -29,7 +28,11 @@ import {
   recolorSprite,
   shaded,
 } from "./ui";
-import { getItemSprite, renderPopup, scrolledVerticalIndex } from "./utils";
+import {
+  getItemSprite,
+  displayPopupView,
+  scrolledVerticalIndex,
+} from "./utils";
 import { repeat } from "../math/std";
 import { play } from "../sound";
 
@@ -284,20 +287,13 @@ export const updateSpriteBuilder = (
   if (changed) saveSpritePack(editor.sprites);
 };
 
-export const displaySpriteBuilder: Sequence<PopupSequence> = (
-  world,
-  entity,
-  state
-) => {
+const spriteBuilderView = displayPopupView((world, entity, state) => {
   const editor = entity[POPUP].sprite!;
   const tab = getTab(world, entity);
   const row = getVerticalIndex(world, entity);
   const sprite = editor.sprites[editor.selected];
   const showLayer = world.metadata.gameEntity[RENDERABLE].generation % 2 === 0;
-  if (tab === "sprite" && editor.blink !== showLayer) {
-    editor.blink = showLayer;
-    rerenderEntity(world, entity);
-  }
+
   let content: Sprite[][];
   if (tab === "pack") {
     content = [...editor.sprites, none].map((sprite, index) => {
@@ -309,12 +305,7 @@ export const displaySpriteBuilder: Sequence<PopupSequence> = (
         index === row ? colors.white : colors.grey
       );
       const cells = [sprite, ...line];
-      return [
-        none,
-        ...(index === row
-          ? shaded(cells, colors.grey)
-          : cells),
-      ];
+      return [none, ...(index === row ? shaded(cells, colors.grey) : cells)];
     });
   } else if (tab === "sprite") {
     const layers: Sprite["layers"] = sprite?.layers || [];
@@ -402,21 +393,17 @@ export const displaySpriteBuilder: Sequence<PopupSequence> = (
         .map((char) => layerSprite(char, orderedColors[editor.color])),
     ]);
   }
-  const result = renderPopup(
-    world,
-    entity,
-    state,
-    undefined,
-    content,
-    tab === "layer"
-      ? undefined
-      : (tab === "pack" && row < editor.sprites.length) ||
-        (tab === "sprite" && editor.moving)
-      ? "active"
-      : "selected",
-    undefined,
-    0,
-    createButton(
+  return {
+    content: content,
+    selection:
+      tab === "layer"
+        ? undefined
+        : (tab === "pack" && row < editor.sprites.length) ||
+          (tab === "sprite" && editor.moving)
+        ? "active"
+        : "selected",
+    overscan: 0,
+    rightButton: createButton(
       tab === "pack"
         ? sprite
           ? "EDIT"
@@ -436,7 +423,7 @@ export const displaySpriteBuilder: Sequence<PopupSequence> = (
       false,
       tab === "layer" ? "yellow" : "lime"
     ),
-    createButton(
+    leftButton: createButton(
       tab === "pack"
         ? "ERASE"
         : tab === "sprite"
@@ -452,8 +439,17 @@ export const displaySpriteBuilder: Sequence<PopupSequence> = (
       false,
       tab === "sprite" && editor.moving ? "yellow" : "red"
     ),
-    windowHeight
-  );
-  if (tab === "sprite" && editor.moving) state.args.backButton = true;
+    windowHeight: windowHeight,
+  };
+});
+
+export const displaySpriteBuilder: Sequence<PopupSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const result = spriteBuilderView(world, entity, state);
+  if (getTab(world, entity) === "sprite" && entity[POPUP].sprite?.moving)
+    state.args.backButton = true;
   return result;
 };

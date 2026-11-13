@@ -166,6 +166,7 @@
 | [PopupEntity](features/workstations/helpers.md#type-popupentity) | `src/features/workstations/helpers.ts` |
 | [PopupSelection](game/assets/utils.md#type-popupselection) | `src/game/assets/utils.ts` |
 | [PopupSequence](engine/components/sequencable.md#type-popupsequence) | `src/engine/components/sequencable.ts` |
+| [PopupView](game/assets/popupView.md#type-popupview) | `src/game/assets/popupView.ts` |
 | [Popup](engine/components/popup.md#type-popup) | `src/engine/components/popup.ts` |
 | [Position](engine/components/position.md#type-position) | `src/engine/components/position.ts` |
 | [PresetName](wiki/presets.md#type-presetname) | `src/wiki/presets.ts` |
