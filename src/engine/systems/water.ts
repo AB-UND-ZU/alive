@@ -125,7 +125,7 @@ export const createBubble = (
 
   // extinguish fire
   const burnables = getBurnables(world, position).filter(
-    (cell) => cell[BURNABLE].burning
+    (cell) => cell[BURNABLE].burning && !cell[BURNABLE].simmer
   );
   const affectables = getAffectables(world, position).filter(
     (cell) => cell[AFFECTABLE].burn > 0

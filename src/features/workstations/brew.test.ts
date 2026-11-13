@@ -19,6 +19,7 @@ import { BURNABLE } from "../../engine/components/burnable";
 import { INVENTORY } from "../../engine/components/inventory";
 import { POPUP, Recipe } from "../../engine/components/popup";
 import { REFERENCE } from "../../engine/components/reference";
+import { createBubble } from "../../engine/systems/water";
 import { TypedEntity } from "../../engine/entities";
 import {
   getTab,
@@ -116,7 +117,7 @@ describe("brewing in a kettle", () => {
     expect(playedSounds).toContain("back");
   });
 
-  it("spends the ingredients and brews the result over time", () => {
+  it("spends the ingredients and keeps brewing through rain", () => {
     const { world, hero } = setup();
     const kettle = getKettle(world);
     const [ingredient] = quickest.recipe.options[0];
@@ -128,6 +129,10 @@ describe("brewing in a kettle", () => {
     expect(playedSounds).toContain("confirm");
     expect(countIngredient(world, hero, ingredient)).toBe(2);
     expect(kettle[BREWABLE].queue).toHaveLength(1);
+    expect(kettle[BURNABLE].simmer).toBe(true);
+
+    createBubble(world, findInArea(area, "K"), "rain");
+    expect(kettle[BURNABLE].burning).toBe(true);
     expect(kettle[BURNABLE].simmer).toBe(true);
 
     advance(world, getBrewingTime(world, quickest.recipe) * 0.9);
