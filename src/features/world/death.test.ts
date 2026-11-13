@@ -147,6 +147,17 @@ describe("death and respawn", () => {
     expect(getTombstone(world)?.[REVIVABLE].available).toBe(false);
   });
 
+  it("preserves server account ownership through death and respawn", () => {
+    const world = createAreaWorld(area);
+    const hero = assertUnit(world);
+    hero[PLAYER].accountId = "owned-player";
+    die(world);
+    advanceUntil(world, () => !!getTombstone(world));
+    expect(assertPlayer(world)[PLAYER].accountId).toBe("owned-player");
+    const revived = respawn(world);
+    expect(revived[PLAYER].accountId).toBe("owned-player");
+  });
+
   it("keeps defeated units but drops carried items at the grave", () => {
     const world = createAreaWorld(area);
     const hero = assertUnit(world);

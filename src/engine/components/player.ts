@@ -6,6 +6,7 @@ import { Castable } from "./castable";
 import { Item } from "./item";
 
 export type Player = {
+  accountId?: string;
   ghost: boolean;
   receivedStats: Record<
     keyof (Pick<Countable, "hp" | "maxHp" | "mp" | "maxMp" | "xp"> &

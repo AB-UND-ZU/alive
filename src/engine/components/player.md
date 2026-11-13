@@ -54,3 +54,5 @@ export type Player = {
   offsetTriggered?: number;
 };
 ```
+
+The optional `accountId` is a public server-owned account binding, not a reconnect secret. It survives ghost and hero replacement. Only authenticated server code assigns it; client input messages cannot set player identity.

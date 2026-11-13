@@ -160,6 +160,7 @@ export const createHero = (world: World, halo: Entity) => {
     },
     [ORIENTABLE]: {},
     [PLAYER]: {
+      accountId: halo[PLAYER]?.accountId,
       ghost: false,
       receivedStats: { ...emptyReceivedStats },
       defeatedUnits: halo[PLAYER]?.defeatedUnits || {},
@@ -317,6 +318,7 @@ export default function setupFate(world: World) {
             swimming: false,
           },
           [PLAYER]: {
+            accountId: entity[PLAYER].accountId,
             ghost: true,
             receivedStats: { ...emptyReceivedStats },
             defeatedUnits: entity[PLAYER].defeatedUnits,
