@@ -203,6 +203,18 @@ export const typeChat = (
   ]);
   if (!popup || getTab(world, popup) !== "chat") return;
 
+  if (world.metadata.network) {
+    for (const index of Array.isArray(keyIndex) ? keyIndex : [keyIndex])
+      world.metadata.network.action({ kind: "text", index });
+    return;
+  }
+  if (
+    world.metadata.warpPlayer &&
+    keyIndex !== undefined &&
+    getTabSelections(world, popup).length >= 128
+  )
+    return;
+
   popup[POPUP].chatSuggestion = 0;
   setVerticalIndex(world, popup, 0);
 
@@ -234,6 +246,13 @@ export const navigateChat = (
     POPUP,
   ]);
   if (!popup || getTab(world, popup) !== "chat") return;
+  if (world.metadata.network) {
+    world.metadata.network.action({
+      kind: "history",
+      index: direction === -1 ? 0 : 1,
+    });
+    return;
+  }
   const input = getTabSelections(world, popup).map(getKeyFromIndex).join("");
   const historyIndex = getVerticalIndex(world, popup);
   if (input.trim() && historyIndex === 0) {
@@ -258,7 +277,7 @@ export const navigateChat = (
 };
 
 export const completeChat = (world: World, heroEntity: Entity) => {
-  if (!TEST_MODE) return;
+  if (!TEST_MODE || world.metadata.network) return;
   const popup = world.getEntityByIdAndComponents(heroEntity[PLAYER]?.popup, [
     POPUP,
   ]);

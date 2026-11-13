@@ -228,6 +228,16 @@ export default function createWorld() {
       visibleCells: new Set<number>(),
       // Client view ownership; undefined retains the single-player default.
       localPlayerId: undefined as number | undefined,
+      network: undefined as
+        | undefined
+        | {
+            move: (
+              orientations: import("./components/orientable").Orientation[]
+            ) => void;
+            action: (action: import("./network/input").InputAction) => void;
+            pause: (paused: boolean) => void;
+            render: (delta: number) => void;
+          },
       warpPlayer: undefined as
         | undefined
         | ((

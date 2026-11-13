@@ -93,3 +93,19 @@ it("removes stale components and entities while resolving shared entity referenc
   send(2);
   expect(replica.world.getEntities([PLAYER])).toHaveLength(0);
 });
+
+it("advances only presentation time and finishes confirmed movement during a stall", () => {
+  const { server, replica, send } = setup();
+  walk(server, "right", 1);
+  send(1);
+  const actor = assertHero(replica.world),
+    confirmed = { ...actor[POSITION] };
+  const elapsed = replica.world.metadata.elapsed;
+  replica.render(60);
+  expect(replica.world.metadata.renderTime).toBe(elapsed + 60);
+  replica.render(10000);
+  expect(replica.world.metadata.renderTime).toBe(elapsed + 1000);
+  expect(replica.world.metadata.elapsed).toBe(elapsed);
+  expect(actor[POSITION]).toEqual(confirmed);
+  expect(assertHero(server)[POSITION]).toEqual(confirmed);
+});

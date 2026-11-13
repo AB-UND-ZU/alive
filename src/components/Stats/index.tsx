@@ -1,3 +1,4 @@
+import { getPlayerInterface } from "../../engine/players";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useHero, useWorld } from "../../renderers/interface/hooks";
 import {
@@ -18,7 +19,7 @@ import { REFERENCE } from "../../engine/components/reference";
 import { LEVEL } from "../../engine/components/level";
 import { menuName } from "../../game/levels/menu";
 import { recolorLine } from "../../game/assets/pixels";
-import { getIdentifier, TEST_MODE } from "../../engine/utils";
+import { TEST_MODE } from "../../engine/utils";
 import { isDead } from "../../engine/systems/damage";
 import {
   createProgress,
@@ -227,7 +228,7 @@ export default function Stats() {
   const { ecs, paused } = useWorld();
   const dimensions = useDimensions();
   const hero = useHero();
-  const useViewpoint = hero && ecs && getIdentifier(ecs, "use");
+  const useViewpoint = hero && ecs && getPlayerInterface(ecs, hero, "use", []);
 
   const handleQuick = useCallback(
     (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -241,6 +242,10 @@ export default function Stats() {
 
       if (!reference) return;
 
+      if (ecs.metadata.network) {
+        ecs.metadata.network.action({ kind: "use" });
+        return;
+      }
       hero[PLAYER].actionTriggered = "use";
 
       reference.suspensionCounter =

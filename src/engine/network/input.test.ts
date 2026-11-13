@@ -1,3 +1,6 @@
+import { assertIdentifierAndComponents } from "../utils";
+import { POPUP } from "../components/popup";
+import { openPopup, getTabSelections } from "../systems/popup";
 import { createHero } from "../systems/fate";
 import { createPlayerInput, isPlayerInput } from "./input";
 import {
@@ -102,4 +105,26 @@ describe("authoritative player input", () => {
     expect(players[0][ACTIONABLE].skillTriggered).toBe(false);
     expect(players[1][ACTIONABLE].skillTriggered).toBe(true);
   });
+});
+
+it("bounds queued chat edits and applies them only during server updates", () => {
+  const { world, hero, input } = setup();
+  const use = assertIdentifierAndComponents(world, "use", [POPUP]);
+  use[POPUP].horizontalIndex = use[POPUP].tabs.indexOf("chat");
+  openPopup(world, hero, use, true);
+  world.metadata.warpPlayer = () => {};
+  for (let sequence = 0; sequence < 100; sequence++)
+    input.receive({ sequence, action: { kind: "text", index: 0 } });
+  expect(getTabSelections(world, use)).toEqual([]);
+  input.onUpdate();
+  expect(getTabSelections(world, use)).toHaveLength(4);
+  for (let step = 0; step < 20; step++) input.onUpdate();
+  expect(getTabSelections(world, use)).toHaveLength(16);
+  expect(
+    isPlayerInput({ sequence: 101, action: { kind: "text", index: 120 } })
+  ).toBe(false);
+  input.receive({ sequence: 102, action: { kind: "text", index: 0 } });
+  input.release();
+  input.onUpdate();
+  expect(getTabSelections(world, use)).toHaveLength(16);
 });

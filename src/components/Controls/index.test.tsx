@@ -1849,3 +1849,34 @@ describe("touch controls", () => {
     expect(hero[MOVABLE].orientations).toEqual([]);
   });
 });
+
+it("sends hosted controls as intents without mutating confirmed player state", () => {
+  const { world, hero } = setup();
+  const action = jest.fn(),
+    move = jest.fn();
+  world.metadata.network = {
+    action,
+    move,
+    pause: jest.fn(),
+    render: jest.fn(),
+  };
+  const before = JSON.stringify({
+    player: hero[PLAYER],
+    movable: hero[MOVABLE],
+    actionable: hero[ACTIONABLE],
+  });
+  press("ArrowRight");
+  release("ArrowRight");
+  press("e");
+  release("e");
+  expect(move).toHaveBeenCalledWith(["right"]);
+  expect(move).toHaveBeenCalledWith([]);
+  expect(action).toHaveBeenCalled();
+  expect(
+    JSON.stringify({
+      player: hero[PLAYER],
+      movable: hero[MOVABLE],
+      actionable: hero[ACTIONABLE],
+    })
+  ).toBe(before);
+});

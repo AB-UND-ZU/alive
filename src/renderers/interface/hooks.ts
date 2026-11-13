@@ -83,6 +83,7 @@ export const useRenderable = <C extends keyof Entity>(
   const { ecs } = useWorld();
   const id = useId();
   const pendingGeneration = useRef(-1);
+  const initializedWorld = useRef<WorldType>();
   const setGeneration = useState(-1)[1];
 
   const [entities, setEntities] = useState<TypedEntity<"RENDERABLE" | C>[]>([]);
@@ -124,6 +125,10 @@ export const useRenderable = <C extends keyof Entity>(
     if (!ecs) return;
 
     ecs.metadata.listeners[id] = listener;
+    if (initializedWorld.current !== ecs) {
+      initializedWorld.current = ecs;
+      listener();
+    }
 
     return () => {
       delete ecs.metadata.listeners[id];

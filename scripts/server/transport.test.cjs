@@ -191,3 +191,21 @@ test("pausing one socket releases only its own input and does not pause the shar
     await server.close();
   }
 });
+
+test("a reloaded authenticated client can restart input numbering at zero", async () => {
+  const server = await start(path.join(directory, "reload.bin"));
+  try {
+    const first = connect(url(server));
+    const claim = await first.next("welcome");
+    first.send({ type: "input", input: { sequence: 500, move: ["right"] } });
+    await first.next("ack");
+    first.socket.close();
+    await first.closed;
+    const next = connect(url(server), { id: claim.id, token: claim.token });
+    await next.next("welcome");
+    next.send({ type: "input", input: { sequence: 0, move: ["left"] } });
+    assert.equal((await next.next("ack")).sequence, 0);
+  } finally {
+    await server.close();
+  }
+});

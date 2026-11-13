@@ -373,53 +373,58 @@ export default function Controls({
 
       if (!reference) return;
 
-      if (
-        action === "scroll" &&
-        heroEntity[PLAYER].actionTriggered === "scroll"
-      ) {
-        heroEntity[PLAYER].contentTriggered = index;
-        return;
-      }
-
-      // skip if already triggered
-      if (
-        heroEntity[ACTIONABLE].spellTriggered ||
-        heroEntity[ACTIONABLE].skillTriggered ||
-        heroEntity[ACTIONABLE].interactTriggered ||
-        (heroEntity[PLAYER].actionTriggered &&
-          heroEntity[PLAYER].actionTriggered !== "scroll")
-      )
-        return;
-
-      if (action === "spell") {
-        heroEntity[ACTIONABLE].spellTriggered = true;
-      } else if (action === "skill") {
-        heroEntity[ACTIONABLE].skillTriggered = true;
-      } else if (action === "interact") {
-        heroEntity[ACTIONABLE].interactTriggered = true;
+      if (ecs.metadata.network) {
+        ecs.metadata.network.action({ kind: action, index, offset, tab });
       } else {
-        heroEntity[PLAYER].actionTriggered = action;
-
         if (
-          ["type", "chat"].includes(action) ||
-          (tab !== undefined && action === "tab")
-        ) {
-          heroEntity[PLAYER].tabTriggered = tab;
-        }
-        if (
-          ["type", "chat"].includes(action) ||
-          (index !== undefined && ["content", "use", "scroll"].includes(action))
+          action === "scroll" &&
+          heroEntity[PLAYER].actionTriggered === "scroll"
         ) {
           heroEntity[PLAYER].contentTriggered = index;
-          heroEntity[PLAYER].offsetTriggered = offset;
+          return;
         }
-      }
 
-      reference.suspensionCounter =
-        reference.suspensionCounter === -1
-          ? -1
-          : reference.suspensionCounter + 1;
-      reference.suspended = false;
+        // skip if already triggered
+        if (
+          heroEntity[ACTIONABLE].spellTriggered ||
+          heroEntity[ACTIONABLE].skillTriggered ||
+          heroEntity[ACTIONABLE].interactTriggered ||
+          (heroEntity[PLAYER].actionTriggered &&
+            heroEntity[PLAYER].actionTriggered !== "scroll")
+        )
+          return;
+
+        if (action === "spell") {
+          heroEntity[ACTIONABLE].spellTriggered = true;
+        } else if (action === "skill") {
+          heroEntity[ACTIONABLE].skillTriggered = true;
+        } else if (action === "interact") {
+          heroEntity[ACTIONABLE].interactTriggered = true;
+        } else {
+          heroEntity[PLAYER].actionTriggered = action;
+
+          if (
+            ["type", "chat"].includes(action) ||
+            (tab !== undefined && action === "tab")
+          ) {
+            heroEntity[PLAYER].tabTriggered = tab;
+          }
+          if (
+            ["type", "chat"].includes(action) ||
+            (index !== undefined &&
+              ["content", "use", "scroll"].includes(action))
+          ) {
+            heroEntity[PLAYER].contentTriggered = index;
+            heroEntity[PLAYER].offsetTriggered = offset;
+          }
+        }
+
+        reference.suspensionCounter =
+          reference.suspensionCounter === -1
+            ? -1
+            : reference.suspensionCounter + 1;
+        reference.suspended = false;
+      }
 
       if (active && !active.disabled) {
         if (action === "spell") {
@@ -763,6 +768,7 @@ export default function Controls({
   const handleMove = useCallback(
     (orientations: Orientation[]) => {
       const heroEntity = heroRef.current;
+      if (ecs?.metadata.network) { ecs.metadata.network.move(orientations); return; }
       if (ecs && heroEntity && !isDead(ecs, heroEntity)) {
         setMovementOrientations(ecs, heroEntity, orientations);
       }

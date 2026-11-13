@@ -167,6 +167,7 @@ exports.createGameServer = async ({
             await discardUnclaimed();
             return;
           }
+          simulation.join(account.id);
           client.account = account;
           client.joining = false;
           send(socket, {

@@ -1,3 +1,9 @@
+import { typeChat, navigateChat } from "../systems/popup";
+import {
+  keyboardSize,
+  keyboardPages,
+  getKeyFromIndex,
+} from "../../components/Keyboard";
 import type { World } from "../ecs";
 import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
@@ -7,6 +13,8 @@ import { RENDERABLE } from "../components/renderable";
 import { Orientation, orientations } from "../components/orientable";
 
 export const inputActions = [
+  "text",
+  "history",
   "spell",
   "skill",
   "interact",
@@ -76,6 +84,14 @@ export const isPlayerInput = (value: unknown): value is PlayerInput => {
       !index(value.action.tab))
   )
     return false;
+  if (
+    record(value.action) &&
+    value.action.kind === "text" &&
+    value.action.index !== undefined &&
+    ((value.action.index as number) >= keyboardSize * keyboardPages.length ||
+      !getKeyFromIndex(value.action.index as number))
+  )
+    return false;
   return value.move !== undefined || value.action !== undefined;
 };
 
@@ -84,6 +100,7 @@ export const createPlayerInput = (world: World, playerId: number) => {
   let received = -1;
   let move: Orientation[] = [];
   let pending: InputAction | undefined;
+  const text: InputAction[] = [];
   let lastActionGeneration = -1;
   let lastMessageTime = -Infinity;
 
@@ -93,12 +110,15 @@ export const createPlayerInput = (world: World, playerId: number) => {
     lastMessageTime = world.metadata.elapsed;
     if (message.move) move = [...message.move];
     // Never build an action backlog, including when a client floods the socket.
-    if (message.action && !pending) pending = { ...message.action };
+    if (message.action?.kind === "text") {
+      if (text.length < 16) text.push({ ...message.action });
+    } else if (message.action && !pending) pending = { ...message.action };
     return true;
   };
   const release = () => {
     move = [];
     pending = undefined;
+    text.length = 0;
     lastMessageTime = -Infinity;
   };
   const onUpdate = () => {
@@ -118,6 +138,7 @@ export const createPlayerInput = (world: World, playerId: number) => {
     if (!frame) return;
     // A stalled connection must not keep a character walking or replay old actions.
     if (world.metadata.elapsed - lastMessageTime > 1000) release();
+    for (const edit of text.splice(0, 4)) typeChat(world, player, edit.index);
     const wasMoving = player[MOVABLE].orientations.length > 0;
     player[MOVABLE].orientations = [...move];
     if (
@@ -145,7 +166,10 @@ export const createPlayerInput = (world: World, playerId: number) => {
     lastActionGeneration = frame[RENDERABLE].generation;
     const action = pending;
     pending = undefined;
-    if (action.kind === "spell") player[ACTIONABLE].spellTriggered = true;
+    if (action.kind === "history")
+      navigateChat(world, player, action.index === 0 ? -1 : 1);
+    else if (action.kind === "text") return;
+    else if (action.kind === "spell") player[ACTIONABLE].spellTriggered = true;
     else if (action.kind === "skill") player[ACTIONABLE].skillTriggered = true;
     else if (action.kind === "interact")
       player[ACTIONABLE].interactTriggered = true;

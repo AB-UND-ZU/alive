@@ -185,6 +185,8 @@ export const createHost = (saved?: HostedWorld) => {
   const join = (accountId: string) => {
     let current = actor(accountId);
     if (!current) current = { ...menu, player: createActor(menu, accountId) };
+    release(accountId);
+    inputs.delete(accountId);
     getInput(accountId);
     return current.world.getEntityId(current.player);
   };
