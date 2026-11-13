@@ -42,6 +42,7 @@
     "test:renderers": "CI=true react-scripts test --watchAll=false --testPathPattern='src/(components|renderers)/'",
     "test:all": "CI=true react-scripts test --watchAll=false --testPathIgnorePatterns='\\.generation\\.test\\.'",
     "test:generation": "CI=true react-scripts test --watchAll=false --testPathPattern='\\.generation\\.test\\.'",
+    "test:server": "node --test scripts/server/*.test.cjs",
     "test:ci": "CI=true react-scripts test --watchAll=false --coverage",
     "typecheck": "tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/tsbuildinfo",
     "lint": "eslint src --max-warnings=0 --cache --cache-location node_modules/.cache/eslint/",

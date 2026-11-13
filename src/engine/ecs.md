@@ -40,3 +40,7 @@ export type World = ReturnType<typeof createWorld>;
 ```ts src/engine/ecs.ts
 export type PatchedWorld = ECSWorld & { ecs: World };
 ```
+
+## Dedicated server imports
+
+The simulation can run in Node without a DOM or audio device. Browser capability checks stay at the UI and sound boundaries. Initial terminal dimensions use a fixed fallback outside a browser; this does not change browser sizing. `scripts/server/build.cjs` bundles the same engine and replaces only the browser sound-worker factory with its unavailable-worker result. `npm run test:server` exercises native movement and snapshot restoration in a real Node process. This is a prerequisite for networking, not yet a multiplayer server.
