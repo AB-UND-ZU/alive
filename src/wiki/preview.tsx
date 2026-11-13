@@ -11,7 +11,7 @@ import { Button } from "./visuals";
 import { createRoot } from "react-dom/client";
 import { CSSProperties, useEffect, useState } from "react";
 import World from "../components/World";
-import { useWorld } from "../bindings/hooks";
+import { useWorld } from "../renderers/interface/hooks";
 import Dimensions from "../components/Dimensions";
 import Terminal from "../components/Terminal";
 import Controls from "../components/Controls";

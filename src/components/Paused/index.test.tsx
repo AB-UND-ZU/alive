@@ -11,7 +11,7 @@ import {
   createTestWorld,
 } from "../../testing/harness";
 import { isDisabledCell, readRows, renderHud } from "../Controls/testing";
-import { WorldContext } from "../../bindings/hooks";
+import { WorldContext } from "../../renderers/interface/hooks";
 
 // ♀ hero
 const area = `

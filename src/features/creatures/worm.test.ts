@@ -74,7 +74,7 @@ import { SEQUENCABLE } from "../../engine/components/sequencable";
 import { extinguishEntity } from "../../engine/systems/burn";
 import { getItemSprite } from "../../game/assets/utils";
 import { pixelCircle } from "../../game/math/tracing";
-import { getSegments, fixedHeight } from "../../components/Entity/utils";
+import { getSegments, fixedHeight } from "../../renderers/interface/segments";
 import { getAffectable } from "../../engine/systems/magic";
 import { shootHoming } from "../../engine/systems/homing";
 import { colors } from "../../game/assets/colors";

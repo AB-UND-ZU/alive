@@ -156,7 +156,7 @@ import { muteAudio, unmuteAudio } from "../sound/resumable";
 import { play } from "../sound";
 import { REFERENCE } from "../../engine/components/reference";
 import { POPUP, Target } from "../../engine/components/popup";
-import { isTouch } from "../../components/Dimensions";
+import { isTouch } from "../../renderers/interface/platform";
 import { COVERABLE } from "../../engine/components/coverable";
 import {
   addBackground,

@@ -13,7 +13,7 @@ import {
 } from "../../engine/components/sequencable";
 import { SPRITE } from "../../engine/components/sprite";
 import { STICKY } from "../../engine/components/sticky";
-import { getActiveViewable } from "../../bindings/hooks";
+import { getActiveViewable } from "../../renderers/interface/hooks";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { PARTICLE } from "../../engine/components/particle";
 import { moveEntity } from "../../engine/systems/map";

@@ -3,7 +3,7 @@ import { isTouch, useDimensions } from "../Dimensions";
 import Row from "../Row";
 import "./index.css";
 import { useCallback } from "react";
-import { useWorld } from "../../bindings/hooks";
+import { useWorld } from "../../renderers/interface/hooks";
 import { repeat } from "../../game/math/std";
 import { colors } from "../../game/assets/colors";
 import {
@@ -16,7 +16,7 @@ import { canSave, getSaveSummaries } from "../../game/saves";
 import { World as WorldType } from "../../engine";
 import { Sprite } from "../../engine/components/sprite";
 import { LEVEL } from "../../engine/components/level";
-import { SaveStatus } from "../../bindings/hooks";
+import { SaveStatus } from "../../renderers/interface/hooks";
 
 const pauseButtonWidth = 8;
 

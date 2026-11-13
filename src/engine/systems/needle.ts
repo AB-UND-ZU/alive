@@ -13,7 +13,7 @@ import {
 } from "../../game/math/path";
 import { PLAYER } from "../components/player";
 import { getIdentifier } from "../utils";
-import { aspectRatio } from "../../components/Dimensions/sizing";
+import { aspectRatio } from "../../renderers/interface/dimensions";
 import { LEVEL } from "../components/level";
 import { add } from "../../game/math/std";
 

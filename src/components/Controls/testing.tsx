@@ -1,9 +1,9 @@
 /* eslint-disable testing-library/no-node-access -- controls are drawn as glyph spans without accessible roles */
 import { act, render } from "@testing-library/react";
-import { WorldContext, WorldProvider } from "../../bindings/hooks";
+import { WorldContext, WorldProvider } from "../../renderers/interface/hooks";
 import { World } from "../../engine";
 import { step } from "../../testing/harness";
-import { createWorldContext } from "../../testing/render";
+import { createWorldContext } from "../../renderers/three-js/testing";
 import { Layer } from "../../engine/components/sprite";
 import { characterMarkup } from "../Row/characters";
 import {

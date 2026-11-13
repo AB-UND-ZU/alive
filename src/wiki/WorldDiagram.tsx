@@ -1,6 +1,6 @@
 import { World } from "../engine";
 import { Sprite } from "../engine/components/sprite";
-import { getSegments, lootHeight } from "../components/Entity/utils";
+import { getSegments, lootHeight } from "../renderers/interface/segments";
 import { getFacingLayers } from "../game/assets/ui";
 import { isLootable } from "../engine/systems/collect";
 import { getParticles } from "../engine/systems/sequence";

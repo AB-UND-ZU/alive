@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { WorldProvider, useWorld } from "../bindings/hooks";
+import { WorldProvider, useWorld } from "../renderers/interface/hooks";
 import Paused from "../components/Paused";
 import { createPreviewWorld } from "./scenes";
 

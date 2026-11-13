@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { createWorld, World as WorldType } from "../../engine";
-import { SaveStatus, WorldProvider } from "../../bindings/hooks";
+import { SaveStatus, WorldProvider } from "../../renderers/interface/hooks";
 import { loadSounds } from "../../game/sound";
 import { classDefinitions } from "../../game/balancing/classes";
 import { getHasteInterval } from "../../engine/systems/movement";
@@ -28,7 +28,6 @@ import { TEST_MODE } from "../../engine/utils";
 import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
 import { submitChat } from "../../engine/systems/popup";
-import packageJson from "../../../package.json";
 
 declare global {
   interface Window {
@@ -36,13 +35,7 @@ declare global {
   }
 }
 
-// encode package version as V<major>x<minor>[.<patch>], e.g. 0.2.0 -> V0x02
-const [major = 0, minor = 0, patch = 0] = packageJson.version
-  .split(".")
-  .map((part) => parseInt(part, 10) || 0);
-export const gameVersion = `V${major}x${minor.toString().padStart(2, "0")}${
-  patch ? `.${patch}` : ""
-}`;
+export { gameVersion } from "../../game/assets/version";
 
 const initialLevel: LevelName = "LEVEL_MENU";
 

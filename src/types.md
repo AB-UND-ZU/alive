@@ -17,7 +17,7 @@
 | [AuraSequence](engine/components/sequencable.md#type-aurasequence) | `src/engine/components/sequencable.ts` |
 | [Baitable](engine/components/baitable.md#type-baitable) | `src/engine/components/baitable.ts` |
 | [BarModifier](engine/components/stats.md#type-barmodifier) | `src/engine/components/stats.ts` |
-| [Batch](components/Entity/Instances.md#type-batch) | `src/components/Entity/Instances.tsx` |
+| [Batch](renderers/three-js/Entity/Instances.md#type-batch) | `src/renderers/three-js/Entity/Instances.tsx` |
 | [Behaviour](engine/components/behaviour.md#type-behaviour) | `src/engine/components/behaviour.ts` |
 | [Belongable](engine/components/belongable.md#type-belongable) | `src/engine/components/belongable.ts` |
 | [BiomeName](engine/components/level.md#type-biomename) | `src/engine/components/level.ts` |
@@ -62,8 +62,8 @@
 | [DecaySequence](engine/components/sequencable.md#type-decaysequence) | `src/engine/components/sequencable.ts` |
 | [Definition](engine/wfc/wfc.md#type-definition) | `src/engine/wfc/wfc.ts` |
 | [DialogSequence](engine/components/sequencable.md#type-dialogsequence) | `src/engine/components/sequencable.ts` |
-| [DimensionOptions](components/Dimensions/sizing.md#type-dimensionoptions) | `src/components/Dimensions/sizing.tsx` |
-| [Dimensions](components/Dimensions/sizing.md#type-dimensions) | `src/components/Dimensions/sizing.tsx` |
+| [DimensionOptions](renderers/interface/dimensions.md#type-dimensionoptions) | `src/renderers/interface/dimensions.ts` |
+| [Dimensions](renderers/interface/dimensions.md#type-dimensions) | `src/renderers/interface/dimensions.ts` |
 | [DiscoverySequence](engine/components/sequencable.md#type-discoverysequence) | `src/engine/components/sequencable.ts` |
 | [Displacable](engine/components/displacable.md#type-displacable) | `src/engine/components/displacable.ts` |
 | [DisposeSequence](engine/components/sequencable.md#type-disposesequence) | `src/engine/components/sequencable.ts` |
@@ -76,7 +76,7 @@
 | [Enterable](engine/components/enterable.md#type-enterable) | `src/engine/components/enterable.ts` |
 | [EntityToken](engine/snapshot.md#type-entitytoken) | `src/engine/snapshot.ts` |
 | [Entity](engine/entities.md#type-entity) | `src/engine/entities.ts` |
-| [Entry](components/Entity/Instances.md#type-entry) | `src/components/Entity/Instances.tsx` |
+| [Entry](renderers/three-js/Entity/Instances.md#type-entry) | `src/renderers/three-js/Entity/Instances.tsx` |
 | [Equipment](engine/components/equippable.md#type-equipment) | `src/engine/components/equippable.ts` |
 | [Equippable](engine/components/equippable.md#type-equippable) | `src/engine/components/equippable.ts` |
 | [EvaporateSequence](engine/components/sequencable.md#type-evaporatesequence) | `src/engine/components/sequencable.ts` |
@@ -89,7 +89,7 @@
 | [Focus](engine/components/popup.md#type-focus) | `src/engine/components/popup.ts` |
 | [Focusable](engine/components/focusable.md#type-focusable) | `src/engine/components/focusable.ts` |
 | [Fog](engine/components/fog.md#type-fog) | `src/engine/components/fog.ts` |
-| [Font](components/Entity/geometries.md#type-font) | `src/components/Entity/geometries.ts` |
+| [Font](renderers/three-js/Entity/geometries.md#type-font) | `src/renderers/three-js/Entity/geometries.ts` |
 | [Forgable](engine/components/forgable.md#type-forgable) | `src/engine/components/forgable.ts` |
 | [ForgeOptionResult](game/balancing/forging.md#type-forgeoptionresult) | `src/game/balancing/forging.ts` |
 | [ForgeOption](game/balancing/forging.md#type-forgeoption) | `src/game/balancing/forging.ts` |
@@ -97,6 +97,7 @@
 | [ForgeStep](engine/components/forgable.md#type-forgestep) | `src/engine/components/forgable.ts` |
 | [FountainSequence](engine/components/sequencable.md#type-fountainsequence) | `src/engine/components/sequencable.ts` |
 | [Fragment](engine/components/fragment.md#type-fragment) | `src/engine/components/fragment.ts` |
+| [FrameWorld](renderers/interface/clock.md#type-frameworld) | `src/renderers/interface/clock.ts` |
 | [Freezable](engine/components/freezable.md#type-freezable) | `src/engine/components/freezable.ts` |
 | [FreezeSequence](engine/components/sequencable.md#type-freezesequence) | `src/engine/components/sequencable.ts` |
 | [Gear](engine/components/equippable.md#type-gear) | `src/engine/components/equippable.ts` |
@@ -113,12 +114,12 @@
 | [InteractSequence](engine/components/sequencable.md#type-interactsequence) | `src/engine/components/sequencable.ts` |
 | [Interval](game/math/tracing.md#type-interval) | `src/game/math/tracing.ts` |
 | [Inventory](engine/components/inventory.md#type-inventory) | `src/engine/components/inventory.ts` |
-| [InvertedRingProps](components/Entity/CoveredLight.md#type-invertedringprops) | `src/components/Entity/CoveredLight.tsx` |
+| [InvertedRingProps](renderers/three-js/Entity/CoveredLight.md#type-invertedringprops) | `src/renderers/three-js/Entity/CoveredLight.tsx` |
 | [ItemConsumption](engine/systems/consume.md#type-itemconsumption) | `src/engine/systems/consume.ts` |
 | [ItemStats](engine/components/item.md#type-itemstats) | `src/engine/components/item.ts` |
 | [Item](engine/components/item.md#type-item) | `src/engine/components/item.ts` |
 | [Iteration](game/math/tracing.md#type-iteration) | `src/game/math/tracing.ts` |
-| [LayerProps](components/Entity/Layer.md#type-layerprops) | `src/components/Entity/Layer.tsx` |
+| [LayerProps](renderers/three-js/Entity/Layer.md#type-layerprops) | `src/renderers/three-js/Entity/Layer.tsx` |
 | [Layer](engine/components/layer.md#type-layer) | `src/engine/components/layer.ts` |
 | [Layer](engine/components/sprite.md#type-layer) | `src/engine/components/sprite.ts` |
 | [LevelName](engine/components/level.md#type-levelname) | `src/engine/components/level.ts` |
@@ -141,6 +142,7 @@
 | [Melee](engine/components/melee.md#type-melee) | `src/engine/components/melee.ts` |
 | [MessageSequence](engine/components/sequencable.md#type-messagesequence) | `src/engine/components/sequencable.ts` |
 | [Message](engine/components/sequencable.md#type-message) | `src/engine/components/sequencable.ts` |
+| [Motion](engine/motion.md#type-motion) | `src/engine/motion.ts` |
 | [Mountable](engine/components/mountable.md#type-mountable) | `src/engine/components/mountable.ts` |
 | [Movable](engine/components/movable.md#type-movable) | `src/engine/components/movable.ts` |
 | [Navigate](wiki/App.md#type-navigate) | `src/wiki/App.tsx` |
@@ -186,7 +188,10 @@
 | [Refillable](engine/components/refillable.md#type-refillable) | `src/engine/components/refillable.ts` |
 | [Reloadable](engine/components/item.md#type-reloadable) | `src/engine/components/item.ts` |
 | [Remainable](engine/components/remainable.md#type-remainable) | `src/engine/components/remainable.ts` |
+| [RenderLayerProps](renderers/interface/segments.md#type-renderlayerprops) | `src/renderers/interface/segments.ts` |
 | [Renderable](engine/components/renderable.md#type-renderable) | `src/engine/components/renderable.ts` |
+| [RendererCapabilities](renderers/interface/types.md#type-renderercapabilities) | `src/renderers/interface/types.ts` |
+| [RendererProps](renderers/interface/types.md#type-rendererprops) | `src/renderers/interface/types.ts` |
 | [ResourceItem](engine/components/item.md#type-resourceitem) | `src/engine/components/item.ts` |
 | [Resource](engine/components/harvestable.md#type-resource) | `src/engine/components/harvestable.ts` |
 | [Restorable](engine/components/restorable.md#type-restorable) | `src/engine/components/restorable.ts` |
@@ -194,11 +199,16 @@
 | [ReviveSequence](engine/components/sequencable.md#type-revivesequence) | `src/engine/components/sequencable.ts` |
 | [SaveGame](game/saves/index.md#type-savegame) | `src/game/saves/index.ts` |
 | [SaveItem](game/saves/index.md#type-saveitem) | `src/game/saves/index.ts` |
-| [SaveStatus](bindings/hooks.md#type-savestatus) | `src/bindings/hooks.ts` |
+| [SaveStatus](renderers/interface/hooks.md#type-savestatus) | `src/renderers/interface/hooks.ts` |
 | [SaveSummary](game/saves/index.md#type-savesummary) | `src/game/saves/index.ts` |
+| [SceneEntity](renderers/interface/scene.md#type-sceneentity) | `src/renderers/interface/scene.ts` |
 | [SceneName](wiki/scenes.md#type-scenename) | `src/wiki/scenes.ts` |
+| [SceneSprite](renderers/interface/frame.md#type-scenesprite) | `src/renderers/interface/frame.ts` |
+| [SceneState](renderers/interface/frame.md#type-scenestate) | `src/renderers/interface/frame.ts` |
+| [SceneViewport](renderers/interface/scene.md#type-sceneviewport) | `src/renderers/interface/scene.ts` |
 | [Seed](game/sound/index.md#type-seed) | `src/game/sound/index.ts` |
-| [Segment](components/Entity/Stack.md#type-segment) | `src/components/Entity/Stack.tsx` |
+| [Segment](renderers/interface/segments.md#type-segment) | `src/renderers/interface/segments.ts` |
+| [Segment](renderers/three-js/Entity/Stack.md#type-segment) | `src/renderers/three-js/Entity/Stack.tsx` |
 | [Sequencable](engine/components/sequencable.md#type-sequencable) | `src/engine/components/sequencable.ts` |
 | [SequenceState](engine/components/sequencable.md#type-sequencestate) | `src/engine/components/sequencable.ts` |
 | [Sequence](engine/components/sequencable.md#type-sequence) | `src/engine/components/sequencable.ts` |
@@ -221,7 +231,7 @@
 | [Spell](engine/components/item.md#type-spell) | `src/engine/components/item.ts` |
 | [Spikable](engine/components/spikable.md#type-spikable) | `src/engine/components/spikable.ts` |
 | [SpriteDefinition](game/assets/descriptions.md#type-spritedefinition) | `src/game/assets/descriptions.ts` |
-| [SpriteProps](components/Entity/Sprite.md#type-spriteprops) | `src/components/Entity/Sprite.tsx` |
+| [SpriteProps](renderers/three-js/Entity/Sprite.md#type-spriteprops) | `src/renderers/three-js/Entity/Sprite.tsx` |
 | [SpriteStatDefinition](game/assets/descriptions.md#type-spritestatdefinition) | `src/game/assets/descriptions.ts` |
 | [SpriteTemplateDefinition](game/assets/descriptions.md#type-spritetemplatedefinition) | `src/game/assets/descriptions.ts` |
 | [SpriteTemplate](game/assets/templates/index.md#type-spritetemplate) | `src/game/assets/templates/index.ts` |
@@ -265,7 +275,7 @@
 | [WikiManifest](wiki/types.md#type-wikimanifest) | `src/wiki/types.ts` |
 | [WikiPage](wiki/types.md#type-wikipage) | `src/wiki/types.ts` |
 | [WikiToken](wiki/types.md#type-wikitoken) | `src/wiki/types.ts` |
-| [WorldContext](bindings/hooks.md#type-worldcontext) | `src/bindings/hooks.ts` |
+| [WorldContext](renderers/interface/hooks.md#type-worldcontext) | `src/renderers/interface/hooks.ts` |
 | [WorldSnapshot](engine/snapshot.md#type-worldsnapshot) | `src/engine/snapshot.ts` |
 | [World](engine/ecs.md#type-world) | `src/engine/ecs.ts` |
 | [XpSequence](engine/components/sequencable.md#type-xpsequence) | `src/engine/components/sequencable.ts` |

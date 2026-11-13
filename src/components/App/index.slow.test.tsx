@@ -21,7 +21,7 @@ const mockWorlds: World[] = [];
 jest.mock("../Stats", () => ({
   __esModule: true,
   default: (props: object) => {
-    const ecs = require("../../bindings/hooks").useWorld().ecs;
+    const ecs = require("../../renderers/interface/hooks").useWorld().ecs;
     if (ecs && !mockWorlds.includes(ecs)) mockWorlds.push(ecs);
     return require("react").createElement(
       jest.requireActual("../Stats").default,

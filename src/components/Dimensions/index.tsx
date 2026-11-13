@@ -4,7 +4,7 @@ import "./index.css";
 
 export { useDimensions };
 
-export const isTouch = window.matchMedia("(pointer: coarse)").matches;
+export { isTouch } from "../../renderers/interface/platform";
 
 /**
  * Prevent mobile browsers from trying to scroll and thus collapse the window height.

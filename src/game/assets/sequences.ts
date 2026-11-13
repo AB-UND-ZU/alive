@@ -28,7 +28,7 @@ import {
   tooltipHeight,
   transientHeight,
   wireHeight,
-} from "../../components/Entity/utils";
+} from "../../renderers/interface/segments";
 import { entities } from "../../engine";
 import { DROPPABLE } from "../../engine/components/droppable";
 import {
@@ -431,7 +431,7 @@ import {
 import { Spawnable, SPAWNABLE } from "../../engine/components/spawnable";
 import { ClassKey, getClassData } from "../balancing/classes";
 import { levelConfig } from "../levels";
-import { getActiveViewable } from "../../bindings/hooks";
+import { getActiveViewable } from "../../renderers/interface/hooks";
 import {
   calculateWeatherIntensity,
   createBubble,
@@ -440,7 +440,7 @@ import {
 } from "../../engine/systems/water";
 import { LIQUID } from "../../engine/components/liquid";
 import { coverSnow } from "../../engine/systems/freeze";
-import { aspectRatio } from "../../components/Dimensions/sizing";
+import { aspectRatio } from "../../renderers/interface/dimensions";
 import { Harvestable, HARVESTABLE } from "../../engine/components/harvestable";
 import {
   Conditionable,
@@ -546,7 +546,7 @@ import {
   harvestScratches,
   plantConfigs,
 } from "../balancing/harvesting";
-import { getKeyFromIndex } from "../../components/Keyboard";
+import { getKeyFromIndex } from "./keyboard";
 import { brewingDurationFactor, getBrewingDeal } from "../balancing/brewing";
 import { Brewable, BREWABLE } from "../../engine/components/brewable";
 import { Forgable, FORGABLE } from "../../engine/components/forgable";

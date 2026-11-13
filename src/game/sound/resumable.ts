@@ -1,26 +1,33 @@
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-const masterGain = audioContext.createGain();
-masterGain.gain.value = 1;
-const activityGain = audioContext.createGain();
-activityGain.gain.value = 1;
-masterGain.connect(activityGain);
-activityGain.connect(audioContext.destination);
+const AudioContext =
+  typeof window !== "undefined"
+    ? window.AudioContext || window.webkitAudioContext
+    : undefined;
+const audioContext = AudioContext ? new AudioContext() : undefined;
+const masterGain = audioContext?.createGain();
+const activityGain = audioContext?.createGain();
+if (audioContext && masterGain && activityGain) {
+  if (masterGain) masterGain.gain.value = 1;
+  activityGain.gain.value = 1;
+  masterGain.connect(activityGain);
+  activityGain.connect(audioContext.destination);
+}
 
 export const setAudioActive = (active: boolean) => {
-  activityGain.gain.value = active ? 1 : 0;
+  if (activityGain) activityGain.gain.value = active ? 1 : 0;
 };
 
 export const muteAudio = () => {
-  masterGain.gain.value = 0;
+  if (masterGain) masterGain.gain.value = 0;
 };
 
 export const unmuteAudio = () => {
-  masterGain.gain.value = 1;
+  if (masterGain) masterGain.gain.value = 1;
 };
 
-export const suspendAudio = () => audioContext.suspend();
+export const suspendAudio = () => audioContext?.suspend();
 
 export const ensureAudio = () => {
+  if (!audioContext) return;
   // Safari may stay interrupted after returning from another tab or lock screen.
   if ((audioContext.state as string) === "interrupted") {
     return audioContext.suspend().then(() => audioContext.resume());
@@ -31,9 +38,10 @@ export const ensureAudio = () => {
 };
 
 export const isPlaying = () =>
+  !!audioContext &&
   audioContext.state === "running" &&
-  masterGain.gain.value > 0 &&
-  activityGain.gain.value > 0;
+  (masterGain?.gain.value || 0) > 0 &&
+  (activityGain?.gain.value || 0) > 0;
 
 export type SoundBuffer = {
   play: (time: number, volume?: number) => void;
@@ -41,12 +49,13 @@ export type SoundBuffer = {
 
 // audio clock time after a delay in milliseconds
 export const getAudioTime = (delay = 0) =>
-  audioContext.currentTime + delay / 1000;
+  (audioContext?.currentTime || 0) + delay / 1000;
 
 export const createSoundBuffer = (
   samples: ArrayLike<number>,
   sampleRate: number
 ): SoundBuffer => {
+  if (!audioContext || !masterGain) return { play: () => {} };
   const buffer = audioContext.createBuffer(
     1,
     Math.max(samples.length, 1),

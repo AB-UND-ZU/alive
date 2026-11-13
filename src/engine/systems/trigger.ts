@@ -129,7 +129,7 @@ import { FRAGMENT } from "../components/fragment";
 import { createItemAsDrop } from "./drop";
 import { populateInventory, populateItems } from "../../bindings/creation";
 import { TRACKABLE } from "../components/trackable";
-import { getActiveViewable } from "../../bindings/hooks";
+import { getActiveViewable } from "../../renderers/interface/hooks";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { consumeItem, getItemConsumption } from "./consume";
 import { getHookable } from "./fishing";

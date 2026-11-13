@@ -14,7 +14,7 @@ import {
   beach,
   soilWet,
 } from "../../game/assets/sprites";
-import { add, combine, copy, getDistance, random } from "../../game/math/std";
+import { add, combine, copy, getDistance, lerp, random } from "../../game/math/std";
 import { play } from "../../game/sound";
 import { PLAYER } from "../components/player";
 import { LAYER } from "../components/layer";
@@ -22,7 +22,6 @@ import { LEVEL } from "../components/level";
 import { getImmersible, isImmersible, isSubmerged } from "./immersion";
 import { getEnterable } from "./enter";
 import { rerenderEntity } from "./renderer";
-import { lerp } from "three/src/math/MathUtils.js";
 import { SEQUENCABLE } from "../components/sequencable";
 import { IMMERSIBLE } from "../components/immersible";
 import { getOverlappingCell } from "../../game/math/matrix";

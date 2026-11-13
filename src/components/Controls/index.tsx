@@ -9,7 +9,7 @@ import {
 import { isTouch, useDimensions } from "../Dimensions";
 import "./index.css";
 import { MOVABLE } from "../../engine/components/movable";
-import { useHero, useViewpoint, useWorld } from "../../bindings/hooks";
+import { useHero, useViewpoint, useWorld } from "../../renderers/interface/hooks";
 import { REFERENCE } from "../../engine/components/reference";
 import { ORIENTABLE, Orientation } from "../../engine/components/orientable";
 import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";

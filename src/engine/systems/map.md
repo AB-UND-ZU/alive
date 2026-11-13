@@ -24,6 +24,7 @@ rerenderEntity(world, hero);
 ```
 
 The map system runs last: it flushes ECS changes and registers newly positioned entities. [Preloading](../ecs.md) runs it once before the first full update.
+`world.metadata.occlusionGeneration` changes when opaque entities are registered or removed. Door changes also invalidate it. The renderer uses this counter to refresh cached shadow footprints without scanning neighboring cells on every render. This cache revision is runtime state and is not saved.
 <!-- source-types -->
 
 ## ListenerEntities
@@ -31,5 +32,3 @@ The map system runs last: it flushes ECS changes and registers newly positioned 
 ```ts src/engine/systems/map.ts
 type ListenerEntities = { count: number; entries: Entity[] };
 ```
-
-`world.metadata.occlusionGeneration` changes when opaque entities are registered or removed. Door changes also invalidate it. The renderer uses this counter to refresh cached shadow footprints without scanning neighboring cells on every render. This cache revision is runtime state and is not saved.

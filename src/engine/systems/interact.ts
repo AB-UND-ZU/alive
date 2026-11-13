@@ -14,7 +14,7 @@ import { POPUP } from "../components/popup";
 import { LEVEL } from "../components/level";
 import { InteractSequence, SEQUENCABLE } from "../components/sequencable";
 import { VIEWABLE } from "../components/viewable";
-import { getActiveViewable } from "../../bindings/hooks";
+import { getActiveViewable } from "../../renderers/interface/hooks";
 import { getDiscoveryTab, isInPopup, popupActions, popupIdles } from "./popup";
 import { rerenderEntity } from "./renderer";
 import { isControllable } from "./freeze";

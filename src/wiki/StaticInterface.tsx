@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useWorld } from "../bindings/hooks";
+import { useWorld } from "../renderers/interface/hooks";
 import Dimensions from "../components/Dimensions";
 import World from "../components/World";
 import Stats from "../components/Stats";

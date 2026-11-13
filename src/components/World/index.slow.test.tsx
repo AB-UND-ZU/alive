@@ -3,7 +3,7 @@ import { act, fireEvent, render } from "@testing-library/react";
 import { useEffect } from "react";
 import World from ".";
 import { World as WorldType } from "../../engine";
-import { useWorld, WorldContext } from "../../bindings/hooks";
+import { useWorld, WorldContext } from "../../renderers/interface/hooks";
 import { LEVEL } from "../../engine/components/level";
 import { MOVABLE } from "../../engine/components/movable";
 import { POSITION } from "../../engine/components/position";

@@ -37,7 +37,7 @@ import { Equipment, EQUIPPABLE, slots } from "../components/equippable";
 import { Item, ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { entities } from "..";
-import { add, combine, getDistance, normalize } from "../../game/math/std";
+import { add, clamp, combine, getDistance, normalize } from "../../game/math/std";
 import { TypedEntity } from "../entities";
 import { isDead, isEnemy, isNeutral } from "./damage";
 import {
@@ -77,7 +77,6 @@ import {
 } from "./trigger";
 import { colors } from "../../game/assets/colors";
 import { consumeItem, getConsumption, getItemConsumption } from "./consume";
-import { clamp } from "three/src/math/MathUtils.js";
 import { getSelectedLevel } from "../../game/levels";
 import { LEVEL } from "../components/level";
 import { REFERENCE } from "../components/reference";
@@ -86,7 +85,7 @@ import {
   getIndexFromKey,
   keyboardColumns,
   keyboardSize,
-} from "../../components/Keyboard";
+} from "../../game/assets/keyboard";
 import {
   completeCommand,
   executeCommand,

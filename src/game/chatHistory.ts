@@ -1,4 +1,4 @@
-import { keyboardPages, keyboardSize } from "../components/Keyboard";
+import { keyboardPages, keyboardSize } from "./assets/keyboard";
 
 const storageKey = "alive.chatHistory";
 

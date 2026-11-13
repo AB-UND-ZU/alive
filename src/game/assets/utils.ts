@@ -32,7 +32,7 @@ import {
   overlayHeight,
   popupHeight,
   selectionHeight,
-} from "../../components/Entity/utils";
+} from "../../renderers/interface/segments";
 import { getFacingLayers, createTab } from "./ui";
 import {
   friendlyBar,

@@ -1,5 +1,5 @@
 import { Layer, Sprite } from "../../engine/components/sprite";
-import { dotCount } from "../Entity/Dots";
+import { dotCount } from "../../renderers/interface/segments";
 import { getFacingLayers } from "../../game/assets/ui";
 import { characterMarkup } from "./characters";
 import "./index.css";

@@ -5,7 +5,7 @@ import { RENDERABLE } from "../components/renderable";
 import { normalize } from "../../game/math/std";
 import { FOG, Fog } from "../components/fog";
 import { Light, LIGHT } from "../components/light";
-import { aspectRatio } from "../../components/Dimensions/sizing";
+import { aspectRatio } from "../../renderers/interface/dimensions";
 import {
   getObstruction,
   traceCircularVisiblity,

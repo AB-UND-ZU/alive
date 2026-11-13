@@ -14,7 +14,7 @@ Metadata holds level entities, render counters, listeners, interaction state, an
 
 A movable entity points to a reference entity with its own tick interval and accumulated delta. The [Tick system](systems/tick.md) advances reference generations. Most systems skip work when their relevant generation has not changed.
 
-The [React systems loop](../components/Systems/index.md) advances simulation at 30 fixed updates per second. Action intervals can span several updates. World ticks, hero haste, and animation sequences use different reference frames; an update is not necessarily one movement.
+The [React systems loop](../renderers/three-js/Systems/index.md) advances simulation at 30 fixed updates per second. Action intervals can span several updates. World ticks, hero haste, and animation sequences use different reference frames; an update is not necessarily one movement.
 
 ## System order
 

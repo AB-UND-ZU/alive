@@ -11,7 +11,7 @@ import { getItemSprite } from "../../game/assets/utils";
 import { colorPalettes } from "../../game/assets/templates";
 import { colors } from "../../game/assets/colors";
 import { composeCharacterPixels } from "../../components/Row/characters";
-import { getSegments } from "../../components/Entity/utils";
+import { getSegments } from "../../renderers/interface/segments";
 import { getSequence } from "../../engine/systems/sequence";
 import { SPRITE } from "../../engine/components/sprite";
 import { getFacingLayers } from "../../game/assets/ui";

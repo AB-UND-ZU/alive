@@ -1,21 +1,12 @@
-import { Canvas } from "@react-three/fiber";
 import "./index.css";
-import Systems from "../Systems";
-import Camera from "../Camera";
-import { OrbitControls } from "@react-three/drei/core/OrbitControls";
 import Paused from "../Paused";
 import { useDimensions } from "../Dimensions";
 import Row from "../Row";
 import { colors } from "../../game/assets/colors";
 import { overscanRows } from "../Dimensions/sizing";
-import { ExtendedStats } from "../Debug";
 import { createText } from "../../game/assets/ui";
-import { InstanceRoot } from "../Entity/Instances";
-import { LightingContext } from "../Entity/CoveredLight";
-import ShadowCache from "../Entity/ShadowCache";
-
-const stats = false;
-const controls = false;
+import { useWorld } from "../../renderers/interface/hooks";
+import ThreeJsRenderer from "../../renderers/three-js";
 
 export const frameColor = colors.silver;
 
@@ -24,6 +15,7 @@ export default function Terminal({
   shadows = true,
 }: React.PropsWithChildren<{ shadows?: boolean }>) {
   const dimensions = useDimensions();
+  const { ecs, paused, suspended } = useWorld();
 
   return (
     <main className="Terminal">
@@ -34,17 +26,17 @@ export default function Terminal({
           )
         )}
       </div>
-      <Canvas shadows={shadows ? "basic" : false} flat>
-        <LightingContext.Provider value={shadows}>
-          {stats && <ExtendedStats />}
-          {controls && <OrbitControls />}
-          <InstanceRoot />
-          <ShadowCache />
-          <ambientLight intensity={shadows ? Math.PI / 8 : Math.PI} />
-          <Camera />
-          <Systems />
-        </LightingContext.Provider>
-      </Canvas>
+      {ecs && (
+        <ThreeJsRenderer
+          world={ecs}
+          columns={dimensions.renderedColumns}
+          rows={dimensions.renderedRows}
+          cellWidth={dimensions.cellWidth}
+          cellHeight={dimensions.cellHeight}
+          paused={paused || suspended}
+          shadows={shadows}
+        />
+      )}
       <div className="RightEdge">
         {Array.from({ length: dimensions.renderedRows - overscanRows + 1 }).map(
           (_, index) => (

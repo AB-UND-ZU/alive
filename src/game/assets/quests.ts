@@ -1,4 +1,4 @@
-import { isTouch } from "../../components/Dimensions";
+import { isTouch } from "../../renderers/interface/platform";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";

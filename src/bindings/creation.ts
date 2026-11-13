@@ -1,6 +1,6 @@
 import { Entity } from "ecs";
-import { isTouch } from "../components/Dimensions";
-import { gameVersion } from "../components/World";
+import { isTouch } from "../renderers/interface/platform";
+import { gameVersion } from "../game/assets/version";
 import { entities, World } from "../engine";
 import { ACTIONABLE } from "../engine/components/actionable";
 import {

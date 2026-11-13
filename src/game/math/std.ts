@@ -1,4 +1,4 @@
-import { aspectRatio } from "../../components/Dimensions/sizing";
+import { aspectRatio } from "../../renderers/interface/dimensions";
 
 export type Point = { x: number; y: number };
 

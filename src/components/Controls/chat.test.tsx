@@ -1,6 +1,6 @@
 /* eslint-disable testing-library/no-node-access, testing-library/no-container -- keyboard gestures target the native hit area */
 import { useLayoutEffect } from "react";
-import { useWorld } from "../../bindings/hooks";
+import { useWorld } from "../../renderers/interface/hooks";
 import { act, fireEvent } from "@testing-library/react";
 import Controls from ".";
 import { completeCommand } from "../../game/assets/commands";

@@ -4,7 +4,7 @@ import { createAreaWorld, assertHero } from "../testing/harness";
 import { createItemInInventory } from "../engine/systems/drop";
 import * as entities from "../engine/entities";
 import { getItemSprite } from "../game/assets/utils";
-import { getSegments } from "../components/Entity/utils";
+import { getSegments } from "../renderers/interface/segments";
 import { getFacingLayers } from "../game/assets/ui";
 import { classDefinitions } from "../game/balancing/classes";
 import { Pixels } from "./visuals";

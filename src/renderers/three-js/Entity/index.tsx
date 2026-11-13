@@ -1,0 +1,269 @@
+import React, { useContext, useState } from "react";
+import { useSpring } from "@react-spring/three";
+import { useDimensions } from "../../../components/Dimensions";
+import { SPRITE } from "../../../engine/components/sprite";
+import { LIGHT } from "../../../engine/components/light";
+import { MOVABLE } from "../../../engine/components/movable";
+import { FOG } from "../../../engine/components/fog";
+import { SWIMMABLE } from "../../../engine/components/swimmable";
+import { colors } from "../../../game/assets/colors";
+import { updateLocalMatrix } from "./matrixUpdates";
+import Animated from "./Animated";
+import CoveredLight, { LightingContext } from "./CoveredLight";
+import { useWorld } from "../../interface/hooks";
+import {
+  getLayerCount,
+  getSegments,
+  lootHeight,
+  oreHeight,
+  shadowFactor,
+  wallHeight,
+} from "../../interface/segments";
+import Stack, { Segment } from "./Stack";
+import { ORIENTABLE } from "../../../engine/components/orientable";
+import Box from "./Box";
+import { PARTICLE } from "../../../engine/components/particle";
+import Swimming from "./Swimming";
+import Bar from "./Bar";
+import { LayerProps } from "./Layer";
+import { INVENTORY } from "../../../engine/components/inventory";
+import { isCollecting, isLootable } from "../../../engine/systems/collect";
+import { ITEM } from "../../../engine/components/item";
+import { TypedEntity } from "../../../engine/entities";
+import { getParticles } from "../../../engine/systems/sequence";
+import Dots from "./Dots";
+import { STATS } from "../../../engine/components/stats";
+import { getOpaqueOrientation } from "../../../game/math/tracing";
+import { FOCUSABLE } from "../../../engine/components/focusable";
+import { ATTACKABLE } from "../../../engine/components/attackable";
+import { PROJECTILE } from "../../../engine/components/projectile";
+import { LAYER } from "../../../engine/components/layer";
+import FogOfWar from "./FogOfWar";
+import { LIQUID } from "../../../engine/components/liquid";
+import { BUMPABLE } from "../../../engine/components/bumpable";
+import { BREWABLE } from "../../../engine/components/brewable";
+import { BUILDABLE } from "../../../engine/components/buildable";
+
+function Entity({
+  entity,
+  x,
+  y,
+  inRadius,
+  inside,
+  outside,
+  castShadow,
+}: {
+  entity: TypedEntity<"POSITION" | "SPRITE" | "RENDERABLE">;
+  generation: number;
+  x: number;
+  y: number;
+  inRadius: boolean;
+  inside: boolean;
+  outside: boolean;
+  castShadow?: boolean;
+}) {
+  const dimensions = useDimensions();
+  const shadows = useContext(LightingContext);
+  const { ecs, paused } = useWorld();
+  const config = entity[MOVABLE]?.spring;
+  const isBumpable = !!entity[BUMPABLE];
+  const Container = config || isBumpable ? Animated : "group";
+
+  const visibility = entity[FOG]?.visibility;
+  const isAir = entity[FOG]?.type === "air";
+  const isFloat = entity[FOG]?.type === "float";
+  const isObject = entity[FOG]?.type === "object";
+  const isUnit = entity[FOG]?.type === "unit" || !!entity[PROJECTILE];
+  const isInside = !!entity[LAYER]?.structure;
+  const isFocusable = !!entity[FOCUSABLE];
+  const isFixed = !!entity[FOG]?.fixed && visibility === "visible";
+  const isVisible = visibility === "visible" || !!entity[PROJECTILE];
+  const isHidden = visibility === "hidden";
+  const isFog = visibility === "fog";
+  const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
+  const opaqueOrientation =
+    isOpaque && ecs ? getOpaqueOrientation(ecs, entity) : undefined;
+  const isBright = !!entity[LIGHT] && entity[LIGHT].brightness > 0 && !inside;
+  const isSwimming = !!entity[SWIMMABLE]?.swimming;
+  const isLiquid = !!entity[LIQUID];
+  const hasStats = !!entity[STATS] && (entity[ATTACKABLE] || entity[BUILDABLE]);
+  const isFlying = !!entity[MOVABLE]?.flying;
+
+  const isTransparent =
+    (isHidden && !isAir) ||
+    (!isHidden && isAir) ||
+    (isUnit && !isVisible) ||
+    (outside && !isFixed);
+
+  const hasLoot = ecs && (isLootable(ecs, entity) || isCollecting(ecs, entity));
+  const isDotsTransparent =
+    !hasLoot || (isOpaque ? !inRadius : !isVisible) || outside;
+
+  const spring = useSpring({
+    opacity: isTransparent ? 0 : 1,
+    dotsOpacity: isDotsTransparent ? 0 : 1,
+    config: { duration: 200 },
+    onRest: (result) => {
+      setOpacity(result.value.opacity);
+    },
+    pause: paused,
+  });
+
+  const layerProps: LayerProps = {
+    isTransparent,
+    darkness: spring.opacity,
+    opacity: isUnit ? spring.opacity : undefined,
+    receiveShadow: shadows && !isAir && !isOpaque && !isFloat && !inside,
+    colorFactor: outside ? shadowFactor : undefined,
+  };
+
+  const [opacity, setOpacity] = useState(layerProps.isTransparent ? 0 : 1);
+
+  if (!ecs) return null;
+
+  const castsShadow = shadows && isOpaque && (castShadow ?? isVisible);
+  const occluder = isOpaque && (isVisible || castsShadow) && (
+    <Box
+      height={wallHeight}
+      castShadow={castsShadow}
+      orientation={opaqueOrientation}
+    >
+      <meshBasicMaterial color={colors.black} />
+    </Box>
+  );
+
+  if (
+    opacity === 0 &&
+    layerProps.isTransparent &&
+    !isUnit &&
+    !isObject &&
+    !isFocusable
+  )
+    return castsShadow ? (
+      <group
+        matrixAutoUpdate={false}
+        onUpdate={updateLocalMatrix}
+        position={[x * dimensions.aspectRatio, -y, 0]}
+      >
+        {occluder}
+      </group>
+    ) : null;
+
+  const orderedSegments = getSegments(ecs, entity, layerProps, inside);
+  const orderedLayers = getLayerCount(orderedSegments) + 1;
+
+  // add loot between entity and particles
+  const lootSegments: Segment[] = [];
+  if (hasLoot) {
+    for (const itemId of entity[INVENTORY]!.items) {
+      const item = ecs.getEntityByIdAndComponents(itemId, [SPRITE, ITEM]);
+
+      // skip if item has just been collected
+      if (!item) continue;
+
+      lootSegments.push({
+        id: itemId,
+        sprite: item[SPRITE],
+        facing: item[ORIENTABLE]?.facing,
+        amount: item[ITEM].amount,
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: isOpaque ? oreHeight : lootHeight,
+        layerProps: {
+          isTransparent,
+          opacity: spring.dotsOpacity,
+          receiveShadow: shadows && !isOpaque && inRadius && !inside,
+          colorFactor: outside ? shadowFactor : undefined,
+        },
+      });
+    }
+  }
+  const lootLayers = orderedLayers + getLayerCount(lootSegments) + 1;
+
+  // particles are rendered in their own stack
+  const particleSegments: Segment[] = getParticles(ecs, entity).map(
+    (particle, index) => ({
+      id: ecs.getEntityId(particle) || index,
+      sprite: particle[SPRITE],
+      facing: particle[ORIENTABLE]?.facing,
+      offsetX: particle[PARTICLE].offsetX,
+      offsetY: particle[PARTICLE].offsetY,
+      offsetZ: particle[PARTICLE].offsetZ,
+      amount: particle[PARTICLE].amount,
+      layerProps: {
+        isTransparent: false,
+        animatedOrigin: particle[PARTICLE].animatedOrigin,
+        receiveShadow: false,
+        duration: particle[PARTICLE].duration,
+        particle,
+      },
+    })
+  );
+
+  const visibleLoot = lootSegments[0];
+  const dotsSegment =
+    entity[BREWABLE] && visibleLoot
+      ? {
+          ...visibleLoot,
+          amount: lootSegments.length,
+        }
+      : visibleLoot;
+
+  return (
+    <Container
+      position={[x * dimensions.aspectRatio, -y, 0]}
+      {...(Container === Animated
+        ? { entity }
+        : { matrixAutoUpdate: false, onUpdate: updateLocalMatrix })}
+    >
+      {occluder}
+      {orderedSegments.length > 0 && (
+        <Stack segments={orderedSegments} layerCount={0} />
+      )}
+      {lootSegments.length > 0 && (
+        <Stack segments={lootSegments} layerCount={orderedLayers} />
+      )}
+      {particleSegments.length > 0 && (
+        <Stack segments={particleSegments} layerCount={lootLayers} />
+      )}
+
+      {shadows && isBright && (
+        <CoveredLight brightness={entity[LIGHT]!.brightness} />
+      )}
+
+      {!!entity[SWIMMABLE] && !isFlying && (
+        <Swimming
+          entity={entity}
+          active={isSwimming}
+          isVisible={!isTransparent}
+        />
+      )}
+
+      {hasStats && (
+        <Bar world={ecs} counter="hp" entity={entity} isVisible={isVisible} />
+      )}
+
+      {dotsSegment && (
+        <Dots segment={dotsSegment} entity={entity} isVisible={isVisible} />
+      )}
+
+      {isFog &&
+        !isLiquid &&
+        !(isInside && !isFloat && inRadius) &&
+        !((isOpaque || isFloat) && inRadius) &&
+        !(isTransparent || (hasLoot && !isDotsTransparent)) && <FogOfWar />}
+    </Container>
+  );
+}
+
+const MemoizedEntity = React.memo(
+  Entity,
+  (prevProps, nextProps) =>
+    prevProps.generation === nextProps.generation &&
+    prevProps.inRadius === nextProps.inRadius &&
+    prevProps.inside === nextProps.inside &&
+    prevProps.castShadow === nextProps.castShadow &&
+    prevProps.outside === nextProps.outside
+);
+
+export default MemoizedEntity;

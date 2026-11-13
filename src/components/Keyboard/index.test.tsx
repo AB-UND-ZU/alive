@@ -1,7 +1,7 @@
 /* eslint-disable testing-library/no-node-access, testing-library/no-container -- keys are drawn as glyph spans over one touch area */
 import { fireEvent, render } from "@testing-library/react";
-import { WorldProvider } from "../../bindings/hooks";
-import { createWorldContext } from "../../testing/render";
+import { WorldProvider } from "../../renderers/interface/hooks";
+import { createWorldContext } from "../../renderers/three-js/testing";
 import Keyboard, {
   getIndexFromKey,
   getKeyFromIndex,

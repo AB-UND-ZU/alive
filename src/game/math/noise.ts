@@ -1,7 +1,7 @@
 import { createNoise4D, NoiseFunction4D } from "simplex-noise";
 import { getOverlappingCell, matrixFactory } from "./matrix";
 import { sum } from "./std";
-import { aspectRatio } from "../../components/Dimensions/sizing";
+import { aspectRatio } from "../../renderers/interface/dimensions";
 
 export const whiteNoiseMatrix = (
   width: number,

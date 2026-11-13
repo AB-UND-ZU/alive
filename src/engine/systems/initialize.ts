@@ -2,7 +2,7 @@ import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { LEVEL } from "../components/level";
 import { VIEWABLE } from "../components/viewable";
-import { getActiveViewable } from "../../bindings/hooks";
+import { getActiveViewable } from "../../renderers/interface/hooks";
 import { createCell } from "../../bindings/creation";
 import { add, directedDistance, normalize } from "../../game/math/std";
 import { registerEntity } from "./map";

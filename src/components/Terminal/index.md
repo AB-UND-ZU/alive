@@ -1,7 +1,5 @@
 # Terminal
 
-Mounts the Three.js canvas and the rows that frame it. The canvas contains `InstanceRoot`, `ShadowCache`, ambient light, `Camera` and `Systems`.
+Frames the selected browser renderer with the same DOM controls and pause overlay. Three.js is the default; `?renderer=html` uses the HTML renderer. Both consume the renderer interface and the current world.
 
-Children appear above the canvas, before the pause overlay. Feature previews use that slot for their aligned character-cell frame. Local `stats` and `controls` flags enable profiling panels and orbit controls during renderer development; both are off by default.
-
-The optional `shadows` prop defaults to normal gameplay lighting. Wiki Light previews can disable shadow reception and circular light covers while retaining native fog of war.
+Children appear above the scene, before the pause overlay. Feature previews use that slot for their character-cell frame. `shadows={false}` disables Three.js lighting and shadows while retaining engine fog of war.

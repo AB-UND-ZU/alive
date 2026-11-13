@@ -20,7 +20,7 @@ import { Entity, TypedEntity } from "./entities";
 import { LEVEL, LevelName } from "./components/level";
 import { resumeLiquidEffects } from "./systems/water";
 import { getHasteInterval } from "./systems/movement";
-import { initialDimensions } from "../components/Dimensions/sizing";
+import { initialDimensions } from "../renderers/interface/dimensions";
 import { ECS_DEBUG, setIdentifier } from "./utils";
 
 // performance fork with the same API as the "ecs" package, see vendor/ecs.js

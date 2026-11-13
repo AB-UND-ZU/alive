@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useHero, useWorld } from "../../bindings/hooks";
+import { useHero, useWorld } from "../../renderers/interface/hooks";
 import {
   none,
   pauseInvert,

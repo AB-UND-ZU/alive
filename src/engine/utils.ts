@@ -9,7 +9,7 @@ import { Sprite } from "./components/sprite";
 import { POI } from "./components/poi";
 import { Position } from "./components/position";
 
-export const TEST_MODE = window.location.search.substring(1) === "test";
+export const TEST_MODE = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("test");
 
 export const ECS_DEBUG = false;
 

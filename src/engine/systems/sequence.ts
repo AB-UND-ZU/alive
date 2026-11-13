@@ -12,7 +12,7 @@ import { Entity } from "ecs";
 import { disposeFrame, disposeParticles, disposeSequence } from "./map";
 import { entities } from "..";
 import { PARTICLE } from "../components/particle";
-import { lootHeight } from "../../components/Entity/utils";
+import { lootHeight } from "../../renderers/interface/segments";
 import { SPRITE } from "../components/sprite";
 import { shotHit } from "../../game/assets/sprites";
 import { SHOOTABLE } from "../components/shootable";

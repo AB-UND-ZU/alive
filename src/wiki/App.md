@@ -14,6 +14,9 @@ Routes follow `game-design/<group>/<page>.html` and `development/<group>/<source
 Automatic prose links omit the current page and repeat a destination only once in each section. Explicit indexes and source references retain their precise anchor. Development inline code resolves exact local/imported symbols and full source paths; ordinary prose keeps its original words.
 
 The navigation uses dialog arrow, track and handle sprites over a native scroll area. Hover moves the pointer to another row while keeping the active row's solid background. Scrolling remains native.
+Entity mentions keep their sprite/name destination even for repeated or same-page references. Gameplay tables also resolve entity names from the native reference index; source prose keeps its code-only linking policy.
+
+Simple linked entity labels and authored links use the same native decoration data as automatic mentions. Links that already contain a sprite keep their authored composition. Keyboard instructions use short key-first paragraphs so native key cells do not split prose into flex rows.
 <!-- source-types -->
 
 ## Navigate
@@ -21,7 +24,3 @@ The navigation uses dialog arrow, track and handle sprites over a native scroll 
 ```ts src/wiki/App.tsx
 type Navigate = (route: string) => void;
 ```
-
-Entity mentions keep their sprite/name destination even for repeated or same-page references. Gameplay tables also resolve entity names from the native reference index; source prose keeps its code-only linking policy.
-
-Simple linked entity labels and authored links use the same native decoration data as automatic mentions. Links that already contain a sprite keep their authored composition. Keyboard instructions use short key-first paragraphs so native key cells do not split prose into flex rows.

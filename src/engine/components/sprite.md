@@ -2,7 +2,7 @@
 
 Stores ordered colored character layers and directional or quantity variants.
 
-[World rendering](../../components/Systems/index.md) and the [HTML compositor](../../components/Row/index.md) draw the same ordered layers.
+[World rendering](../../renderers/three-js/Systems/index.md) and the [HTML compositor](../../components/Row/index.md) draw the same ordered layers.
 
 | Field     | Meaning                                                                    |
 | --------- | -------------------------------------------------------------------------- |

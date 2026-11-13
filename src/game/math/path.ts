@@ -8,7 +8,7 @@ import { Matrix, matrixFactory } from "./matrix";
 import { isWalkable } from "../../engine/systems/movement";
 import { add, getDistance, normalize, signedDistance } from "./std";
 import { degreesToOrientations, pointToDegree } from "./tracing";
-import { aspectRatio } from "../../components/Dimensions/sizing";
+import { aspectRatio } from "../../renderers/interface/dimensions";
 import { Orientation, orientations } from "../../engine/components/orientable";
 
 export const getWalkableMatrix = (world: World) => {

@@ -131,7 +131,7 @@ import {
 } from "../../../engine/components/castable";
 import { MOVABLE } from "../../../engine/components/movable";
 import { pixelCircle } from "../../math/tracing";
-import { aspectRatio } from "../../../components/Dimensions/sizing";
+import { aspectRatio } from "../../../renderers/interface/dimensions";
 import generateHaven from "../../../engine/wfc/haven";
 import { disposeEntity } from "../../../engine/systems/map";
 import { centerLayer } from "../../assets/pixels";

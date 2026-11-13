@@ -1,5 +1,5 @@
 import { Entity } from "ecs";
-import { aspectRatio } from "../../components/Dimensions/sizing";
+import { aspectRatio } from "../../renderers/interface/dimensions";
 import { World } from "../../engine";
 import { ENTERABLE } from "../../engine/components/enterable";
 import { Level, LEVEL } from "../../engine/components/level";

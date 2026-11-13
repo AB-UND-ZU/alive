@@ -1,6 +1,6 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
-import { SpringConfig } from "@react-spring/three";
+import type { SpringConfig } from "@react-spring/three";
 import { Position } from "./position";
 
 export type Viewable = {

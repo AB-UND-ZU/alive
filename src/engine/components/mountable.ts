@@ -1,6 +1,6 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
-import { SpringConfig } from "@react-spring/three";
+import type { SpringConfig } from "@react-spring/three";
 
 export type Mountable = {
   passenger?: number;

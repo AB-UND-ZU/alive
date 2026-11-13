@@ -3,7 +3,7 @@
  *
  * Boots a level exactly like `components/World` does, but synchronously and
  * without React, and advances the ECS in the same fixed steps as
- * `components/Systems`. Combined with the seeded `Math.random` from
+ * `renderers/interface/clock`. Combined with the seeded `Math.random` from
  * `setupTests.ts`, every run of a test produces the identical world.
  */
 import { createWorld, World } from "../engine";
@@ -32,9 +32,10 @@ import { ORIENTABLE } from "../engine/components/orientable";
 import { slots } from "../engine/components/equippable";
 import { getSequence } from "../engine/systems/sequence";
 import { Position } from "../engine/components/position";
+import { systemsFrame } from "../renderers/interface/clock";
+import { createTestingRenderer } from "../renderers/testing";
 
-/** Fixed systems step, must match `systemsFrame` in components/Systems. */
-export const FRAME = 1000 / 30;
+export const FRAME = systemsFrame;
 
 export type TestWorldOptions = {
   level?: LevelName;
@@ -151,9 +152,7 @@ export const createAreaWorld = (
 
 /** Run `frames` fixed system updates. */
 export const step = (world: World, frames = 1) => {
-  for (let frame = 0; frame < frames; frame += 1) {
-    world.update(FRAME);
-  }
+  createTestingRenderer(world).step(frames);
 };
 
 /** Advance game time by `ms`, rounded up to whole frames. */
@@ -170,9 +169,10 @@ export const advanceUntil = (
   timeout = 10000
 ) => {
   const maxFrames = Math.ceil(timeout / FRAME);
+  const renderer = createTestingRenderer(world);
   for (let frame = 0; frame <= maxFrames; frame += 1) {
     if (predicate()) return frame;
-    world.update(FRAME);
+    renderer.step();
   }
   throw new Error(`Condition not met within ${timeout}ms of game time`);
 };
