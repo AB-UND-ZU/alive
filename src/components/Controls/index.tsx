@@ -277,11 +277,8 @@ export default function Controls({
     ecs && popup ? getSequence(ecs, popup, "popup") : undefined;
   const popupTab = ecs && popup && getTab(ecs, popup);
   const pressedOrientations = useRef<Orientation[]>([]);
-  const touchGesture = useRef<{
-    identifier: number;
-    origin?: [number, number];
-    consumed: boolean;
-  }>();
+  const pointer = useRef<{ id: number; consumed: boolean }>();
+  const touchOrigin = useRef<[number, number]>();
   const [joystickOrientations, setJoystickOrientations] = useState<
     Orientation[]
   >([]);
@@ -917,6 +914,8 @@ export default function Controls({
 
   const handleScroll = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
+      if (event.pointerType === "touch") return;
+      if (pointer.current) pointer.current.consumed = true;
       event.preventDefault();
       event.currentTarget.setPointerCapture?.(event.pointerId);
       handleMove([event.currentTarget.id === "up" ? "up" : "down"]);
@@ -931,6 +930,7 @@ export default function Controls({
         | TouchEvent
         | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) => {
+      if ("pointerType" in event && event.pointerType === "touch") return;
       event.preventDefault();
 
       handleMove([]);
@@ -1114,7 +1114,7 @@ export default function Controls({
   }, []);
 
   const releaseTouch = useCallback(() => {
-    if (touchGesture.current) touchGesture.current.origin = undefined;
+    touchOrigin.current = undefined;
     pressedOrientations.current = [];
     setJoystickOrientations([]);
     handleMove([]);
@@ -1134,15 +1134,6 @@ export default function Controls({
       const popup = ecs && hero && getActivePopup(ecs, hero);
       const popupTab = ecs && popup && getTab(ecs, popup);
       if (event.type === "touchend" || event.type === "touchcancel") {
-        if (
-          [...event.changedTouches].some(
-            (touch) => touch.identifier === touchGesture.current?.identifier
-          )
-        ) {
-          if (event.type === "touchend" && touchGesture.current?.consumed)
-            event.preventDefault();
-          touchGesture.current = undefined;
-        }
         releaseTouch();
         return;
       }
@@ -1153,28 +1144,15 @@ export default function Controls({
       }
 
       const touch = event.touches[0];
-      let gesture = touchGesture.current;
-      if (
-        !gesture ||
-        event.type === "touchstart" ||
-        gesture.identifier !== touch.identifier
-      ) {
-        releaseTouch();
-        gesture = {
-          identifier: touch.identifier,
-          origin: [touch.clientX, touch.clientY],
-          consumed: false,
-        };
-        touchGesture.current = gesture;
-      }
+      if (event.type === "touchstart") releaseTouch();
       const scrollControl = (touch.target as HTMLElement).closest(
         ".PopupUp,.PopupDown"
       );
       if (scrollControl) {
-        gesture.consumed = true;
-        event.preventDefault();
-        if (event.type === "touchstart" && popup)
+        if (event.type === "touchstart" && popup) {
+          if (pointer.current) pointer.current.consumed = true;
           handleMove([scrollControl.id === "up" ? "up" : "down"]);
+        }
         return;
       }
 
@@ -1183,50 +1161,19 @@ export default function Controls({
       );
       if (onKeyboard && !(TEST_MODE && popupTab === "chat")) return;
 
-      // prevent touches over action bar
-      if (
-        !onKeyboard &&
-        ![...event.changedTouches].some((touch) =>
-          [
-            "spell",
-            "skill",
-            "menu",
-            "resume",
-            "pause-resume",
-            "pause-menu",
-            "pause-save",
-            "interact",
-            "inspect",
-            "quick",
-            "close",
-            "tab-0",
-            "tab-1",
-            "tab-2",
-            "left",
-            "right",
-            "up",
-            "down",
-            "content",
-            "stats",
-          ].some((target) =>
-            (touch.target as HTMLElement).closest(`#${target}`)
-          )
-        )
-      ) {
-        event.preventDefault();
-      }
-
       const [x, y] = [touch.clientX, touch.clientY];
-      if (!gesture.origin) gesture.origin = [x, y];
-      const [deltaX, deltaY] = [x - gesture.origin[0], y - gesture.origin[1]];
+      if (!touchOrigin.current) touchOrigin.current = [x, y];
+      const [deltaX, deltaY] = [
+        x - touchOrigin.current[0],
+        y - touchOrigin.current[1],
+      ];
 
       if (Math.sqrt(deltaX ** 2 + deltaY ** 2) <= swipeThreshold) {
         // handle button taps
         return false;
       }
 
-      gesture.consumed = true;
-      event.preventDefault();
+      if (pointer.current) pointer.current.consumed = true;
       const degrees = pointToDegree({ x: deltaX, y: deltaY });
       const nextOrientations = degreesToOrientations(degrees);
 
@@ -1268,7 +1215,7 @@ export default function Controls({
 
   const handleDeactivate = useCallback(() => {
     releaseTouch();
-    touchGesture.current = undefined;
+    pointer.current = undefined;
     setPaused(true);
   }, [releaseTouch, setPaused]);
 
@@ -1289,25 +1236,63 @@ export default function Controls({
   }, [handleDeactivate, handleVisibility]);
 
   useEffect(() => {
-    // A touch target can disappear before its touchend reaches the window.
-    const releasePointer = (event: PointerEvent) => {
+    const handlePointer = (event: PointerEvent) => {
+      if (event.type === "pointerdown") {
+        if (event.isPrimary)
+          pointer.current = { id: event.pointerId, consumed: false };
+        return;
+      }
+      // Keep the pointer until its click; pointerup arrives first.
+      if (
+        event.type === "pointercancel" &&
+        pointer.current?.id === event.pointerId
+      )
+        pointer.current = undefined;
+      // A touch target can disappear before its touchend reaches the window.
       if (event.pointerType === "touch") releaseTouch();
     };
-    window.addEventListener("pointerup", releasePointer, true);
-    window.addEventListener("pointercancel", releasePointer, true);
+    const handleClick = (event: MouseEvent) => {
+      const activePointer = pointer.current;
+      if (
+        !activePointer ||
+        !("pointerId" in event) ||
+        event.pointerId !== activePointer.id
+      )
+        return;
+      pointer.current = undefined;
+      if (activePointer.consumed) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+    window.addEventListener("click", handleClick, true);
+    window.addEventListener("pointerdown", handlePointer, {
+      capture: true,
+      passive: true,
+    });
+    window.addEventListener("pointerup", handlePointer, {
+      capture: true,
+      passive: true,
+    });
+    window.addEventListener("pointercancel", handlePointer, {
+      capture: true,
+      passive: true,
+    });
     window.addEventListener("keydown", handleKey);
     window.addEventListener("keyup", handleKey);
 
-    window.addEventListener("touchstart", handleTouchMove, { passive: false });
-    window.addEventListener("touchmove", handleTouchMove, { passive: false });
-    window.addEventListener("touchend", handleTouchMove, { passive: false });
-    window.addEventListener("touchcancel", handleTouchMove);
+    window.addEventListener("touchstart", handleTouchMove, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    window.addEventListener("touchend", handleTouchMove, { passive: true });
+    window.addEventListener("touchcancel", handleTouchMove, { passive: true });
 
     window.addEventListener("mousemove", handleMouseMove);
 
     return () => {
-      window.removeEventListener("pointerup", releasePointer, true);
-      window.removeEventListener("pointercancel", releasePointer, true);
+      window.removeEventListener("click", handleClick, true);
+      window.removeEventListener("pointerdown", handlePointer, true);
+      window.removeEventListener("pointerup", handlePointer, true);
+      window.removeEventListener("pointercancel", handlePointer, true);
       window.removeEventListener("keydown", handleKey);
       window.removeEventListener("keyup", handleKey);
 
@@ -1421,7 +1406,7 @@ export default function Controls({
     >
       <Joystick
         orientations={joystickOrientations}
-        origin={touchGesture.current?.origin}
+        origin={touchOrigin.current}
       />
       <Cursor />
       <Row

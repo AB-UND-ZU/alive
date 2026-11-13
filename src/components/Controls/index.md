@@ -9,11 +9,13 @@ World-aligned hit areas use `--controls-center-y`, with the normal window midpoi
 | `compact` | Show the smaller action row used by feature previews |
 | `children` | Add content beside the action controls |
 
-Each touch has an identifier, a drag origin and a consumed flag. Steering or pressing a scrollbar consumes that touch. Its `touchend` is canceled with `preventDefault()` so the browser does not turn it into a click; ordinary taps keep their native clicks. There is no global click suppression or state carried forward to filter future clicks. Returning to the drag origin does not undo consumption. If a touchstart is missing, the first move establishes a new origin.
+The game document and its `.App` play surface disable native panning and zooming with `touch-action: none`, including the top HUD and the canvas. All touch listeners are passive, so steering does not ask the browser to defer native gestures while JavaScript decides whether to cancel them.
 
-Scrollbar touches use their original touch target, so finger drift cannot become steering. Pointer capture keeps mouse scrollbar releases on the scrollbar even outside its bounds. Release/cancel stops held movement, and closing or replacing a popup also stops its held input. The touch's consumed flag remains until its matching end/cancel, even if pointerup arrives first. A fresh dialog direction press wakes one immediate step; holding it then uses the normal dialog repeat interval. The interaction hit area stays mounted while hidden so moving away from its prompt does not detach the touch target.
+Steering remembers the touch origin and the current native pointer ID. Steering or holding a scrollbar consumes that pointer. Its matching native click is prevented once and the pointer record is cleared; a new primary pointerdown also replaces the record. Other pointer IDs and keyboard clicks pass through, including when their start events are missing. Click correlation uses pointer-backed click events, supported by Safari 18.2 and later (https://webkit.org/blog/16301/webkit-features-in-safari-18-2/). Returning to the drag origin does not undo consumption. If a touchstart is missing, the first move establishes a new origin.
 
-Window blur, pagehide and a hidden document pause the game and clear held movement, the joystick and the current touch. Returning to the page leaves it paused until the player resumes.
+Scrollbar touches use their original touch target, so finger drift cannot become steering. Pointer capture keeps mouse scrollbar releases on the scrollbar even outside its bounds. Release/cancel stops held movement, and closing or replacing a popup also stops its held input. A fresh dialog direction press wakes one immediate step; holding it then uses the normal dialog repeat interval. The interaction hit area stays mounted while hidden so moving away from its prompt does not detach the touch target.
+
+Window blur, pagehide and a hidden document pause the game and clear held movement, the joystick and the touch origin. Returning to the page leaves it paused until the player resumes.
 
 Backspace activates the left dialog action. Escape follows a rendered ←BACK button, or PLACE while positioning a sprite layer; otherwise it closes the popup. The popup sequence records whether that arrow is present, so all dialogs use their displayed action.
 

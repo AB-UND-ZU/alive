@@ -25,6 +25,11 @@
   --white: #ffffff;
 }
 
+body:not(.Wiki),
+.App:not(.Wiki) {
+  touch-action: none;
+}
+
 .App {
   height: var(--100vh);
   display: flex;

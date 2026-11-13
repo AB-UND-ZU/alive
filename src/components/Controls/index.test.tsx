@@ -947,6 +947,48 @@ describe("touch controls", () => {
     }
   );
 
+  const pointerEvent = (type: "pointerdown" | "click", target: Element, id: number) => {
+    const event = new MouseEvent(type, { bubbles: true, cancelable: true, detail: 1 });
+    Object.defineProperties(event, {
+      pointerId: { value: id },
+      pointerType: { value: "touch" },
+      isPrimary: { value: true },
+    });
+    fireEvent(target, event);
+  };
+
+  it("a handled drag consumes only one click from its native pointer", () => {
+    const { hero, container } = setup([
+      { spell: "wave", material: "wood", amount: 1 },
+    ]);
+    const spell = getTouchArea(container, "spell");
+    pointerEvent("pointerdown", spell, 11);
+    touch("touchStart", [[100, 100]], spell);
+    touch("touchMove", [[160, 100]], spell);
+    touch("touchEnd", [], spell);
+    pointerEvent("click", spell, 11);
+    expect(hero[ACTIONABLE].spellTriggered).toBe(false);
+    pointerEvent("click", spell, 11);
+    expect(hero[ACTIONABLE].spellTriggered).toBe(true);
+  });
+
+  it.each(["another pointer", "keyboard"])(
+    "a handled drag cannot block a click from %s without new start events",
+    (source) => {
+      const { hero, container } = setup([
+        { spell: "wave", material: "wood", amount: 1 },
+      ]);
+      const spell = getTouchArea(container, "spell");
+      pointerEvent("pointerdown", spell, 11);
+      touch("touchStart", [[100, 100]], spell);
+      touch("touchMove", [[160, 100]], spell);
+      touch("touchEnd", [], spell);
+      if (source === "another pointer") pointerEvent("click", spell, 12);
+      else fireEvent.click(spell, { detail: 0 });
+      expect(hero[ACTIONABLE].spellTriggered).toBe(true);
+    }
+  );
+
   it("a drag establishes a new origin when touchstart is absent", () => {
     const { world, hero } = setup();
     const x = hero[POSITION].x;
@@ -956,7 +998,7 @@ describe("touch controls", () => {
     runUntil(world, () => hero[POSITION].x === x + 1);
     releasePointer(document.body, 160, 100);
     expect(hero[MOVABLE].orientations).toEqual([]);
-    expect(touch("touchEnd", [])).toBe(false);
+    expect(touch("touchEnd", [])).toBe(true);
   });
 
   it("a completed swipe cannot leave future pause taps globally blocked", () => {
@@ -973,7 +1015,7 @@ describe("touch controls", () => {
     tick(5);
     touch("touchStart", [[100, 100]]);
     touch("touchMove", [[160, 100]]);
-    expect(touch("touchEnd", [])).toBe(false);
+    expect(touch("touchEnd", [])).toBe(true);
     // A click can arrive without another touchstart or pointerdown.
     fireEvent.click(getTouchArea(container, "menu"), {
       detail: 1,
@@ -983,14 +1025,18 @@ describe("touch controls", () => {
     expect(setPaused).toHaveBeenCalledTimes(1);
   });
 
-  it("consuming one touch cannot cancel another touch's release", () => {
-    const { container } = setup();
-    const menu = getTouchArea(container, "spell");
+  it("releasing another touch cannot block the next action tap", () => {
+    const { hero, container } = setup([
+      { spell: "wave", material: "wood", amount: 1 },
+    ]);
+    const spell = getTouchArea(container, "spell");
     touch("touchStart", [[100, 100]]);
     touch("touchMove", [[160, 100]]);
-    expect(touch("touchEnd", [], menu, 2)).toBe(true);
-    expect(touch("touchEnd", [], document.body, 1)).toBe(false);
-    expect(touch("touchEnd", [], menu, 1)).toBe(true);
+    touch("touchEnd", [], spell, 2);
+    expect(hero[MOVABLE].orientations).toEqual([]);
+    touch("touchEnd", [], document.body, 1);
+    fireEvent.click(spell);
+    expect(hero[ACTIONABLE].spellTriggered).toBe(true);
   });
 
   it("normal taps and small finger drift retain native clicks", () => {
@@ -1245,7 +1291,7 @@ describe("touch controls", () => {
       tick(world, 15);
       touch("touchMove", [[168, 45]], bar);
       releasePointer(bar, 168, 45);
-      expect(touch("touchEnd", [], bar)).toBe(false);
+      expect(touch("touchEnd", [], bar)).toBe(true);
       tick(world, 5);
       const selected = getVerticalIndex(world, trader);
       expect(selected).not.toBe(direction === "up" ? 8 : 0);
@@ -1306,7 +1352,7 @@ describe("touch controls", () => {
     touch("touchStart", [[175, 45]], down);
     tick(world, 10);
     releasePointer(down, 168, 45);
-    expect(touch("touchEnd", [], down)).toBe(false);
+    expect(touch("touchEnd", [], down)).toBe(true);
     tick(world, 5);
     const row = getVerticalIndex(world, popup);
     expect(row).toBeGreaterThan(0);
@@ -1364,7 +1410,7 @@ describe("touch controls", () => {
       if (pointerRelease) {
         releasePointer(content, 50, 20);
       }
-      expect(touch("touchEnd", [], content)).toBe(false);
+      expect(touch("touchEnd", [], content)).toBe(true);
       tick(world, 5);
       expect(getVerticalIndex(world, trader)).toBe(selected);
       expect(getTabSelections(world, trader)).toEqual([]);
@@ -1444,14 +1490,15 @@ describe("touch controls", () => {
     expect(hero[POSITION].x).toBe(x);
   });
 
-  it("steering against a wall still consumes the touch", () => {
+  it("steering against a wall still releases held movement", () => {
     const { hero, tick } = setup([], {}, "|  ♀D  |", { D: "wood_door" });
     const position = { ...hero[POSITION] };
     touch("touchStart", [[100, 100]]);
     touch("touchMove", [[160, 100]]);
     tick(20);
     expect(hero[POSITION]).toEqual(position);
-    expect(touch("touchEnd", [])).toBe(false);
+    touch("touchEnd", []);
+    expect(hero[MOVABLE].orientations).toEqual([]);
   });
 
   it("short taps don't walk", () => {

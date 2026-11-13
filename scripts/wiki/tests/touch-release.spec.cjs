@@ -168,6 +168,100 @@ test("swiping a dialog cancels its click even after returning to the starting po
   });
   await page.waitForTimeout(250);
   expect(await page.evaluate(() => window.contentClicks)).toBe(0);
+  await page.evaluate(() => { window.dropGestureStarts = true; });
   await page.touchscreen.tap(point.x, point.y);
   expect(await page.evaluate(() => window.contentClicks)).toBe(1);
+});
+
+test("native steering stays passive and leaves pause usable", async ({
+  page,
+  browserName,
+}) => {
+  test.skip(browserName !== "chromium", "Native drag uses the Chrome touch protocol");
+  await openGame(page, "game/ilex");
+  await expect(page.locator(".ActionButtons")).toBeVisible();
+  await page.evaluate(() => {
+    const terminal = document.querySelector(".Terminal");
+    let fiber = terminal[
+      Object.keys(terminal).find((key) => key.startsWith("__reactFiber"))
+    ];
+    while (fiber && !fiber.memoizedProps?.value?.ecs) fiber = fiber.return;
+    window.steeringWorld = fiber.memoizedProps.value.ecs;
+    window.steeringX = window.steeringWorld.getEntities(["PLAYER"])[0].POSITION.x;
+    window.steeringEvents = [];
+    for (const type of ["touchstart", "touchmove", "touchend"])
+      window.addEventListener(type, (event) => {
+        window.steeringEvents.push(event);
+      });
+  });
+  const client = await page.context().newCDPSession(page);
+  await client.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ id: 1, x: 160, y: 430 }],
+  });
+  await client.send("Input.dispatchTouchEvent", {
+    type: "touchMove",
+    touchPoints: [{ id: 1, x: 220, y: 430 }],
+  });
+  await expect(page.locator(".Joystick")).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() =>
+      window.steeringWorld.getEntities(["PLAYER"])[0].POSITION.x !== window.steeringX
+    ))
+    .toBe(true);
+  await client.send("Input.dispatchTouchEvent", {
+    type: "touchEnd",
+    touchPoints: [],
+  });
+  await expect(page.locator(".Joystick")).toHaveCount(0);
+  const events = await page.evaluate(() =>
+    window.steeringEvents.map((event) => [event.type, event.defaultPrevented])
+  );
+  expect(events.filter(([type]) => type !== "touchend")).toEqual([
+    ["touchstart", false],
+    ["touchmove", false],
+  ]);
+  expect(events.at(-1)).toEqual(["touchend", false]);
+  const menu = await page.locator("#menu").boundingBox();
+  await page.touchscreen.tap(menu.x + menu.width / 2, menu.y + menu.height / 2);
+  await expect(page.locator(".Paused")).toBeVisible();
+});
+
+test("a single-finger HUD drag cannot become native panning before steering starts", async ({
+  page,
+  browserName,
+}) => {
+  test.skip(
+    browserName !== "chromium",
+    "Native page scale uses the Chrome protocol"
+  );
+  await openGame(page, "game/ilex");
+  await page.evaluate(() => {
+    window.canceledPointers = 0;
+    window.addEventListener("pointercancel", () => window.canceledPointers++);
+  });
+  const client = await page.context().newCDPSession(page);
+  await client.send("Emulation.setPageScaleFactor", { pageScaleFactor: 2 });
+  const menu = await page.locator("#menu").boundingBox();
+  const x = menu.x + menu.width / 2;
+  const y = menu.y + menu.height / 2;
+  await client.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ id: 1, x, y }],
+  });
+  for (let step = 1; step <= 30; step++) {
+    await client.send("Input.dispatchTouchEvent", {
+      type: "touchMove",
+      touchPoints: [{ id: 1, x, y: y + step }],
+    });
+    await page.waitForTimeout(16);
+  }
+  await client.send("Input.dispatchTouchEvent", {
+    type: "touchEnd",
+    touchPoints: [],
+  });
+  expect(await page.evaluate(() => window.canceledPointers)).toBe(0);
+  await client.send("Emulation.setPageScaleFactor", { pageScaleFactor: 1 });
+  await page.touchscreen.tap(x, y);
+  await expect(page.locator(".Paused")).toBeVisible();
 });
