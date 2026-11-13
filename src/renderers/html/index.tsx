@@ -1,7 +1,7 @@
 import { CSSProperties, useEffect, useReducer, useMemo, useRef } from "react";
 import { RendererCapabilities, RendererProps } from "../interface/types";
 import { characterMarkup } from "../../components/Row/characters";
-import { getSceneFrame } from "../interface/frame";
+import { getSceneFrame, SceneSprite } from "../interface/frame";
 import "./style.css";
 import { createFrameClock } from "../interface/clock";
 import {
@@ -60,6 +60,13 @@ export default function HtmlRenderer({
     };
   }, [world, clock]);
   const sceneState = useMemo(() => ({ world, stickyCastables: {} }), [world]);
+  const loot = useMemo(
+    () => ({
+      world,
+      sprites: new Map<string, { entry: SceneSprite; removedAt?: number }>(),
+    }),
+    [world]
+  );
   const shake = useMemo(
     () => ({
       world,
@@ -99,6 +106,34 @@ export default function HtmlRenderer({
   const scene = getSceneFrame(world, columns, rows, sceneState, {
     includeHidden: true,
   });
+  const now = performance.now();
+  const present = new Set<string>();
+  const appearing = new Set<string>();
+  for (const entry of scene) {
+    if (!entry.loot) continue;
+    present.add(entry.key);
+    if (!loot.sprites.has(entry.key)) appearing.add(entry.key);
+    loot.sprites.set(entry.key, {
+      entry: { ...entry, x: entry.x + camera.x, y: entry.y + camera.y },
+    });
+  }
+  let retained = false;
+  for (const [key, cached] of loot.sprites) {
+    if (present.has(key)) continue;
+    cached.removedAt ??= now;
+    if (now - cached.removedAt >= 200) {
+      loot.sprites.delete(key);
+      continue;
+    }
+    retained = true;
+    scene.push({
+      ...cached.entry,
+      x: cached.entry.x - camera.x,
+      y: cached.entry.y - camera.y,
+      hidden: true,
+    });
+  }
+  if (retained) scene.sort((left, right) => left.z - right.z);
   return (
     <div
       className="HtmlRenderer"
@@ -133,7 +168,7 @@ export default function HtmlRenderer({
               key={entry.key}
               className="HtmlRendererSprite"
               style={{
-                opacity: entry.hidden ? 0 : 1,
+                opacity: entry.hidden || appearing.has(entry.key) ? 0 : 1,
                 backgroundColor,
                 boxShadow: backgroundColor
                   ? `0 0 0 ${

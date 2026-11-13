@@ -1,6 +1,9 @@
 import React from "react";
 import { World } from "../../engine";
 import { TypedEntity } from "../../engine/entities";
+import { POPUP } from "../../engine/components/popup";
+import { getSequence } from "../../engine/systems/sequence";
+import { popupTitles } from "../../engine/systems/popup";
 import { PLAYER } from "../../engine/components/player";
 import { LEVEL } from "../../engine/components/level";
 import { INVENTORY } from "../../engine/components/inventory";
@@ -16,6 +19,7 @@ import { canCast } from "../../engine/systems/magic";
 import { isInteractable } from "../../engine/systems/freeze";
 import { canSave } from "../../game/saves";
 import {
+  createTab,
   createButton,
   createSpriteButton,
   buttonPalettes,
@@ -66,7 +70,7 @@ export type TerminalSession = {
 };
 
 export const getTerminalLayout = (columns: number, rows: number) => {
-  const width = Math.min(columns, 33);
+  const width = Math.min(columns, 65);
   const height = Math.min(26, Math.max(1, rows - 8));
   return {
     width,
@@ -94,9 +98,67 @@ export const getTerminalFrame = (
   session: TerminalSession = {}
 ) => {
   const { width, height, left, top } = getTerminalLayout(columns, rows);
-  const sprites: TerminalSprite[] = collectTerminalSprites(
-    getSceneFrame(world, width, height, state, { instant: true })
-  )
+  const hero = world.getEntities([PLAYER])[0];
+  let scene = getSceneFrame(world, width, height, state, { instant: true });
+  const popup = world.getEntityByIdAndComponents(hero?.[PLAYER].popup, [POPUP]);
+  const sequence = popup && getSequence(world, popup, "popup");
+  if (popup && sequence) {
+    const tabParticle = world.getEntityById(sequence.particles["popup-tab-1"]);
+    const anchor =
+      tabParticle && scene.find((entry) => entry.particle === tabParticle);
+    if (anchor) {
+      const tabParticles = new Set(
+        Object.entries(sequence.particles)
+          .filter(([name]) => name.startsWith("popup-tab-"))
+          .map(([, id]) => world.getEntityById(id))
+      );
+      const closeParticles = new Set(
+        Object.entries(sequence.particles)
+          .filter(([name]) => name.startsWith("popup-close-"))
+          .map(([, id]) => world.getEntityById(id))
+      );
+      const index = popup[POPUP].horizontalIndex;
+      const tabs = sequence.args.instant
+        ? [popup[POPUP].tabs[index]]
+        : popup[POPUP].tabs;
+      const cells = tabs.flatMap((tab, tabIndex) => {
+        const title = `[${popupTitles[tab]}]`;
+        return [
+          ...(tabIndex ? createText(" ", colors.white, colors.black) : []),
+          ...createTab(
+            title,
+            title.length,
+            sequence.args.instant || tabIndex === index,
+            sequence.args.instant
+          ),
+        ];
+      });
+      const start = Math.max(
+        1,
+        Math.min(anchor.x - 1, width - cells.length - closeParticles.size - 1)
+      );
+      const close = scene.filter(
+        (entry) => entry.particle && closeParticles.has(entry.particle)
+      );
+      const closeLeft = Math.min(...close.map((entry) => entry.x));
+      const shift = Math.max(0, start + cells.length - closeLeft);
+      scene = scene.filter(
+        (entry) => !entry.particle || !tabParticles.has(entry.particle)
+      );
+      for (const entry of close) entry.x += shift;
+      scene.push(
+        ...cells.map((sprite, offset) => ({
+          ...anchor,
+          key: `${anchor.key}:tab${offset}`,
+          particle: undefined,
+          x: start + offset,
+          sprite,
+          layers: sprite.layers,
+        }))
+      );
+    }
+  }
+  const sprites: TerminalSprite[] = collectTerminalSprites(scene)
     .map((sprite) => ({
       ...sprite,
       x: Math.ceil(sprite.x),
@@ -117,7 +179,6 @@ export const getTerminalFrame = (
       sprites.push({ x: x + index, y, z, sprite, layers: sprite.layers })
     );
   };
-  const hero = world.getEntities([PLAYER])[0];
   if (hero) {
     const stats = getEntityStats(world, hero);
     line(createProgress(stats, "hp", 13, false), 0);

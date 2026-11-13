@@ -115,3 +115,40 @@ it("fills a solid block's entire cell without enlarging neighboring glyphs", () 
     backgroundColor: colors.black,
   });
 });
+
+it("fades loot in and retains collected items only until their fade completes", () => {
+  const { world, entity } = setup();
+  let time = 0;
+  jest.spyOn(performance, "now").mockImplementation(() => time);
+  const sprite = { name: "Apple", layers: [{ char: "a", color: colors.red }] };
+  const entry = {
+    key: "loot1",
+    x: 5,
+    y: 3,
+    z: 1.5,
+    sprite,
+    layers: sprite.layers,
+    entity,
+    loot: true,
+  };
+  const frame = jest.spyOn(frames, "getSceneFrame").mockReturnValue([entry]);
+  const { rerender } = render(
+    <HtmlRenderer world={world} {...dimensions} paused />
+  );
+  const text = screen.getByText("a");
+  // eslint-disable-next-line testing-library/no-node-access
+  const cell = text.parentElement!;
+  expect(cell).toHaveStyle({ opacity: "0" });
+  rerender(<HtmlRenderer world={world} {...dimensions} paused />);
+  expect(cell).toHaveStyle({ opacity: "1" });
+  frame.mockImplementation(() => []);
+  rerender(<HtmlRenderer world={world} {...dimensions} paused />);
+  expect(screen.getByText("a")).toBe(text);
+  expect(cell).toHaveStyle({ opacity: "0" });
+  time = 199;
+  rerender(<HtmlRenderer world={world} {...dimensions} paused />);
+  expect(screen.getByText("a")).toBe(text);
+  time = 200;
+  rerender(<HtmlRenderer world={world} {...dimensions} paused />);
+  expect(screen.queryByText("a")).not.toBeInTheDocument();
+});

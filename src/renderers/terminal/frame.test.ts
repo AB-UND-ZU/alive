@@ -1,3 +1,5 @@
+import { AFFECTABLE } from "../../engine/components/affectable";
+import { magicHit } from "../../game/assets/sprites";
 import {
   advance,
   assertHero,
@@ -149,9 +151,9 @@ it("inverts fog intensity, including empty terrain, without recoloring dialogs",
   expect(frame[0][0]).toMatchObject({
     char: ".",
     foreground: colors.maroon,
-    background: colors.white,
+    background: colors.grey,
   });
-  expect(frame[0][1]).toMatchObject({ char: " ", background: colors.white });
+  expect(frame[0][1]).toMatchObject({ char: " ", background: colors.grey });
   expect(frame[0][2]).toMatchObject({
     char: "C",
     foreground: colors.white,
@@ -251,4 +253,67 @@ it("keeps bracket colors when a dialog backdrop is added to a button", () => {
   expect(frameToText(frame)).toBe("[GO]");
   expect(frame[0].every((cell) => cell.background === colors.green)).toBe(true);
   expect(frame[0][0].foreground).toBe(colors.white);
+});
+
+it("keeps the hero visible under particles, marks hits red and leaves dialogs on top", () => {
+  const world = createAreaWorld("| ♀ |", { size: 32 });
+  const hero = assertHero(world);
+  const scene = getSceneFrame(world, 11, 9, undefined, {
+    instant: true,
+  }).filter((entry) => entry.entity === hero);
+  const body = scene.find((entry) => /body\d+$/.test(entry.key))!;
+  const hit = {
+    ...body,
+    key: body.key.replace(/body\d+$/, "particle999"),
+    z: 9.2,
+    sprite: magicHit,
+    layers: magicHit.layers,
+  };
+  const x = Math.ceil(body.x),
+    y = Math.ceil(body.y);
+  const statIcon = { ...hit, x: body.x + 2, z: 10.5 };
+  expect(
+    createTerminalFrame(collectTerminalSprites([...scene, statIcon]), 11, 9)[y][
+      x
+    ].foreground
+  ).not.toBe(colors.red);
+  const frame = createTerminalFrame(
+    collectTerminalSprites([...scene, hit]),
+    11,
+    9
+  );
+  expect(frame[y][x]).toMatchObject({ char: "♀", foreground: colors.red });
+  const dialog = sprite("A", body.x, body.y, 10);
+  expect(
+    createTerminalFrame(
+      [...collectTerminalSprites([...scene, hit]), dialog],
+      11,
+      9
+    )[y][x].char
+  ).toBe("A");
+});
+
+it("shows freeze and burn as hero backgrounds rather than replacing the hero", () => {
+  const world = createAreaWorld("| ♀ |", { size: 32 });
+  const hero = assertHero(world);
+  const render = () => {
+    const sprites = collectTerminalSprites(
+      getSceneFrame(world, 11, 9, undefined, { instant: true })
+    );
+    const body = sprites.find((entry) => entry.hero)!;
+    return createTerminalFrame(sprites, 11, 9)[Math.ceil(body.y)][
+      Math.ceil(body.x)
+    ];
+  };
+  hero[AFFECTABLE]!.freeze = 2;
+  expect(render()).toMatchObject({
+    char: "♀",
+    foreground: colors.black,
+    background: colors.aqua,
+  });
+  hero[AFFECTABLE]!.freeze = 0;
+  hero[AFFECTABLE]!.burn = 2;
+  expect(render()).toMatchObject({ char: "♀", background: colors.maroon });
+  hero[AFFECTABLE]!.burn = 0;
+  expect(render().background).not.toBe(colors.maroon);
 });

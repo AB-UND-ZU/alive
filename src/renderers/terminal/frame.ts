@@ -12,7 +12,8 @@ import { World } from "../../engine";
 import { PLAYER } from "../../engine/components/player";
 import { BUMPABLE } from "../../engine/components/bumpable";
 import { orientationPoints } from "../../engine/components/orientable";
-import { tooltipHeight } from "../interface/segments";
+import { popupHeight, tooltipHeight } from "../interface/segments";
+import { AFFECTABLE } from "../../engine/components/affectable";
 
 export type TerminalSprite = {
   x: number;
@@ -21,6 +22,7 @@ export type TerminalSprite = {
   layers: Layer[];
   sprite: { name: string };
   fog?: boolean;
+  hero?: { hit: boolean; background?: string };
 };
 export type TerminalFrame = TerminalCell[][];
 
@@ -33,6 +35,14 @@ export const collectTerminalSprites = (
   for (const entry of scene) {
     const titleBlock = /^block_(up|down)$/.test(entry.sprite.name);
     if (!titleBlock && !/body\d+$/.test(entry.key)) {
+      if (
+        entry.entity[PLAYER] &&
+        entry.z < popupHeight &&
+        ["Melee", "Magic", "True"].includes(entry.sprite.name)
+      ) {
+        const body = bodies.get(entry.key.replace(/particle\d+$/, "body"));
+        if (body?.hero) body.hero.hit = true;
+      }
       result.push(entry);
       continue;
     }
@@ -47,8 +57,19 @@ export const collectTerminalSprites = (
       if (entry.sprite === entry.entity[ENTERABLE]?.sprite)
         body.sprite = entry.sprite;
     } else {
-      const sprite = {
+      const effects = entry.entity[AFFECTABLE];
+      const sprite: TerminalSprite = {
         ...entry,
+        hero: entry.entity[PLAYER]
+          ? {
+              hit: false,
+              background: effects?.freeze
+                ? colors.aqua
+                : effects?.burn
+                ? colors.maroon
+                : undefined,
+            }
+          : undefined,
         layers: [...entry.layers],
         sprite:
           entry.sprite === entry.entity[ENTERABLE]?.sprite
@@ -58,6 +79,9 @@ export const collectTerminalSprites = (
       bodies.set(key, sprite);
       result.push(sprite);
     }
+  }
+  for (const sprite of result) {
+    if (sprite.hero) sprite.z = popupHeight - 0.001;
   }
   return result;
 };
@@ -95,7 +119,7 @@ export const createTerminalFrame = (
     for (const index of fogCells) {
       const cell = frame[Math.floor(index / columns)][index % columns];
       cell.foreground = fogColor(cell.foreground);
-      cell.background = fogColor(cell.background || colors.black);
+      cell.background = colors.grey;
     }
     fogApplied = true;
   };
@@ -130,6 +154,17 @@ export const createTerminalFrame = (
         char: sprite.sprite.name === "button_left" ? "[" : "]",
         foreground,
         background,
+      };
+    }
+    if (sprite.hero) {
+      projected = {
+        ...projected,
+        foreground: sprite.hero.hit
+          ? colors.red
+          : sprite.hero.background === colors.aqua
+          ? colors.black
+          : projected.foreground,
+        background: sprite.hero.background ?? projected.background,
       };
     }
     if (projected.char === " " && projected.background === undefined) continue;

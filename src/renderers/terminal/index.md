@@ -18,7 +18,7 @@ its place. Directional input releases after 100 ms without another key event.
 interactive session. It uses colors on a TTY; add `--color` for redirected
 ANSI output, or `--plain` for plain text.
 
-The game viewport is centered and capped at 33 columns by 26 rows. The normal
+The game viewport is centered and capped at 65 columns by 26 rows. The normal
 HP, MP and XP progress rows, pause button, equipped actions and compass sit
 outside it. Their labels, colors, supply and mana rows use the same sprite
 helpers as browser controls. The outer chrome spans the terminal width.
@@ -44,6 +44,7 @@ one terminal character, foreground and background color. Source text and
 box-drawing characters remain readable. Semantic sprites retain recognizable
 source glyphs and colors; terrain uses background colors. See
 [Sprite projection](./sprites.md) for the projection rules.
+Terminal popup headers use bracketed tab names with the core selected and inactive palettes. Full titles stay visible; the close button moves right when the longer header needs room.
 <!-- source-types -->
 
 ## TerminalSession

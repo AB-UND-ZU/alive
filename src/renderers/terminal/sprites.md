@@ -13,8 +13,10 @@ Results are cached by sprite name and layers.
 A few composites need a recognizable single-cell form: people use `♀`, eyes
 use `ô`, keys use `╒`, and shots keep their arrow direction. Terrain retains
 patterns from the level legends, including sand, paths and water. Building
-edges keep their original box-drawing direction and color. Dialog selections
-invert their existing character against the selection background.
+edges keep their original box-drawing direction and color. Beam endpoints retain their box-drawing shape; moving bolts use a visible dot
+in the source center color. Dash marks use `^`, `>`, `v` and `<`; dormant traps use `x`. Warning lines and the
+activated trap frame retain their directional source characters and spell colors.
+Dialog selections invert their existing character against the selection background.
 
 See [Terminal renderer](./index.md). No sprite assets or engine rules are
 changed by this projection.

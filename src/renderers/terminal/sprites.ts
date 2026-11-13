@@ -134,6 +134,37 @@ export const projectLayers = (layers: Layer[], name = ""): TerminalCell => {
       foreground: edge.color,
       background: colors.black,
     };
+  } else if (name === "edge" || name === "edge_element") {
+    const edge = layers.find(
+      (layer) => layer.color !== colors.black && "┼┴├┬┤".includes(layer.char)
+    );
+    result = { char: edge?.char || "┼", foreground: edge?.color || dominant };
+  } else if (name === "bolt" || name === "bolt_element") {
+    const center = [...layers]
+      .reverse()
+      .find((layer) => layer.color !== colors.black);
+    result = { char: "•", foreground: center?.color || dominant };
+  } else if (/^spell_trigger(?:_element)?$/.test(name)) {
+    result = { char: "x", foreground: dominant };
+  } else if (/^spell_trigger_(side|corner)$/.test(name)) {
+    const line = layers.find(
+      (layer) => layer.color !== colors.black && "|-/\\".includes(layer.char)
+    );
+    result = { char: line?.char || "|", foreground: line?.color || dominant };
+  } else if (/^spell_dash(?:_element)?$/.test(name)) {
+    const direction = layers.find(
+      (layer) => layer.color !== colors.black && "><v".includes(layer.char)
+    );
+    result = {
+      char:
+        direction?.char ||
+        (layers.some((layer) => layer.char === "▄")
+          ? "v"
+          : layers.some((layer) => layer.char === "X")
+          ? "^"
+          : "+"),
+      foreground: dominant,
+    };
   } else if (name === "Eye") {
     result = { char: "ô", foreground: dominant };
   } else if (name === "Key") {

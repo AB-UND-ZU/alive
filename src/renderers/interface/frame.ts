@@ -14,6 +14,8 @@ import { PROJECTILE } from "../../engine/components/projectile";
 import { INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
 import { Orientation, ORIENTABLE } from "../../engine/components/orientable";
+import { CASTABLE } from "../../engine/components/castable";
+import { HOMING } from "../../engine/components/homing";
 import { POPUP } from "../../engine/components/popup";
 import { PARTICLE } from "../../engine/components/particle";
 import { STICKY } from "../../engine/components/sticky";
@@ -56,8 +58,10 @@ export type SceneSprite = {
   sprite: Sprite;
   amount?: number;
   entity: Entity;
+  particle?: Entity;
   hidden?: boolean;
   fog?: boolean;
+  loot?: boolean;
   swimming?: boolean;
   dots?: number;
   hp?: {
@@ -156,10 +160,24 @@ export const getSceneFrame = (
       !entity[STICKY] &&
       (entity[MOVABLE]?.spring || entity[BUMPABLE]);
     const motion = animated && getMotion(entity);
+    let movingFacing: Orientation | undefined;
     if (motion) {
       const point = sampleMotion(motion, world.metadata.renderTime);
       px += point.x - motion.x;
       py += point.y - motion.y;
+      if (entity[HOMING]) {
+        const dx = motion.x - point.x;
+        const dy = motion.y - point.y;
+        if (Math.abs(dx) + Math.abs(dy) > 0.001)
+          movingFacing =
+            Math.abs(dx) > Math.abs(dy)
+              ? dx > 0
+                ? "right"
+                : "left"
+              : dy > 0
+              ? "down"
+              : "up";
+      }
     }
     const bump = animated && getBumpMotion(entity);
     if (bump) {
@@ -214,7 +232,9 @@ export const getSceneFrame = (
           segment.offsetX,
           segment.offsetY,
           segment.amount,
-          segment.facing
+          segment.sprite === entity[SPRITE]
+            ? movingFacing || segment.facing
+            : segment.facing
         );
         entry.hidden = hidden;
         entry.fog = fog;
@@ -233,11 +253,9 @@ export const getSceneFrame = (
       entry.swimming = true;
       entry.hidden = hidden || !entity[SWIMMABLE].swimming;
     }
-    const lootVisible =
-      (isLootable(world, entity) || isCollecting(world, entity)) &&
-      (opaque ? inRadius : visible) &&
-      !outside;
-    if (lootVisible) {
+    const hasLoot = isLootable(world, entity) || isCollecting(world, entity);
+    const lootVisible = hasLoot && (opaque ? inRadius : visible) && !outside;
+    if (hasLoot && (lootVisible || includeHidden)) {
       const items: Entity[] = (entity[INVENTORY]?.items || [])
         .map((itemId: number) =>
           world.getEntityByIdAndComponents(itemId, [ITEM, SPRITE])
@@ -246,7 +264,7 @@ export const getSceneFrame = (
       items.forEach((item, index) => {
         const entry = add(
           item![SPRITE],
-          `loot${index}`,
+          `loot${world.getEntityId(item)}`,
           (opaque ? oreHeight : lootHeight) + index / 1000,
           0,
           0,
@@ -254,6 +272,8 @@ export const getSceneFrame = (
           item![ORIENTABLE]?.facing
         );
         entry.fog = fog;
+        entry.loot = true;
+        entry.hidden = !lootVisible;
         if (index === 0) {
           const amount = entity[BREWABLE] ? items.length : item![ITEM].amount;
           if (
@@ -277,11 +297,13 @@ export const getSceneFrame = (
       )
         continue;
       const motion =
-        !instant && particle[PARTICLE].animatedOrigin && getMotion(particle);
+        (!instant || entity[CASTABLE]) &&
+        particle[PARTICLE].animatedOrigin &&
+        getMotion(particle);
       const point = motion
         ? sampleMotion(motion, world.metadata.renderTime)
         : particle[PARTICLE];
-      add(
+      const entry = add(
         particle[SPRITE],
         `particle${index}`,
         particle[PARTICLE].offsetZ,
@@ -290,6 +312,7 @@ export const getSceneFrame = (
         particle[PARTICLE].amount,
         particle[ORIENTABLE]?.facing
       );
+      entry.particle = particle;
     }
     const needsFog =
       visibility === "fog" &&

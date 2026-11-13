@@ -3,7 +3,16 @@ import { Sprite } from "../../engine/components/sprite";
 import { colors } from "../../game/assets/colors";
 import { eye, prism } from "../../game/assets/templates/creatures";
 import { key } from "../../game/assets/templates/items";
-import { shot } from "../../game/assets/templates/particles";
+import {
+  shot,
+  dash,
+  trigger,
+  triggerSide,
+  triggerCorner,
+  trapBorder,
+  edge,
+  bolt,
+} from "../../game/assets/templates/particles";
 import { createText, createProgress, shaded } from "../../game/assets/ui";
 import { projectLayers, projectSprite, terminalCharacter } from "./sprites";
 
@@ -113,6 +122,63 @@ describe("terminal sprite projection", () => {
       );
     }
     expect(projectSprite(sprites.fence).char).toBe("+");
+  });
+
+  it("draws directional dash marks and small trap crosses in their spell colors", () => {
+    for (const sprite of [
+      dash.iron.default,
+      dash.iron.fire,
+      dash.default.earth,
+    ]) {
+      for (const facing of ["up", "right", "down", "left"] as const) {
+        expect(projectSprite(sprite, facing)).toMatchObject({
+          char: { up: "^", right: ">", down: "v", left: "<" }[facing],
+        });
+        expect(projectSprite(sprite, facing).foreground).not.toBe(colors.black);
+      }
+    }
+    expect(projectSprite(trigger.iron.default)).toEqual({
+      char: "x",
+      foreground: colors.grey,
+    });
+    expect(projectSprite(triggerSide.iron.fire, "up")).toMatchObject({
+      char: "|",
+    });
+    expect(projectSprite(triggerSide.iron.fire, "right")).toMatchObject({
+      char: "-",
+    });
+    expect(projectSprite(triggerCorner.iron.fire, "up")).toMatchObject({
+      char: "\\",
+    });
+    expect(projectSprite(triggerCorner.iron.fire, "right")).toMatchObject({
+      char: "/",
+    });
+  });
+
+  it("keeps the activated trap frame and beam particles visible", () => {
+    expect(
+      trapBorder.map((border) => projectSprite(border.iron.fire).char).join("")
+    ).toBe("─┐│┘─└│┌");
+    for (const border of trapBorder)
+      expect(projectSprite(border.iron.fire).foreground).not.toBe(colors.black);
+    for (const facing of ["up", "right", "down", "left"] as const) {
+      expect(projectSprite(edge.iron.fire, facing).foreground).not.toBe(
+        colors.black
+      );
+      expect(projectSprite(edge.iron.fire, facing)).toEqual({
+        char: { up: "┴", right: "├", down: "┬", left: "┤" }[facing],
+        foreground: colors.red,
+      });
+    }
+    for (const amount of [1, 2, 3]) {
+      expect(
+        projectSprite(bolt.iron.fire, undefined, amount).foreground
+      ).not.toBe(colors.black);
+      expect(projectSprite(bolt.iron.fire, undefined, amount)).toEqual({
+        char: "•",
+        foreground: colors.red,
+      });
+    }
   });
 
   it("keeps selected popup text over the dialog background", () => {

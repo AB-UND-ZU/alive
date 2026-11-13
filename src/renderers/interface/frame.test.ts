@@ -1,3 +1,5 @@
+import { HOMING } from "../../engine/components/homing";
+import { shootHoming } from "../../engine/systems/homing";
 import {
   createAreaWorld,
   getHero,
@@ -417,4 +419,67 @@ it("removes closed popup particles from an instant frame before the next engine 
       (entry) => entry.sprite === questPointer
     )
   ).toBe(true);
+});
+
+it("keeps a homing disc aligned to its visible movement until it reaches a corner", () => {
+  const world = createAreaWorld(area, { size: 48 });
+  const hero = getHero(world)!;
+  const start = { ...hero[POSITION] };
+  const disc = shootHoming(world, hero, {
+    type: "ironDisc",
+    positions: [
+      { x: start.x + 1, y: start.y },
+      { x: start.x + 1, y: start.y + 1 },
+    ],
+  });
+  disc[FOG].visibility = "visible";
+  disc[MOVABLE].spring = { duration: 100 };
+  moveEntity(world, disc, { x: start.x + 1, y: start.y });
+  disc[ORIENTABLE].facing = "down";
+  world.metadata.renderTime = world.metadata.elapsed + 50;
+  const body = (instant = false) =>
+    getSceneFrame(world, 15, 11, undefined, { instant }).find(
+      (entry) => entry.entity === disc && entry.sprite === disc[SPRITE]
+    )!;
+  expect(body().layers).toEqual(getFacingLayers(disc[SPRITE], "right"));
+  expect(body(true).layers).toEqual(getFacingLayers(disc[SPRITE], "down"));
+  expect(disc[ORIENTABLE].facing).toBe("down");
+  expect(disc[HOMING].positions).toHaveLength(2);
+  world.metadata.renderTime += 50;
+  expect(body().layers).toEqual(getFacingLayers(disc[SPRITE], "down"));
+  world.metadata.elapsed += 100;
+  moveEntity(world, disc, { x: start.x + 1, y: start.y + 1 });
+  world.metadata.renderTime = world.metadata.elapsed + 50;
+  expect(body().layers).toEqual(getFacingLayers(disc[SPRITE], "down"));
+});
+
+it("keeps hidden loot available for fading and keys items by identity", () => {
+  const world = createAreaWorld(area, { size: 48 });
+  const hero = world.assertComponents(getHero(world)!, [INVENTORY, POSITION]);
+  const [first] = giveItems(world, hero, [{ stackable: "worm", amount: 1 }]);
+  dropEntity(
+    world,
+    { [INVENTORY]: { items: [world.getEntityId(first)] } },
+    { x: 5, y: 2 },
+    true
+  );
+  const carrier = world.assertByIdAndComponents(first[ITEM].carrier, [
+    FOG,
+    INVENTORY,
+    POSITION,
+  ]);
+  giveItems(world, carrier, [{ stackable: "apple", amount: 1 }]);
+  carrier[FOG].visibility = "visible";
+  const entries = () =>
+    getSceneFrame(world, 15, 11, undefined, { includeHidden: true }).filter(
+      (entry) => entry.entity === carrier && entry.loot
+    );
+  const original = entries();
+  expect(original).toHaveLength(2);
+  expect(original.every((entry) => !entry.hidden)).toBe(true);
+  carrier[FOG].visibility = "hidden";
+  expect(entries().every((entry) => entry.hidden)).toBe(true);
+  carrier[INVENTORY].items.shift();
+  expect(entries()).toHaveLength(1);
+  expect(entries()[0].key).toBe(original[1].key);
 });
