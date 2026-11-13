@@ -1,3 +1,10 @@
+import { Element } from "../../engine/components/item";
+import { orientations, ORIENTABLE } from "../../engine/components/orientable";
+import { SPRITE } from "../../engine/components/sprite";
+import { getItemSprite } from "../../game/assets/utils";
+import { getFacingLayers } from "../../game/assets/ui";
+import { composeCharacterPixels } from "../../components/Row/characters";
+import { colors } from "../../game/assets/colors";
 import { STATS } from "../../engine/components/stats";
 import { playedSounds } from "../../testing/env";
 import {
@@ -15,10 +22,13 @@ const area = `
 `;
 const legend = { A: "dummy", B: "dummy", C: "dummy", D: "dummy", Z: "dummy" };
 
-const setup = (material: "wood" | "iron" | "gold" | "diamond" | "ruby") => {
+const setup = (
+  material: "wood" | "iron" | "gold" | "diamond" | "ruby",
+  element?: Element
+) => {
   const { world, hero } = setupHero(
     area,
-    [{ weapon: "spear", skill: "spear", material, amount: 1 }],
+    [{ weapon: "spear", skill: "spear", material, element, amount: 1 }],
     { legend }
   );
   const units = ["A", "B", "C", "D", "Z"].map((char) =>
@@ -55,6 +65,61 @@ describe("spear", () => {
 
       expect(playedSounds).toContain("spear");
       expect(getDamage(units)).toEqual([damage, damage, damage, 0, 0]);
+    }
+  );
+
+  it.each(orientations)(
+    "places silver air on the first extended segment during a %s gold spear attack",
+    (orientation) => {
+      const { world, hero } = setup("gold", "air");
+      face(world, orientation);
+      act(world, "skill");
+      const trail = () =>
+        world
+          .getEntities([SPRITE])
+          .find((entity) => entity[SPRITE].name === "spear_line_element");
+      advanceUntil(world, () => !!trail(), 1000);
+      const weapon = world.assertByIdAndComponents(hero.EQUIPPABLE.weapon!, [
+        SPRITE,
+        ORIENTABLE,
+      ]);
+      expect(weapon[ORIENTABLE].facing).toBe(orientation);
+      expect(
+        composeCharacterPixels(
+          getFacingLayers(weapon[SPRITE], weapon[ORIENTABLE].facing)
+        )
+      ).toEqual(
+        composeCharacterPixels(
+          getItemSprite(
+            { weapon: "spear", material: "gold" },
+            undefined,
+            orientation
+          ).layers
+        )
+      );
+      expect(
+        composeCharacterPixels(getFacingLayers(trail()![SPRITE], orientation))
+      ).toContain(colors.silver);
+      const shaft = world
+        .getEntities([SPRITE])
+        .find((entity) => entity[SPRITE].name === "spear_line")!;
+      const tip = world
+        .getEntities([SPRITE])
+        .find((entity) => entity[SPRITE].name === "spear_tip")!;
+      expect(
+        composeCharacterPixels(getFacingLayers(shaft[SPRITE], orientation))
+      ).not.toContain(colors.silver);
+      expect(
+        composeCharacterPixels(getFacingLayers(tip[SPRITE], orientation))
+      ).not.toContain(colors.silver);
+      advance(world, 1000);
+      expect(trail()).toBeUndefined();
+      expect(weapon[ORIENTABLE].facing).toBeUndefined();
+      expect(
+        composeCharacterPixels(
+          getFacingLayers(weapon[SPRITE], weapon[ORIENTABLE].facing)
+        )
+      ).toContain(colors.silver);
     }
   );
 

@@ -25,6 +25,11 @@ export const colorPalettes: Record<
   earth: { primary: colors.lime, secondary: colors.green },
 };
 
+export const getElementColor = (element: Element, material?: Material) =>
+  material === "gold" && element === "air"
+    ? colors.silver
+    : colorPalettes[element].primary;
+
 export const TEMPLATE_COLORS = {
   transparent: "TRANSPARENT",
   materialPrimary: "MATERIAL_PRIMARY",
@@ -102,11 +107,7 @@ export const createTemplate = ({
     elements.forEach((element) => {
       const elementPalette = colorPalettes[element];
 
-      // fix low constrast on air element with gold material
-      const elementPrimary =
-        material === "gold" && element === "air"
-          ? colors.grey
-          : elementPalette.primary;
+      const elementPrimary = getElementColor(element, material);
 
       // invert wood and iron for contrast with player
       const shouldInvert =

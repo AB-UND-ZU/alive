@@ -1,3 +1,6 @@
+import { SPRITE } from "../../engine/components/sprite";
+import { composeCharacterPixels } from "../../components/Row/characters";
+import { colors } from "../../game/assets/colors";
 import { getMotion, sampleMotion } from "../../engine/motion";
 import { getSequence } from "../../engine/systems/sequence";
 import {
@@ -103,6 +106,34 @@ describe("forging at an anvil", () => {
     expect(Math.abs(after - before)).toBeLessThan(1);
     expect(anvil[FORGABLE].progress).toBe(1);
   });
+  it("keeps the silver air marking on a forged gold spear", () => {
+    const spear: GivenItem = {
+      weapon: "spear",
+      skill: "spear",
+      material: "gold",
+      amount: 1,
+    };
+    const upgrade = getOption(spear, (add) => add.element === "air");
+    const { world, hero, anvil } = setup([spear, upgrade.add]);
+    openStation(world);
+    selectItems(world, anvil, [0, 1]);
+    act(world, "right");
+    hitAllSteps(world, anvil);
+    act(world, "right");
+    const forged = world
+      .getEntities([ITEM, SPRITE])
+      .find(
+        (entity) =>
+          entity[ITEM].carrier === world.getEntityId(hero) &&
+          entity[ITEM].weapon === "spear" &&
+          entity[ITEM].element === "air"
+      );
+    expect(forged).toBeDefined();
+    expect(composeCharacterPixels(forged![SPRITE].layers)).toContain(
+      colors.silver
+    );
+  });
+
   it("opens the anvil and lists the carried items", () => {
     const { world, hero, anvil } = setup([ironSword, materialUpgrade.add]);
 

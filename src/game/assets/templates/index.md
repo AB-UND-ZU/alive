@@ -6,9 +6,12 @@ Builds material and element variants from a sprite's placeholder colors. The out
 | --------------- | --------------------------------------------------------------- |
 | TEMPLATE_COLORS | Placeholder keys for transparent, material and element channels |
 | colorPalettes   | Primary and secondary colors for every material and element     |
+| getElementColor | Primary element color; air on gold uses silver for contrast     |
 | createTemplate  | Replace the placeholders for each material/element combination  |
 
 `createTemplate` accepts an optional separate element sprite and material/element sprite. `invertWoodIron` swaps the material channels for those two tiers. The `default`/`default` entry is the missing sprite; a pure element lives under `default` and its element key.
+
+Gold/air variants use silver instead of gray so their air marking remains visible on olive shafts. The equipment portrait uses the same `getElementColor` rule as sprite templates. During a spear thrust, the held shaft stays plain and the first extended segment carries the element. The idle icon retains its element dot.
 
 Use [UI recoloring helpers](../ui.md) for a single sprite, and [item configuration](../utils.md) to choose a generated variant.
 <!-- source-types -->

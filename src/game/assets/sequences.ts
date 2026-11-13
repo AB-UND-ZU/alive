@@ -445,7 +445,7 @@ import {
   unitBackdrops,
 } from "../balancing/units";
 import { Vanishable, VANISHABLE } from "../../engine/components/vanishable";
-import { colorPalettes } from "./templates";
+import { colorPalettes, getElementColor } from "./templates";
 import {
   addBackground,
   addForeground,
@@ -4709,11 +4709,10 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
       : [],
     offhandItem?.material && offhandItem?.element
       ? recolorPixels(shieldElementPixels, {
-          [colors.white]:
-            // adjust low constrast on gold material and air element
-            offhandItem.material === "gold" && offhandItem.element === "air"
-              ? colors.grey
-              : colorPalettes[offhandItem.element].primary,
+          [colors.white]: getElementColor(
+            offhandItem.element,
+            offhandItem.material
+          ),
         })
       : [],
     bodyPixels,
@@ -4744,11 +4743,10 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
       : [],
     weaponItem?.material && weaponItem?.element
       ? recolorPixels(weaponElementPixels, {
-          [colors.white]:
-            // adjust low constrast on gold material and air element
-            weaponItem.material === "gold" && weaponItem.element === "air"
-              ? colors.grey
-              : colorPalettes[weaponItem.element].primary,
+          [colors.white]: getElementColor(
+            weaponItem.element,
+            weaponItem.material
+          ),
         })
       : []
   );
