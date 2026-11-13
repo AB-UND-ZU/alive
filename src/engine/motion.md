@@ -17,3 +17,20 @@ Animated groups read live targets and sample their motion before drawing. React 
 The camera records the highest-priority active viewpoint after each simulation update. Its existing default spring, viewpoint overrides, fractional offsets and immediate level changes use the same clock as entities. Camera records are released when the camera unmounts.
 
 Opacity, health-bar scaling, swimming effects and screen shake continue using their existing visual springs. They do not determine entity or hammer positions.
+<!-- source-types -->
+
+## Motion
+
+```ts src/engine/motion.ts
+export type Motion = {
+  x: number;
+  y: number;
+  fromX: number;
+  fromY: number;
+  velocityX: number;
+  velocityY: number;
+  startedAt: number;
+  config: SpringConfig;
+  pingPong?: boolean;
+};
+```

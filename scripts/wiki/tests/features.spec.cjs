@@ -57,6 +57,7 @@ test("navigation follows the design and implementation groups with Welcome and P
     "[TYPES]",
     "[UI]",
     "[WIKI]",
+    "[RENDERERS]",
   ]);
   for (const title of ["Harvesting", "Fishing", "Farming", "Building"])
     await expect(

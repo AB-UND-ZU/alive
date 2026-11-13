@@ -24,6 +24,7 @@
 | [Blockable](engine/components/blockable.md#type-blockable) | `src/engine/components/blockable.ts` |
 | [BranchSequence](engine/components/sequencable.md#type-branchsequence) | `src/engine/components/sequencable.ts` |
 | [Brewable](engine/components/brewable.md#type-brewable) | `src/engine/components/brewable.ts` |
+| [BrowserRendererName](renderers/browser.md#type-browserrenderername) | `src/renderers/browser.tsx` |
 | [BuffStats](engine/components/castable.md#type-buffstats) | `src/engine/components/castable.ts` |
 | [Buildable](engine/components/buildable.md#type-buildable) | `src/engine/components/buildable.ts` |
 | [Bumpable](engine/components/bumpable.md#type-bumpable) | `src/engine/components/bumpable.ts` |

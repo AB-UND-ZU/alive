@@ -1,0 +1,54 @@
+.HtmlRenderer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: "Perfect DOS VGA 437 Win", monospace;
+  font-size: var(--html-cell-height);
+  line-height: var(--html-cell-height);
+  text-align: left;
+  isolation: isolate;
+  user-select: text;
+}
+
+.HtmlRendererSprite {
+  position: absolute;
+  width: var(--html-cell-width);
+  height: var(--html-cell-height);
+  pointer-events: none;
+}
+
+.HtmlRendererCharacter,
+.HtmlRendererSprite > svg {
+  position: absolute;
+  inset: 0;
+  width: calc(var(--html-cell-width) * 1.02);
+  height: calc(var(--html-cell-height) * 1.02);
+  font-size: calc(var(--html-cell-height) * 1.02);
+}
+
+.HtmlRendererDots {
+  position: absolute;
+  inset: 0;
+}
+
+.HtmlRendererDots > i {
+  position: absolute;
+  width: calc(var(--html-cell-width) / 9);
+  height: calc(var(--html-cell-height) / 16);
+  background: #c0c0c0;
+}
+
+.HtmlRendererHealth {
+  position: absolute;
+  height: calc(var(--html-cell-height) / 16);
+  background: color-mix(in srgb, currentColor 15%, black);
+}
+
+.HtmlRendererHealth > span {
+  display: block;
+  height: 100%;
+  background: currentColor;
+}

@@ -25,7 +25,7 @@ In test-mode chat, Tab accepts the suggested command word. A right swipe does th
 
 Up and Down select a suggested word while typing. Starting from an empty line, they browse persisted chat history instead.
 The highlight interval is released on unmount. Controls retains its existing interval while actions change; cleanup does not reset the visible highlight phase on each render.
-
+Compact controls keep spell activation under its spell button, and align both activation groups when both actions exist. Normal game controls retain their full equipment rows.
 <!-- source-types -->
 
 ## Action
@@ -38,5 +38,3 @@ type Action = {
   palette: Palette;
 };
 ```
-
-Compact controls keep spell activation under its spell button, and align both activation groups when both actions exist. Normal game controls retain their full equipment rows.

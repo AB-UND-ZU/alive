@@ -6,7 +6,7 @@ Owns the shared Web Audio context and master gain used by native sound effects. 
 `isPlaying` requires a running context and both output gains enabled, preventing silent worlds from scheduling effects for later.
 
 `setAudioActive` gates output independently of the Sound FX setting. Wiki pages keep it off except for deliberate sound samples; preview frames turn it on while being interacted with and off on blur or pause. Muting the Sound FX setting remains effective across focus changes.
-
+Without a browser audio context, sound remains inactive and buffers are silent. Native terminal rendering therefore loads the same game rules without creating browser audio objects.
 <!-- source-types -->
 
 ## SoundBuffer

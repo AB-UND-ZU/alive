@@ -9,7 +9,6 @@ Describes a spell’s damage, effects, range, caster, and hit tracking.
 | `caster`   | Entity ID used for ownership and faction checks.                            |
 | `affected` | Per-target hit history for this cast; shared by its area cells.             |
 | `trigger`  | Optional contact trigger with a delay, active duration and reference frame. |
-
 <!-- source-types -->
 
 ## DamageType
