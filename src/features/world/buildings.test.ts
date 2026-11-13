@@ -1,5 +1,7 @@
 import {
   AreaWorldOptions,
+  advance,
+  giveItems,
   advanceUntil,
   createAreaWorld,
   findEntityAt,
@@ -15,6 +17,12 @@ import { POSITION } from "../../engine/components/position";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { isInside } from "../../engine/systems/enter";
 import { assertUnit, hold, tryMove } from "./helpers";
+
+import { LIGHT } from "../../engine/components/light";
+import { EQUIPPABLE } from "../../engine/components/equippable";
+import { ITEM } from "../../engine/components/item";
+import { unequipItem } from "../../engine/systems/collect";
+import { getEntityVision } from "../../engine/systems/visibility";
 
 // D wooden door
 const area = `
@@ -103,6 +111,46 @@ describe("buildings", () => {
     expect(hero[LAYER].structure).toBeUndefined();
     expect(building[VIEWABLE].active).toBe(false);
   });
+
+  it.each([false, true])(
+    "applies indoor torch changes after leaving (initial torch: %s)",
+    (initialTorch) => {
+      const { world, hero, fragments } = createHouse({ level: "LEVEL_ISLAND" });
+      advance(world, 2500);
+      if (initialTorch)
+        giveItems(world, hero, [
+          { accessory: "torch", material: "gold", amount: 1 },
+        ]);
+      advance(world, 6000);
+      openDoor(world);
+      hold(world, ["up"]);
+      advanceUntil(world, () => hero[POSITION].y === 2, 1500);
+      hold(world, []);
+      expect(isInside(world, hero)).toBe(true);
+
+      if (initialTorch)
+        unequipItem(
+          world,
+          hero,
+          world.assertByIdAndComponents(hero[EQUIPPABLE].torch!, [ITEM])
+        );
+      else
+        giveItems(world, hero, [
+          { accessory: "torch", material: "gold", amount: 1 },
+        ]);
+      advance(world, 2500);
+      fragments.forEach((fragment) =>
+        expect(fragment[FOG].visibility).toBe("visible")
+      );
+      hold(world, ["down"]);
+      advanceUntil(world, () => hero[POSITION].y === 6, 2000);
+      hold(world, []);
+      advance(world, 3000);
+
+      expect(isInside(world, hero)).toBe(false);
+      expect(hero[LIGHT]).toEqual(getEntityVision(world, hero));
+    }
+  );
 
   it("is blocked by the walls from inside", () => {
     const { world, hero } = createHouse();

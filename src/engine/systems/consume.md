@@ -10,7 +10,7 @@ Applies usable inventory items, automatic potion doses and equipment stat change
 
 Consumption is skipped while an existing consumption or popup blocks it. Potion cooldowns are tracked per carrier and item.
 
-When installing systems on a restored world, initialize cached vision, haste and equipment stats from the saved hero. Loading must not add bonuses again. See [saved games](../../game/saves/index.md) and the received-state effects in [Magic](magic.md).
+When installing systems on a restored world, initialize cached vision, haste and equipment stats from the saved hero. Loading must not add bonuses again. An active vision sequence seeds the vision cache from its target, so pending equipment changes are retried after it finishes. Otherwise, preserve the saved light, including level-provided radii. Cache a new vision target only when outside and no vision sequence is active; changes made during an animation or indoors remain pending until they can be applied. See [saved games](../../game/saves/index.md) and the received-state effects in [Magic](magic.md).
 <!-- source-types -->
 
 ## StackableConsumption

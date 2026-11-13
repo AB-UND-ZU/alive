@@ -21,7 +21,12 @@ import { LIGHT } from "../../engine/components/light";
 import { LOCKABLE } from "../../engine/components/lockable";
 import { POSITION, Position } from "../../engine/components/position";
 import { lockDoor } from "../../engine/systems/trigger";
-import { isHidden } from "../../engine/systems/visibility";
+import { getEntityVision, isHidden } from "../../engine/systems/visibility";
+
+import { EQUIPPABLE } from "../../engine/components/equippable";
+import { equipItem, unequipItem } from "../../engine/systems/collect";
+import { getSequence } from "../../engine/systems/sequence";
+import { saveAndLoad } from "../../testing/saves";
 
 // island has the smallest vision, █ mountain, ~ water
 const area = `
@@ -195,4 +200,85 @@ describe("fog of war", () => {
 
     expect(getWaterVisibility(world, farWater)).toBe("visible");
   });
+});
+
+describe("torch vision transitions", () => {
+  const setup = () => {
+    const world = createAreaWorld(fieldArea, {
+      level: "LEVEL_ISLAND",
+      size: 32,
+    });
+    return { world, hero: assertUnit(world) };
+  };
+  const addTorch = (
+    world: World,
+    hero: ReturnType<typeof assertUnit>,
+    material: "wood" | "gold" = "gold"
+  ) => {
+    const [torch] = giveItems(world, hero, [
+      { accessory: "torch", material, amount: 1 },
+    ]);
+    if (hero[EQUIPPABLE].torch !== world.getEntityId(torch))
+      equipItem(world, hero, torch);
+    return torch;
+  };
+
+  it("applies a torch equipped during the level's opening vision animation", () => {
+    const { world, hero } = setup();
+    step(world);
+    const opening = getSequence(world, hero, "vision");
+    expect(opening).toBeDefined();
+    addTorch(world, hero);
+    step(world);
+    expect(getSequence(world, hero, "vision")).toBe(opening);
+
+    advance(world, 6000);
+
+    expect(hero[LIGHT]).toEqual(getEntityVision(world, hero));
+    expect(getWaterVisibility(world, findInArea(fieldArea, "~"))).toBe(
+      "visible"
+    );
+    expect(getSequence(world, hero, "vision")).toBeUndefined();
+  });
+
+  it("returns to torch vision when re-equipped during contraction", () => {
+    const { world, hero } = setup();
+    advance(world, 2500);
+    const torch = addTorch(world, hero);
+    advance(world, 3000);
+    expect(hero[LIGHT]).toEqual(getEntityVision(world, hero));
+    unequipItem(world, hero, torch);
+    advanceUntil(world, () => !!getSequence(world, hero, "vision"), 1000);
+    advance(world, 250);
+
+    equipItem(world, hero, torch);
+    advance(world, 6000);
+
+    expect(hero[LIGHT]).toEqual(getEntityVision(world, hero));
+    expect(getWaterVisibility(world, findInArea(fieldArea, "~"))).toBe(
+      "visible"
+    );
+    expect(getSequence(world, hero, "vision")).toBeUndefined();
+  });
+
+  it.each(["remove", "replace", "restore"])(
+    "settles to the current torch after %s during expansion",
+    (change) => {
+      const { world, hero } = setup();
+      advance(world, 2500);
+      const torch = addTorch(world, hero);
+      advanceUntil(world, () => !!getSequence(world, hero, "vision"), 1000);
+      advance(world, 250);
+      if (change === "replace") addTorch(world, hero, "wood");
+      else unequipItem(world, hero, torch);
+      step(world);
+
+      const current = change === "restore" ? saveAndLoad(world) : world;
+      const player = assertUnit(current);
+      advance(current, 6000);
+
+      expect(player[LIGHT]).toEqual(getEntityVision(current, player));
+      expect(getSequence(current, player, "vision")).toBeUndefined();
+    }
+  );
 });

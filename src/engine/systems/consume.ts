@@ -237,7 +237,9 @@ export default function setupConsume(world: World) {
     const entityId = world.getEntityId(entity);
     const equipmentStats = getEntityEquipmentStats(world, entity);
     entityHaste[entityId] = getEntityHaste(world, entity);
-    entityVision[entityId] = getEntityVision(world, entity).visibility;
+    entityVision[entityId] =
+      getSequence(world, entity, "vision")?.args.light?.visibility ??
+      getEntityVision(world, entity).visibility;
     entityHp[entityId] = equipmentStats.maxHp;
     entityMp[entityId] = equipmentStats.maxMp;
   }
@@ -345,21 +347,19 @@ export default function setupConsume(world: World) {
         rerenderEntity(world, entity);
       }
 
-      if (vision.visibility !== entityVision[entityId] && entity[LIGHT]) {
-        if (
-          entity[LIGHT].visibility !== vision.visibility &&
-          !isInside(world, entity) &&
-          !getSequence(world, entity, "vision")
-        ) {
+      if (
+        vision.visibility !== entityVision[entityId] &&
+        entity[LIGHT] &&
+        !isInside(world, entity) &&
+        !getSequence(world, entity, "vision")
+      ) {
+        if (entity[LIGHT].visibility !== vision.visibility) {
           createSequence<"vision", VisionSequence>(
             world,
             entity,
             "vision",
             "changeRadius",
-            {
-              fast: false,
-              light: vision,
-            }
+            { fast: false, light: vision }
           );
         }
         entityVision[entityId] = vision.visibility;
