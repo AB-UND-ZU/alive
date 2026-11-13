@@ -7,23 +7,8 @@ import { WorldContext, WorldProvider } from "../interface/hooks";
 import { World } from "../../engine";
 import { FRAME } from "../../testing/harness";
 
-export const createWorldContext = (
-  ecs: World,
-  overrides: Partial<WorldContext> = {}
-): WorldContext => ({
-  ecs,
-  initial: false,
-  setInitial: () => {},
-  suspended: false,
-  setSuspended: () => {},
-  paused: false,
-  setPaused: () => {},
-  flipped: false,
-  setFlipped: () => {},
-  saveGame: () => {},
-  openMenu: () => {},
-  ...overrides,
-});
+import { createWorldContext } from "../../testing/context";
+export { createWorldContext } from "../../testing/context";
 
 export const renderScene = async (
   ecs: World,

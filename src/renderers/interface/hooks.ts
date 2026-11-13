@@ -123,6 +123,7 @@ export const useRenderable = <C extends keyof Entity>(
     if (!ecs) return;
 
     ecs.metadata.listeners[id] = listener;
+    listener();
 
     return () => {
       delete ecs.metadata.listeners[id];
