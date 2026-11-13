@@ -764,6 +764,7 @@ export const openPopup = (
     [VIEWABLE, POSITION]
   );
   viewpointEntity[VIEWABLE].active = true;
+  viewpointEntity[VIEWABLE].owner = world.getEntityId(heroEntity);
   rerenderEntity(world, popupEntity);
 
   // ensure viewpoint is placed correctly if entity moved

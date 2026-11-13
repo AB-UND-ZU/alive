@@ -1,5 +1,8 @@
 import type { World } from "./ecs";
 import type { Entity, TypedEntity } from "./entities";
+import { VIEWABLE } from "./components/viewable";
+import { LAYER } from "./components/layer";
+import { STRUCTURABLE } from "./components/structurable";
 import { PLAYER } from "./components/player";
 import { POSITION, Position } from "./components/position";
 import { STATS } from "./components/stats";
@@ -27,7 +30,12 @@ export const getClosestPlayer = <C extends keyof Entity>(
   let closest: TypedEntity<"PLAYER" | "POSITION" | "STATS" | C> | undefined;
   let distance = Infinity;
   const size = world.metadata.gameEntity[LEVEL].size;
-  for (const player of world.getEntities([PLAYER, POSITION, STATS, ...components])) {
+  for (const player of world.getEntities([
+    PLAYER,
+    POSITION,
+    STATS,
+    ...components,
+  ])) {
     if (player[PLAYER].ghost || player[STATS].hp <= 0) continue;
     const next = getDistance(position, player[POSITION], size);
     if (next < distance) {
@@ -36,4 +44,29 @@ export const getClosestPlayer = <C extends keyof Entity>(
     }
   }
   return closest;
+};
+
+export const selectViewable = (
+  viewables: TypedEntity<"VIEWABLE" | "POSITION">[],
+  world?: World
+) => {
+  const id = world?.metadata.localPlayerId;
+  const player =
+    id === undefined
+      ? undefined
+      : world?.getEntityByIdAndComponents(id, [PLAYER, LAYER]);
+  return viewables
+    .filter((entity) => {
+      if (id === undefined) return entity[VIEWABLE].active;
+      if (!player) return false;
+      if (entity[PLAYER] && world?.getEntityId(entity) !== id) return false;
+      if (entity[VIEWABLE].owner !== undefined && entity[VIEWABLE].owner !== id)
+        return false;
+      if (entity[STRUCTURABLE])
+        return player[LAYER].structure === world?.getEntityId(entity);
+      return entity[VIEWABLE].active;
+    })
+    .sort(
+      (left, right) => right[VIEWABLE].priority - left[VIEWABLE].priority
+    )[0];
 };

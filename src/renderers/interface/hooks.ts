@@ -1,3 +1,4 @@
+import { selectViewable } from "../../engine/players";
 import { cameraSpring } from "../../engine/motion";
 import {
   createContext,
@@ -123,7 +124,6 @@ export const useRenderable = <C extends keyof Entity>(
     if (!ecs) return;
 
     ecs.metadata.listeners[id] = listener;
-    listener();
 
     return () => {
       delete ecs.metadata.listeners[id];
@@ -134,10 +134,14 @@ export const useRenderable = <C extends keyof Entity>(
 };
 
 export const useHero = () => {
-  // assume first player entity to be hero
+  const { ecs } = useWorld();
   const players = useRenderable([PLAYER, POSITION]);
-
-  return players.length === 0 ? null : players[0];
+  const id = ecs?.metadata.localPlayerId;
+  return (
+    (id === undefined
+      ? players[0]
+      : players.find((player) => ecs?.getEntityId(player) === id)) || null
+  );
 };
 
 export const useGame = () => {
@@ -148,18 +152,12 @@ export const useGame = () => {
   return ecs?.metadata.gameEntity;
 };
 
-export const getActiveViewable = (
-  viewables: TypedEntity<"VIEWABLE" | "POSITION">[]
-) =>
-  viewables
-    .filter((entity) => entity[VIEWABLE].active)
-    .sort(
-      (left, right) => right[VIEWABLE].priority - left[VIEWABLE].priority
-    )[0];
+export const getActiveViewable = selectViewable;
 
 export const useViewable = () => {
+  const { ecs } = useWorld();
   const viewables = useRenderable([VIEWABLE, POSITION]);
-  return getActiveViewable(viewables);
+  return getActiveViewable(viewables, ecs || undefined);
 };
 
 const zeroFraction = { x: 0, y: 0 };
@@ -169,7 +167,7 @@ export const useViewpoint = () => {
   // read world directly until renderables are listed, e.g. in loaded worlds
   const viewable =
     renderedViewable ||
-    (ecs && getActiveViewable(ecs.getEntities([VIEWABLE, POSITION])));
+    (ecs && getActiveViewable(ecs.getEntities([VIEWABLE, POSITION]), ecs));
   const level = ecs?.metadata.gameEntity[LEVEL]?.name;
   const committed = useRef<{ position: Position; level?: string }>();
 

@@ -1,3 +1,4 @@
+import { selectViewable } from "./players";
 import type { Entity } from "ecs";
 import type { SpringConfig } from "@react-spring/three";
 import type { World } from "./ecs";
@@ -306,14 +307,10 @@ export const updateCameraMotion = (world: World, initialize = false) => {
     cameras.set(world, camera);
   }
   if (!camera) return;
-  let viewable: Entity | undefined;
-  for (const entity of world.getEntities(["VIEWABLE", POSITION])) {
-    if (
-      entity.VIEWABLE.active &&
-      (!viewable || entity.VIEWABLE.priority > viewable.VIEWABLE.priority)
-    )
-      viewable = entity;
-  }
+  const viewable = selectViewable(
+    world.getEntities(["VIEWABLE", POSITION]),
+    world
+  );
   if (!viewable) return camera.motion;
   const position = viewable[POSITION];
   const fraction = viewable.VIEWABLE.fraction;

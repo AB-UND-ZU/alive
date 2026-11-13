@@ -1,5 +1,10 @@
 import { fireEvent, screen } from "@testing-library/react";
-import { getClosestPlayer, getLocalPlayer } from "./players";
+import { entities } from ".";
+import { LAYER } from "./components/layer";
+import { VIEWABLE } from "./components/viewable";
+import { STRUCTURABLE } from "./components/structurable";
+import { updateCameraMotion } from "./motion";
+import { getClosestPlayer, getLocalPlayer, selectViewable } from "./players";
 import { createHero } from "./systems/fate";
 import { advance, assertHero, createAreaWorld } from "../testing/harness";
 import { POSITION } from "./components/position";
@@ -72,4 +77,38 @@ it("retargets the nearest living player, including across the wrapping map edge"
   expect(getClosestPlayer(world, { x: 0, y: 1 }, [STATS])).toBe(second);
   second[PLAYER].ghost = true;
   expect(getClosestPlayer(world, { x: 0, y: 1 }, [STATS])).toBeUndefined();
+});
+
+it("keeps another player's popup camera out of the selected actor's view", () => {
+  const { world, first, second } = setup();
+  world.metadata.localPlayerId = world.getEntityId(second);
+  const popup = entities.createViewpoint(world, {
+    POSITION: { x: 20, y: 20 },
+    RENDERABLE: { generation: 0 },
+    VIEWABLE: { active: true, priority: 90, owner: world.getEntityId(first) },
+  });
+  const viewables = () => world.getEntities([VIEWABLE, POSITION]);
+  expect(selectViewable(viewables(), world)).toBe(second);
+  expect(updateCameraMotion(world, true)).toMatchObject({ x: 8, y: 1 });
+  popup[VIEWABLE].owner = world.getEntityId(second);
+  expect(selectViewable(viewables(), world)).toBe(popup);
+});
+
+it("uses the selected player's building membership instead of another player's roof toggle", () => {
+  const { world, second } = setup();
+  world.metadata.localPlayerId = world.getEntityId(second);
+  const building = entities.createViewpoint(world, {
+    POSITION: { x: 12, y: 12 },
+    RENDERABLE: { generation: 0 },
+    VIEWABLE: { active: true, priority: 50 },
+  });
+  world.addComponentToEntity(building, STRUCTURABLE, {});
+  expect(selectViewable(world.getEntities([VIEWABLE, POSITION]), world)).toBe(
+    second
+  );
+  second[LAYER].structure = world.getEntityId(building);
+  building[VIEWABLE].active = false;
+  expect(selectViewable(world.getEntities([VIEWABLE, POSITION]), world)).toBe(
+    building
+  );
 });
