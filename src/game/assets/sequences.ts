@@ -1,3 +1,4 @@
+import { getPopupPlayer } from "../../engine/players";
 import type { Entity } from "ecs";
 import type { World } from "../../engine";
 import type { SequenceState } from "../../engine/components/sequencable";
@@ -3942,10 +3943,7 @@ export const acquireXp: Sequence<XpSequence> = (world, entity, state) => {
 };
 
 export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
-  const hero = getIdentifierAndComponents(world, "hero", [
-    INVENTORY,
-    RENDERABLE,
-  ]);
+  const hero = getPopupPlayer(world, entity, [INVENTORY, RENDERABLE]);
   if (
     hero &&
     !entity[POPUP].sprite &&
@@ -4004,7 +4002,7 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
 };
 
 export const displayBuy = displayPopupView((world, entity, state) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const heroEntity = getPopupPlayer(world, entity, [POSITION]);
   const icon = shop;
   const verticalIndex = getVerticalIndex(world, entity);
   const inventoryItems = heroEntity
@@ -4092,7 +4090,7 @@ export const displayBuy = displayPopupView((world, entity, state) => {
 });
 
 export const displaySell = displayPopupView((world, entity, state) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const heroEntity = getPopupPlayer(world, entity, [POSITION]);
   const inventoryItems = heroEntity
     ? (heroEntity[INVENTORY] as Inventory).items.map((itemId) =>
         world.assertByIdAndComponents(itemId, [ITEM])
@@ -4180,10 +4178,7 @@ export const displaySell = displayPopupView((world, entity, state) => {
 });
 
 export const displayInspect = displayPopupView((world, entity, state) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
-    INVENTORY,
-    POSITION,
-  ]);
+  const heroEntity = getPopupPlayer(world, entity, [INVENTORY, POSITION]);
 
   if (!heroEntity) {
     return undefined;
@@ -4305,10 +4300,7 @@ export const displayInspect = displayPopupView((world, entity, state) => {
 });
 
 export const displayPlant = displayPopupView((world, entity, state) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
-    INVENTORY,
-    POSITION,
-  ]);
+  const heroEntity = getPopupPlayer(world, entity, [INVENTORY, POSITION]);
 
   if (!heroEntity) {
     return undefined;
@@ -4389,10 +4381,7 @@ export const displayPlant = displayPopupView((world, entity, state) => {
 const buildSeparator = 9;
 
 export const displayBuild: Sequence<PopupSequence> = (world, entity, state) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
-    EQUIPPABLE,
-    POSITION,
-  ]);
+  const heroEntity = getPopupPlayer(world, entity, [EQUIPPABLE, POSITION]);
   const verticalIndex = getVerticalIndex(world, entity);
   const toolEntity = world.getEntityByIdAndComponents(
     heroEntity?.[EQUIPPABLE].tool,
@@ -4617,10 +4606,7 @@ export const displayBuild: Sequence<PopupSequence> = (world, entity, state) => {
 };
 
 export const displayStats = displayPopupView((world, entity, state) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
-    SPAWNABLE,
-    POSITION,
-  ]);
+  const heroEntity = getPopupPlayer(world, entity, [SPAWNABLE, POSITION]);
 
   if (!heroEntity) {
     return undefined;
@@ -4716,10 +4702,7 @@ const classPixels: Partial<Record<ClassKey, Sprite[][]>> = {
 };
 
 export const displayGear = displayPopupView((world, entity, state) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
-    EQUIPPABLE,
-    SPAWNABLE,
-  ]);
+  const heroEntity = getPopupPlayer(world, entity, [EQUIPPABLE, SPAWNABLE]);
 
   if (!heroEntity) {
     return undefined;
@@ -4917,7 +4900,7 @@ const mapViews = new WeakMap<
 >();
 
 export const displayMap = displayPopupView((world, entity, state) => {
-  const hero = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const hero = getPopupPlayer(world, entity, [POSITION]);
   const zoom = getVerticalIndex(world, entity);
   const inputs = JSON.stringify([
     world.metadata.gameEntity[LEVEL].name,
@@ -4947,7 +4930,7 @@ export const displayMap = displayPopupView((world, entity, state) => {
 });
 
 const buildMapView = (world: World, entity: Entity): PopupView => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const heroEntity = getPopupPlayer(world, entity, [POSITION]);
 
   if (!heroEntity?.[EQUIPPABLE]?.map) {
     return {
@@ -5145,10 +5128,7 @@ const buildMapView = (world: World, entity: Entity): PopupView => {
 };
 
 export const displayUse = displayPopupView((world, entity, state) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
-    EQUIPPABLE,
-    PLAYER,
-  ]);
+  const heroEntity = getPopupPlayer(world, entity, [EQUIPPABLE, PLAYER]);
 
   if (!heroEntity) {
     return undefined;
@@ -5374,7 +5354,7 @@ export const displayUse = displayPopupView((world, entity, state) => {
 });
 
 export const displayEquip = displayPopupView((world, entity, state) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
+  const heroEntity = getPopupPlayer(world, entity, [
     ACTIONABLE,
     EQUIPPABLE,
     INVENTORY,
@@ -5650,7 +5630,7 @@ export const displayStyle = displayPopupView((world, entity, state) => {
   const chosenIndex = firstIndex ?? 0;
 
   const selectedStyle = hairColors[verticalIndex];
-  const heroEntity = getIdentifierAndComponents(world, "hero", [SPAWNABLE]);
+  const heroEntity = getPopupPlayer(world, entity, [SPAWNABLE]);
   const classIndex = entity[POPUP].tabs.indexOf("class");
   const selectedClass =
     classIndex === -1 && heroEntity
@@ -5816,7 +5796,7 @@ export const displayLoad: Sequence<PopupSequence> = (world, entity, state) => {
   }
   if (restorable.saves !== saves) {
     restorable.saves = saves;
-    const hero = getIdentifierAndComponents(world, "hero", [INVENTORY]);
+    const hero = getPopupPlayer(world, entity, [INVENTORY]);
     if (hero) updatePopupSelection(world, hero, entity);
     rerenderEntity(world, entity);
   }
@@ -6105,7 +6085,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
   const isHitting = animation.isHitting;
   let updated = animation.updated;
   const popupResult = renderPopup(world, entity, state, inputs, () => {
-    const heroEntity = getIdentifierAndComponents(world, "hero", [INVENTORY]);
+    const heroEntity = getPopupPlayer(world, entity, [INVENTORY]);
     const generation = world.metadata.gameEntity[RENDERABLE].generation;
 
     const showItem = generation % forgeBlink > 0;
@@ -6526,7 +6506,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
 const craftSeparator = 9;
 
 export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const heroEntity = getPopupPlayer(world, entity, [POSITION]);
   const icon = craft;
   const verticalIndex = getVerticalIndex(world, entity);
   const ingredients = (entity[POPUP] as Popup).ingredients;
@@ -6695,7 +6675,7 @@ export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
 };
 
 export const displayBrew = displayPopupView((world, entity, state) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const heroEntity = getPopupPlayer(world, entity, [POSITION]);
   const icon = craft;
   const verticalIndex = getVerticalIndex(world, entity);
   const inventoryItems = heroEntity
@@ -7026,7 +7006,7 @@ export const displayInfo = displayPopupView((world, entity, state) => {
 
 export const displayQuest = displayPopupView((world, entity, state) => {
   const popup = entity[POPUP] as Popup;
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const heroEntity = getPopupPlayer(world, entity, [POSITION]);
   const verticalIndex = getVerticalIndex(world, entity);
 
   const allGathered =

@@ -1,5 +1,5 @@
+import { getPopupPlayer } from "../../engine/players";
 import { getPopupInputs, getPopupView, PopupView } from "./popupView";
-import { getIdentifierAndComponents } from "../../engine/utils";
 import { updateParticleMotion } from "../../engine/motion";
 import { Entity } from "ecs";
 import { entities, World } from "../../engine";
@@ -326,7 +326,7 @@ export const renderPopup = (
     sprite.layers.some((layer) => layer.char === "\u011a")
   );
   const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
-  const hero = getIdentifierAndComponents(world, "hero", [RENDERABLE]);
+  const hero = getPopupPlayer(world, entity, [RENDERABLE]);
   const generation =
     entity[RENDERABLE].generation + (hero?.[RENDERABLE].generation || 0);
   const popupMiddle = { x: 0, y: (windowHeight + 1) / -2 };

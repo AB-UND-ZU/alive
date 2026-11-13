@@ -1,5 +1,7 @@
 import type { World } from "./ecs";
 import type { Entity, TypedEntity } from "./entities";
+import { POPUP } from "./components/popup";
+import { IDENTIFIABLE } from "./components/identifiable";
 import { VIEWABLE } from "./components/viewable";
 import { LAYER } from "./components/layer";
 import { STRUCTURABLE } from "./components/structurable";
@@ -69,4 +71,18 @@ export const selectViewable = (
     .sort(
       (left, right) => right[VIEWABLE].priority - left[VIEWABLE].priority
     )[0];
+};
+
+export const getPopupPlayer = <C extends keyof Entity>(
+  world: World,
+  entity: Partial<Entity>,
+  components: C[]
+) => {
+  const owner = entity[POPUP]?.owner;
+  if (owner !== undefined)
+    return world.getEntityByIdAndComponents(owner, components);
+  const hero = world
+    .getEntities([IDENTIFIABLE])
+    .find((candidate) => candidate[IDENTIFIABLE].name === "hero");
+  return hero && world.getEntityComponents(hero, components);
 };

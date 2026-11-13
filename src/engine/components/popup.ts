@@ -68,6 +68,7 @@ const popups = [
 ] as const;
 
 export type Popup = {
+  owner?: number;
   active: boolean;
   verticalIndezes: number[];
   horizontalIndex: number;

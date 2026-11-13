@@ -1,3 +1,4 @@
+import { getPopupPlayer } from "../players";
 import addRestorable, { RESTORABLE } from "../components/restorable";
 import { updateSpriteBuilder } from "../../game/assets/spriteBuilder";
 import { World } from "../ecs";
@@ -28,7 +29,7 @@ import {
   registerEntity,
 } from "./map";
 import { POSITION, Position } from "../components/position";
-import { createSequence, replaceSequence, getSequence } from "./sequence";
+import { replaceSequence, getSequence } from "./sequence";
 import { DiscoverySequence, PopupSequence } from "../components/sequencable";
 import { VIEWABLE } from "../components/viewable";
 import { UnitStats, STATS } from "../components/stats";
@@ -707,7 +708,7 @@ export const removePopup = (world: World, entity: Entity) => {
   if (!entity[POPUP]) return;
   // close active popup
   const entityId = world.getEntityId(entity);
-  const heroEntity = getIdentifierAndComponents(world, "hero", [PLAYER]);
+  const heroEntity = getPopupPlayer(world, entity, [PLAYER]);
   if (heroEntity && heroEntity[PLAYER].popup === entityId) {
     closePopup(world, heroEntity, entity);
     // Closing a completed quest may already remove its popup.
@@ -739,6 +740,13 @@ export const openPopup = (
   popupEntity: Entity,
   instant = false
 ) => {
+  if (
+    popupEntity[POPUP].active &&
+    popupEntity[POPUP].owner !== undefined &&
+    popupEntity[POPUP].owner !== world.getEntityId(heroEntity)
+  )
+    return false;
+  popupEntity[POPUP].owner = world.getEntityId(heroEntity);
   if (popupEntity[POPUP].tabs.includes("load") && !popupEntity[RESTORABLE]) {
     addRestorable(world, popupEntity, {});
   }
@@ -791,7 +799,7 @@ export const openPopup = (
     intensity: instant ? 120 : (frameHeight - 1) * popupDelay,
   });
 
-  createSequence<"popup", PopupSequence>(
+  replaceSequence<"popup", PopupSequence>(
     world,
     popupEntity,
     "popup",
@@ -829,6 +837,11 @@ export const closePopup = (
   heroEntity: Entity,
   popupEntity: Entity
 ) => {
+  if (
+    popupEntity[POPUP].owner !== undefined &&
+    popupEntity[POPUP].owner !== world.getEntityId(heroEntity)
+  )
+    return;
   const tab = getTab(world, popupEntity);
   const selections = getTabSelections(world, popupEntity);
   if (popupEntity[RESTORABLE]) popupEntity[RESTORABLE].saveId = undefined;
@@ -1044,21 +1057,18 @@ export const updatePopupSelection = (
 };
 
 export default function setupPopup(world: World) {
-  let heroGeneration = -1;
-
-  const onUpdate = (delta: number) => {
-    const heroEntity = world.getEntity([
-      ACTIONABLE,
-      EQUIPPABLE,
-      MOVABLE,
-      PLAYER,
-      RENDERABLE,
-      INVENTORY,
-      TOOLTIP,
-    ]);
-
-    if (!heroEntity) return;
-
+  const generations = new WeakMap<Entity, number>();
+  const updatePlayer = (
+    heroEntity: TypedEntity<
+      | "ACTIONABLE"
+      | "EQUIPPABLE"
+      | "MOVABLE"
+      | "PLAYER"
+      | "RENDERABLE"
+      | "INVENTORY"
+      | "TOOLTIP"
+    >
+  ) => {
     const heroReference = world.assertByIdAndComponents(
       heroEntity[MOVABLE].reference,
       [RENDERABLE, REFERENCE]
@@ -1066,9 +1076,8 @@ export default function setupPopup(world: World) {
     const referenceGeneration = heroReference[RENDERABLE].generation;
     const generation = referenceGeneration + heroEntity[RENDERABLE].generation;
 
-    if (heroGeneration === generation) return;
-
-    heroGeneration = generation;
+    if (generations.get(heroEntity) === generation) return;
+    generations.set(heroEntity, generation);
 
     const popupEntity = world.getEntityByIdAndComponents(
       heroEntity[PLAYER].popup,
@@ -1077,6 +1086,23 @@ export default function setupPopup(world: World) {
 
     // skip if player is not in popup
     if (!popupEntity) return;
+
+    const owner = world.getEntityId(heroEntity);
+    if (
+      popupEntity[POPUP].owner !== undefined &&
+      popupEntity[POPUP].owner !== owner
+    ) {
+      heroEntity[PLAYER].popup = undefined;
+      updateMovementInterval(world, heroEntity);
+      rerenderEntity(world, heroEntity);
+      return;
+    }
+    popupEntity[POPUP].owner = owner;
+    const viewpoint = world.getEntityByIdAndComponents(
+      popupEntity[POPUP].viewpoint,
+      [VIEWABLE]
+    );
+    if (viewpoint) viewpoint[VIEWABLE].owner = owner;
 
     if (heroEntity[MOVABLE].lastInteraction === referenceGeneration) return;
 
@@ -1811,5 +1837,17 @@ export default function setupPopup(world: World) {
     rerenderEntity(world, popupEntity);
   };
 
+  const onUpdate = () => {
+    for (const player of world.getEntities([
+      ACTIONABLE,
+      EQUIPPABLE,
+      MOVABLE,
+      PLAYER,
+      RENDERABLE,
+      INVENTORY,
+      TOOLTIP,
+    ]))
+      updatePlayer(player);
+  };
   return { onUpdate };
 }

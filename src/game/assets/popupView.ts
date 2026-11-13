@@ -1,3 +1,4 @@
+import { getPopupPlayer } from "../../engine/players";
 import type { Entity } from "ecs";
 import type { World } from "../../engine";
 import type {
@@ -80,7 +81,7 @@ export const getPopupInputs = (
 ) => {
   const popup = entity[POPUP] as Popup;
   const tab = getTab(world, entity);
-  const hero = getIdentifierAndComponents(world, "hero", [PLAYER, RENDERABLE]);
+  const hero = getPopupPlayer(world, entity, [PLAYER, RENDERABLE]);
   const usesHeroItems = ![
     "map",
     "warp",

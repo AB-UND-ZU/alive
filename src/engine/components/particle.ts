@@ -3,12 +3,13 @@ import { World } from "../ecs";
 import { Point } from "../../game/math/std";
 
 export type Particle = {
+  owner?: number;
   offsetX: number;
   offsetY: number;
   offsetZ: number;
   animatedOrigin?: Point;
-  amount?: number
-  duration?: number
+  amount?: number;
+  duration?: number;
 };
 
 export const PARTICLE = "PARTICLE";

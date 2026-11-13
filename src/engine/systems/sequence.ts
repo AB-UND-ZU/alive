@@ -1,3 +1,4 @@
+import { POPUP } from "../components/popup";
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
 import {
@@ -44,7 +45,14 @@ export const getParticles = (world: World, entity: Entity) =>
         ),
       []
     )
-    .concat((entity[SHOOTABLE]?.shots || 0) > 0 ? shotParticle : []);
+    .concat((entity[SHOOTABLE]?.shots || 0) > 0 ? shotParticle : [])
+    .filter(
+      (particle) =>
+        !!particle &&
+        (world.metadata.localPlayerId === undefined ||
+          particle[PARTICLE]?.owner === undefined ||
+          particle[PARTICLE].owner === world.metadata.localPlayerId)
+    );
 
 const SEQUENCE_DEBUG = false;
 
@@ -135,6 +143,12 @@ export default function setupSequence(world: World) {
         sequenceState.elapsed += delta;
         const sequence = sequences[sequenceState.name];
         const result = sequence(world, entity, sequenceState as any); // trust me TypeScript i'm an engineer
+        if (sequenceType === "popup" && entity[POPUP]?.owner !== undefined) {
+          for (const id of Object.values(sequenceState.particles)) {
+            const particle = world.getEntityByIdAndComponents(id, [PARTICLE]);
+            if (particle) particle[PARTICLE].owner = entity[POPUP].owner;
+          }
+        }
 
         // ignore newly added sequence frames
         if (
