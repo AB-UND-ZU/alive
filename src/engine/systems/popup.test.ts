@@ -32,6 +32,8 @@ import { getEntityHaste, getHasteInterval } from "./movement";
 import { World } from "../ecs";
 import { getCellEntities } from "./map";
 import { TypedEntity } from "../entities";
+import { getSequence } from "./sequence";
+import { createText } from "../../game/assets/ui";
 
 // ♀ hero, ¾ credits sign
 const area = `
@@ -103,6 +105,29 @@ describe("popup interaction", () => {
     world.cleanup();
     expect(world.getEntityId(old)).toBeUndefined();
     expect(world.getEntityId(current)).toBeUndefined();
+  });
+
+  it("maps text scrollbar percentages to its rendered endpoints", () => {
+    const { world, hero } = setup();
+    const popup = getSign(world);
+    createPopup(world, popup, {
+      tabs: ["info"],
+      lines: [
+        Array.from({ length: 30 }, (_, index) => createText(`Line ${index}`)),
+      ],
+    });
+    openPopup(world, hero, popup, true);
+    step(world, 30);
+    const maximum = getSequence(world, popup, "popup")!.args.scrollMax!;
+    expect(maximum).toBeGreaterThan(0);
+    for (const percentage of [1, 0.5, 0]) {
+      hero[PLAYER].contentTriggered = percentage;
+      trigger(world, "scroll");
+      advanceUntil(world, () => !hero[PLAYER].actionTriggered);
+      expect(getVerticalIndex(world, popup)).toBe(
+        Math.round(percentage * maximum)
+      );
+    }
   });
 
   it("opens, scrolls and closes the credits popup", () => {

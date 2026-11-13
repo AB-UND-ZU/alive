@@ -116,8 +116,7 @@
   height: var(--cell-height);
 }
 
-.PopupUp,
-.PopupDown {
+.PopupScroll {
   position: fixed;
   top: var(--controls-center-y, 50%);
   right: 50%;
@@ -129,14 +128,7 @@
     )
   );
   width: var(--cell-width);
-  height: calc((var(--popup-height) / 2 - 1) * var(--cell-height));
-}
-
-.PopupDown {
-  transform: translate(
-    calc(9.5 * var(--cell-width)),
-    calc(var(--popup-offset) * var(--cell-height) - var(--pixel-size))
-  );
+  height: calc((var(--popup-height) - 2) * var(--cell-height));
 }
 
 .PopupContent {

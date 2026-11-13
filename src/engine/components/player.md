@@ -46,6 +46,7 @@ export type Player = {
     | "up"
     | "down"
     | "content"
+    | "scroll"
     | "type"
     | "build";
   tabTriggered?: number;

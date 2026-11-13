@@ -947,14 +947,40 @@ describe("touch controls", () => {
     }
   );
 
-  const pointerEvent = (type: "pointerdown" | "click", target: Element, id: number) => {
-    const event = new MouseEvent(type, { bubbles: true, cancelable: true, detail: 1 });
+  const pointerEvent = (
+    type: "pointerdown" | "pointermove" | "click",
+    target: Element,
+    id: number,
+    clientX = 175,
+    clientY = 45
+  ) => {
+    const event = new MouseEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      detail: 1,
+      clientX,
+      clientY,
+    });
     Object.defineProperties(event, {
+      clientX: { value: clientX },
+      clientY: { value: clientY },
       pointerId: { value: id },
       pointerType: { value: "touch" },
       isPrimary: { value: true },
     });
     fireEvent(target, event);
+  };
+
+  const scrollbar = (container: HTMLElement) => {
+    const bar = getTouchArea(container, "scroll") as HTMLElement;
+    jest.spyOn(bar, "getBoundingClientRect").mockReturnValue({
+      left: 170,
+      top: 0,
+      width: 10,
+      height: Number(bar.dataset.rows) * 10,
+    } as DOMRect);
+    bar.setPointerCapture = jest.fn();
+    return bar;
   };
 
   it("a handled drag consumes only one click from its native pointer", () => {
@@ -1094,8 +1120,8 @@ describe("touch controls", () => {
     press("Enter");
     runUntil(world, () => !!isInPopup(world, hero));
     runUntil(world, () => !hero[PLAYER].actionTriggered);
-    const bar = getTouchArea(container, "down");
-    fireEvent.pointerDown(bar);
+    const bar = scrollbar(container);
+    pointerEvent("pointerdown", bar, 1);
     touch("touchStart", [[175, 45]], bar);
     tick(world, 15);
     releasePointer(bar, 175, 45);
@@ -1117,8 +1143,8 @@ describe("touch controls", () => {
     press("Enter");
     runUntil(world, () => !!isInPopup(world, hero));
     runUntil(world, () => !hero[PLAYER].actionTriggered);
-    const bar = getTouchArea(container, "down");
-    fireEvent.pointerDown(bar);
+    const bar = scrollbar(container);
+    pointerEvent("pointerdown", bar, 1);
     touch("touchStart", [[175, 45]], bar);
     tick(world, 15);
     // The melee damage system uses this same close path when the hero is hit.
@@ -1234,8 +1260,7 @@ describe("touch controls", () => {
     press("q");
     runUntil(world, () => !!isInPopup(world, hero));
     runUntil(world, () => !hero[PLAYER].actionTriggered);
-    expect(queryTouchArea(container, "up")).not.toBeInTheDocument();
-    expect(queryTouchArea(container, "down")).not.toBeInTheDocument();
+    expect(queryTouchArea(container, "scroll")).not.toBeInTheDocument();
 
     press("ArrowDown");
     release("ArrowDown");
@@ -1249,35 +1274,33 @@ describe("touch controls", () => {
     press("Enter");
     runUntil(world, () => !!isInPopup(world, hero));
     runUntil(world, () => !hero[PLAYER].actionTriggered);
-    const down = getTouchArea(container, "down");
-    expect(getTouchArea(container, "up")).toBeInTheDocument();
-    fireEvent.pointerDown(down);
+    const down = scrollbar(container);
+    expect(getTouchArea(container, "scroll")).toBeInTheDocument();
+    pointerEvent("pointerdown", down, 1);
     touch("touchStart", [[175, 45]], down);
     runUntil(world, () => getVerticalIndex(world, trader) > 0);
 
     fireEvent.click(getTouchArea(container, "tab-1"));
     runUntil(world, () => getTab(world, trader) === "sell");
     tick(world, 10);
-    expect(queryTouchArea(container, "up")).not.toBeInTheDocument();
-    expect(queryTouchArea(container, "down")).not.toBeInTheDocument();
+    expect(queryTouchArea(container, "scroll")).not.toBeInTheDocument();
     expect(hero[MOVABLE].orientations).toEqual([]);
     touch("touchEnd", [], down);
 
     fireEvent.click(getTouchArea(container, "tab-0"));
     runUntil(world, () => getTab(world, trader) === "buy");
     tick(world, 10);
-    expect(getTouchArea(container, "up")).toBeInTheDocument();
-    expect(getTouchArea(container, "down")).toBeInTheDocument();
+    expect(getTouchArea(container, "scroll")).toBeInTheDocument();
   });
 
-  it.each(["up", "down"] as const)(
-    "releasing a held %s scrollbar cannot click a content row",
-    (direction) => {
+  it.each([8, 0])(
+    "releasing a scrollbar from row %s cannot click a content row",
+    (start) => {
       const { world, hero, container, trader } = setupShop();
       press("Enter");
       runUntil(world, () => hero[PLAYER].popup === world.getEntityId(trader));
       runUntil(world, () => !hero[PLAYER].actionTriggered);
-      act(() => setVerticalIndex(world, trader, direction === "up" ? 8 : 0));
+      act(() => setVerticalIndex(world, trader, start));
       const content = getTouchArea(container, "content");
       jest.spyOn(content, "getBoundingClientRect").mockReturnValue({
         left: 0,
@@ -1285,16 +1308,17 @@ describe("touch controls", () => {
         width: 170,
         height: 90,
       } as DOMRect);
-      const bar = getTouchArea(container, direction);
-      fireEvent.pointerDown(bar);
+      const bar = scrollbar(container);
+      pointerEvent("pointerdown", bar, 1);
       touch("touchStart", [[175, 45]], bar);
       tick(world, 15);
       touch("touchMove", [[168, 45]], bar);
       releasePointer(bar, 168, 45);
       expect(touch("touchEnd", [], bar)).toBe(true);
+      pointerEvent("click", content, 1, 168, 45);
       tick(world, 5);
       const selected = getVerticalIndex(world, trader);
-      expect(selected).not.toBe(direction === "up" ? 8 : 0);
+      expect(selected).not.toBe(start);
 
       tick(world, 5);
       expect(getVerticalIndex(world, trader)).toBe(selected);
@@ -1309,15 +1333,67 @@ describe("touch controls", () => {
     }
   );
 
+  it.each([0, 0.25, 0.5, 1])(
+    "scrolls to %s of the content on the next popup tick",
+    (percentage) => {
+      const { world, hero, container, trader } = setupShop();
+      press("Enter");
+      runUntil(world, () => !!isInPopup(world, hero));
+      runUntil(world, () => !hero[PLAYER].actionTriggered);
+      const bar = scrollbar(container);
+      const height = bar.getBoundingClientRect().height;
+      pointerEvent("pointerdown", bar, 1, 175, 20 + percentage * (height - 40));
+      expect(getVerticalIndex(world, trader)).toBe(0);
+      runUntil(world, () => !hero[PLAYER].actionTriggered);
+      const maximum = getSequence(world, trader, "popup")!.args.scrollMax!;
+      expect(getVerticalIndex(world, trader)).toBe(
+        Math.round(percentage * maximum)
+      );
+      releasePointer(bar, 175, 45);
+    }
+  );
+
+  it("uses the latest drag position, clamps to both ends, and keeps a released tap queued", () => {
+    const { world, hero, container, trader } = setupShop();
+    press("Enter");
+    runUntil(world, () => !!isInPopup(world, hero));
+    runUntil(world, () => !hero[PLAYER].actionTriggered);
+    const bar = scrollbar(container);
+    pointerEvent("pointerdown", bar, 1, 175, 20);
+    for (let index = 0; index < 100; index += 1)
+      pointerEvent("pointermove", document.body, 1, 120, index * 10);
+    releasePointer(bar, 120, 1000);
+    expect(getVerticalIndex(world, trader)).toBe(0);
+    runUntil(world, () => !hero[PLAYER].actionTriggered);
+    expect(getVerticalIndex(world, trader)).toBe(
+      trader[POPUP].deals.length - 1
+    );
+    pointerEvent("pointerdown", bar, 2, 175, 45);
+    pointerEvent("pointermove", document.body, 2, 300, -100);
+    runUntil(world, () => !hero[PLAYER].actionTriggered);
+    expect(getVerticalIndex(world, trader)).toBe(0);
+  });
+
+  it("can close the dialog before its queued scroll is processed", () => {
+    const { world, hero, container } = setupShop();
+    press("Enter");
+    runUntil(world, () => !!isInPopup(world, hero));
+    runUntil(world, () => !hero[PLAYER].actionTriggered);
+    pointerEvent("pointerdown", scrollbar(container), 1);
+    press("Escape");
+    runUntil(world, () => !isInPopup(world, hero));
+  });
+
   it("a scrollbar press owns horizontal finger movement", () => {
     const { world, hero, container, trader } = setupShop();
     press("Enter");
     runUntil(world, () => hero[PLAYER].popup === world.getEntityId(trader));
-    const down = getTouchArea(container, "down");
-    fireEvent.pointerDown(down);
+    const down = scrollbar(container);
+    pointerEvent("pointerdown", down, 1);
     touch("touchStart", [[175, 45]], down);
     touch("touchMove", [[220, 45]], down);
-    expect(hero[MOVABLE].orientations).toEqual(["down"]);
+    expect(hero[MOVABLE].orientations).toEqual([]);
+    expect(hero[PLAYER].actionTriggered).toBe("scroll");
     fireEvent.pointerUp(down);
     touch("touchEnd", [], down);
     expect(hero[MOVABLE].orientations).toEqual([]);
@@ -1347,12 +1423,13 @@ describe("touch controls", () => {
       width: 170,
       height: 90,
     } as DOMRect);
-    const down = getTouchArea(container, "down");
-    fireEvent.pointerDown(down);
+    const down = scrollbar(container);
+    pointerEvent("pointerdown", down, 1);
     touch("touchStart", [[175, 45]], down);
     tick(world, 10);
     releasePointer(down, 168, 45);
     expect(touch("touchEnd", [], down)).toBe(true);
+    pointerEvent("click", content, 1, 168, 45);
     tick(world, 5);
     const row = getVerticalIndex(world, popup);
     expect(row).toBeGreaterThan(0);

@@ -1085,6 +1085,25 @@ export default function setupPopup(world: World) {
       heroEntity[MOVABLE].pendingOrientation ||
       heroEntity[MOVABLE].orientations[0];
 
+    if (heroEntity[PLAYER].actionTriggered === "scroll") {
+      const maximum = getSequence(world, popupEntity, "popup")?.args.scrollMax;
+      if (maximum !== undefined) {
+        const index = Math.round(
+          clamp(heroEntity[PLAYER].contentTriggered ?? 0, 0, 1) * maximum
+        );
+        if (index !== getVerticalIndex(world, popupEntity)) play("select");
+        setVerticalIndex(world, popupEntity, index);
+        if (popupEntity[POPUP].sprite && getTab(world, popupEntity) === "pack")
+          popupEntity[POPUP].sprite!.selected = index;
+        rerenderEntity(world, popupEntity);
+      }
+      heroEntity[PLAYER].actionTriggered = undefined;
+      heroEntity[PLAYER].contentTriggered = undefined;
+      heroEntity[MOVABLE].pendingOrientation = undefined;
+      heroEntity[MOVABLE].lastInteraction = referenceGeneration;
+      return;
+    }
+
     if (
       popupEntity[POPUP].sprite &&
       !["close", "tab", "backtab"].includes(

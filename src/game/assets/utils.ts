@@ -327,14 +327,14 @@ export const renderPopup = (
       details,
       overscan
     );
-  const scrollRatio =
-    verticalIndex /
-    (lines -
-      (selection
-        ? 1
-        : details
-        ? windowHeight - detailsHeight - 3
-        : windowHeight - 2));
+  const scrollMax =
+    lines -
+    (selection
+      ? 1
+      : details
+      ? windowHeight - detailsHeight - 3
+      : windowHeight - 2);
+  const scrollRatio = verticalIndex / scrollMax;
   const contentSize =
     ((details ? windowHeight - detailsHeight : windowHeight) - 2) *
     (frameWidth - 2);
@@ -352,7 +352,7 @@ export const renderPopup = (
   const visibleScroll =
     lines > (details ? windowHeight - detailsHeight - 3 : windowHeight - 2) &&
     tab !== "chat";
-  state.args.scrollbar = visibleScroll;
+  state.args.scrollMax = visibleScroll ? scrollMax : undefined;
   const visibleOverlay =
     visibleScroll &&
     !entity[POPUP].sprite &&

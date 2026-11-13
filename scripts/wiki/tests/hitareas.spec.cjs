@@ -67,6 +67,7 @@ const popupState = (page) =>
       row: popup?.POPUP.verticalIndezes[popup.POPUP.horizontalIndex],
       tab: popup?.POPUP.tabs[popup.POPUP.horizontalIndex],
       moving: popup?.POPUP.sprite?.moving,
+      maximum: popup?.SEQUENCABLE.states.popup?.args.scrollMax,
       layers: popup?.POPUP.sprite?.sprites[0]?.layers,
       scroll: popup?.SEQUENCABLE.states.popup?.args.scrollIndex || 0,
     };
@@ -226,7 +227,7 @@ for (const viewport of [
       );
       await open(page, "sprites");
       await expect(page.locator("#content")).toBeVisible();
-      await expect(page.locator("#up,#down")).toHaveCount(0);
+      await expect(page.locator("#scroll")).toHaveCount(0);
       const before = await popupState(page);
       for (const key of ["popup-right-1", "popup-right-6"]) {
         const point = await nativePoint(page, "popup", key);
@@ -258,8 +259,7 @@ for (const viewport of [
       );
       const bar = await nativePoint(page, "popup", "popup-right-0");
       const content = await page.locator("#content").boundingBox();
-      const up = await page.locator("#up").boundingBox();
-      const down = await page.locator("#down").boundingBox();
+      const track = await page.locator("#scroll").boundingBox();
       await page.screenshot({
         path: testInfo.outputPath("popup-hit-areas.png"),
       });
@@ -273,16 +273,13 @@ for (const viewport of [
         last.y + last.cellHeight / 2,
         1
       );
-      expect(up.x).toBeCloseTo(bar.x - bar.cellWidth / 2, 1);
-      expect(down.x).toBeCloseTo(up.x, 1);
-      expect(up.width).toBeCloseTo(bar.cellWidth, 1);
-      expect(down.width).toBeCloseTo(bar.cellWidth, 1);
-      expect(up.y).toBeCloseTo(content.y, 1);
-      expect(up.y + up.height).toBeCloseTo(down.y, 1);
-      expect(down.y + down.height).toBeCloseTo(content.y + content.height, 1);
+      expect(track.x).toBeCloseTo(bar.x - bar.cellWidth / 2, 1);
+      expect(track.width).toBeCloseTo(bar.cellWidth, 1);
+      expect(track.y).toBeCloseTo(content.y, 1);
+      expect(track.height).toBeCloseTo(content.height, 1);
       const areas = await page
         .locator(
-          ".PopupContent,.PopupUp,.PopupDown,.PopupLeft,.PopupRight,.PopupClose,.PopupTab"
+          ".PopupContent,.PopupScroll,.PopupLeft,.PopupRight,.PopupClose,.PopupTab"
         )
         .evaluateAll((elements) =>
           elements.map((element) => ({
@@ -305,14 +302,70 @@ for (const viewport of [
           ).toBe(false);
         }
       }
-      const x = up.x + up.width / 2;
-      const y = up.y + up.height;
+      const x = track.x + track.width / 2;
+      const y = track.y + track.height / 2;
       expect(
         await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.id, {
           x,
           y,
         })
-      ).toBe("down");
+      ).toBe("scroll");
+    });
+
+    test("scrollbar taps and captured drags follow the content percentage", async ({
+      page,
+    }, testInfo) => {
+      await openList(page);
+      const track = await page.locator("#scroll").boundingBox();
+      const rows = Number(
+        await page.locator("#scroll").getAttribute("data-rows")
+      );
+      const cell = track.height / rows;
+      const point = {
+        x: track.x + track.width / 2,
+        y: track.y + 2 * cell + (track.height - 4 * cell) / 4,
+      };
+      const maximum = (await popupState(page)).maximum;
+      let client;
+      if (viewport.touch) {
+        client = await page.context().newCDPSession(page);
+        await client.send("Input.dispatchTouchEvent", {
+          type: "touchStart",
+          touchPoints: [{ ...point, id: 1 }],
+        });
+      } else {
+        await page.mouse.move(point.x, point.y);
+        await page.mouse.down();
+      }
+      await expect
+        .poll(async () => (await popupState(page)).row)
+        .toBe(Math.round(maximum / 4));
+      const move = async (x, y) => {
+        if (viewport.touch)
+          await client.send("Input.dispatchTouchEvent", {
+            type: "touchMove",
+            touchPoints: [{ x, y, id: 1 }],
+          });
+        else await page.mouse.move(x, y);
+      };
+      await move(track.x - 40, track.y + track.height + 50);
+      await expect.poll(async () => (await popupState(page)).row).toBe(maximum);
+      await page.screenshot({
+        path: testInfo.outputPath("scrollbar-bottom-drag.png"),
+      });
+      await move(track.x - 40, track.y - 50);
+      await expect.poll(async () => (await popupState(page)).row).toBe(0);
+      if (viewport.touch)
+        await client.send("Input.dispatchTouchEvent", {
+          type: "touchEnd",
+          touchPoints: [],
+        });
+      else await page.mouse.up();
+      await page.waitForTimeout(250);
+      expect(await popupState(page)).toMatchObject({ row: 0, tab: "pack" });
+      await page.screenshot({
+        path: testInfo.outputPath("scrollbar-top-released.png"),
+      });
     });
 
     test("scrollbar gestures cannot jump rows, confirm rows or change tabs on release", async ({
@@ -385,11 +438,10 @@ for (const viewport of [
         row: released.row,
         tab: released.tab,
       });
-      const up = await page.locator("#up").boundingBox();
-      const down = await page.locator("#down").boundingBox();
+      const track = await page.locator("#scroll").boundingBox();
       const center = {
-        x: down.x + down.width / 2,
-        y: (up.y + up.height + down.y) / 2,
+        x: track.x + track.width / 2,
+        y: track.y + track.height / 2,
       };
       if (viewport.touch) await page.touchscreen.tap(center.x, center.y);
       else await page.mouse.click(center.x, center.y);

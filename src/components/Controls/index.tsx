@@ -22,7 +22,13 @@ import {
 } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { ACTIONABLE, actions } from "../../engine/components/actionable";
-import { normalize, range, repeat, signedDistance } from "../../game/math/std";
+import {
+  clamp,
+  normalize,
+  range,
+  repeat,
+  signedDistance,
+} from "../../game/math/std";
 import { SPRITE, Sprite } from "../../engine/components/sprite";
 import { ITEM, Item, rechargables } from "../../engine/components/item";
 import { castableSpell, castableSkill } from "../../engine/systems/action";
@@ -277,7 +283,11 @@ export default function Controls({
     ecs && popup ? getSequence(ecs, popup, "popup") : undefined;
   const popupTab = ecs && popup && getTab(ecs, popup);
   const pressedOrientations = useRef<Orientation[]>([]);
-  const pointer = useRef<{ id: number; consumed: boolean }>();
+  const pointer = useRef<{
+    id: number;
+    consumed: boolean;
+    scrollbar?: Element;
+  }>();
   const touchOrigin = useRef<[number, number]>();
   const [joystickOrientations, setJoystickOrientations] = useState<
     Orientation[]
@@ -442,6 +452,7 @@ export default function Controls({
         | "up"
         | "down"
         | "content"
+        | "scroll"
         | "tab"
         | "backtab",
       index?: number,
@@ -476,12 +487,21 @@ export default function Controls({
 
       if (!reference) return;
 
+      if (
+        action === "scroll" &&
+        heroEntity[PLAYER].actionTriggered === "scroll"
+      ) {
+        heroEntity[PLAYER].contentTriggered = index;
+        return;
+      }
+
       // skip if already triggered
       if (
         heroEntity[ACTIONABLE].spellTriggered ||
         heroEntity[ACTIONABLE].skillTriggered ||
         heroEntity[ACTIONABLE].interactTriggered ||
-        heroEntity[PLAYER].actionTriggered
+        (heroEntity[PLAYER].actionTriggered &&
+          heroEntity[PLAYER].actionTriggered !== "scroll")
       )
         return;
 
@@ -502,7 +522,7 @@ export default function Controls({
         }
         if (
           ["type", "chat"].includes(action) ||
-          (index !== undefined && ["content", "use"].includes(action))
+          (index !== undefined && ["content", "use", "scroll"].includes(action))
         ) {
           heroEntity[PLAYER].contentTriggered = index;
           heroEntity[PLAYER].offsetTriggered = offset;
@@ -913,29 +933,18 @@ export default function Controls({
   );
 
   const handleScroll = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      if (event.pointerType === "touch") return;
-      if (pointer.current) pointer.current.consumed = true;
-      event.preventDefault();
-      event.currentTarget.setPointerCapture?.(event.pointerId);
-      handleMove([event.currentTarget.id === "up" ? "up" : "down"]);
+    (bar: Element, clientY: number) => {
+      const rect = bar.getBoundingClientRect();
+      const cellHeight = rect.height / Number(bar.getAttribute("data-rows"));
+      // Keep the handle center inside its end caps.
+      const percentage = clamp(
+        (clientY - rect.top - 2 * cellHeight) / (rect.height - 4 * cellHeight),
+        0,
+        1
+      );
+      handleAction("scroll", percentage);
     },
-    [handleMove]
-  );
-
-  const handleRelease = useCallback(
-    (
-      event:
-        | KeyboardEvent
-        | TouchEvent
-        | React.MouseEvent<HTMLDivElement, MouseEvent>
-    ) => {
-      if ("pointerType" in event && event.pointerType === "touch") return;
-      event.preventDefault();
-
-      handleMove([]);
-    },
-    [handleMove]
+    [handleAction]
   );
 
   const handleKey = useCallback(
@@ -1123,7 +1132,7 @@ export default function Controls({
   // A popup can disappear while its scrollbar is held.
   useLayoutEffect(releaseTouch, [
     popup,
-    popupSequence?.args.scrollbar,
+    popupSequence?.args.scrollMax,
     releaseTouch,
   ]);
 
@@ -1145,16 +1154,7 @@ export default function Controls({
 
       const touch = event.touches[0];
       if (event.type === "touchstart") releaseTouch();
-      const scrollControl = (touch.target as HTMLElement).closest(
-        ".PopupUp,.PopupDown"
-      );
-      if (scrollControl) {
-        if (event.type === "touchstart" && popup) {
-          if (pointer.current) pointer.current.consumed = true;
-          handleMove([scrollControl.id === "up" ? "up" : "down"]);
-        }
-        return;
-      }
+      if ((touch.target as HTMLElement).closest(".PopupScroll")) return;
 
       const onKeyboard = [...event.changedTouches].some((touch) =>
         (touch.target as HTMLElement).closest("#keyboard")
@@ -1238,18 +1238,29 @@ export default function Controls({
   useEffect(() => {
     const handlePointer = (event: PointerEvent) => {
       if (event.type === "pointerdown") {
-        if (event.isPrimary)
-          pointer.current = { id: event.pointerId, consumed: false };
+        if (!event.isPrimary || event.button !== 0) return;
+        const scrollbar =
+          (event.target as Element).closest(".PopupScroll") ?? undefined;
+        pointer.current = {
+          id: event.pointerId,
+          consumed: !!scrollbar,
+          scrollbar,
+        };
+        scrollbar?.setPointerCapture(event.pointerId);
+      } else if (event.type === "pointermove") {
+        if (pointer.current?.id !== event.pointerId) return;
+      } else {
+        // Keep click consumption until click; release only the drag target.
+        if (pointer.current && pointer.current.id === event.pointerId) {
+          if (event.type === "pointercancel") pointer.current = undefined;
+          else pointer.current.scrollbar = undefined;
+        }
+        // A touch target can disappear before its touchend reaches the window.
+        if (event.pointerType === "touch") releaseTouch();
         return;
       }
-      // Keep the pointer until its click; pointerup arrives first.
-      if (
-        event.type === "pointercancel" &&
-        pointer.current?.id === event.pointerId
-      )
-        pointer.current = undefined;
-      // A touch target can disappear before its touchend reaches the window.
-      if (event.pointerType === "touch") releaseTouch();
+      const scrollbar = pointer.current?.scrollbar;
+      if (scrollbar?.isConnected) handleScroll(scrollbar, event.clientY);
     };
     const handleClick = (event: MouseEvent) => {
       const activePointer = pointer.current;
@@ -1266,18 +1277,17 @@ export default function Controls({
       }
     };
     window.addEventListener("click", handleClick, true);
-    window.addEventListener("pointerdown", handlePointer, {
-      capture: true,
-      passive: true,
-    });
-    window.addEventListener("pointerup", handlePointer, {
-      capture: true,
-      passive: true,
-    });
-    window.addEventListener("pointercancel", handlePointer, {
-      capture: true,
-      passive: true,
-    });
+    const pointerEvents = [
+      "pointerdown",
+      "pointermove",
+      "pointerup",
+      "pointercancel",
+    ] as const;
+    for (const type of pointerEvents)
+      window.addEventListener(type, handlePointer, {
+        capture: true,
+        passive: true,
+      });
     window.addEventListener("keydown", handleKey);
     window.addEventListener("keyup", handleKey);
 
@@ -1290,9 +1300,8 @@ export default function Controls({
 
     return () => {
       window.removeEventListener("click", handleClick, true);
-      window.removeEventListener("pointerdown", handlePointer, true);
-      window.removeEventListener("pointerup", handlePointer, true);
-      window.removeEventListener("pointercancel", handlePointer, true);
+      for (const type of pointerEvents)
+        window.removeEventListener(type, handlePointer, true);
       window.removeEventListener("keydown", handleKey);
       window.removeEventListener("keyup", handleKey);
 
@@ -1303,7 +1312,7 @@ export default function Controls({
 
       window.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [handleKey, handleMouseMove, handleTouchMove, releaseTouch]);
+  }, [handleKey, handleMouseMove, handleTouchMove, handleScroll, releaseTouch]);
 
   const emptySpell = createButton(
     isTouch ? "SPELL" : "SPACE",
@@ -1559,25 +1568,12 @@ export default function Controls({
           <div className="PopupClose" id="close" onClick={handleClose} />
           <div className="PopupLeft" id="left" onClick={handleLeft} />
           <div className="PopupRight" id="right" onClick={handleRight} />
-          {popupSequence?.args.scrollbar && (
-            <>
-              <div
-                className="PopupUp"
-                id="up"
-                onPointerDown={handleScroll}
-                onPointerUp={handleRelease}
-                onPointerCancel={handleRelease}
-                onLostPointerCapture={handleRelease}
-              />
-              <div
-                className="PopupDown"
-                id="down"
-                onPointerDown={handleScroll}
-                onPointerUp={handleRelease}
-                onPointerCancel={handleRelease}
-                onLostPointerCapture={handleRelease}
-              />
-            </>
+          {!!popupSequence?.args.scrollMax && (
+            <div
+              className="PopupScroll"
+              id="scroll"
+              data-rows={(popupSequence.args.windowHeight || frameHeight) - 2}
+            />
           )}
           <div
             className="PopupContent"

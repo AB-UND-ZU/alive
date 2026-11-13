@@ -234,7 +234,7 @@ export type PopupSequence = {
   detailsPadding: number;
   generation?: number;
   scrollIndex?: number;
-  scrollbar?: boolean;
+  scrollMax?: number;
   verticalIndex: number;
   horizontalIndex: number;
   backButton?: boolean;

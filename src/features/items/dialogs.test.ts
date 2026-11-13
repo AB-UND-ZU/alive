@@ -614,9 +614,9 @@ it("restores the frame when details disappear without changing the number of row
   renderPopup(world, popup, sequence, undefined, content, "selected", [
     createText("Details"),
   ]);
-  expect(sequence.args.scrollbar).toBe(true);
+  expect(sequence.args.scrollMax).toBeGreaterThan(0);
   renderPopup(world, popup, sequence, undefined, content);
-  expect(sequence.args.scrollbar).toBe(false);
+  expect(sequence.args.scrollMax).toBeUndefined();
   expect(side[SPRITE]).toBe(original);
   expect(side.ORIENTABLE.facing).toBe("right");
 });

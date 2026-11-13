@@ -85,7 +85,12 @@ test("a completed swipe cannot block pause when the next tap's start events are 
 
 test("closing a dialog with a held scrollbar cannot block a later pause tap", async ({
   page,
+  browserName,
 }, testInfo) => {
+  test.skip(
+    browserName !== "chromium",
+    "Native drag uses the Chrome touch protocol"
+  );
   await openGame(page, "game/ilex");
   const quick = await page.locator("#quick").boundingBox();
   await page.touchscreen.tap(
@@ -95,26 +100,22 @@ test("closing a dialog with a held scrollbar cannot block a later pause tap", as
   await expect(page.locator("#content")).toBeVisible();
   await page.waitForTimeout(800);
   await page.keyboard.press("t");
-  await expect(page.locator("#down")).toBeVisible();
+  await expect(page.locator("#scroll")).toBeVisible();
   await page.waitForTimeout(800);
-  await page.evaluate(() => {
-    const target = document.getElementById("down");
-    const rect = target.getBoundingClientRect();
-    const point = {
-      target,
-      identifier: 1,
-      clientX: rect.x + rect.width / 2,
-      clientY: rect.y + rect.height / 2,
-    };
-    const event = new Event("touchstart", { bubbles: true, cancelable: true });
-    Object.defineProperties(event, {
-      touches: { value: [point] },
-      changedTouches: { value: [point] },
-    });
-    window.dispatchEvent(event);
+  const rect = await page.locator("#scroll").boundingBox();
+  const client = await page.context().newCDPSession(page);
+  await client.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [
+      { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2, id: 1 },
+    ],
   });
   await page.keyboard.press("Escape");
   await expect(page.locator("#content")).toHaveCount(0);
+  await client.send("Input.dispatchTouchEvent", {
+    type: "touchEnd",
+    touchPoints: [],
+  });
   await tapPauseWithoutStarts(page);
   await page.screenshot({
     path: testInfo.outputPath("pause-after-detached-scrollbar.png"),
