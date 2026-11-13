@@ -111,11 +111,28 @@ export const createSnapshot = (world: World): WorldSnapshot => {
 };
 
 /** Create a world with identical entities and IDs, but without systems. */
-export const restoreSnapshot = (snapshot: WorldSnapshot) => {
-  const world = createWorld();
+export const restoreSnapshot = (
+  snapshot: WorldSnapshot,
+  world = createWorld()
+) => {
+  const records = new Map(snapshot.entities);
+  const current = (world.metadata.ecs as unknown as { entities: TypedEntity[] })
+    .entities;
+  for (const entity of [...current]) {
+    const components = records.get(world.getEntityId(entity));
+    if (!components) {
+      world.removeEntity(entity, false);
+      continue;
+    }
+    for (const name in entity) {
+      if (!(name in components))
+        world.removeComponentFromEntity(entity, name as never, false);
+    }
+  }
   const copies = new Map<unknown, unknown>();
-  const restored = snapshot.entities.map(([entityId]) =>
-    world.restoreEntity(entityId)
+  const restored = snapshot.entities.map(
+    ([entityId]) =>
+      world.getEntityById(entityId) || world.restoreEntity(entityId)
   );
   const replace = (value: object) => {
     if ("$sprite" in value) {
@@ -133,11 +150,16 @@ export const restoreSnapshot = (snapshot: WorldSnapshot) => {
 
   snapshot.entities.forEach(([, components], index) => {
     for (const componentName in components) {
-      world.addComponentToEntity(
-        restored[index],
-        componentName as keyof typeof components as never,
-        copyValue(components[componentName], replace, copies) as never
-      );
+      const entity = restored[index];
+      const data = copyValue(components[componentName], replace, copies);
+      if (componentName in entity)
+        Object.assign(entity, { [componentName]: data });
+      else
+        world.addComponentToEntity(
+          entity,
+          componentName as never,
+          data as never
+        );
     }
   });
 
