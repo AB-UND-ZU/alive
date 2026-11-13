@@ -1,0 +1,7 @@
+# Snapshot wire encoding
+
+`encodeState` encodes plain game data as a JSON object graph. Shared objects and cycles use reference indices. Special numbers and undefined use tagged values, preserving component identity and values such as infinite stat caps across a WebSocket or JSON file boundary.
+
+`decodeState` reconstructs trusted server data. It is not an input schema and must never be used to accept client-authored world state. Object properties are defined directly so keys such as `__proto__` remain data. Functions and non-plain objects are rejected by the encoder.
+
+Snapshot creation and restoration still belong to `engine/snapshot.ts`. The codec neither filters entities nor changes IDs or gameplay state. Its native-world test verifies movement after an encoded snapshot is restored, including shared spawn/viewpoint data.
