@@ -258,7 +258,9 @@
 | [TerminalCell](renderers/terminal/sprites.md#type-terminalcell) | `src/renderers/terminal/sprites.ts` |
 | [TerminalFrame](renderers/terminal/frame.md#type-terminalframe) | `src/renderers/terminal/frame.ts` |
 | [TerminalKey](renderers/terminal/input.md#type-terminalkey) | `src/renderers/terminal/input.ts` |
+| [TerminalSession](renderers/terminal/index.md#type-terminalsession) | `src/renderers/terminal/index.tsx` |
 | [TerminalSprite](renderers/terminal/frame.md#type-terminalsprite) | `src/renderers/terminal/frame.ts` |
+| [TerminalState](renderers/terminal/frame.md#type-terminalstate) | `src/renderers/terminal/frame.ts` |
 | [TestWorldOptions](testing/harness.md#type-testworldoptions) | `src/testing/harness.ts` |
 | [Tile](engine/wfc/wfc.md#type-tile) | `src/engine/wfc/wfc.ts` |
 | [Tool](engine/components/item.md#type-tool) | `src/engine/components/item.ts` |

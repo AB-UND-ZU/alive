@@ -7,7 +7,9 @@
 Fog, interior visibility, equipment, unit backdrops, loot and sequence particles use the game's existing data and helpers. Movement and camera positions are sampled from engine motion at `metadata.renderTime`.
 
 `SceneState` retains spell quadrants across frames so a spell stays in its chosen wrapped copy of the world. Create a new state when switching worlds.
-The optional fifth argument `{ includeHidden: true }` retains hidden body, fog and health entries for opacity transitions. Their `hidden` flag controls visibility. Keys distinguish wrapped copies while remaining stable during movement. `swimming` marks the lower water overlay; renderers can omit it.
+The optional fifth argument `{ includeHidden: true }` retains hidden body, fog and health entries for opacity transitions. Their `hidden` flag controls visibility. Keys distinguish wrapped copies while remaining stable during movement. `{ instant: true }` uses current engine positions and the current viewpoint without movement interpolation or actor bumps. Inactive dialog particles are omitted immediately. `fog` marks cells whose world colors should be dimmed or inverted, including empty unexplored cells.
+
+`swimming` marks the lower water overlay; renderers can omit it.
 <!-- source-types -->
 
 ## SceneSprite
@@ -23,6 +25,7 @@ export type SceneSprite = {
   amount?: number;
   entity: Entity;
   hidden?: boolean;
+  fog?: boolean;
   swimming?: boolean;
   dots?: number;
   hp?: {

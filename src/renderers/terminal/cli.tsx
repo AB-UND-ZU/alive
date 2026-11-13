@@ -20,9 +20,15 @@ import {
 } from "../../game/saves";
 import { restoreSnapshot } from "../../engine/snapshot";
 import { createFrameClock, systemsFrame } from "../interface/clock";
-import { createTerminalRoot, getTerminalFrame, Terminal } from ".";
+import {
+  createTerminalRoot,
+  getTerminalFrame,
+  getTerminalLayout,
+  getPauseActions,
+  Terminal,
+} from ".";
 import { createTerminalInput } from "./input";
-import { frameToText } from "./frame";
+import { frameToAnsi, frameToText } from "./frame";
 
 const savePath = () =>
   join(
@@ -55,16 +61,24 @@ export const runTerminal = () => {
     clock = createFrameClock(world);
   let state = { stickyCastables: {} };
   let saved: SaveGame | undefined;
+  let pauseSelection = 0;
+  let saveFailed = false;
   try {
     saved = upgradeSave(deserialize(readFileSync(savePath())) as SaveGame);
     setSaveSummaries([getSummary(saved)]);
   } catch {}
   const save = () => {
     if (!canSave(world)) return;
-    saved = createSave(world);
-    mkdirSync(dirname(savePath()), { recursive: true });
-    writeFileSync(savePath(), serialize(saved));
-    setSaveSummaries([getSummary(saved)]);
+    try {
+      saved = createSave(world);
+      world.metadata.saveId = saved.id;
+      mkdirSync(dirname(savePath()), { recursive: true });
+      writeFileSync(savePath(), serialize(saved));
+      setSaveSummaries([getSummary(saved)]);
+      saveFailed = false;
+    } catch {
+      saveFailed = true;
+    }
   };
   const attach = (next: World) => {
     world = next;
@@ -97,8 +111,7 @@ export const runTerminal = () => {
   const dimensions = () => {
     const columns = process.stdout.columns || 80;
     const rows = process.stdout.rows || 30;
-    const width = Math.min(33, columns),
-      height = rows - 6;
+    const { width, height } = getTerminalLayout(columns, rows);
     world.metadata.dimensions = {
       ...world.metadata.dimensions,
       columns: width,
@@ -106,7 +119,7 @@ export const runTerminal = () => {
       renderedColumns: width,
       rows,
       renderedRows: height,
-      hudRows: 3,
+      hudRows: 4,
       padding: 0,
       screenWidth: columns * 9,
       screenHeight: rows * 16,
@@ -124,8 +137,12 @@ export const runTerminal = () => {
     const { columns, rows } = dimensions();
     for (let i = 0; i < Number(args[frameArg + 1] || 1); i++)
       clock.advance(systemsFrame);
+    const frame = getTerminalFrame(world, columns, rows, state);
+    const colored =
+      !args.includes("--plain") &&
+      (args.includes("--color") || process.stdout.isTTY);
     process.stdout.write(
-      frameToText(getTerminalFrame(world, columns, rows, state)) + "\n"
+      (colored ? frameToAnsi(frame) : frameToText(frame)) + "\n"
     );
     return;
   }
@@ -138,12 +155,27 @@ export const runTerminal = () => {
     const { columns, rows } = dimensions();
     if (columns < 33 || rows < 24) {
       process.stdout.write(
-        "\x1b[H\x1b[2JAlive needs at least 33 columns and 24 rows."
+        "\x1b[0m\x1b[H\x1b[2JAlive needs at least 33 columns and 24 rows."
       );
       return;
     }
     root.render(
-      <Terminal world={world} columns={columns} rows={rows} state={state} />
+      <Terminal
+        world={world}
+        columns={columns}
+        rows={rows}
+        state={state}
+        session={{
+          paused,
+          suspended,
+          selection: pauseSelection,
+          saveName:
+            saved && saved.id === world.metadata.saveId
+              ? saved.name
+              : undefined,
+          failed: saveFailed,
+        }}
+      />
     );
   };
   const stop = () => {
@@ -167,13 +199,40 @@ export const runTerminal = () => {
     const hero = world.getEntities([PLAYER])[0];
     const popup =
       hero && world.getEntityByIdAndComponents(hero[PLAYER].popup, [POPUP]);
-    if (key.name === "escape" && !popup) {
-      paused = !paused;
-      input.stop();
-      if (paused) save();
+    if (paused) {
+      const actions = getPauseActions(world);
+      if (key.name === "escape" || key.name === "space" || key.name === "r") {
+        paused = false;
+      } else if (key.name === "up" || key.name === "w") {
+        pauseSelection = (pauseSelection + actions.length - 1) % actions.length;
+      } else if (key.name === "down" || (key.name === "s" && !key.ctrl)) {
+        pauseSelection = (pauseSelection + 1) % actions.length;
+      } else if (key.ctrl && key.name === "s") {
+        save();
+      } else if (key.name === "return" || key.name === "enter") {
+        const action = actions[pauseSelection];
+        if (!action.disabled) {
+          if (action.name === "RESUME") paused = false;
+          else if (action.name === "SAVE") save();
+          else {
+            save();
+            attach(createTerminalWorld());
+            paused = false;
+            suspended = false;
+          }
+        }
+      }
+      render();
       return;
     }
-    if (paused) paused = false;
+    if (key.name === "escape" && !popup) {
+      paused = true;
+      pauseSelection = 0;
+      input.stop();
+      save();
+      render();
+      return;
+    }
     input.press(key);
   };
   process.stdout.write("\x1b[?1049h\x1b[?25l\x1b[2J");

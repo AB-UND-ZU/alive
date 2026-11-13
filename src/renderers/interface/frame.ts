@@ -14,6 +14,7 @@ import { PROJECTILE } from "../../engine/components/projectile";
 import { INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
 import { Orientation, ORIENTABLE } from "../../engine/components/orientable";
+import { POPUP } from "../../engine/components/popup";
 import { PARTICLE } from "../../engine/components/particle";
 import { STICKY } from "../../engine/components/sticky";
 import { SWIMMABLE } from "../../engine/components/swimmable";
@@ -24,7 +25,7 @@ import { ATTACKABLE } from "../../engine/components/attackable";
 import { BUILDABLE } from "../../engine/components/buildable";
 import { BREWABLE } from "../../engine/components/brewable";
 import { isOutside } from "../../engine/systems/enter";
-import { getParticles } from "../../engine/systems/sequence";
+import { getParticles, getSequence } from "../../engine/systems/sequence";
 import { isCollecting, isLootable } from "../../engine/systems/collect";
 import { isEnemy, isNeutral } from "../../engine/systems/damage";
 import {
@@ -56,6 +57,7 @@ export type SceneSprite = {
   amount?: number;
   entity: Entity;
   hidden?: boolean;
+  fog?: boolean;
   swimming?: boolean;
   dots?: number;
   hp?: {
@@ -75,7 +77,10 @@ export const getSceneFrame = (
   columns: number,
   rows: number,
   state: SceneState = { stickyCastables: {} },
-  { includeHidden = false }: { includeHidden?: boolean } = {}
+  {
+    includeHidden = false,
+    instant = false,
+  }: { includeHidden?: boolean; instant?: boolean } = {}
 ): SceneSprite[] => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const hero = world.getEntities([PLAYER, POSITION])[0];
@@ -86,16 +91,22 @@ export const getSceneFrame = (
       (left, right) => right[VIEWABLE].priority - left[VIEWABLE].priority
     )[0];
   const cameraMotion = getCameraMotion(world);
-  const camera = cameraMotion
+  const sampledCamera = cameraMotion
     ? sampleMotion(cameraMotion, world.metadata.renderTime)
-    : {
-        x:
-          (viewable?.[POSITION].x || 0) +
-          (viewable?.[VIEWABLE].fraction?.x || 0),
-        y:
-          (viewable?.[POSITION].y || 0) +
-          (viewable?.[VIEWABLE].fraction?.y || 0),
-      };
+    : viewable?.[POSITION] || { x: 0, y: 0 };
+  const targetCamera = {
+    x:
+      (viewable?.[POSITION].x || 0) +
+      Math.round((sampledCamera.x - (viewable?.[POSITION].x || 0)) / size) *
+        size +
+      (viewable?.[VIEWABLE].fraction?.x || 0),
+    y:
+      (viewable?.[POSITION].y || 0) +
+      Math.round((sampledCamera.y - (viewable?.[POSITION].y || 0)) / size) *
+        size +
+      (viewable?.[VIEWABLE].fraction?.y || 0),
+  };
+  const camera = !instant && cameraMotion ? sampledCamera : targetCamera;
   const structure = hero?.[LAYER]?.structure;
   const scene: SceneSprite[] = [];
   const position = {
@@ -127,6 +138,7 @@ export const getSceneFrame = (
     const visibility = entity[FOG]?.visibility;
     const air = entity[FOG]?.type === "air";
     const visible = visibility === "visible" || !!entity[PROJECTILE];
+    const fog = visibility === "fog" || (air && visibility === "hidden");
     const outside = !inside && isOutside(world, entity, structure);
     const opaque = (entity[LIGHT]?.darkness || 0) > 0;
     const inRadius =
@@ -140,7 +152,9 @@ export const getSceneFrame = (
     let px = x - camera.x + (columns - 1) / 2;
     let py = y - camera.y + (rows - 1) / 2;
     const animated =
-      !entity[STICKY] && (entity[MOVABLE]?.spring || entity[BUMPABLE]);
+      !instant &&
+      !entity[STICKY] &&
+      (entity[MOVABLE]?.spring || entity[BUMPABLE]);
     const motion = animated && getMotion(entity);
     if (motion) {
       const point = sampleMotion(motion, world.metadata.renderTime);
@@ -203,6 +217,7 @@ export const getSceneFrame = (
           segment.facing
         );
         entry.hidden = hidden;
+        entry.fog = fog;
       }
     }
     if (
@@ -238,6 +253,7 @@ export const getSceneFrame = (
           item![ITEM].amount,
           item![ORIENTABLE]?.facing
         );
+        entry.fog = fog;
         if (index === 0) {
           const amount = entity[BREWABLE] ? items.length : item![ITEM].amount;
           if (
@@ -248,9 +264,20 @@ export const getSceneFrame = (
         }
       });
     }
+    const closingPopup =
+      instant && entity[POPUP] && !entity[POPUP].active
+        ? getSequence(world, entity, "popup")
+        : undefined;
+    const closingParticles =
+      closingPopup && new Set(Object.values(closingPopup.particles));
     for (const [index, particle] of getParticles(world, entity).entries()) {
-      if (!particle?.[SPRITE]) continue;
-      const motion = particle[PARTICLE].animatedOrigin && getMotion(particle);
+      if (
+        !particle?.[SPRITE] ||
+        closingParticles?.has(world.getEntityId(particle))
+      )
+        continue;
+      const motion =
+        !instant && particle[PARTICLE].animatedOrigin && getMotion(particle);
       const point = motion
         ? sampleMotion(motion, world.metadata.renderTime)
         : particle[PARTICLE];

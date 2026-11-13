@@ -63,7 +63,7 @@ describe("native terminal controls", () => {
     expect(
       createTerminalFrame([body], 5, 5)
         .flat()
-        .some((cell) => cell.char === "@")
+        .some((cell) => cell.char === "♀")
     ).toBe(true);
     input.stop();
   });
@@ -128,4 +128,20 @@ describe("native terminal controls", () => {
     expect(hero[MOVABLE].orientations).toEqual([]);
     input.stop();
   });
+});
+
+it("closes a terminal dialog without waiting for another simulation tick", () => {
+  const world = createAreaWorld(`
+|       |
+| ♀     |
+|       |
+`);
+  const hero = assertHero(world);
+  openChat(world);
+  const elapsed = world.metadata.elapsed;
+  const input = createTerminalInput(world);
+  input.press({ name: "escape" });
+  expect(isInPopup(world, hero)).toBeFalsy();
+  expect(world.metadata.elapsed).toBe(elapsed);
+  input.stop();
 });

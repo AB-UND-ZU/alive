@@ -8,6 +8,7 @@ import { getSequence } from "../../engine/systems/sequence";
 import { POPUP } from "../../engine/components/popup";
 import { Orientation } from "../../engine/components/orientable";
 import {
+  closePopup,
   getTab,
   isInPopup,
   typeChat,
@@ -145,6 +146,12 @@ export const createTerminalInput = (world: World) => {
     if (index !== undefined) action = "use";
     if (name === "/") action = "chat";
     if (!action) return;
+    if (action === "close" && popup) {
+      stop();
+      hero[PLAYER].actionTriggered = undefined;
+      closePopup(world, hero, popup);
+      return;
+    }
     if (
       hero[ACTIONABLE].spellTriggered ||
       hero[ACTIONABLE].skillTriggered ||

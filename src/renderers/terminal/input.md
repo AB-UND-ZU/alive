@@ -4,7 +4,7 @@
 readline keypress events. `createTerminalInput(world)` returns `press` and
 `stop`. It sets the same movement/reference and action flags as browser
 controls, and uses the engine's direct typing, completion and history APIs
-while chat is open. It does not execute game actions itself.
+while chat is open. It queues normal game actions. Escape closes an active popup immediately through the engine's close helper, retaining the normal Back action where available.
 
 Terminal keyboards lack keyup events; a 100 ms timeout releases movement.
 A new key event extends that hold. `stop` releases it immediately, including

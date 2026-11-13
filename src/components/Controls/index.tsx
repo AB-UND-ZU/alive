@@ -9,17 +9,16 @@ import {
 import { isTouch, useDimensions } from "../Dimensions";
 import "./index.css";
 import { MOVABLE } from "../../engine/components/movable";
-import { useHero, useViewpoint, useWorld } from "../../renderers/interface/hooks";
+import {
+  useHero,
+  useViewpoint,
+  useWorld,
+} from "../../renderers/interface/hooks";
 import { REFERENCE } from "../../engine/components/reference";
 import { ORIENTABLE, Orientation } from "../../engine/components/orientable";
 import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
 import Row from "../Row";
-import {
-  mana,
-  ninePlusAmmo,
-  ninePlusMana,
-  none,
-} from "../../game/assets/sprites";
+import { none } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { ACTIONABLE, actions } from "../../engine/components/actionable";
 import {
@@ -30,7 +29,7 @@ import {
   signedDistance,
 } from "../../game/math/std";
 import { SPRITE, Sprite } from "../../engine/components/sprite";
-import { ITEM, Item, rechargables } from "../../engine/components/item";
+import { ITEM } from "../../engine/components/item";
 import { castableSpell, castableSkill } from "../../engine/systems/action";
 import { Entity } from "ecs";
 import { World } from "../../engine";
@@ -51,8 +50,6 @@ import { isActionable, isInteractable } from "../../engine/systems/freeze";
 import { POPUP } from "../../engine/components/popup";
 import { TypedEntity } from "../../engine/entities";
 import { EQUIPPABLE } from "../../engine/components/equippable";
-import { INVENTORY } from "../../engine/components/inventory";
-import { STATS } from "../../engine/components/stats";
 import { PLAYER } from "../../engine/components/player";
 import { ensureAudio } from "../../game/sound/resumable";
 import { play } from "../../game/sound";
@@ -62,7 +59,6 @@ import {
   frameWidth,
   getItemSprite,
 } from "../../game/assets/utils";
-import { centerSprites } from "../../game/assets/pixels";
 import { LEVEL } from "../../engine/components/level";
 import { menuName } from "../../game/levels/menu";
 import {
@@ -72,7 +68,6 @@ import {
 import { IDENTIFIABLE } from "../../engine/components/identifiable";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
 import { getSequence } from "../../engine/systems/sequence";
-import { harvestConditions } from "../../game/balancing/harvesting";
 import Keyboard, {
   getIndexFromKey,
   keyboardColumns,
@@ -86,6 +81,7 @@ import {
   getButtonSeparator,
 } from "../../game/assets/ui";
 import { frameColor } from "../Terminal";
+import { getActionActivations } from "../../renderers/interface/actions";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -121,90 +117,6 @@ export const interactKeys = ["Enter"];
 export const closeKeys = ["Escape"];
 export const historyKeys = ["ArrowUp", "ArrowDown"];
 export const hotKeys = range(0, 9).map((key) => key.toString());
-
-const getActionActivations = (
-  world: World,
-  hero: TypedEntity,
-  item: Item,
-  alignRight: boolean
-) => {
-  const itemSprite = getItemSprite(item, "display");
-  const hookCondition = hero[CONDITIONABLE]?.hook;
-
-  if (
-    item.skill === "bow" ||
-    rechargables.includes(item.skill as (typeof rechargables)[number]) ||
-    (item.tool === "hook" && !hookCondition)
-  ) {
-    const ammo =
-      item.skill === "bow" ? "arrow" : item.tool === "hook" ? "worm" : "charge";
-    const stackableItem = hero[INVENTORY]?.items
-      .map((itemId) => world.assertByIdAndComponents(itemId, [ITEM]))
-      .find((item) => item[ITEM].stackable === ammo);
-    const stackableSprite = getItemSprite({ stackable: ammo });
-    const supply = stackableItem ? stackableItem[ITEM].amount : 0;
-    const supplySegment =
-      supply > 99
-        ? [...createText("9", colors.silver), ninePlusAmmo]
-        : createText(supply.toString(), colors.silver);
-
-    return [
-      ...repeat(none, alignRight ? 2 : 0),
-      itemSprite,
-      ...createText("1", colors.silver),
-      ...createText("/", colors.grey),
-      ...supplySegment,
-      stackableSprite,
-      ...repeat(none, alignRight ? 0 : 2),
-    ].slice(alignRight ? -6 : 0, alignRight ? undefined : 6);
-  } else if (
-    item.tool === "axe" ||
-    item.tool === "pickaxe" ||
-    item.tool === "shovel"
-  ) {
-    if (!hero[CONDITIONABLE]?.[harvestConditions[item.tool]]) {
-      return centerSprites([itemSprite], 6);
-    }
-    const weaponEntity = world.getEntityByIdAndComponents(
-      hero[EQUIPPABLE]?.weapon,
-      [SPRITE]
-    );
-    return centerSprites([weaponEntity?.[SPRITE] || none], 6);
-  } else if (
-    item.tool === "hook" &&
-    hookCondition &&
-    !hookCondition.orientation
-  ) {
-    const weaponEntity = world.getEntityByIdAndComponents(
-      hero[EQUIPPABLE]?.weapon,
-      [SPRITE]
-    );
-    return centerSprites([weaponEntity?.[SPRITE] || none], 6);
-  } else if (item.spell) {
-    const mp = hero[STATS]?.mp || 0;
-    const mpSegment =
-      mp > 99
-        ? [...createText("9", colors.blue), ninePlusMana]
-        : createText(mp.toString(), colors.blue);
-    return [
-      ...repeat(none, alignRight ? 2 : 0),
-      itemSprite,
-      ...createText("1", colors.blue),
-      ...createText("/", colors.navy),
-      ...mpSegment,
-      mana,
-      ...repeat(none, alignRight ? 0 : 2),
-    ].slice(alignRight ? -6 : 0, alignRight ? undefined : 6);
-  } else if (item.weapon) {
-    const weaponEntity = world.getEntityByIdAndComponents(
-      hero[EQUIPPABLE]?.weapon,
-      [SPRITE]
-    );
-    return centerSprites([weaponEntity?.[SPRITE] || none], 6);
-  }
-
-  return repeat(none, 6);
-};
 
 const buttonWidth = 7;
 const inventoryWidth = 8;

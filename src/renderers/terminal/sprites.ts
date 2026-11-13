@@ -1,7 +1,6 @@
 import { Layer, Sprite } from "../../engine/components/sprite";
 import { Orientation } from "../../engine/components/orientable";
 import { colors } from "../../game/assets/colors";
-import { codePage437 } from "../../game/assets/characters";
 import { getFacingLayers } from "../../game/assets/ui";
 import {
   characterMask,
@@ -14,7 +13,7 @@ export type TerminalCell = {
   background?: string;
 };
 
-// CP437's control pictures live at private code points in the game font.
+// The font stores CP437 control pictures at private code points.
 const controls = Array.from("☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼");
 export const terminalCharacter = (char: string) => {
   const code = char.charCodeAt(0);
@@ -23,190 +22,76 @@ export const terminalCharacter = (char: string) => {
   return char;
 };
 
-// Recognizable silhouettes take precedence over a literal mask match.
-const symbols: Record<string, string> = {
-  "?????": "?",
-  Absorb: "O",
-  Blocked: "X",
-  warn_on: "!",
-  warn_off: "·",
-  Avocado: "o",
-  Lemon: "o",
-  Bread: "▬",
-  Toast: "▬",
-  Grain: "·",
-  Wheat: "♠",
-  Tea: "∩",
-  Soup: "∩",
-  Curry: "∩",
-  Juice: "∩",
-  Granola: "∩",
-  Cask: "≡",
-  Egg: "o",
-  Pet: "@",
-  Head: "☻",
-  tree_one: "♣",
-  tree_two: "♣",
-  tree_birch: "♣",
-  tree_leaves: "♣",
-  hedge_one: "♣",
-  hedge_two: "♣",
-  hedge_one_dry: "♣",
-  hedge_two_dry: "♣",
-  bush_empty: "♣",
-  palm_one: "♠",
-  palm_two: "♠",
-  grass_empty: "·",
-  Scout: "@",
-  Rogue: "@",
-  Mage: "@",
-  Knight: "@",
-  "???": "@",
-  Bandit: "b",
-  Chief: "B",
-  Zombie: "z",
-  Blade: "/",
-  Soul: "☻",
-  Spider: "x",
-  Snake: "s",
-  Fly: "·",
-  Fairy: "f",
-  Tower: "T",
-  Chick: "c",
-  Salmon: "α",
-  Pike: "α",
-  Tuna: "α",
-  Cod: "α",
-  Eel: "~",
-  Seastar: "*",
-  Shark: "S",
-  Ilex: "I",
-  Rose: "♣",
-  Violet: "♣",
-  Clover: "♣",
-  Lily: "♣",
-  Tulip: "♣",
-  Chest: "■",
-  Crate: "■",
-  Box: "■",
-  Vase: "∩",
-  Pot: "∩",
-  Dummy: "t",
-  Bonfire: "♠",
-  Fountain: "≈",
-  Lever: "/",
-  Sign: "¶",
-  Portal: "Ω",
-  Anvil: "π",
-  Kettle: "∩",
-  Bench: "┬",
-  Table: "┬",
-  Chair: "h",
-  Fence: "╬",
-  Wall: "█",
-  Barrier: "▒",
-  Stairs: ">",
-  Door: "+",
-  Sword: "/",
-  Shield: "♦",
-  Wand: "/",
-  Bow: ")",
-  Arrow: "↑",
-  Torch: "¡",
-  Compass: "♦",
-  Map: "≡",
-  Boots: "b",
-  Ring: "°",
-  Amulet: "♀",
-  Bomb: "•",
-  Flask: "¡",
-  Bottle: "¡",
-  Potion: "¡",
-  Elixir: "¡",
-  Apple: "o",
-  Banana: ")",
-  Coconut: "o",
-  Berry: "o",
-  Fruit: "o",
-  Shroom: "τ",
-  Herb: "♣",
-  Flower: "♣",
-  Leaf: "♠",
-  Sapling: "♠",
-  Stick: "/",
-  Wood: "=",
-  Plank: "=",
-  Ore: "♦",
-  Iron: "♦",
-  Gold: "♦",
-  Diamond: "♦",
-  Ruby: "♦",
-  Mineral: "♦",
-  Crystal: "♦",
-  Thorn: "'",
-  Spore: "·",
-  Coin: "o",
-  Nugget: "•",
-  Ingot: "▬",
-  Bait: "~",
-  Wire: "~",
-  HP: "♥",
-  "Max HP": "♥",
-  MP: "♦",
-  "Max MP": "♦",
-  XP: "x",
-  Level: "#",
-  Power: "+",
-  Wisdom: "*",
-  Armor: "■",
-  Resist: "♦",
-  Vision: "○",
-  Haste: "»",
-  Logging: "/",
-  Farming: "♣",
-  Mining: "T",
-  Fishing: "J",
-  Build: "T",
-  Aura: "+",
-  Kills: "☻",
-  Stats: "P",
-  Chat: "?",
-  Pause: "║",
-  Resume: "►",
-};
-
-const grounds: Record<string, string> = {
-  water_shallow: colors.teal,
-  water_deep: colors.navy,
-  water_ice: colors.aqua,
-  Desert: colors.olive,
-  sand_beach: colors.olive,
-  Path: colors.grey,
-  gravel_one: colors.grey,
-  gravel_two: colors.grey,
-  Soil: colors.maroon,
-  Dock: colors.olive,
-  water_frozen: colors.aqua,
-};
-
-const candidates = codePage437.filter((char) => char !== "\u00a0");
 const cache = new Map<string, TerminalCell>();
 
 export const projectLayers = (layers: Layer[], name = ""): TerminalCell => {
   const key = JSON.stringify([name, layers]);
   const cached = cache.get(key);
   if (cached) return cached;
+  if (
+    layers.some((layer) => "▀▄".includes(layer.char)) &&
+    layers.every((layer) => "█▀▄".includes(layer.char))
+  ) {
+    let upper: string = colors.black;
+    let lower: string = colors.black;
+    for (const layer of layers) {
+      if (layer.char !== "▄") upper = layer.color;
+      if (layer.char !== "▀") lower = layer.color;
+    }
+    const cell = { char: "▀", foreground: upper, background: lower };
+    cache.set(key, cell);
+    return cell;
+  }
+  const shadeIndex =
+    layers[0]?.char === "█" && layers[0].color === colors.black ? 1 : 0;
+  const shade = layers[shadeIndex];
+  if (
+    shade &&
+    layers[shadeIndex + 1]?.char === "▀" &&
+    layers[shadeIndex + 1].color === colors.black &&
+    ("▄█".includes(shade.char) ||
+      (shade.char === "░" &&
+        [colors.silver, colors.grey].includes(shade.color))) &&
+    name !== "progress" &&
+    !name.startsWith("level_progress")
+  ) {
+    const cell = projectLayers(layers.slice(shadeIndex + 2), name);
+    const dark = [
+      colors.black,
+      colors.maroon,
+      colors.green,
+      colors.olive,
+      colors.navy,
+      colors.blue,
+      colors.purple,
+      colors.teal,
+    ];
+    const selected = {
+      ...cell,
+      background: shade.color,
+      foreground: dark.includes(shade.color) ? colors.white : colors.black,
+    };
+    cache.set(key, selected);
+    return selected;
+  }
   const pixels = composeCharacterPixels(layers);
   const counts = new Map<string, number>();
   for (const color of pixels)
     if (color) counts.set(color, (counts.get(color) || 0) + 1);
-  const ordered = [...counts].sort((a, b) => b[1] - a[1]);
-  const foreground =
-    ordered.find(([color]) => color !== colors.black)?.[0] || colors.black;
-  let result: TerminalCell;
-  const frameEdge = /^(quick|popup)_(side|corner|center|down|separator)/.test(
-    name
-  )
+  const dominant =
+    [...counts]
+      .filter(([color]) => color !== colors.black)
+      .sort((a, b) => b[1] - a[1])[0]?.[0] || colors.black;
+  const block =
+    [...layers].reverse().find((layer) => layer.char === "█") ||
+    [...layers]
+      .reverse()
+      .find(
+        (layer) => "▀▄▌▐".includes(layer.char) && layer.color !== colors.black
+      );
+  const background = block?.color;
+  let result: TerminalCell = { char: " ", foreground: dominant };
+  const edge = /^(quick|popup)_(side|corner|center|down|separator)/.test(name)
     ? [...layers]
         .reverse()
         .find(
@@ -214,54 +99,171 @@ export const projectLayers = (layers: Layer[], name = ""): TerminalCell => {
             layer.color !== colors.black && /[\u2500-\u257f]/.test(layer.char)
         )
     : undefined;
-  if (frameEdge) {
+  const progress =
+    layers[0]?.char === "░" &&
+    layers.some((layer) => layer.char === "▀" && layer.color === colors.black);
+  const letter = layers[layers.length - 1];
+
+  if (
+    layers.some(
+      (layer) => layer.char === "■" && layer.color === colors.black
+    ) &&
+    layers.some((layer) => layer.char === "|") &&
+    background &&
+    background !== colors.black
+  ) {
+    result = { char: "║", foreground: colors.black, background };
+  } else if (name === "warn_on" || name === "warn_off") {
+    result = { char: name === "warn_on" ? "!" : "O", foreground: dominant };
+  } else if (
+    (name === "text_generic" || name === "button_generic" || progress) &&
+    letter &&
+    (!progress || !"█▀▄▌▐░▒▓".includes(letter.char))
+  ) {
+    if (letter)
+      result = {
+        char: terminalCharacter(letter.char),
+        foreground: letter.color,
+        background:
+          background ||
+          (/[\u2500-\u257f]/.test(letter.char) ? colors.black : undefined),
+      };
+  } else if (edge) {
     result = {
-      char: frameEdge.char,
-      foreground: frameEdge.color,
+      char: edge.char,
+      foreground: edge.color,
       background: colors.black,
     };
-  } else if (grounds[name]) {
-    result = { char: " ", foreground, background: grounds[name] };
-  } else if (layers.length === 1) {
+  } else if (name === "Eye") {
+    result = { char: "ô", foreground: dominant };
+  } else if (name === "Key") {
+    result = { char: "╒", foreground: dominant };
+  } else if (name === "Fence") {
     result = {
-      char: terminalCharacter(layers[0].char),
-      foreground: layers[0].color,
+      char: layers.some((layer) => layer.char === "|") ? "+" : "-",
+      foreground: dominant,
     };
-    if (layers[0].char === "█")
-      result = { char: " ", foreground, background: layers[0].color };
+  } else if (/^shot(?:_shadow|_wood_2)?$/.test(name)) {
+    const arrow = layers.find(
+      (layer) =>
+        layer.color !== colors.black && "\u0117\u0118»«".includes(layer.char)
+    );
+    result = {
+      char: arrow
+        ? { "\u0117": "↑", "\u0118": "↓", "»": "→", "«": "←" }[arrow.char] ||
+          "→"
+        : layers.some(
+            (layer) => layer.color === colors.black && layer.char === "\u0119"
+          )
+        ? "←"
+        : "→",
+      foreground:
+        layers.find((layer) => layer.color !== colors.black)?.color || dominant,
+    };
+  } else if (["Desert", "sand_beach", "Soil", "Path"].includes(name)) {
+    result = {
+      char: name === "Path" ? "·" : name === "sand_beach" ? "▒" : "░",
+      foreground: colors.black,
+      background: dominant,
+    };
+  } else if (
+    name === "water_shallow" ||
+    name === "water_deep" ||
+    name === "water_frozen"
+  ) {
+    result = {
+      char: name === "water_shallow" ? "~" : "≈",
+      foreground: colors.blue,
+      background: colors.navy,
+    };
+  } else if (name === "water_ice") {
+    result = { char: "\\", foreground: colors.aqua, background: colors.teal };
   } else {
-    let bestError = Infinity;
-    result = { char: " ", foreground, background: undefined };
-    for (const char of candidates) {
-      const mask = characterMask(char);
-      const front = new Map<string, number>();
-      const back = new Map<string | undefined, number>();
-      for (let i = 0; i < pixels.length; i++) {
-        const color = pixels[i];
-        if (mask[i]) {
-          if (color) front.set(color, (front.get(color) || 0) + 1);
-        } else back.set(color, (back.get(color) || 0) + 1);
+    const person = layers.find(
+      (layer) => layer.char === "\u010b" && layer.color !== colors.black
+    );
+    const building =
+      /^(?:fortress_)?(?:roof|house|basement|wall_inside|window)(?:_|$)/.test(
+        name
+      );
+    const edge =
+      building &&
+      [...layers]
+        .reverse()
+        .find(
+          (layer) =>
+            layer.color !== colors.black && /[\u2500-\u257f]/.test(layer.char)
+        );
+    if (person) {
+      result = { char: "♀", foreground: person.color };
+    } else if (edge) {
+      let char = edge.char;
+      if (/roof/.test(name)) {
+        if (/left_up/.test(name)) char = "┌";
+        else if (/up_right/.test(name)) char = "┐";
+        else if (/down_left/.test(name)) char = "└";
+        else if (/right_down/.test(name)) char = "┘";
+        else if (/_(up|down)(_|$)/.test(name)) char = "─";
+        else if (/_(left|right)(_|$)/.test(name)) char = "│";
       }
-      const fg = [...front].sort((a, b) => b[1] - a[1])[0];
-      const bg = [...back].sort((a, b) => b[1] - a[1])[0];
-      const error = pixels.length - (fg?.[1] || 0) - (bg?.[1] || 0);
-      if (error < bestError) {
-        bestError = error;
+      result = {
+        char,
+        foreground: edge.color,
+        background: background || colors.black,
+      };
+    } else if (layers.length === 1) {
+      result = {
+        char: terminalCharacter(layers[0].char),
+        foreground: layers[0].color,
+      };
+      if (layers[0].char === "█")
         result = {
-          char: terminalCharacter(char),
-          foreground: fg?.[0] || foreground,
-          background: bg?.[0],
+          char: " ",
+          foreground: layers[0].color,
+          background: layers[0].color,
         };
+    } else {
+      let error = Infinity;
+      for (const layer of layers) {
+        const mask = characterMask(layer.char);
+        const backs = new Map<string | undefined, number>();
+        let matches = 0;
+        for (let index = 0; index < pixels.length; index++) {
+          if (mask[index]) {
+            if (pixels[index] === layer.color) matches++;
+          } else backs.set(pixels[index], (backs.get(pixels[index]) || 0) + 1);
+        }
+        const back = [...backs].sort((a, b) => b[1] - a[1])[0];
+        const bg = back?.[0];
+        if (
+          layer.color === colors.black &&
+          (!background ||
+            background === colors.black ||
+            !bg ||
+            bg === colors.black)
+        )
+          continue;
+        const nextError = pixels.length - matches - (back?.[1] || 0);
+        if (nextError < error) {
+          error = nextError;
+          result = {
+            char: terminalCharacter(layer.char),
+            foreground: layer.color,
+            background: bg,
+          };
+        }
       }
-    }
-    if (symbols[name]) {
-      result.char = symbols[name];
-      result.foreground = foreground;
-      if (result.background === foreground) result.background = undefined;
+      // A solid fill uses the background channel, leaving text and half-block art alone.
+      if (result.char === "█")
+        result = {
+          char: " ",
+          foreground: result.foreground,
+          background: result.foreground,
+        };
     }
   }
-  if (symbols[name] && layers.length === 1 && layers[0].char !== "█")
-    result.char = symbols[name];
+  if (pixels.every((pixel) => pixel === colors.black))
+    result = { char: " ", foreground: colors.black, background: colors.black };
   cache.set(key, result);
   return result;
 };

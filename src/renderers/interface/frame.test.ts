@@ -1,4 +1,12 @@
-import { createAreaWorld, getHero, giveItems } from "../../testing/harness";
+import {
+  createAreaWorld,
+  getHero,
+  giveItems,
+  act,
+} from "../../testing/harness";
+import { POPUP } from "../../engine/components/popup";
+import { PLAYER } from "../../engine/components/player";
+import { closePopup } from "../../engine/systems/popup";
 import { FOG } from "../../engine/components/fog";
 import { SPRITE } from "../../engine/components/sprite";
 import {
@@ -6,6 +14,8 @@ import {
   releaseCameraMotion,
   updateParticleMotion,
   getMotion,
+  updateCameraMotion,
+  bumpEntity,
 } from "../../engine/motion";
 import { getSceneFrame } from "./frame";
 import { ORIENTABLE } from "../../engine/components/orientable";
@@ -262,4 +272,149 @@ it("stops sampling cached body and particle motion when animation flags are remo
   particle[PARTICLE].animatedOrigin = undefined;
   expect(getMotion(particle)).toBeDefined();
   expect(pointer().x).toBe(11);
+});
+
+it("keeps instant actors centered on their camera target throughout movement and map wrapping", () => {
+  const world = createAreaWorld(area, { size: 48 });
+  const hero = world.assertComponents(getHero(world)!, [
+    MOVABLE,
+    POSITION,
+    SPRITE,
+  ]);
+  hero[MOVABLE].spring = { duration: 200 };
+  updateCameraMotion(world, true);
+  const started = world.metadata.elapsed;
+  const body = (instant: boolean) =>
+    getSceneFrame(world, 15, 11, undefined, { instant }).find(
+      (entry) => entry.sprite === hero[SPRITE]
+    )!;
+  for (const position of [
+    { x: 8, y: 2 },
+    { x: 6, y: 3 },
+    { x: 47, y: 2 },
+    { x: 0, y: 2 },
+  ]) {
+    moveEntity(world, hero, position);
+    updateCameraMotion(world);
+    for (const elapsed of [0, 50, 100, 200]) {
+      world.metadata.renderTime = started + elapsed;
+      expect(body(true).x).toBe(7);
+      expect(body(true).y).toBe(5);
+    }
+  }
+});
+
+it("ignores bumps in an instant frame while keeping normal body interpolation", () => {
+  const world = createAreaWorld(area, { size: 48 });
+  const hero = world.assertComponents(getHero(world)!, [BUMPABLE, SPRITE]);
+  updateCameraMotion(world, true);
+  bumpEntity(world, hero, "right");
+  const body = (instant: boolean) =>
+    getSceneFrame(world, 15, 11, undefined, { instant }).find(
+      (entry) => entry.sprite === hero[SPRITE]
+    )!;
+  expect(body(false).x).toBeGreaterThan(7);
+  expect(body(true).x).toBe(7);
+  expect(body(true).y).toBe(5);
+});
+
+it("uses the current dialog particle position immediately in an instant frame", () => {
+  const world = createAreaWorld(area, { size: 48 });
+  const hero = getHero(world)!;
+  const particle = entities.createFibre(world, {
+    [SPRITE]: questPointer,
+    [PARTICLE]: {
+      offsetX: 4,
+      offsetY: 0,
+      offsetZ: 9,
+      animatedOrigin: { x: 0, y: 0 },
+      duration: 200,
+    },
+    [ORIENTABLE]: { facing: "right" },
+    [RENDERABLE]: { generation: 0 },
+  });
+  getSequence(world, hero, "pointer")!.particles = {
+    pointer: world.getEntityId(particle),
+  };
+  updateParticleMotion(world, particle);
+  world.metadata.renderTime = world.metadata.elapsed + 100;
+  const pointer = (instant: boolean) =>
+    getSceneFrame(world, 15, 11, undefined, { instant }).find(
+      (entry) => entry.sprite === questPointer
+    )!;
+  expect(pointer(false).x).toBe(9);
+  expect(pointer(true).x).toBe(11);
+  particle[PARTICLE].offsetX = 0;
+  expect(pointer(true).x).toBe(7);
+});
+
+it("marks explored fog on world sprites without changing interface particle colors", () => {
+  const world = createAreaWorld(area, { size: 48 });
+  const hero = world.assertComponents(getHero(world)!, [FOG, SPRITE]);
+  hero[FOG].type = "object";
+  hero[FOG].visibility = "fog";
+  const particle = entities.createFibre(world, {
+    [SPRITE]: questPointer,
+    [PARTICLE]: { offsetX: 1, offsetY: 0, offsetZ: 9 },
+    [ORIENTABLE]: { facing: "right" },
+    [RENDERABLE]: { generation: 0 },
+  });
+  getSequence(world, hero, "pointer")!.particles = {
+    pointer: world.getEntityId(particle),
+  };
+  const frame = getSceneFrame(world, 15, 11, undefined, { instant: true });
+  expect(frame.find((entry) => entry.sprite === hero[SPRITE])?.fog).toBe(true);
+  expect(
+    frame.find((entry) => entry.sprite === questPointer)?.fog
+  ).toBeUndefined();
+  hero[FOG].visibility = "visible";
+  expect(
+    getSceneFrame(world, 15, 11).find((entry) => entry.sprite === hero[SPRITE])
+      ?.fog
+  ).toBe(false);
+});
+
+it("marks unexplored air for terminal fog coloring", () => {
+  const world = createAreaWorld(area, { size: 48 });
+  const hero = world.assertComponents(getHero(world)!, [FOG, SPRITE]);
+  hero[FOG].type = "air";
+  hero[FOG].visibility = "hidden";
+  expect(
+    getSceneFrame(world, 15, 11, undefined, { instant: true }).find(
+      (entry) => entry.sprite === hero[SPRITE]
+    )?.fog
+  ).toBe(true);
+});
+
+it("removes closed popup particles from an instant frame before the next engine update", () => {
+  const world = createAreaWorld(area, { size: 48 });
+  const hero = world.assertComponents(getHero(world)!, [PLAYER]);
+  act(world, "inspect");
+  const popup = world.assertByIdAndComponents(hero[PLAYER].popup, [POPUP]);
+  const state = getSequence(world, popup, "popup")!;
+  const first = world.assertByIdAndComponents(
+    Object.values(state.particles)[0],
+    [SPRITE]
+  );
+  const marker = entities.createFibre(world, {
+    [SPRITE]: questPointer,
+    [PARTICLE]: { offsetX: 1, offsetY: 0, offsetZ: 9 },
+    [ORIENTABLE]: { facing: "right" },
+    [RENDERABLE]: { generation: 0 },
+  });
+  getSequence(world, hero, "pointer")!.particles.marker =
+    world.getEntityId(marker);
+  const hasPopup = (instant: boolean) =>
+    getSceneFrame(world, 15, 11, undefined, { instant }).some(
+      (entry) => entry.entity === popup && entry.sprite === first[SPRITE]
+    );
+  expect(hasPopup(true)).toBe(true);
+  closePopup(world, hero, popup);
+  expect(hasPopup(false)).toBe(true);
+  expect(hasPopup(true)).toBe(false);
+  expect(
+    getSceneFrame(world, 15, 11, undefined, { instant: true }).some(
+      (entry) => entry.sprite === questPointer
+    )
+  ).toBe(true);
 });

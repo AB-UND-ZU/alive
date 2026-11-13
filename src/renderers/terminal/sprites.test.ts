@@ -1,7 +1,10 @@
 import * as sprites from "../../game/assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { colors } from "../../game/assets/colors";
-import { createText } from "../../game/assets/ui";
+import { eye, prism } from "../../game/assets/templates/creatures";
+import { key } from "../../game/assets/templates/items";
+import { shot } from "../../game/assets/templates/particles";
+import { createText, createProgress, shaded } from "../../game/assets/ui";
 import { projectLayers, projectSprite, terminalCharacter } from "./sprites";
 
 describe("terminal sprite projection", () => {
@@ -20,18 +23,17 @@ describe("terminal sprite projection", () => {
   });
 
   it("keeps people, items and terrain recognizable without drawing small accents as backgrounds", () => {
-    expect(projectSprite(sprites.rogue)).toMatchObject({
-      char: "@",
-      background: undefined,
-    });
+    expect(projectSprite(sprites.rogue).char).toBe("♀");
+    expect(projectSprite(sprites.rogue).background).toBeUndefined();
     expect(projectSprite(sprites.apple)).toMatchObject({
-      char: "o",
+      char: "•",
       foreground: colors.red,
-      background: undefined,
     });
+    expect(projectSprite(sprites.apple).background).toBeUndefined();
     expect(projectSprite(sprites.waterShallow)).toMatchObject({
-      char: " ",
-      background: colors.teal,
+      char: "~",
+      foreground: colors.blue,
+      background: colors.navy,
     });
   });
 
@@ -46,6 +48,11 @@ describe("terminal sprite projection", () => {
   });
 
   it("keeps dialog borders visible above black half-cell masks", () => {
+    expect(projectSprite(createText("│", colors.silver)[0])).toEqual({
+      char: "│",
+      foreground: colors.silver,
+      background: colors.black,
+    });
     expect(
       projectLayers(
         [
@@ -74,16 +81,162 @@ describe("terminal sprite projection", () => {
     });
   });
 
-  it("uses foliage symbols for leaves and hedges instead of face-shaped pixel matches", () => {
-    for (const sprite of [
-      sprites.leaves,
-      sprites.hedge1,
-      sprites.hedge2,
-      sprites.hedgeDry1,
-      sprites.hedgeDry2,
-    ]) {
-      expect(projectSprite(sprite).char).toBe("♣");
+  it("keeps the original grass, bush and triangular creature characters", () => {
+    expect(projectSprite(sprites.grass)).toMatchObject({
+      char: ",",
+      foreground: colors.olive,
+    });
+    expect(projectSprite(sprites.bush)).toMatchObject({
+      char: "τ",
+      foreground: colors.olive,
+    });
+    for (const facing of ["up", "right", "down", "left"] as const) {
+      expect(projectSprite(prism.iron.default, facing)).toMatchObject({
+        char: { up: "▲", right: "►", down: "▼", left: "◄" }[facing],
+        foreground: colors.grey,
+      });
     }
+    expect(projectSprite(eye.gold.default)).toMatchObject({
+      char: "ô",
+      foreground: colors.yellow,
+    });
+    expect(projectSprite(key.iron.default)).toMatchObject({
+      char: "╒",
+      foreground: colors.grey,
+    });
+  });
+
+  it("draws arrows in their actual shot direction and fence posts as crossings", () => {
+    for (const facing of ["up", "right", "down", "left"] as const) {
+      expect(projectSprite(shot.wood.default, facing).char).toBe(
+        { up: "↑", right: "→", down: "↓", left: "←" }[facing]
+      );
+    }
+    expect(projectSprite(sprites.fence).char).toBe("+");
+  });
+
+  it("keeps selected popup text over the dialog background", () => {
+    expect(
+      projectLayers(
+        [
+          { char: "█", color: colors.black },
+          { char: "▄", color: colors.green },
+          { char: "▀", color: colors.black },
+          { char: "e", color: colors.white },
+        ],
+        "popup_overlay"
+      )
+    ).toEqual({
+      char: "e",
+      foreground: colors.white,
+      background: colors.green,
+    });
+  });
+
+  it("preserves upper and lower title blocks before selection inversion", () => {
+    expect(
+      projectLayers(
+        [
+          { char: "█", color: colors.maroon },
+          { char: "▀", color: colors.black },
+        ],
+        "title"
+      )
+    ).toEqual({
+      char: "▀",
+      foreground: colors.black,
+      background: colors.maroon,
+    });
+  });
+
+  it("preserves both pixel colors in the sprite builder preview", () => {
+    expect(
+      projectLayers(
+        [
+          { char: "▀", color: colors.red },
+          { char: "▄", color: colors.blue },
+        ],
+        "sprite_pixel_pair"
+      )
+    ).toEqual({
+      char: "▀",
+      foreground: colors.red,
+      background: colors.blue,
+    });
+    expect(
+      projectLayers(
+        [
+          { char: "▀", color: colors.black },
+          { char: "▄", color: colors.maroon },
+        ],
+        "sprite_pixel_pair"
+      )
+    ).toEqual({
+      char: "▀",
+      foreground: colors.black,
+      background: colors.maroon,
+    });
+  });
+
+  it("keeps warning flashes and the inverted pause button recognizable", () => {
+    expect(projectSprite(sprites.warnOn)).toEqual({
+      char: "!",
+      foreground: colors.red,
+    });
+    expect(projectSprite(sprites.warnOff)).toEqual({
+      char: "O",
+      foreground: colors.red,
+    });
+    expect(projectLayers(sprites.pauseInvert.layers, "button_generic")).toEqual(
+      {
+        char: "║",
+        foreground: colors.black,
+        background: colors.white,
+      }
+    );
+  });
+
+  it("keeps terrain patterns distinct without losing their colors", () => {
+    expect(projectSprite(sprites.sand)).toMatchObject({
+      char: "░",
+      foreground: colors.black,
+      background: colors.olive,
+    });
+    expect(projectSprite(sprites.path)).toMatchObject({
+      char: "·",
+      foreground: colors.black,
+      background: colors.grey,
+    });
+    expect(projectSprite(sprites.waterDeep)).toMatchObject({
+      char: "≈",
+      foreground: colors.blue,
+      background: colors.navy,
+    });
+    expect(projectSprite(sprites.wall)).toMatchObject({
+      char: " ",
+      background: colors.grey,
+    });
+  });
+
+  it("preserves progress labels and inverts selected dialog text", () => {
+    const bar = createProgress({ hp: 12, maxHp: 25 }, "hp", 13);
+    expect(bar.map((sprite) => projectSprite(sprite).char).join("")).toContain(
+      "12/25"
+    );
+    expect(
+      projectSprite(shaded(createText("S", colors.grey), colors.green, "▄")[0])
+    ).toEqual({
+      char: "S",
+      foreground: colors.white,
+      background: colors.green,
+    });
+    expect(
+      projectSprite(shaded(createText("S", colors.white), colors.silver)[0])
+    ).toEqual({
+      char: "S",
+      foreground: colors.black,
+      background: colors.silver,
+    });
   });
 
   it("applies black masks before choosing a visible terminal glyph", () => {

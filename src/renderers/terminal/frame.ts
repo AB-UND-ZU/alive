@@ -1,7 +1,18 @@
-import { SceneSprite } from "../interface/frame";
+import { SceneSprite, SceneState } from "../interface/frame";
 import { Layer, SPRITE } from "../../engine/components/sprite";
-import { colors } from "../../game/assets/colors";
+import {
+  brightColors,
+  colors,
+  darkColors,
+  orderedColors,
+} from "../../game/assets/colors";
 import { projectLayers, TerminalCell } from "./sprites";
+import { ENTERABLE } from "../../engine/components/enterable";
+import { World } from "../../engine";
+import { PLAYER } from "../../engine/components/player";
+import { BUMPABLE } from "../../engine/components/bumpable";
+import { orientationPoints } from "../../engine/components/orientable";
+import { tooltipHeight } from "../interface/segments";
 
 export type TerminalSprite = {
   x: number;
@@ -9,6 +20,7 @@ export type TerminalSprite = {
   z: number;
   layers: Layer[];
   sprite: { name: string };
+  fog?: boolean;
 };
 export type TerminalFrame = TerminalCell[][];
 
@@ -19,26 +31,47 @@ export const collectTerminalSprites = (
   const result: TerminalSprite[] = [];
   const bodies = new Map<string, TerminalSprite>();
   for (const entry of scene) {
-    if (!/body\d+$/.test(entry.key)) {
+    const titleBlock = /^block_(up|down)$/.test(entry.sprite.name);
+    if (!titleBlock && !/body\d+$/.test(entry.key)) {
       result.push(entry);
       continue;
     }
-    const key = entry.key.replace(/body\d+$/, "body");
+    const key = titleBlock
+      ? `block:${entry.x}:${entry.y}:${entry.z}`
+      : entry.key.replace(/body\d+$/, "body");
     const body = bodies.get(key);
     if (body) {
       body.layers.push(...entry.layers);
       body.z = Math.max(body.z, entry.z);
+      body.fog = body.fog || entry.fog;
+      if (entry.sprite === entry.entity[ENTERABLE]?.sprite)
+        body.sprite = entry.sprite;
     } else {
       const sprite = {
         ...entry,
         layers: [...entry.layers],
-        sprite: entry.entity[SPRITE] || entry.sprite,
+        sprite:
+          entry.sprite === entry.entity[ENTERABLE]?.sprite
+            ? entry.sprite
+            : entry.entity[SPRITE] || entry.sprite,
       };
       bodies.set(key, sprite);
       result.push(sprite);
     }
   }
   return result;
+};
+
+const fogColor = (color: string) => {
+  if (color === colors.black) return colors.white;
+  if (color === colors.white) return colors.black;
+  return (
+    darkColors[color] ||
+    brightColors[color] ||
+    `#${(Number.parseInt(color.slice(1), 16) ^ 0xffffff)
+      .toString(16)
+      .padStart(6, "0")}`
+  );
 };
 
 export const createTerminalFrame = (
@@ -56,33 +89,128 @@ export const createTerminalFrame = (
       })
     )
   );
+  const fogCells = new Set<number>();
+  let fogApplied = false;
+  const applyFog = () => {
+    for (const index of fogCells) {
+      const cell = frame[Math.floor(index / columns)][index % columns];
+      cell.foreground = fogColor(cell.foreground);
+      cell.background = fogColor(cell.background || colors.black);
+    }
+    fogApplied = true;
+  };
   for (const sprite of [...sprites].sort((a, b) => a.z - b.z)) {
+    if (!fogApplied && sprite.z >= tooltipHeight) applyFog();
     const x = Math.ceil(sprite.x),
       y = Math.ceil(sprite.y);
     if (x < 0 || x >= columns || y < 0 || y >= rows) continue;
-    const projected = projectLayers(sprite.layers, sprite.sprite.name);
+    if (sprite.sprite.name === "fog_war") continue;
+    if (sprite.fog && !fogApplied) fogCells.add(y * columns + x);
+    let projected = projectLayers(sprite.layers, sprite.sprite.name);
+    if (
+      sprite.sprite.name === "button_left" ||
+      sprite.sprite.name === "button_right"
+    ) {
+      const background =
+        [...sprite.layers].reverse().find((layer) => "▌▐".includes(layer.char))
+          ?.color ||
+        sprite.layers[0]?.color ||
+        colors.white;
+      const foreground = [
+        colors.green,
+        colors.maroon,
+        colors.navy,
+        colors.purple,
+        colors.teal,
+        colors.black,
+      ].includes(background)
+        ? colors.white
+        : colors.black;
+      projected = {
+        char: sprite.sprite.name === "button_left" ? "[" : "]",
+        foreground,
+        background,
+      };
+    }
     if (projected.char === " " && projected.background === undefined) continue;
     frame[y][x] = {
       ...projected,
       background: projected.background ?? frame[y][x].background,
     };
   }
+  if (!fogApplied) applyFog();
   return frame;
 };
 
+export type TerminalState = SceneState & {
+  receivedDamage?: number;
+  shake?: { until: number; x: number; y: number };
+};
+
+export const shakeTerminalFrame = (
+  world: World,
+  frame: TerminalFrame,
+  state?: TerminalState
+): TerminalFrame => {
+  const hero = world.getEntities([PLAYER])[0];
+  if (!state || !hero) return frame;
+  const stats = hero[PLAYER].receivedStats;
+  const received = stats.melee + stats.magic + stats.true;
+  if (state.receivedDamage !== undefined && received > state.receivedDamage) {
+    const direction = hero[BUMPABLE]?.orientation;
+    state.shake = {
+      until: world.metadata.elapsed + 100,
+      ...(direction ? orientationPoints[direction] : { x: 1, y: 0 }),
+    };
+  }
+  state.receivedDamage = received;
+  if (!state.shake || world.metadata.elapsed >= state.shake.until) return frame;
+  const { x, y } = state.shake;
+  return frame.map((row, rowIndex) =>
+    row.map(
+      (_, columnIndex) =>
+        frame[rowIndex - y]?.[columnIndex - x] || {
+          char: " ",
+          foreground: colors.white,
+          background: colors.black,
+        }
+    )
+  );
+};
+
+const paletteValues = orderedColors.map((color) =>
+  Number.parseInt(color.slice(1), 16)
+);
 const ansiColor = (color: string, background = false) => {
-  const value = Number.parseInt(color.slice(1), 16);
-  return `\x1b[${background ? 48 : 38};2;${value >> 16};${(value >> 8) & 255};${
-    value & 255
+  let index = orderedColors.indexOf(color);
+  if (index === -1) {
+    const rgb = Number.parseInt(color.slice(1), 16);
+    let distance = Infinity;
+    paletteValues.forEach((value, candidate) => {
+      const difference = [16, 8, 0].reduce(
+        (sum, shift) =>
+          sum + (((rgb >> shift) & 255) - ((value >> shift) & 255)) ** 2,
+        0
+      );
+      if (difference < distance) {
+        distance = difference;
+        index = candidate;
+      }
+    });
+  }
+  return `\x1b[${
+    (background ? 40 : 30) + (index % 8) + (index >= 8 ? 60 : 0)
   }m`;
 };
 
 export const frameToAnsi = (frame: TerminalFrame) => {
-  let output = "\x1b[H",
+  let output = "\x1b[0m\x1b[H",
     foreground = "",
     background = "";
   frame.forEach((row, index) => {
-    if (index) output += `\x1b[${index + 1};1H`;
+    if (index) output += `\x1b[0m\x1b[${index + 1};1H`;
+    foreground = "";
+    background = "";
     for (const cell of row) {
       if (cell.foreground !== foreground) {
         foreground = cell.foreground;
