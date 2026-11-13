@@ -21,6 +21,10 @@ export const unmuteAudio = () => {
 export const suspendAudio = () => audioContext.suspend();
 
 export const ensureAudio = () => {
+  // Safari may stay interrupted after returning from another tab or lock screen.
+  if ((audioContext.state as string) === "interrupted") {
+    return audioContext.suspend().then(() => audioContext.resume());
+  }
   if (audioContext.state !== "running") {
     return audioContext.resume();
   }
