@@ -6,6 +6,7 @@
 | [Accessory](engine/components/equippable.md#type-accessory) | `src/engine/components/equippable.ts` |
 | [Acquisition](wiki/itemSources.md#type-acquisition) | `src/wiki/itemSources.ts` |
 | [Action](components/Controls/index.md#type-action) | `src/components/Controls/index.tsx` |
+| [Action](renderers/terminal/input.md#type-action) | `src/renderers/terminal/input.ts` |
 | [Actionable](engine/components/actionable.md#type-actionable) | `src/engine/components/actionable.ts` |
 | [Affectable](engine/components/affectable.md#type-affectable) | `src/engine/components/affectable.ts` |
 | [Amount](engine/components/sprite.md#type-amount) | `src/engine/components/sprite.ts` |
@@ -52,6 +53,7 @@
 | [Consumable](engine/components/item.md#type-consumable) | `src/engine/components/item.ts` |
 | [ConsumeSequence](engine/components/sequencable.md#type-consumesequence) | `src/engine/components/sequencable.ts` |
 | [ContactCircle](game/assets/npcs.md#type-contactcircle) | `src/game/assets/npcs.ts` |
+| [Container](renderers/terminal/react.md#type-container) | `src/renderers/terminal/react.ts` |
 | [Corner](game/math/tracing.md#type-corner) | `src/game/math/tracing.ts` |
 | [Countable](engine/components/stats.md#type-countable) | `src/engine/components/stats.ts` |
 | [Coverable](engine/components/coverable.md#type-coverable) | `src/engine/components/coverable.ts` |
@@ -147,6 +149,7 @@
 | [Mountable](engine/components/mountable.md#type-mountable) | `src/engine/components/mountable.ts` |
 | [Movable](engine/components/movable.md#type-movable) | `src/engine/components/movable.ts` |
 | [Navigate](wiki/App.md#type-navigate) | `src/wiki/App.tsx` |
+| [Node](renderers/terminal/react.md#type-node) | `src/renderers/terminal/react.ts` |
 | [NpcData](game/balancing/units.md#type-npcdata) | `src/game/balancing/units.ts` |
 | [NpcDistribution](game/balancing/units.md#type-npcdistribution) | `src/game/balancing/units.ts` |
 | [NpcSequence](engine/components/sequencable.md#type-npcsequence) | `src/engine/components/sequencable.ts` |
@@ -177,6 +180,7 @@
 | [ProcStats](engine/components/castable.md#type-procstats) | `src/engine/components/castable.ts` |
 | [ProgressSequence](engine/components/sequencable.md#type-progresssequence) | `src/engine/components/sequencable.ts` |
 | [Projectile](engine/components/projectile.md#type-projectile) | `src/engine/components/projectile.ts` |
+| [Props](renderers/terminal/react.md#type-props) | `src/renderers/terminal/react.ts` |
 | [Pushable](engine/components/pushable.md#type-pushable) | `src/engine/components/pushable.ts` |
 | [QuestSequence](engine/components/sequencable.md#type-questsequence) | `src/engine/components/sequencable.ts` |
 | [QuestStage](game/assets/utils.md#type-queststage) | `src/game/assets/utils.ts` |
@@ -251,6 +255,10 @@
 | [Tag](engine/wfc/wfc.md#type-tag) | `src/engine/wfc/wfc.ts` |
 | [Target](engine/components/popup.md#type-target) | `src/engine/components/popup.ts` |
 | [Tempo](engine/components/tempo.md#type-tempo) | `src/engine/components/tempo.ts` |
+| [TerminalCell](renderers/terminal/sprites.md#type-terminalcell) | `src/renderers/terminal/sprites.ts` |
+| [TerminalFrame](renderers/terminal/frame.md#type-terminalframe) | `src/renderers/terminal/frame.ts` |
+| [TerminalKey](renderers/terminal/input.md#type-terminalkey) | `src/renderers/terminal/input.ts` |
+| [TerminalSprite](renderers/terminal/frame.md#type-terminalsprite) | `src/renderers/terminal/frame.ts` |
 | [TestWorldOptions](testing/harness.md#type-testworldoptions) | `src/testing/harness.ts` |
 | [Tile](engine/wfc/wfc.md#type-tile) | `src/engine/wfc/wfc.ts` |
 | [Tool](engine/components/item.md#type-tool) | `src/engine/components/item.ts` |

@@ -302,5 +302,11 @@
   {"source": "src/renderers/three-js/index.md", "title": "Three.js", "route": "development/renderers/three-js/index.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
   {"source": "src/renderers/testing/index.md", "title": "Testing", "route": "development/renderers/testing/index.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
   {"source": "src/renderers/browser.md", "title": "Browser Renderer", "route": "development/renderers/browser.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
-  {"source": "src/renderers/html/index.md", "title": "HTML Renderer", "route": "development/renderers/html/index.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true}
+  {"source": "src/renderers/html/index.md", "title": "HTML Renderer", "route": "development/renderers/html/index.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
+  {"source": "src/renderers/terminal/frame.md", "title": "Terminal Frames", "route": "development/renderers/terminal/frame.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
+  {"source": "src/renderers/terminal/input.md", "title": "Terminal Input", "route": "development/renderers/terminal/input.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
+  {"source": "src/renderers/terminal/cli.md", "title": "Terminal CLI", "route": "development/renderers/terminal/cli.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
+  {"source": "src/renderers/terminal/sprites.md", "title": "Terminal Glyphs", "route": "development/renderers/terminal/sprites.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
+  {"source": "src/renderers/terminal/index.md", "title": "Terminal", "route": "development/renderers/terminal/index.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
+  {"source": "src/renderers/terminal/react.md", "title": "Terminal React", "route": "development/renderers/terminal/react.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true}
 ]

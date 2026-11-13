@@ -13,6 +13,14 @@ npm ci
 npm start
 ```
 
+The default renderer uses Three.js. Open `http://localhost:3000/alive/?renderer=html` for the HTML/SVG renderer, with the same controls and fog of war but no lighting or shadows.
+
+```sh
+npm run terminal
+```
+
+The terminal renderer also runs over SSH. Use UTF-8 and true color, with at least 33 columns and 24 rows. Ctrl-C saves and exits. See [terminal controls and saves](src/renderers/terminal/index.md).
+
 ## Read and preview the wiki
 
 Player wiki lives in [wiki/](wiki/index.md). Technical notes live beside the source files they explain. Both appear as separate chapters in the generated site.
@@ -38,7 +46,7 @@ npx playwright install chromium
 npm run wiki:test
 ```
 
-Fast checks cover types, lint, and small feature tests. `test:slow` checks game integration and rendering; `test:all` runs both test groups. The pre-commit hook runs lint only, so run the checks above before committing code changes. The wiki browser suite checks live examples, navigation, and responsive layout.
+Fast checks cover types, lint, and small feature tests. `test:slow` checks game integration and rendering; `test:all` runs both test groups. `test:logic` runs engine and game feature tests without a visual host; `test:renderers` runs renderer and browser UI tests. The pre-commit hook runs lint only, so run the checks above before committing code changes. The wiki browser suite checks live examples, navigation, and responsive layout.
 
 CRA still requests Babel's former proposal-plugin name. The development dependency aliases that name to the maintained private-property transform, with the same plugin interface. Drei imports name the used modules directly so unused face-tracking dependencies are excluded from the build graph. Jest transforms those ESM modules and their runtime helpers.
 

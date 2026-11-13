@@ -24,6 +24,7 @@
     "prismjs": "^1.30.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-reconciler": "0.27.0",
     "react-scripts": "5.0.1",
     "simplex-noise": "^4.0.3",
     "three": "^0.169.0",
@@ -36,6 +37,8 @@
     "test": "react-scripts test --testPathIgnorePatterns='\\.generation\\.test\\.'",
     "test:fast": "CI=true react-scripts test --watchAll=false --testPathIgnorePatterns='\\.(slow|generation)\\.test\\.'",
     "test:slow": "CI=true react-scripts test --watchAll=false --testPathPattern='\\.slow\\.test\\.'",
+    "test:logic": "CI=true react-scripts test --watchAll=false --testPathPattern='src/(engine|features|game|renderers/testing)/' --testPathIgnorePatterns='\\.generation\\.test\\.'",
+    "test:renderers": "CI=true react-scripts test --watchAll=false --testPathPattern='src/(components|renderers)/'",
     "test:all": "CI=true react-scripts test --watchAll=false --testPathIgnorePatterns='\\.generation\\.test\\.'",
     "test:generation": "CI=true react-scripts test --watchAll=false --testPathPattern='\\.generation\\.test\\.'",
     "test:ci": "CI=true react-scripts test --watchAll=false --coverage",
@@ -52,7 +55,8 @@
     "wiki:test": "node --test scripts/wiki/types.test.mjs scripts/wiki/references.test.mjs scripts/wiki/item-sources.test.mjs scripts/wiki/routes.test.mjs && env -u NO_COLOR playwright test && env -u NO_COLOR WIKI_TEST_DEV=true playwright test",
     "wiki:sources": "node scripts/wiki/item-sources.mjs",
     "wiki:references": "node scripts/wiki/references.mjs",
-    "wiki:world": "WIKI_WORLD_SNAPSHOT=true CI=true react-scripts test --watchAll=false --runInBand --runTestsByPath src/wiki/WorldMapData.generation.test.ts"
+    "wiki:world": "WIKI_WORLD_SNAPSHOT=true CI=true react-scripts test --watchAll=false --runInBand --runTestsByPath src/wiki/WorldMapData.generation.test.ts",
+    "terminal": "node scripts/terminal.cjs"
   },
   "eslintConfig": {
     "extends": [
@@ -114,6 +118,7 @@
     "@types/body-scroll-lock": "^3.1.2",
     "@types/javascript-astar": "^0.0.35",
     "@types/prismjs": "^1.26.6",
+    "@types/react-reconciler": "0.26.7",
     "@types/webpack-env": "^1.18.8",
     "esbuild": "^0.25.12",
     "prettier": "^2.8.8",
