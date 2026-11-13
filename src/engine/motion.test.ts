@@ -128,22 +128,33 @@ test("a physics retarget preserves momentum and is independent of sampling caden
   expect(sampleMotion(motion, 250)).toEqual(at250);
 });
 
-test("disposed animated particles leave no live motion behind", () => {
+test("removed particles keep their visual trajectory without accepting new targets", () => {
   const world = createAreaWorld("| ♀ |");
   const particle = entities.createParticle(world, {
     PARTICLE: {
       offsetX: 1,
       offsetY: 0,
       offsetZ: 0,
+      duration: 200,
       animatedOrigin: { x: 0, y: 0 },
     },
     RENDERABLE: { generation: 0 },
     SPRITE: { name: "particle", layers: [] },
   });
-  expect(getMotion(particle)).toBeDefined();
+  world.update(50);
+  const before = sampleMotion(getMotion(particle)!, world.metadata.elapsed);
+  particle[PARTICLE].offsetX = 2;
   world.removeEntity(particle);
+  const motion = getMotion(particle);
+  expect(motion).toBeDefined();
+  expect(sampleMotion(motion!, world.metadata.elapsed)).toMatchObject(before);
+  expect(motion!.x).toBe(2);
+
+  particle[PARTICLE].offsetX = 9;
   world.update(100);
-  expect(getMotion(particle)).toBeUndefined();
+  expect(getMotion(particle)).toBe(motion);
+  expect(motion!.x).toBe(2);
+  expect(sampleMotion(motion!, world.metadata.elapsed).x).toBeCloseTo(1.125);
 });
 
 test("the camera records viewpoint changes before React renders them", () => {

@@ -357,9 +357,9 @@ export const updateParticleMotions = (world: World) => {
 };
 
 export const releaseMotion = (world: World, entity: Entity) => {
+  // React can still render this entity before its removal commits.
+  updateParticleMotion(world, entity);
   particles.get(world)?.delete(entity);
-  motions.delete(entity);
-  bumps.delete(entity);
 };
 
 export const syncMovementSpring = (world: World, entity: Entity) => {

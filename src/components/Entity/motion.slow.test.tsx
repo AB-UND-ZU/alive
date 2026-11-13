@@ -17,7 +17,7 @@ import {
   openStation,
   selectRow,
 } from "../../features/workstations/helpers";
-import { getBumpMotion } from "../../engine/motion";
+import { getBumpMotion, getMotion, sampleMotion } from "../../engine/motion";
 import Animated from "./Animated";
 import { FORGABLE } from "../../engine/components/forgable";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
@@ -27,6 +27,8 @@ import { DimensionsContext } from "../Dimensions/sizing";
 import Systems from "../Systems";
 import Camera from "../Camera";
 import { InstanceRoot } from "./Instances";
+import { AnimatedSprite } from "./Sprite";
+import { cast, createSpellWorld } from "../../features/spells/helpers";
 
 jest.mock("@react-three/drei/core/useFont", () => {
   const { Font } = require("three-stdlib");
@@ -195,4 +197,78 @@ test("a pickup bump renders immediately and settles without another React commit
   expect(group.position.x).toBeCloseTo(position[0]);
   expect(group.position.y).toBeCloseTo(position[1]);
   await renderer.unmount();
+});
+
+test("dissolving Wave edges stay on their trajectory until the next React commit", async () => {
+  const { world } = createSpellWorld(
+    "| ♀ |",
+    { spell: "wave", material: "wood" },
+    { size: 48 }
+  );
+  cast(world, "up");
+  const wave = world.getEntities(["CASTABLE", "SEQUENCABLE"]).find(
+    (entity) => entity.SEQUENCABLE.states.spell?.name === "castWave1"
+  );
+  if (!wave) throw new Error("Wave was not cast");
+  const state = wave.SEQUENCABLE.states.spell!;
+  advanceUntil(world, () => state.args.progress >= state.args.range - 2, 4000);
+  const particles = Object.entries(state.particles)
+    .filter(([name]) => name.startsWith("side-"))
+    .map(([, id]) =>
+      world.assertByIdAndComponents(id, ["PARTICLE", "SPRITE", "ORIENTABLE"])
+    );
+  expect(particles).toHaveLength(4);
+  const motions = particles.map((particle) => getMotion(particle)!);
+  const { aspectRatio } = world.metadata.dimensions;
+  const { renderer, advanceFrames } = await renderScene(
+    world,
+    <DimensionsContext.Provider value={world.metadata.dimensions}>
+      <InstanceRoot />
+      {particles.map((particle, index) => (
+        <group key={index} name={`wave-edge-${index}`}>
+          <AnimatedSprite
+            sprite={particle.SPRITE}
+            facing={particle.ORIENTABLE.facing}
+            offsetX={particle.PARTICLE.offsetX * aspectRatio}
+            offsetY={-particle.PARTICLE.offsetY}
+            offsetZ={particle.PARTICLE.offsetZ}
+            layerProps={{
+              isTransparent: false,
+              receiveShadow: false,
+              animatedOrigin: particle.PARTICLE.animatedOrigin,
+              duration: particle.PARTICLE.duration,
+              particle,
+            }}
+          />
+        </group>
+      ))}
+    </DimensionsContext.Provider>
+  );
+  try {
+    let removed = -1;
+    for (let frame = 0; frame < 40 && removed === -1; frame++) {
+      step(world);
+      await advanceFrames(1);
+      const active = new Set(Object.values(state.particles));
+      removed = particles.findIndex(
+        (particle) => !active.has(world.getEntityId(particle))
+      );
+    }
+    expect(removed).toBeGreaterThanOrEqual(0);
+    const particle = particles[removed];
+    const sampled = sampleMotion(motions[removed], world.metadata.renderTime);
+    expect(
+      Math.hypot(
+        sampled.x - particle.PARTICLE.offsetX,
+        sampled.y - particle.PARTICLE.offsetY
+      )
+    ).toBeGreaterThan(0.001);
+    const group = renderer.scene.instance.getObjectByName(
+      `wave-edge-${removed}`
+    )!.children[0];
+    expect(group.position.x / aspectRatio).toBeCloseTo(sampled.x, 8);
+    expect(-group.position.y).toBeCloseTo(sampled.y, 8);
+  } finally {
+    await renderer.unmount();
+  }
 });
