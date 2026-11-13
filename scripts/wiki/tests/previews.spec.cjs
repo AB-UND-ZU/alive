@@ -169,20 +169,26 @@ test("scene HUDs remove unused rows without changing the game camera", async ({
         "display",
         "none"
       );
-    const geometry = await page.evaluate(() => ({
-      cell: getComputedStyle(document.documentElement).getPropertyValue(
-        "--cell-height"
-      ),
-      frame: document.querySelector(".DemoFrame").getBoundingClientRect(),
-      canvas: document.querySelector("canvas").getBoundingClientRect(),
-    }));
+    let geometry;
+    await expect
+      .poll(async () => {
+        geometry = await page.evaluate(() => ({
+          cell: getComputedStyle(document.documentElement).getPropertyValue(
+            "--cell-height"
+          ),
+          frame: document.querySelector(".DemoFrame").getBoundingClientRect(),
+          canvas: document.querySelector("canvas").getBoundingClientRect(),
+        }));
+        return Math.abs(
+          geometry.frame.y +
+            240 -
+            geometry.canvas.y -
+            geometry.canvas.height / 2
+        );
+      })
+      .toBeLessThan(0.1);
     expect(geometry.cell).toBe("32px");
     expect(geometry.frame.height).toBe(480);
-    expect(
-      Math.abs(
-        geometry.frame.y + 240 - geometry.canvas.y - geometry.canvas.height / 2
-      )
-    ).toBeLessThan(0.1);
   }
 });
 
