@@ -70,15 +70,18 @@ it.each([false, true])(
       : document.body;
     const touch = (event: "touchStart" | "touchMove", x: number) =>
       fireEvent[event](window, {
-        touches: [{ clientX: x, clientY: 100 }],
-        changedTouches: [{ target }],
+        touches: [{ target, identifier: 1, clientX: x, clientY: 100 }],
+        changedTouches: [{ target, identifier: 1 }],
       });
     touch("touchStart", 100);
     touch("touchMove", 160);
     expect(getPrompt(world)).toBe("/give ");
     touch("touchMove", 180);
     expect(getPrompt(world)).toBe("/give ");
-    fireEvent.touchEnd(window, { touches: [], changedTouches: [{ target }] });
+    fireEvent.touchEnd(window, {
+      touches: [],
+      changedTouches: [{ target, identifier: 1 }],
+    });
     tick(15);
     expect(getPrompt(world)).toBe("/give ");
   }

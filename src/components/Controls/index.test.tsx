@@ -15,6 +15,7 @@ import { STATS } from "../../engine/components/stats";
 import { TypedEntity } from "../../engine/entities";
 import {
   assignQuickItem,
+  closePopup,
   getTab,
   getTabSelections,
   getVerticalIndex,
@@ -861,22 +862,50 @@ describe.each([false, true])("stats HUD with flipped=%s", (flipped) => {
 });
 
 describe("touch controls", () => {
+  let lastTouch: [number, number] = [0, 0];
   const touch = (
     type: "touchStart" | "touchMove" | "touchEnd" | "touchCancel",
     points: [number, number][],
-    target: Element = document.body
-  ) =>
-    fireEvent[type](window, {
-      touches: points.map(([clientX, clientY]) => ({ clientX, clientY })),
-      changedTouches: [{ target }],
+    target: Element = document.body,
+    identifier = 1
+  ) => {
+    if (points[0]) lastTouch = points[0];
+    return fireEvent[type](window, {
+      touches: points.map(([clientX, clientY], index) => ({
+        target,
+        identifier: identifier + index,
+        clientX,
+        clientY,
+      })),
+      changedTouches: [
+        { target, identifier, clientX: lastTouch[0], clientY: lastTouch[1] },
+      ],
     });
+  };
+
+  const releasePointer = (
+    target: Element,
+    clientX: number,
+    clientY: number
+  ) => {
+    const event = new MouseEvent("pointerup", {
+      bubbles: true,
+      clientX,
+      clientY,
+    });
+    Object.defineProperties(event, {
+      pointerType: { value: "touch" },
+      pointerId: { value: 1 },
+    });
+    fireEvent(target, event);
+  };
 
   it.each([
     ["menu", 1],
     ["quick", "use"],
     ["spell", true],
   ] as const)(
-    "a fresh touch pointer can activate %s after a swipe without a touchstart event",
+    "a tap can activate %s after a swipe without a touchstart event",
     (id, expected) => {
       const world = createAreaWorld(area);
       const hero = world.assertComponents(assertHero(world), [
@@ -918,28 +947,145 @@ describe("touch controls", () => {
     }
   );
 
-  it("a drag uses its pointer origin when touchstart is absent", () => {
+  it("a drag establishes a new origin when touchstart is absent", () => {
     const { world, hero } = setup();
     const x = hero[POSITION].x;
-    const start = new MouseEvent("pointerdown", {
-      bubbles: true,
-      clientX: 100,
-      clientY: 100,
-    });
-    Object.defineProperties(start, {
-      pointerType: { value: "touch" },
-      isPrimary: { value: true },
-    });
-    fireEvent(document.body, start);
-
+    touch("touchMove", [[100, 100]]);
     touch("touchMove", [[160, 100]]);
-
     expect(hero[MOVABLE].orientations).toEqual(["right"]);
     runUntil(world, () => hero[POSITION].x === x + 1);
-    const end = new Event("pointerup", { bubbles: true });
-    Object.defineProperty(end, "pointerType", { value: "touch" });
-    fireEvent(window, end);
+    releasePointer(document.body, 160, 100);
     expect(hero[MOVABLE].orientations).toEqual([]);
+    expect(touch("touchEnd", [])).toBe(false);
+  });
+
+  it("a completed swipe cannot leave future pause taps globally blocked", () => {
+    const world = createAreaWorld(area);
+    const setPaused = jest.fn();
+    const { container, tick } = renderHud(
+      world,
+      <>
+        <Stats />
+        <Controls />
+      </>,
+      { setPaused }
+    );
+    tick(5);
+    touch("touchStart", [[100, 100]]);
+    touch("touchMove", [[160, 100]]);
+    expect(touch("touchEnd", [])).toBe(false);
+    // A click can arrive without another touchstart or pointerdown.
+    fireEvent.click(getTouchArea(container, "menu"), {
+      detail: 1,
+      clientX: 20,
+      clientY: 20,
+    });
+    expect(setPaused).toHaveBeenCalledTimes(1);
+  });
+
+  it("consuming one touch cannot cancel another touch's release", () => {
+    const { container } = setup();
+    const menu = getTouchArea(container, "spell");
+    touch("touchStart", [[100, 100]]);
+    touch("touchMove", [[160, 100]]);
+    expect(touch("touchEnd", [], menu, 2)).toBe(true);
+    expect(touch("touchEnd", [], document.body, 1)).toBe(false);
+    expect(touch("touchEnd", [], menu, 1)).toBe(true);
+  });
+
+  it("normal taps and small finger drift retain native clicks", () => {
+    const { hero, container } = setup([
+      { spell: "wave", material: "wood", amount: 1 },
+    ]);
+    const quick = getTouchArea(container, "spell");
+    expect(touch("touchStart", [[100, 100]], quick)).toBe(true);
+    expect(touch("touchMove", [[104, 103]], quick)).toBe(true);
+    expect(touch("touchEnd", [], quick)).toBe(true);
+    fireEvent.click(quick);
+    expect(hero[ACTIONABLE].spellTriggered).toBe(true);
+  });
+
+  it("missing the next start events cannot make its releases retain an old swipe veto", () => {
+    const world = createAreaWorld(area);
+    const setPaused = jest.fn();
+    const { container, tick } = renderHud(
+      world,
+      <>
+        <Stats />
+        <Controls />
+      </>,
+      { setPaused }
+    );
+    tick(5);
+    touch("touchStart", [[100, 100]]);
+    touch("touchMove", [[160, 100]]);
+    touch("touchEnd", []);
+    const target = getTouchArea(container, "menu");
+    for (let index = 0; index < 3; index += 1) {
+      const release = new MouseEvent("pointerup", {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      });
+      Object.defineProperties(release, {
+        pointerType: { value: "touch" },
+        pointerId: { value: index + 2 },
+      });
+      fireEvent(target, release);
+      fireEvent.touchEnd(target, {
+        touches: [],
+        changedTouches: [
+          { target, identifier: index + 2, clientX: 20, clientY: 20 },
+        ],
+      });
+      fireEvent.click(target, { detail: 1, clientX: 20, clientY: 20 });
+    }
+    expect(setPaused).toHaveBeenCalledTimes(3);
+  });
+
+  it("a released scrollbar cannot keep owning later movement after a dialog closes", () => {
+    const { world, hero, container, trader } = setupShop();
+    press("Enter");
+    runUntil(world, () => !!isInPopup(world, hero));
+    runUntil(world, () => !hero[PLAYER].actionTriggered);
+    const bar = getTouchArea(container, "down");
+    fireEvent.pointerDown(bar);
+    touch("touchStart", [[175, 45]], bar);
+    tick(world, 15);
+    releasePointer(bar, 175, 45);
+    touch("touchEnd", [], bar);
+    press("Escape");
+    runUntil(world, () => !isInPopup(world, hero));
+    tick(world, 30);
+    expect(trader[POPUP].active).toBe(false);
+    const x = hero[POSITION].x;
+    // Replay moves after the next start event was lost, without any world/UI change.
+    touch("touchMove", [[100, 100]]);
+    touch("touchMove", [[40, 100]]);
+    runUntil(world, () => hero[POSITION].x === x - 1);
+    touch("touchEnd", []);
+  });
+
+  it("losing the popup during a scrollbar hold cannot trap movement without a release event", () => {
+    const { world, hero, container, trader } = setupShop();
+    press("Enter");
+    runUntil(world, () => !!isInPopup(world, hero));
+    runUntil(world, () => !hero[PLAYER].actionTriggered);
+    const bar = getTouchArea(container, "down");
+    fireEvent.pointerDown(bar);
+    touch("touchStart", [[175, 45]], bar);
+    tick(world, 15);
+    // The melee damage system uses this same close path when the hero is hit.
+    act(() => closePopup(world, hero, trader));
+    tick(world, 10);
+    expect(bar).not.toBeInTheDocument();
+    expect(hero[MOVABLE].orientations).toEqual([]);
+    const x = hero[POSITION].x;
+    // A different touch still works if the old target lost its release.
+    touch("touchMove", [[100, 100]], document.body, 2);
+    touch("touchMove", [[40, 100]], document.body, 2);
+    runUntil(world, () => hero[POSITION].x === x - 1);
+    touch("touchEnd", [], document.body, 2);
   });
 
   it("tapping the spell button casts the spell", () => {
@@ -1071,13 +1217,12 @@ describe("touch controls", () => {
       touch("touchStart", [[175, 45]], bar);
       tick(world, 15);
       touch("touchMove", [[168, 45]], bar);
-      fireEvent.pointerUp(bar);
-      touch("touchEnd", [], bar);
+      releasePointer(bar, 168, 45);
+      expect(touch("touchEnd", [], bar)).toBe(false);
       tick(world, 5);
       const selected = getVerticalIndex(world, trader);
       expect(selected).not.toBe(direction === "up" ? 8 : 0);
 
-      fireEvent.click(content, { clientX: 168, clientY: 5, detail: 1 });
       tick(world, 5);
       expect(getVerticalIndex(world, trader)).toBe(selected);
       expect(getTabSelections(world, trader)).toEqual([]);
@@ -1133,17 +1278,12 @@ describe("touch controls", () => {
     fireEvent.pointerDown(down);
     touch("touchStart", [[175, 45]], down);
     tick(world, 10);
-    fireEvent.pointerUp(down);
-    touch("touchEnd", [], down);
+    releasePointer(down, 168, 45);
+    expect(touch("touchEnd", [], down)).toBe(false);
     tick(world, 5);
     const row = getVerticalIndex(world, popup);
     expect(row).toBeGreaterThan(0);
 
-    fireEvent.click(content, {
-      clientX: 168,
-      clientY: row * 10 + 5,
-      detail: 1,
-    });
     tick(world, 5);
     expect(getTab(world, popup)).toBe("pack");
     expect(getVerticalIndex(world, popup)).toBe(row);
@@ -1195,12 +1335,9 @@ describe("touch controls", () => {
       const selected = getVerticalIndex(world, trader);
       touch("touchMove", [[50, 20]], content);
       if (pointerRelease) {
-        const event = new Event("pointerup", { bubbles: true });
-        Object.defineProperty(event, "pointerType", { value: "touch" });
-        act(() => window.dispatchEvent(event));
+        releasePointer(content, 50, 20);
       }
-      touch("touchEnd", [], content);
-      fireEvent.click(content, { clientX: 45, clientY: 5, detail: 1 });
+      expect(touch("touchEnd", [], content)).toBe(false);
       tick(world, 5);
       expect(getVerticalIndex(world, trader)).toBe(selected);
       expect(getTabSelections(world, trader)).toEqual([]);
@@ -1278,6 +1415,16 @@ describe("touch controls", () => {
 
     expect(hero[MOVABLE].orientations).toEqual([]);
     expect(hero[POSITION].x).toBe(x);
+  });
+
+  it("steering against a wall still consumes the touch", () => {
+    const { hero, tick } = setup([], {}, "|  ♀D  |", { D: "wood_door" });
+    const position = { ...hero[POSITION] };
+    touch("touchStart", [[100, 100]]);
+    touch("touchMove", [[160, 100]]);
+    tick(20);
+    expect(hero[POSITION]).toEqual(position);
+    expect(touch("touchEnd", [])).toBe(false);
   });
 
   it("short taps don't walk", () => {

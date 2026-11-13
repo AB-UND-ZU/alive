@@ -277,9 +277,11 @@ export default function Controls({
     ecs && popup ? getSequence(ecs, popup, "popup") : undefined;
   const popupTab = ecs && popup && getTab(ecs, popup);
   const pressedOrientations = useRef<Orientation[]>([]);
-  const touchMoved = useRef(false);
-  const scrollGesture = useRef(false);
-  const touchOrigin = useRef<[number, number] | undefined>(undefined);
+  const touchGesture = useRef<{
+    identifier: number;
+    origin?: [number, number];
+    consumed: boolean;
+  }>();
   const [joystickOrientations, setJoystickOrientations] = useState<
     Orientation[]
   >([]);
@@ -739,9 +741,6 @@ export default function Controls({
     ) => {
       event.preventDefault();
 
-      // prevent tap after swiping
-      if (pressedOrientations.current.length > 0) return;
-
       handleAction("close");
     },
     [handleAction]
@@ -780,9 +779,6 @@ export default function Controls({
     ) => {
       event.preventDefault();
 
-      // prevent tap after swiping
-      if (pressedOrientations.current.length > 0) return;
-
       handleAction("left");
     },
     [handleAction]
@@ -796,9 +792,6 @@ export default function Controls({
         | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) => {
       event.preventDefault();
-
-      // prevent tap after swiping
-      if (pressedOrientations.current.length > 0) return;
 
       // open links within user gesture for mobile browsers
       if (ecs && popup && getTab(ecs, popup) === "credits") {
@@ -818,9 +811,6 @@ export default function Controls({
   const handleContent = useCallback(
     (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       event.preventDefault();
-
-      // prevent tap after swiping
-      if (pressedOrientations.current.length > 0) return;
 
       const div = event.currentTarget as HTMLDivElement | undefined;
       if (!div || ("touches" in event && event.touches.length > 1)) return;
@@ -925,28 +915,11 @@ export default function Controls({
     [ecs]
   );
 
-  const handleUp = useCallback(
-    (
-      event:
-        | KeyboardEvent
-        | TouchEvent
-        | React.MouseEvent<HTMLDivElement, MouseEvent>
-    ) => {
+  const handleScroll = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
       event.preventDefault();
-      handleMove(["up"]);
-    },
-    [handleMove]
-  );
-
-  const handleDown = useCallback(
-    (
-      event:
-        | KeyboardEvent
-        | TouchEvent
-        | React.MouseEvent<HTMLDivElement, MouseEvent>
-    ) => {
-      event.preventDefault();
-      handleMove(["down"]);
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+      handleMove([event.currentTarget.id === "up" ? "up" : "down"]);
     },
     [handleMove]
   );
@@ -1141,11 +1114,14 @@ export default function Controls({
   }, []);
 
   const releaseTouch = useCallback(() => {
-    touchOrigin.current = undefined;
+    if (touchGesture.current) touchGesture.current.origin = undefined;
     pressedOrientations.current = [];
     setJoystickOrientations([]);
     handleMove([]);
   }, [handleMove]);
+
+  // A popup can disappear while its scrollbar is held.
+  useLayoutEffect(releaseTouch, [popup, releaseTouch]);
 
   const handleTouchMove = useCallback(
     (event: TouchEvent) => {
@@ -1153,26 +1129,49 @@ export default function Controls({
       const paused = pausedRef.current;
       const popup = ecs && hero && getActivePopup(ecs, hero);
       const popupTab = ecs && popup && getTab(ecs, popup);
-      if (event.type === "touchstart" && event.touches.length === 1) {
-        touchMoved.current = false;
-        const target = event.changedTouches[0]?.target;
-        const scrollControl =
-          target instanceof Element
-            ? target.closest(".PopupUp,.PopupDown")
-            : null;
-        scrollGesture.current = !!scrollControl;
-        if (scrollControl)
-          handleMove([scrollControl.id === "up" ? "up" : "down"]);
+      if (event.type === "touchend" || event.type === "touchcancel") {
+        if (
+          [...event.changedTouches].some(
+            (touch) => touch.identifier === touchGesture.current?.identifier
+          )
+        ) {
+          if (event.type === "touchend" && touchGesture.current?.consumed)
+            event.preventDefault();
+          touchGesture.current = undefined;
+        }
+        releaseTouch();
+        return;
       }
-      if (!paused) {
-        ensureAudio();
+      if (!paused) ensureAudio();
+      if (event.touches.length !== 1) {
+        releaseTouch();
+        return;
       }
 
-      // A scrollbar owns the entire gesture, including its release click.
-      if (scrollGesture.current) {
+      const touch = event.touches[0];
+      let gesture = touchGesture.current;
+      if (
+        !gesture ||
+        event.type === "touchstart" ||
+        gesture.identifier !== touch.identifier
+      ) {
+        releaseTouch();
+        gesture = {
+          identifier: touch.identifier,
+          origin: [touch.clientX, touch.clientY],
+          consumed: false,
+        };
+        touchGesture.current = gesture;
+      }
+      const scrollControl = (touch.target as HTMLElement).closest(
+        ".PopupUp,.PopupDown"
+      );
+      if (scrollControl) {
+        gesture.consumed = true;
         event.preventDefault();
-        if (event.touches.length !== 1) releaseTouch();
-        return false;
+        if (event.type === "touchstart" && popup)
+          handleMove([scrollControl.id === "up" ? "up" : "down"]);
+        return;
       }
 
       const onKeyboard = [...event.changedTouches].some((touch) =>
@@ -1213,28 +1212,16 @@ export default function Controls({
         event.preventDefault();
       }
 
-      if (event.touches.length !== 1) {
-        releaseTouch();
-        return false;
-      }
-
-      const [x, y] = [event.touches[0].clientX, event.touches[0].clientY];
-
-      if (!touchOrigin.current) {
-        touchOrigin.current = [x, y];
-      }
-
-      const [deltaX, deltaY] = [
-        x - touchOrigin.current[0],
-        y - touchOrigin.current[1],
-      ];
+      const [x, y] = [touch.clientX, touch.clientY];
+      if (!gesture.origin) gesture.origin = [x, y];
+      const [deltaX, deltaY] = [x - gesture.origin[0], y - gesture.origin[1]];
 
       if (Math.sqrt(deltaX ** 2 + deltaY ** 2) <= swipeThreshold) {
         // handle button taps
         return false;
       }
 
-      touchMoved.current = true;
+      gesture.consumed = true;
       event.preventDefault();
       const degrees = pointToDegree({ x: deltaX, y: deltaY });
       const nextOrientations = degreesToOrientations(degrees);
@@ -1277,8 +1264,7 @@ export default function Controls({
 
   const handleDeactivate = useCallback(() => {
     releaseTouch();
-    touchMoved.current = false;
-    scrollGesture.current = false;
+    touchGesture.current = undefined;
     setPaused(true);
   }, [releaseTouch, setPaused]);
 
@@ -1299,30 +1285,10 @@ export default function Controls({
   }, [handleDeactivate, handleVisibility]);
 
   useEffect(() => {
-    const suppressSwipeClick = (event: MouseEvent) => {
-      if ((!touchMoved.current && !scrollGesture.current) || event.detail === 0)
-        return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-    };
-    const startPointer = (event: PointerEvent) => {
-      if (event.pointerType === "touch" && event.isPrimary === false) return;
-      // A browser can deliver pointer events without the matching touchstart.
-      touchMoved.current = false;
-      scrollGesture.current =
-        event.target instanceof Element &&
-        !!event.target.closest(".PopupUp,.PopupDown");
-      if (event.pointerType === "touch" && event.isPrimary) {
-        touchOrigin.current = [event.clientX, event.clientY];
-      }
-    };
-    // A touch target can disappear after moving away from an interaction.
+    // A touch target can disappear before its touchend reaches the window.
     const releasePointer = (event: PointerEvent) => {
-      if (event.pointerType === "touch" || scrollGesture.current)
-        releaseTouch();
+      if (event.pointerType === "touch") releaseTouch();
     };
-    window.addEventListener("click", suppressSwipeClick, true);
-    window.addEventListener("pointerdown", startPointer, true);
     window.addEventListener("pointerup", releasePointer, true);
     window.addEventListener("pointercancel", releasePointer, true);
     window.addEventListener("keydown", handleKey);
@@ -1330,14 +1296,12 @@ export default function Controls({
 
     window.addEventListener("touchstart", handleTouchMove, { passive: false });
     window.addEventListener("touchmove", handleTouchMove, { passive: false });
-    window.addEventListener("touchend", handleTouchMove);
+    window.addEventListener("touchend", handleTouchMove, { passive: false });
     window.addEventListener("touchcancel", handleTouchMove);
 
     window.addEventListener("mousemove", handleMouseMove);
 
     return () => {
-      window.removeEventListener("click", suppressSwipeClick, true);
-      window.removeEventListener("pointerdown", startPointer, true);
       window.removeEventListener("pointerup", releasePointer, true);
       window.removeEventListener("pointercancel", releasePointer, true);
       window.removeEventListener("keydown", handleKey);
@@ -1453,7 +1417,7 @@ export default function Controls({
     >
       <Joystick
         orientations={joystickOrientations}
-        origin={touchOrigin.current}
+        origin={touchGesture.current?.origin}
       />
       <Cursor />
       <Row
@@ -1609,16 +1573,18 @@ export default function Controls({
           <div
             className="PopupUp"
             id="up"
-            onPointerDown={handleUp}
+            onPointerDown={handleScroll}
             onPointerUp={handleRelease}
             onPointerCancel={handleRelease}
+            onLostPointerCapture={handleRelease}
           />
           <div
             className="PopupDown"
             id="down"
-            onPointerDown={handleDown}
+            onPointerDown={handleScroll}
             onPointerUp={handleRelease}
             onPointerCancel={handleRelease}
+            onLostPointerCapture={handleRelease}
           />
           <div
             className="PopupContent"
