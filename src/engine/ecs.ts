@@ -228,6 +228,15 @@ export default function createWorld() {
       visibleCells: new Set<number>(),
       // Client view ownership; undefined retains the single-player default.
       localPlayerId: undefined as number | undefined,
+      warpPlayer: undefined as
+        | undefined
+        | ((
+            entityId: number,
+            level: LevelName,
+            classKey: import("../game/balancing/classes").ClassKey,
+            hairColor: string,
+            classUpdated: boolean
+          ) => void),
       // stored game this world was loaded from or saved to
       saveId: undefined as string | undefined,
       loadGame: (saveId: string) => {},

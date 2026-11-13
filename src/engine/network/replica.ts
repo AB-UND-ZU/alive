@@ -1,3 +1,5 @@
+import { LEVEL, LevelName } from "../components/level";
+import { releaseCameraMotion } from "../motion";
 import createWorld from "../ecs";
 import { restoreSnapshot, WorldSnapshot } from "../snapshot";
 
@@ -5,6 +7,7 @@ export type StateFrame = {
   sequence: number;
   serverTime: number;
   snapshot: WorldSnapshot;
+  realm?: LevelName;
 };
 
 /** No gameplay systems are installed in this authoritative-state view. */
@@ -23,6 +26,15 @@ export const createReplica = () => {
       return false;
     world.metadata.elapsed = frame.serverTime;
     world.metadata.renderTime = frame.serverTime;
+    if (
+      frame.realm &&
+      world.metadata.gameEntity[LEVEL]?.name &&
+      frame.realm !== world.metadata.gameEntity[LEVEL].name
+    ) {
+      for (const entity of world.getEntities([]))
+        world.removeEntity(entity, false);
+      releaseCameraMotion(world);
+    }
     restoreSnapshot(frame.snapshot, world);
     world.metadata.initial = false;
     world.metadata.occlusionGeneration += 1;

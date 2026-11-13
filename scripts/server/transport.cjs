@@ -47,18 +47,25 @@ exports.createGameServer = async ({
   };
   const publish = () => {
     if (!clients.size) return;
-    const state = engine.encodeState(simulation.frame());
+    const states = new Map();
     for (const [socket, client] of clients) {
       if (
         client.account &&
         !client.paused &&
         Date.now() - client.applicationTime < 3000
-      )
+      ) {
+        const world = simulation.worldFor(client.account.id);
+        if (!states.has(world))
+          states.set(
+            world,
+            engine.encodeState(simulation.frame(client.account.id))
+          );
         send(socket, {
           type: "state",
           actorId: simulation.actorId(client.account.id),
-          state,
+          state: states.get(world),
         });
+      }
     }
   };
   const reject = (socket) =>
@@ -191,7 +198,7 @@ exports.createGameServer = async ({
           }
           send(socket, {
             type: "pong",
-            serverTime: simulation.world.metadata.elapsed,
+            serverTime: simulation.frame().serverTime,
           });
           publish();
         } else if (message.type === "pause") {

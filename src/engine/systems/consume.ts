@@ -222,6 +222,16 @@ export const consumeItem = (
   return consumed;
 };
 
+const playerInitializers = new WeakMap<
+  World,
+  (entity: TypedEntity<"PLAYER" | "STATS">) => void
+>();
+
+export const restorePlayerConsumption = (
+  world: World,
+  entity: TypedEntity<"PLAYER" | "STATS">
+) => playerInitializers.get(world)?.(entity);
+
 export default function setupConsume(world: World) {
   let worldGeneration = -1;
   let worldName = world.metadata.gameEntity[LEVEL]?.name || "";
@@ -233,7 +243,7 @@ export default function setupConsume(world: World) {
 
   // continue from restored players, so loading neither changes vision nor adds
   // equipment stats again
-  for (const entity of world.getEntities([PLAYER, STATS])) {
+  const initializePlayer = (entity: TypedEntity<"PLAYER" | "STATS">) => {
     const entityId = world.getEntityId(entity);
     const equipmentStats = getEntityEquipmentStats(world, entity);
     entityHaste[entityId] = getEntityHaste(world, entity);
@@ -242,7 +252,10 @@ export default function setupConsume(world: World) {
       getEntityVision(world, entity).visibility;
     entityHp[entityId] = equipmentStats.maxHp;
     entityMp[entityId] = equipmentStats.maxMp;
-  }
+  };
+  playerInitializers.set(world, initializePlayer);
+  for (const entity of world.getEntities([PLAYER, STATS]))
+    initializePlayer(entity);
 
   const onUpdate = (delta: number) => {
     const generation = world.metadata.gameEntity[RENDERABLE].generation;

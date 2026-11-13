@@ -1,3 +1,4 @@
+import { PLAYER } from "../components/player";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { LEVEL } from "../components/level";
@@ -79,7 +80,7 @@ export const initializeArea = (
 };
 
 export default function setupInitialize(world: World) {
-  let viewablePosition: Position | undefined;
+  const positions = new Map<number, Position>();
   let worldName = "";
   let pendingCells: Position[] = [];
 
@@ -90,50 +91,59 @@ export default function setupInitialize(world: World) {
     const reset = worldName !== level.name;
     if (reset) {
       worldName = level.name;
-      viewablePosition = undefined;
+      positions.clear();
     }
 
     const size = world.metadata.gameEntity[LEVEL].size;
     const viewables = world.getEntities([VIEWABLE, POSITION]);
     const viewable = getActiveViewable(viewables);
-    const currentPosition = viewable[POSITION];
+    const targets = world.metadata.warpPlayer
+      ? world.getEntities([PLAYER, POSITION])
+      : viewable
+      ? [viewable]
+      : [];
+    for (const target of targets) {
+      const id = world.getEntityId(target);
+      const currentPosition = target[POSITION];
+      const viewablePosition = positions.get(id);
 
-    if (
-      currentPosition &&
-      (!viewablePosition ||
-        viewablePosition.x !== currentPosition.x ||
-        viewablePosition.y !== currentPosition.y)
-    ) {
-      const initializeCorner = {
-        x:
-          currentPosition.x -
-          Math.floor(world.metadata.dimensions.renderedColumns / 2) -
-          initializeOverscan.x,
-        y:
-          currentPosition.y -
-          Math.floor(world.metadata.dimensions.renderedRows / 2) -
-          initializeOverscan.y,
-      };
-      const initializeSize = {
-        x: Math.min(
-          size - 1,
-          world.metadata.dimensions.renderedColumns + initializeOverscan.x * 2
-        ),
-        y: Math.min(
-          size - 1,
-          world.metadata.dimensions.renderedRows + initializeOverscan.y * 2
-        ),
-      };
+      if (
+        currentPosition &&
+        (!viewablePosition ||
+          viewablePosition.x !== currentPosition.x ||
+          viewablePosition.y !== currentPosition.y)
+      ) {
+        const initializeCorner = {
+          x:
+            currentPosition.x -
+            Math.floor(world.metadata.dimensions.renderedColumns / 2) -
+            initializeOverscan.x,
+          y:
+            currentPosition.y -
+            Math.floor(world.metadata.dimensions.renderedRows / 2) -
+            initializeOverscan.y,
+        };
+        const initializeSize = {
+          x: Math.min(
+            size - 1,
+            world.metadata.dimensions.renderedColumns + initializeOverscan.x * 2
+          ),
+          y: Math.min(
+            size - 1,
+            world.metadata.dimensions.renderedRows + initializeOverscan.y * 2
+          ),
+        };
 
-      pendingCells.push(
-        ...getUninitializedCells(
-          world,
-          initializeCorner,
-          add(initializeCorner, initializeSize)
-        )
-      );
+        pendingCells.push(
+          ...getUninitializedCells(
+            world,
+            initializeCorner,
+            add(initializeCorner, initializeSize)
+          )
+        );
 
-      viewablePosition = { ...currentPosition };
+        positions.set(id, { ...currentPosition });
+      }
     }
 
     // gradually initialize more cells

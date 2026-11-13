@@ -31,12 +31,13 @@ it("preserves owned actor IDs, server time and positions through a server save",
   expect(loaded.world.metadata.elapsed).toBe(host.world.metadata.elapsed);
 });
 
-it("reuses actors from interrupted unauthenticated joins", () => {
+it("removes actors from interrupted unauthenticated joins", () => {
   const host = createHost();
   host.join("first");
   const abandoned = host.join("abandoned");
   host.forget("abandoned");
-  expect(host.join("replacement")).toBe(abandoned);
+  expect(host.join("replacement")).not.toBe(abandoned);
+  expect(host.actorId("abandoned")).toBeUndefined();
   expect(host.world.getEntities([PLAYER])).toHaveLength(2);
 });
 

@@ -284,6 +284,17 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
     ? hairColors[warp[POPUP].selections[styleIndex][0] ?? 0].color
     : entity[SPAWNABLE].hairColor;
 
+  if (world.metadata.warpPlayer) {
+    world.metadata.warpPlayer(
+      world.getEntityId(entity),
+      levelName,
+      selectedClass,
+      selectedStyle,
+      classUpdated
+    );
+    return;
+  }
+
   const { previousMovable, reference } = enterPortal(
     world,
     warp,
