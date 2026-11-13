@@ -348,6 +348,7 @@ export const renderPopup = (
   const visibleScroll =
     lines > (details ? windowHeight - detailsHeight - 3 : windowHeight - 2) &&
     tab !== "chat";
+  state.args.scrollbar = visibleScroll;
   const visibleOverlay =
     visibleScroll &&
     !entity[POPUP].sprite &&

@@ -211,6 +211,38 @@ for (const viewport of [
         .toBe("9");
     };
 
+    test("a dialog without a visible scrollbar has no scrolling hit areas", async ({
+      page,
+    }, testInfo) => {
+      await page.addInitScript(() =>
+        localStorage.setItem(
+          "alive.sprites",
+          JSON.stringify([
+            { name: "First", layers: [{ char: "A", color: "#ffffff" }] },
+            { name: "Second", layers: [{ char: "B", color: "#ffffff" }] },
+            { name: "Third", layers: [{ char: "C", color: "#ffffff" }] },
+          ])
+        )
+      );
+      await open(page, "sprites");
+      await expect(page.locator("#content")).toBeVisible();
+      await expect(page.locator("#up,#down")).toHaveCount(0);
+      const before = await popupState(page);
+      for (const key of ["popup-right-1", "popup-right-6"]) {
+        const point = await nativePoint(page, "popup", key);
+        if (viewport.touch) await page.touchscreen.tap(point.x, point.y);
+        else await page.mouse.click(point.x, point.y);
+        await page.waitForTimeout(250);
+        expect(await popupState(page)).toMatchObject({
+          row: before.row,
+          tab: before.tab,
+        });
+      }
+      await page.screenshot({
+        path: testInfo.outputPath("dialog-without-scrollbar.png"),
+      });
+    });
+
     test("popup hit areas match native cells without overlaps or scrollbar gaps", async ({
       page,
     }, testInfo) => {

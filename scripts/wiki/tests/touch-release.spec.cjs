@@ -94,6 +94,9 @@ test("closing a dialog with a held scrollbar cannot block a later pause tap", as
   );
   await expect(page.locator("#content")).toBeVisible();
   await page.waitForTimeout(800);
+  await page.keyboard.press("t");
+  await expect(page.locator("#down")).toBeVisible();
+  await page.waitForTimeout(800);
   await page.evaluate(() => {
     const target = document.getElementById("down");
     const rect = target.getBoundingClientRect();

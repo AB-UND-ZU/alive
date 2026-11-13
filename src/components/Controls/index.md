@@ -2,7 +2,7 @@
 
 Turns keyboard, pointer and touch input into hero movement and contextual actions. It reads the current world, hero, equipment and open popup; the same keys can therefore move, select a dialog option or use an equipped action.
 
-World-aligned hit areas use `--controls-center-y`, with the normal window midpoint as the default. Feature previews supply their terminal center when their top HUD is trimmed. Popup content spans whole cells; clicks use its measured rectangle so fractional sizes do not drift into adjacent rows or columns. Clicks outside that rectangle are ignored. The up/down regions exactly share the scrollbar column and meet at its center; they do not cover content, tabs or footer buttons.
+World-aligned hit areas use `--controls-center-y`, with the normal window midpoint as the default. Feature previews supply their terminal center when their top HUD is trimmed. Popup content spans whole cells; clicks use its measured rectangle so fractional sizes do not drift into adjacent rows or columns. Clicks outside that rectangle are ignored. The up/down regions exist only when the popup renderer shows a scrollbar. They exactly share its column and meet at its center; they do not cover content, tabs or footer buttons.
 
 | Prop | Use |
 | --- | --- |

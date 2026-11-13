@@ -1180,7 +1180,7 @@ describe("touch controls", () => {
     expect(hero[ACTIONABLE].toolEquipped).toBe(true);
   });
 
-  it("tapping menu arrows selects and confirms a row", () => {
+  it("a short dialog has no scrollbar touch areas", () => {
     const { world, hero, container } = setup([
       { skill: "bow", material: "wood", amount: 1 },
       { tool: "axe", material: "wood", amount: 1 },
@@ -1188,13 +1188,40 @@ describe("touch controls", () => {
     press("q");
     runUntil(world, () => !!isInPopup(world, hero));
     runUntil(world, () => !hero[PLAYER].actionTriggered);
+    expect(queryTouchArea(container, "up")).not.toBeInTheDocument();
+    expect(queryTouchArea(container, "down")).not.toBeInTheDocument();
 
-    fireEvent.pointerDown(getTouchArea(container, "down"));
-    fireEvent.pointerUp(getTouchArea(container, "down"));
+    press("ArrowDown");
+    release("ArrowDown");
     fireEvent.click(getTouchArea(container, "right"));
     runUntil(world, () => !isInPopup(world, hero));
-
     expect(hero[ACTIONABLE].toolEquipped).toBe(true);
+  });
+
+  it("scrollbar touch areas follow the visible bar when switching dialog tabs", () => {
+    const { world, hero, trader, container } = setupShop();
+    press("Enter");
+    runUntil(world, () => !!isInPopup(world, hero));
+    runUntil(world, () => !hero[PLAYER].actionTriggered);
+    const down = getTouchArea(container, "down");
+    expect(getTouchArea(container, "up")).toBeInTheDocument();
+    fireEvent.pointerDown(down);
+    touch("touchStart", [[175, 45]], down);
+    runUntil(world, () => getVerticalIndex(world, trader) > 0);
+
+    fireEvent.click(getTouchArea(container, "tab-1"));
+    runUntil(world, () => getTab(world, trader) === "sell");
+    tick(world, 10);
+    expect(queryTouchArea(container, "up")).not.toBeInTheDocument();
+    expect(queryTouchArea(container, "down")).not.toBeInTheDocument();
+    expect(hero[MOVABLE].orientations).toEqual([]);
+    touch("touchEnd", [], down);
+
+    fireEvent.click(getTouchArea(container, "tab-0"));
+    runUntil(world, () => getTab(world, trader) === "buy");
+    tick(world, 10);
+    expect(getTouchArea(container, "up")).toBeInTheDocument();
+    expect(getTouchArea(container, "down")).toBeInTheDocument();
   });
 
   it.each(["up", "down"] as const)(

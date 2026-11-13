@@ -1121,7 +1121,11 @@ export default function Controls({
   }, [handleMove]);
 
   // A popup can disappear while its scrollbar is held.
-  useLayoutEffect(releaseTouch, [popup, releaseTouch]);
+  useLayoutEffect(releaseTouch, [
+    popup,
+    popupSequence?.args.scrollbar,
+    releaseTouch,
+  ]);
 
   const handleTouchMove = useCallback(
     (event: TouchEvent) => {
@@ -1570,22 +1574,26 @@ export default function Controls({
           <div className="PopupClose" id="close" onClick={handleClose} />
           <div className="PopupLeft" id="left" onClick={handleLeft} />
           <div className="PopupRight" id="right" onClick={handleRight} />
-          <div
-            className="PopupUp"
-            id="up"
-            onPointerDown={handleScroll}
-            onPointerUp={handleRelease}
-            onPointerCancel={handleRelease}
-            onLostPointerCapture={handleRelease}
-          />
-          <div
-            className="PopupDown"
-            id="down"
-            onPointerDown={handleScroll}
-            onPointerUp={handleRelease}
-            onPointerCancel={handleRelease}
-            onLostPointerCapture={handleRelease}
-          />
+          {popupSequence?.args.scrollbar && (
+            <>
+              <div
+                className="PopupUp"
+                id="up"
+                onPointerDown={handleScroll}
+                onPointerUp={handleRelease}
+                onPointerCancel={handleRelease}
+                onLostPointerCapture={handleRelease}
+              />
+              <div
+                className="PopupDown"
+                id="down"
+                onPointerDown={handleScroll}
+                onPointerUp={handleRelease}
+                onPointerCancel={handleRelease}
+                onLostPointerCapture={handleRelease}
+              />
+            </>
+          )}
           <div
             className="PopupContent"
             id="content"
