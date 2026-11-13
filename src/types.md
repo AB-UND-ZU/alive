@@ -188,6 +188,7 @@
 | [Renderable](engine/components/renderable.md#type-renderable) | `src/engine/components/renderable.ts` |
 | [ResourceItem](engine/components/item.md#type-resourceitem) | `src/engine/components/item.ts` |
 | [Resource](engine/components/harvestable.md#type-resource) | `src/engine/components/harvestable.ts` |
+| [Restorable](engine/components/restorable.md#type-restorable) | `src/engine/components/restorable.ts` |
 | [Revivable](engine/components/revivable.md#type-revivable) | `src/engine/components/revivable.ts` |
 | [ReviveSequence](engine/components/sequencable.md#type-revivesequence) | `src/engine/components/sequencable.ts` |
 | [SaveGame](game/saves/index.md#type-savegame) | `src/game/saves/index.ts` |

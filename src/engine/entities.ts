@@ -1,3 +1,4 @@
+import { Restorable, RESTORABLE } from "./components/restorable";
 import { World } from ".";
 import { Actionable, ACTIONABLE } from "./components/actionable";
 import { Attackable, ATTACKABLE } from "./components/attackable";
@@ -136,6 +137,7 @@ export type Entity = Record<LevelName, {}> & {
   [REFILLABLE]: Refillable;
   [REMAINABLE]: Remainable;
   [RENDERABLE]: Renderable;
+  [RESTORABLE]: Restorable;
   [REVIVABLE]: Revivable;
   [SEQUENCABLE]: Sequencable;
   [SHOOTABLE]: Shootable;

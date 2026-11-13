@@ -26,3 +26,9 @@ An omitted or empty line clears the speech bubble without adding history.
 Removing an active completed quest may close and remove it in the same operation. Cleanup checks whether that nested close already removed the popup before disposing its viewpoint.
 
 Held navigation is consumed once per player reference tick. Redrawing hero stats within that tick cannot repeat the initial Up or Down step.
+
+`getPopupLength` supplies the same row bounds to input handling and display. `updatePopupSelection` runs before reading display data when the hero or popup changes, so a purchase, sale, consumption or tab change cannot leave the cursor outside the current list. Idle frames do not repeat that validation. If a quest loses its gathered requirements while choosing a reward, the dialog returns to its requirements instead of displaying an empty choice screen.
+
+Forge choices are inventory indexes. `removeFromInventory` calls `updateInventorySelections` before splicing the inventory: later choices move with their items, and removing a chosen item cancels that choice and subsequent steps. Insufficient forging ingredients return the dialog to ingredient selection. Yielding marks the completed stage before consuming its inputs, and checks the current deal again.
+
+The [Restorable component](../components/restorable.md) stores the confirmed save ID and the last displayed save summaries. `createPopup` attaches it to load dialogs; `openPopup` also initializes it for older restored dialogs. Shared popup and sequence types contain no save-specific state. Save deletion uses the confirmed ID. A reordered list cannot change the deletion target; a missing target cancels confirmation. The load dialog also redraws when the save summary list is replaced.

@@ -55,6 +55,13 @@ describe("quick slot assignment", () => {
     expect(hero[PLAYER].quickItems[5]).toEqual({ stackable: "apple" });
   });
 
+  it("keeps an assignment when choosing the slot it already occupies", () => {
+    const { world, hero } = setup();
+    assignQuickItem(world, hero, { stackable: "apple" }, 3);
+    assignQuickItem(world, hero, { stackable: "apple" }, 3);
+    expect(hero[PLAYER].quickItems[3]).toEqual({ stackable: "apple" });
+  });
+
   it("keeps an item in its slot when assigned again", () => {
     const { world, hero } = setup();
 

@@ -1,4 +1,5 @@
 import {
+  act,
   advance,
   advanceUntil,
   assertHero,
@@ -9,6 +10,8 @@ import {
   trigger,
   walk,
 } from "../../testing/harness";
+import { RESTORABLE } from "../components/restorable";
+import { openPopup, closePopup } from "./popup";
 import { POPUP } from "../components/popup";
 import { POSITION } from "../components/position";
 import { PLAYER } from "../components/player";
@@ -117,6 +120,46 @@ describe("continue portal", () => {
     expect(getVerticalIndex(world, popup)).toBe(1);
   });
 
+  it("stores load state in Restorable and preserves the confirmed ID in snapshots", () => {
+    setSaveSummaries([createSummary({ name: "a" })]);
+    const { world, hero, popup } = openSaves();
+    act(world, "left");
+    const restorable = world.assertComponents(popup, [RESTORABLE])[RESTORABLE];
+    expect(restorable.saveId).toBe("a");
+    expect(restorable.saves).toBe(getSaveSummaries());
+    const args = getSequence(world, popup, "popup")!.args;
+    expect(args).not.toHaveProperty("saves");
+    expect(args).not.toHaveProperty("saveId");
+    const restored = restoreSnapshot(createSnapshot(world));
+    expect(
+      restored.assertByIdAndComponents(world.getEntityId(popup), [RESTORABLE])[
+        RESTORABLE
+      ].saveId
+    ).toBe("a");
+    act(world, "left");
+    expect(restorable.saveId).toBeUndefined();
+    act(world, "left");
+    closePopup(world, hero, popup);
+    expect(restorable.saveId).toBeUndefined();
+  });
+
+  it("initializes Restorable when reopening an older load dialog", () => {
+    setSaveSummaries([createSummary({ name: "a" })]);
+    const { world, hero, popup } = openSaves();
+    closePopup(world, hero, popup);
+    step(world);
+    world.removeComponentFromEntity(
+      world.assertComponents(popup, [RESTORABLE]),
+      RESTORABLE,
+      false
+    );
+    openPopup(world, hero, popup, true);
+    step(world);
+    expect(world.assertComponents(popup, [RESTORABLE])[RESTORABLE].saves).toBe(
+      getSaveSummaries()
+    );
+  });
+
   it("keeps the portal closed without saves", () => {
     const world = createAreaWorld(area);
     const continuePortal = assertIdentifier(world, "continue_portal");
@@ -198,6 +241,45 @@ describe("continue portal", () => {
     ]);
     expect(getTabSelections(world, popup)).toEqual([]);
     expect(hero[MOVABLE]).toBeDefined();
+  });
+
+  it("bounds the row immediately after erasing the last listed save", () => {
+    setSaveSummaries([
+      createSummary({ name: "a" }),
+      createSummary({ name: "b" }),
+    ]);
+    const { world, popup } = openSaves();
+    act(world, "down");
+    act(world, "left");
+    act(world, "right");
+    expect(getSaveSummaries().map((save) => save.id)).toEqual(["b"]);
+    expect(getVerticalIndex(world, popup)).toBe(0);
+  });
+
+  it("erases the confirmed save even if a newer save changes its row", () => {
+    const original = createSummary({ name: "a" });
+    setSaveSummaries([original]);
+    const { world } = openSaves();
+    const eraseGame = jest.fn();
+    world.metadata.eraseGame = eraseGame;
+    act(world, "left");
+    setSaveSummaries([original, createSummary({ name: "b" })]);
+    act(world, "right");
+    expect(eraseGame).toHaveBeenCalledWith("a");
+    expect(getSaveSummaries().map((save) => save.id)).toEqual(["b"]);
+  });
+
+  it("cancels erase confirmation if its save disappears", () => {
+    const original = createSummary({ name: "b" });
+    setSaveSummaries([original, createSummary({ name: "a" })]);
+    const { world, popup } = openSaves();
+    const eraseGame = jest.fn();
+    world.metadata.eraseGame = eraseGame;
+    act(world, "left");
+    setSaveSummaries([createSummary({ name: "a" })]);
+    step(world);
+    expect(getTabSelections(world, popup)).toEqual([]);
+    expect(eraseGame).not.toHaveBeenCalled();
   });
 
   it("denies loading saves of newer game versions", () => {

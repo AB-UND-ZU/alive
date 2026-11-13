@@ -1,3 +1,4 @@
+import { RESTORABLE } from "../../engine/components/restorable";
 import { bumpEntity } from "../../engine/motion";
 import { trapActivation } from "../balancing/abilities";
 import { warnOn, warnOff } from "./sprites/particles";
@@ -85,6 +86,7 @@ import {
 import { brighten, colors, darken } from "../../game/assets/colors";
 import {
   add,
+  clamp,
   choice,
   chunked,
   combine,
@@ -357,6 +359,9 @@ import {
   getTab,
   getTabSelections,
   getVerticalIndex,
+  updatePopupSelection,
+  popTabSelection,
+  setVerticalIndex,
   hasCompletedTargets,
   isInPopup,
   mapScroll,
@@ -3932,6 +3937,18 @@ export const acquireXp: Sequence<XpSequence> = (world, entity, state) => {
 };
 
 export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
+  const hero = getIdentifierAndComponents(world, "hero", [
+    INVENTORY,
+    RENDERABLE,
+  ]);
+  if (
+    hero &&
+    !entity[POPUP].sprite &&
+    state.args.generation !==
+      entity[RENDERABLE].generation + hero[RENDERABLE].generation
+  ) {
+    updatePopupSelection(world, hero, entity);
+  }
   const transaction = getTab(world, entity);
   let handler: Sequence<PopupSequence> = displayInfo;
 
@@ -5865,11 +5882,30 @@ const eraseQuestion = [
 ];
 
 export const displayLoad: Sequence<PopupSequence> = (world, entity, state) => {
+  const restorable = world.assertComponents(entity, [RESTORABLE])[RESTORABLE];
   const saves = getSaveSummaries();
   const selections = getTabSelections(world, entity);
-  const erasing = selections.length === 1;
+  let erasing = selections.length === 1;
+  if (erasing && !saves.some((save) => save.id === restorable.saveId)) {
+    setVerticalIndex(
+      world,
+      entity,
+      clamp(selections[0], 0, Math.max(0, saves.length - 1))
+    );
+    popTabSelection(world, entity);
+    restorable.saveId = undefined;
+    erasing = false;
+  }
+  if (restorable.saves !== saves) {
+    restorable.saves = saves;
+    const hero = getIdentifierAndComponents(world, "hero", [INVENTORY]);
+    if (hero) updatePopupSelection(world, hero, entity);
+    rerenderEntity(world, entity);
+  }
   const verticalIndex = getVerticalIndex(world, entity);
-  const selectedSave = saves[erasing ? selections[0] : verticalIndex];
+  const selectedSave = erasing
+    ? saves.find((save) => save.id === restorable.saveId)
+    : saves[verticalIndex];
 
   const getSaveRow = (save: SaveSummary, selected: boolean) => {
     const saveTitle = createText(

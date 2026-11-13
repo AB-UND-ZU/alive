@@ -1,3 +1,4 @@
+import { getIdentifierAndComponents } from "../../engine/utils";
 import { updateParticleMotion } from "../../engine/motion";
 import { Entity } from "ecs";
 import { entities, World } from "../../engine";
@@ -300,18 +301,21 @@ export const renderPopup = (
     sprite.layers.some((layer) => layer.char === "\u011a")
   );
   const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
-  const generation = entity[RENDERABLE].generation;
+  const hero = getIdentifierAndComponents(world, "hero", [RENDERABLE]);
+  const generation =
+    entity[RENDERABLE].generation + (hero?.[RENDERABLE].generation || 0);
   const popupMiddle = { x: 0, y: (windowHeight + 1) / -2 };
   const initial = !state.args.generation;
   const spriteConfig = state.args.instant ? quickSprites : popupSprites;
   const windowChanged = state.args.windowHeight !== windowHeight;
+  const detailsPadding = details ? detailsHeight : 0;
+  const detailsChanged = state.args.detailsPadding !== detailsPadding;
   const generationChanged =
-    state.args.generation !== generation || windowChanged;
+    state.args.generation !== generation || windowChanged || detailsChanged;
   const heightChanged = state.args.contentHeight !== content.length;
   const verticalIndex = getVerticalIndex(world, entity);
   const horizontalIndex = entity[POPUP].horizontalIndex;
   const lines = content.length - overscan;
-  const detailsPadding = details ? detailsHeight : 0;
   const scrollIndex =
     verticalIndex -
     scrolledVerticalIndex(
@@ -381,7 +385,9 @@ export const renderPopup = (
     generationChanged ||
     renderTabs ||
     (!details && hintGeneration !== hintAmount);
-  let renderScroll = visibleScroll && (scrolled || heightChanged || renderTabs);
+  let renderScroll =
+    visibleScroll &&
+    (scrolled || heightChanged || renderTabs || detailsChanged);
   let renderTopOverlay =
     renderTabs ||
     generationChanged ||
@@ -566,7 +572,10 @@ export const renderPopup = (
 
     state.args.scrollIndex = scrollIndex;
     renderContent = true;
-  } else if (!visibleScroll && (renderTabs || heightChanged)) {
+  } else if (
+    !visibleScroll &&
+    (renderTabs || heightChanged || detailsChanged)
+  ) {
     // reset scroll bar
     for (let row = 0; row < windowHeight - 2; row += 1) {
       const sideParticle = world.assertByIdAndComponents(
@@ -631,7 +640,7 @@ export const renderPopup = (
     updated = true;
   }
 
-  if (renderTabs || heightChanged) {
+  if (renderTabs || heightChanged || detailsChanged) {
     state.args.contentHeight = content.length;
 
     // add center decoration
@@ -775,9 +784,12 @@ export const renderPopup = (
   // popup details
   state.args.detailsPadding = detailsPadding;
   if (renderDetails && details) {
-    for (let row = 0; row < Math.min(detailsHeight, details.length); row += 1) {
-      for (let column = 0; column < details[row].length; column += 1) {
-        const char = mergeSprites(popupBackground, details[row][column]);
+    for (let row = 0; row < detailsHeight; row += 1) {
+      for (let column = 0; column < frameWidth - 2; column += 1) {
+        const char = mergeSprites(
+          popupBackground,
+          details[row]?.[column] || none
+        );
         const charParticle = world.assertByIdAndComponents(
           state.particles[
             `popup-content-${row + windowHeight - detailsHeight - 2}-${column}`
@@ -834,15 +846,22 @@ export const renderPopup = (
         continue;
       }
 
-      const leftParticle = entities.createParticle(world, {
-        [PARTICLE]: {
-          offsetX: -(frameWidth + 1) / 2 + column,
-          offsetY: -1 + windowOffset,
-          offsetZ: selectionHeight,
-        },
-        [RENDERABLE]: { generation: 1 },
-        [SPRITE]: leftSprite,
-      });
+      const leftParticle =
+        world.getEntityByIdAndComponents(state.particles[leftName], [
+          PARTICLE,
+          SPRITE,
+        ]) ||
+        entities.createParticle(world, {
+          [PARTICLE]: {
+            offsetX: -(frameWidth + 1) / 2 + column,
+            offsetY: -1 + windowOffset,
+            offsetZ: selectionHeight,
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: leftSprite,
+        });
+      leftParticle[SPRITE] = leftSprite;
+      rerenderEntity(world, leftParticle);
       state.particles[leftName] = world.getEntityId(leftParticle);
     }
 
@@ -862,15 +881,24 @@ export const renderPopup = (
         continue;
       }
 
-      const rightParticle = entities.createParticle(world, {
-        [PARTICLE]: {
-          offsetX: (frameWidth - 1) / 2 + column - rightButton.length + 2,
-          offsetY: -1 + windowOffset,
-          offsetZ: selectionHeight,
-        },
-        [RENDERABLE]: { generation: 1 },
-        [SPRITE]: rightSprite,
-      });
+      const rightParticle =
+        world.getEntityByIdAndComponents(state.particles[rightName], [
+          PARTICLE,
+          SPRITE,
+        ]) ||
+        entities.createParticle(world, {
+          [PARTICLE]: {
+            offsetX: (frameWidth - 1) / 2 + column - rightButton.length + 2,
+            offsetY: -1 + windowOffset,
+            offsetZ: selectionHeight,
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: rightSprite,
+        });
+      rightParticle[SPRITE] = rightSprite;
+      rightParticle[PARTICLE].offsetX =
+        (frameWidth - 1) / 2 + column - rightButton.length + 2;
+      rerenderEntity(world, rightParticle);
       state.particles[rightName] = world.getEntityId(rightParticle);
     }
   }

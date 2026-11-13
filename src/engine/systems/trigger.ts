@@ -92,6 +92,7 @@ import {
   openPopup,
   pushTabSelection,
   setVerticalIndex,
+  updateInventorySelections,
 } from "./popup";
 import { Popup, POPUP } from "../components/popup";
 import { addToInventory, equipItem } from "./collect";
@@ -521,16 +522,15 @@ export const removeFromInventory = (
 
   if (EQUIPPABLE in entity) {
     for (const slot of slots) {
-      if (item[ITEM][slot]) {
-        entity[EQUIPPABLE][slot === "accessory" ? item[ITEM].accessory : slot] =
-          undefined;
+      const equipmentSlot = slot === "accessory" ? item[ITEM].accessory : slot;
+      if (item[ITEM][slot] && entity[EQUIPPABLE][equipmentSlot] === itemId) {
+        entity[EQUIPPABLE][equipmentSlot] = undefined;
       }
     }
   }
 
-  if (itemIndex !== -1) {
-    entity[INVENTORY].items.splice(itemIndex, 1);
-  }
+  updateInventorySelections(world, entity, itemIndex);
+  entity[INVENTORY].items.splice(itemIndex, 1);
 
   item[ITEM].carrier = undefined;
 
@@ -623,6 +623,7 @@ export const spendItem = (
       throw Error("Unable to spend stat!");
     }
     entity[STATS][item.stat] -= item.amount;
+    rerenderEntity(world, entity);
     return;
   }
 
@@ -640,17 +641,11 @@ export const spendItem = (
   }
 
   if (itemEntity[ITEM].amount === item.amount) {
-    if (entity[EQUIPPABLE]) {
-      for (const slot of slots) {
-        if (itemEntity[ITEM][slot]) {
-          entity[EQUIPPABLE][slot] = undefined;
-        }
-      }
-    }
     removeFromInventory(world, entity, itemEntity);
     disposeEntity(world, itemEntity);
   } else {
     itemEntity[ITEM].amount -= item.amount;
+    rerenderEntity(world, entity);
   }
 };
 

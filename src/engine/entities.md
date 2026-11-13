@@ -85,6 +85,7 @@ export type Entity = Record<LevelName, {}> & {
   [REFILLABLE]: Refillable;
   [REMAINABLE]: Remainable;
   [RENDERABLE]: Renderable;
+  [RESTORABLE]: Restorable;
   [REVIVABLE]: Revivable;
   [SEQUENCABLE]: Sequencable;
   [SHOOTABLE]: Shootable;

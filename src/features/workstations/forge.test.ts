@@ -1,3 +1,4 @@
+import { spendItem } from "../../engine/systems/trigger";
 import { SPRITE } from "../../engine/components/sprite";
 import { composeCharacterPixels } from "../../components/Row/characters";
 import { colors } from "../../game/assets/colors";
@@ -31,6 +32,7 @@ import {
 import {
   forgingCompleted,
   getForgeOptions,
+  getForgeStatus,
   hittingArea,
   hittingOffset,
 } from "../../game/balancing/forging";
@@ -343,5 +345,54 @@ describe("forging at an anvil", () => {
 
     expect(findEntityAt(world, findInArea(area, "A"), [POPUP])).toBeUndefined();
     expect(hero[ACTIONABLE].popup).toBeUndefined();
+  });
+});
+
+describe("forging selections after inventory changes", () => {
+  it("keeps the chosen base when an earlier inventory stack disappears", () => {
+    const { world, hero, anvil } = setup([
+      { stackable: "apple", amount: 1 },
+      ironSword,
+      fireUpgrade.add,
+    ]);
+    openStation(world);
+    selectItems(world, anvil, [1]);
+    spendItem(world, hero, { stackable: "apple", amount: 1 });
+    step(world);
+    expect(getTabSelections(world, anvil)).toEqual([0]);
+    expect(
+      getForgeStatus(world, hero, getTabSelections(world, anvil)[0]).baseItem
+    ).toMatchObject(ironSword);
+    selectItems(world, anvil, [1]);
+    expect(
+      getForgeStatus(world, hero, ...getTabSelections(world, anvil)).resultItem
+    ).toEqual(fireUpgrade.result);
+  });
+
+  it("discards the chosen base if that item is removed instead of forging its replacement row", () => {
+    const { world, hero, anvil } = setup([ironSword, fireUpgrade.add]);
+    openStation(world);
+    selectItems(world, anvil, [0]);
+    spendItem(world, hero, ironSword);
+    step(world);
+    expect(getTabSelections(world, anvil)).toEqual([]);
+    expect(getVerticalIndex(world, anvil)).toBe(0);
+  });
+
+  it("returns to ingredient selection when the chosen stack is no longer sufficient", () => {
+    const { world, hero, anvil } = setup([ironSword, materialUpgrade.add]);
+    openStation(world);
+    selectItems(world, anvil, [0, 1]);
+    act(world, "right");
+    spendItem(world, hero, { ...materialUpgrade.add, amount: 1 });
+    step(world);
+    expect(getTabSelections(world, anvil)).toEqual([0]);
+    expect(() => act(world, "right")).not.toThrow();
+    expect(countItems(world, hero, { weapon: "sword", material: "iron" })).toBe(
+      1
+    );
+    expect(countItems(world, hero, { weapon: "sword", material: "gold" })).toBe(
+      0
+    );
   });
 });

@@ -46,6 +46,7 @@ export { default as addProjectile } from "./projectile";
 export { default as addPushable } from "./pushable";
 export { default as addReference } from "./reference";
 export { default as addRenderable } from "./renderable";
+export { default as addRestorable } from "./restorable";
 export { default as addRevivable } from "./revivable";
 export { default as addSeqencable } from "./sequencable";
 export { default as addShootable } from "./shootable";

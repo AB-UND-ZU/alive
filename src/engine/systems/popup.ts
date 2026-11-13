@@ -1,3 +1,4 @@
+import addRestorable, { RESTORABLE } from "../components/restorable";
 import { updateSpriteBuilder } from "../../game/assets/spriteBuilder";
 import { World } from "../ecs";
 import { RENDERABLE } from "../components/renderable";
@@ -105,7 +106,6 @@ import {
 } from "../../game/assets/ui";
 import { updateMovementInterval } from "./movement";
 import { loadChatHistory, saveChatHistory } from "../../game/chatHistory";
-import { plantConfigs } from "../../game/balancing/harvesting";
 import { isPlantable, plantSeed, queueBrew } from "./harvest";
 import { getBrewingDeal } from "../../game/balancing/brewing";
 import { FORGABLE } from "../components/forgable";
@@ -382,14 +382,14 @@ export const getDeal = (
       };
     }
   } else if (tab === "forge" && selections.length >= 2) {
-    const { baseItem, addItem, resultItem } = getForgeStatus(
+    const { forgeable, baseItem, addItem, resultItem } = getForgeStatus(
       world,
       entity,
       selections[0],
       selections[1]
     );
 
-    if (baseItem && addItem && resultItem) {
+    if (forgeable && baseItem && addItem && resultItem) {
       return {
         stock: 1,
         prices: [baseItem, addItem],
@@ -649,6 +649,7 @@ export const createPopup = (
   entity: Entity,
   popup: Pick<Popup, "tabs"> & Partial<Popup>
 ) => {
+  if (popup.tabs.includes("load")) addRestorable(world, entity, {});
   const idle = popupIdles[getDiscoveryTab(world, { [POPUP]: popup })];
 
   if (idle) {
@@ -739,6 +740,9 @@ export const openPopup = (
   popupEntity: Entity,
   instant = false
 ) => {
+  if (popupEntity[POPUP].tabs.includes("load") && !popupEntity[RESTORABLE]) {
+    addRestorable(world, popupEntity, {});
+  }
   const popupId = world.getEntityId(popupEntity);
   const transaction = getDiscoveryTab(world, popupEntity);
   heroEntity[PLAYER].popup = popupId;
@@ -827,6 +831,7 @@ export const closePopup = (
 ) => {
   const tab = getTab(world, popupEntity);
   const selections = getTabSelections(world, popupEntity);
+  if (popupEntity[RESTORABLE]) popupEntity[RESTORABLE].saveId = undefined;
 
   heroEntity[PLAYER].popup = undefined;
   updateMovementInterval(world, heroEntity);
@@ -889,9 +894,153 @@ export const assignQuickItem = (
   entity[PLAYER].quickItems[assignedSlot] = quickItem;
 
   // clear existing slot to prevent duplicates
-  if (existingSlot !== undefined) {
+  if (existingSlot !== undefined && existingSlot !== assignedSlot) {
     entity[PLAYER].quickItems[existingSlot] = undefined;
   }
+  rerenderEntity(world, entity);
+};
+
+export const updateInventorySelections = (
+  world: World,
+  hero: Entity,
+  removedIndex: number
+) => {
+  if (!hero[PLAYER]) return;
+  for (const entity of world.getEntities([POPUP])) {
+    entity[POPUP].tabs.forEach((tab, tabIndex) => {
+      if (tab !== "forge") return;
+      const selections = entity[POPUP].selections[tabIndex];
+      if (!selections.length || selections.length === 4) return;
+      if (!selections.slice(0, 2).some((index) => index >= removedIndex))
+        return;
+      const removedSelection = selections.slice(0, 2).indexOf(removedIndex);
+      if (removedSelection !== -1) selections.splice(removedSelection);
+      for (let index = 0; index < Math.min(2, selections.length); index += 1) {
+        if (selections[index] > removedIndex) selections[index] -= 1;
+      }
+      rerenderEntity(world, entity);
+    });
+  }
+};
+
+const getPopupLength = (world: World, hero: Entity, entity: Entity) => {
+  const popup = entity[POPUP] as Popup;
+  const tab = getTab(world, entity);
+  const selections = getTabSelections(world, entity);
+  const inventory = hero[INVENTORY] as Inventory;
+  switch (tab) {
+    case "inspect":
+    case "equip":
+    case "plant":
+    case "use":
+      if (tab === "use" && selections.length !== 2) return 0;
+      return inventory.items.filter((id) => {
+        const item = world.assertByIdAndComponents(id, [ITEM]);
+        const equipment = slots.some((slot) => item[ITEM][slot]);
+        return tab === "inspect"
+          ? !equipment
+          : tab === "equip"
+          ? equipment
+          : tab === "plant"
+          ? isPlantable(world, item[ITEM])
+          : equipment || !!getItemConsumption(item);
+      }).length;
+    case "sell":
+      return inventory.items.length;
+    case "forge":
+      return selections.length < 2 ? inventory.items.length : 0;
+    case "buy":
+      return popup.deals.length;
+    case "craft":
+      return popup.ingredients.length;
+    case "brew":
+      return selections.length === 1
+        ? popup.recipes.length
+        : selections.length === 2
+        ? popup.recipes[selections[1]]?.options.length || 0
+        : 0;
+    case "stats":
+      return visibleStats.length + 1;
+    case "gear":
+      return gearSlots.length;
+    case "map":
+      return mapScroll;
+    case "build":
+      return buildConstructions.length + 1;
+    case "class":
+      return displayedClasses.length;
+    case "style":
+      return hairColors.length;
+    case "credits":
+      return credits.length;
+    case "load":
+      return selections.length === 0 ? getSaveSummaries().length : 0;
+    case "chat":
+      return hero[PLAYER].chatHistory.length + 1;
+    case "info":
+    case "warp":
+    case "talk":
+      return Math.max(
+        0,
+        (popup.lines[popup.horizontalIndex] || []).length -
+          (frameHeight - 2) +
+          1
+      );
+    case "quest":
+      if (selections.length)
+        return selections.length === 1 && isQuestCompleted(world, hero, entity)
+          ? popup.choices.length
+          : 0;
+      return Math.max(
+        0,
+        (popup.lines[popup.horizontalIndex] || []).length +
+          1 +
+          (popup.targets.length ? popup.targets.length + 2 : 0) +
+          (popup.deals[0]?.prices.length
+            ? popup.deals[0].prices.length + 2
+            : 0) +
+          (popup.deals.length ? popup.deals.length + 2 : 0) +
+          (popup.choices.length ? popup.choices.length + 2 : 0) -
+          (frameHeight - 2) +
+          1
+      );
+    default:
+      return 0;
+  }
+};
+
+export const updatePopupSelection = (
+  world: World,
+  hero: Entity,
+  entity: Entity
+) => {
+  const selections = getTabSelections(world, entity);
+  const tab = getTab(world, entity);
+  if (
+    tab === "quest" &&
+    selections.length === 1 &&
+    !isQuestCompleted(world, hero, entity)
+  ) {
+    selections.length = 0;
+    setVerticalIndex(world, entity, 0);
+  }
+  if (
+    tab === "forge" &&
+    selections.length >= 2 &&
+    selections.length < 4 &&
+    !getForgeStatus(world, hero, selections[0], selections[1]).forgeable
+  ) {
+    selections.splice(1);
+    rerenderEntity(world, entity);
+  }
+  const index = getVerticalIndex(world, entity);
+  const boundIndex = clamp(
+    index,
+    0,
+    Math.max(0, getPopupLength(world, hero, entity) - 1)
+  );
+  if (index !== boundIndex) setVerticalIndex(world, entity, boundIndex);
+  return boundIndex;
 };
 
 export default function setupPopup(world: World) {
@@ -951,6 +1100,8 @@ export default function setupPopup(world: World) {
       return;
     }
 
+    if (!targetOrientation && !heroEntity[PLAYER].actionTriggered) return;
+
     const inventoryItems = (heroEntity[INVENTORY]?.items || []).map((itemId) =>
       world.assertByIdAndComponents(itemId, [ITEM])
     );
@@ -961,8 +1112,8 @@ export default function setupPopup(world: World) {
       (item) =>
         getItemConsumption(item) || slots.some((slot) => item[ITEM][slot])
     );
-    const plantItems = inventoryItems.filter(
-      (item) => plantConfigs[item[ITEM].stackable!]
+    const plantItems = inventoryItems.filter((item) =>
+      isPlantable(world, item[ITEM])
     );
     const equipItems = inventoryItems.filter((item) =>
       slots.some((slot) => item[ITEM][slot])
@@ -990,88 +1141,7 @@ export default function setupPopup(world: World) {
     const popupSequence = getSequence(world, popupEntity, "popup");
 
     // handle vertical movements
-    const lines =
-      transaction === "inspect"
-        ? inspectItems.length
-        : transaction === "use" && selections.length === 2
-        ? quickItems.length
-        : transaction === "stats"
-        ? visibleStats.length + 1
-        : transaction === "gear"
-        ? gearSlots.length
-        : transaction === "equip"
-        ? equipItems.length
-        : transaction === "map"
-        ? mapScroll
-        : transaction === "plant"
-        ? plantItems.length
-        : transaction === "build"
-        ? buildConstructions.length + 1
-        : transaction === "class"
-        ? displayedClasses.length
-        : transaction === "style"
-        ? hairColors.length
-        : transaction === "credits"
-        ? credits.length
-        : transaction === "load"
-        ? selections.length === 0
-          ? getSaveSummaries().length
-          : 0
-        : transaction === "info" ||
-          transaction === "warp" ||
-          transaction === "talk"
-        ? Math.max(
-            0,
-            popupEntity[POPUP].lines[popupEntity[POPUP].horizontalIndex]
-              .length -
-              (frameHeight - 2) +
-              1
-          )
-        : transaction === "sell"
-        ? inventoryItems.length
-        : transaction === "forge"
-        ? selections.length >= 2
-          ? 0
-          : inventoryItems.length
-        : transaction === "buy"
-        ? popupEntity[POPUP].deals.length
-        : transaction === "craft"
-        ? popupEntity[POPUP].ingredients.length
-        : transaction === "brew"
-        ? selections.length === 1
-          ? popupEntity[POPUP].recipes.length
-          : selections.length === 2
-          ? popupEntity[POPUP].recipes[selections[1]].options.length
-          : 0
-        : transaction === "quest"
-        ? selections.length === 0
-          ? Math.max(
-              0,
-              popupEntity[POPUP].lines[popupEntity[POPUP].horizontalIndex]
-                .length +
-                1 +
-                (!popupEntity[POPUP].targets.length
-                  ? 0
-                  : popupEntity[POPUP].targets.length + 2) +
-                (!popupEntity[POPUP].deals[0]?.prices.length
-                  ? 0
-                  : popupEntity[POPUP].deals[0].prices.length + 2) +
-                (!popupEntity[POPUP].deals.length
-                  ? 0
-                  : popupEntity[POPUP].deals.length + 2) +
-                (!popupEntity[POPUP].choices.length
-                  ? 0
-                  : popupEntity[POPUP].choices.length + 2) -
-                (frameHeight - 2) +
-                1
-            )
-          : selections.length === 1 &&
-            isQuestCompleted(world, heroEntity, popupEntity)
-          ? popupEntity[POPUP].choices.length
-          : 0
-        : transaction === "chat"
-        ? heroEntity[PLAYER].chatHistory.length + 1
-        : 0;
+    const lines = getPopupLength(world, heroEntity, popupEntity);
 
     const previousIndex = getVerticalIndex(world, popupEntity);
     if (
@@ -1142,8 +1212,6 @@ export default function setupPopup(world: World) {
     if (currentIndex !== boundIndex) {
       setVerticalIndex(world, popupEntity, boundIndex);
     }
-
-    if (!targetOrientation && !heroEntity[PLAYER].actionTriggered) return;
 
     // handle actions
     if (heroEntity[PLAYER].actionTriggered === "close") {
@@ -1308,15 +1376,15 @@ export default function setupPopup(world: World) {
           secondIndex,
           verticalIndex
         );
-        if (deal && tradeEntity[FORGABLE]) {
+        if (deal && tradeEntity[FORGABLE] && canShop(world, heroEntity, deal)) {
           tradeEntity[FORGABLE].steps = [];
           tradeEntity[FORGABLE].progress = 0;
           tradeEntity[FORGABLE].completed = deal.item;
           tradeEntity[FORGABLE].lastElapsed = 0;
           tradeEntity[FORGABLE].lastAction = undefined;
           tradeEntity[FORGABLE].hitIndex = undefined;
-          performTrade(world, heroEntity, tradeEntity);
           pushTabSelection(world, tradeEntity);
+          performTrade(world, heroEntity, tradeEntity);
         } else if (addEntity) {
           const popupSequence = getSequence(world, addEntity, "popup");
           const { forgeable, addItem, baseItem, resultItem } = forgeStatus;
@@ -1332,6 +1400,7 @@ export default function setupPopup(world: World) {
             }
           } else if (
             selections.length === 2 &&
+            forgeable &&
             addEntity[FORGABLE] &&
             baseItem &&
             addItem &&
@@ -1592,13 +1661,18 @@ export default function setupPopup(world: World) {
         }
       } else if (tab === "load") {
         const erasing = selections.length === 1;
-        const save =
-          getSaveSummaries()[erasing ? selections[0] : verticalIndex];
+        const restorable = world.assertComponents(popupEntity, [RESTORABLE])[
+          RESTORABLE
+        ];
+        const save = erasing
+          ? getSaveSummaries().find((save) => save.id === restorable.saveId)
+          : getSaveSummaries()[verticalIndex];
 
         if (erasing) {
           // stay at the same row, which then shows the next save
           setVerticalIndex(world, popupEntity, selections[0]);
           popTabSelection(world, popupEntity);
+          restorable.saveId = undefined;
           if (save) {
             removeSaveSummary(save.id);
             world.metadata.eraseGame(save.id);
@@ -1682,6 +1756,8 @@ export default function setupPopup(world: World) {
         // ask before erasing a saved game
         if (getSaveSummaries()[getVerticalIndex(world, popupEntity)]) {
           // the confirmation only shows the selected save in the first row
+          world.assertComponents(popupEntity, [RESTORABLE])[RESTORABLE].saveId =
+            getSaveSummaries()[getVerticalIndex(world, popupEntity)].id;
           pushTabSelection(world, popupEntity);
           setVerticalIndex(world, popupEntity, 0);
           play("confirm");
@@ -1695,6 +1771,9 @@ export default function setupPopup(world: World) {
       ) {
         // don't allow going back from completed screen or customizations
         const verticalIndex = popTabSelection(world, popupEntity);
+        if (tab === "load")
+          world.assertComponents(popupEntity, [RESTORABLE])[RESTORABLE].saveId =
+            undefined;
         const previousIndex =
           verticalIndex === undefined || tab === "use" ? 0 : verticalIndex;
         setVerticalIndex(world, popupEntity, previousIndex);

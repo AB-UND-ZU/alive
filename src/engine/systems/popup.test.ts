@@ -10,6 +10,7 @@ import {
   walk,
 } from "../../testing/harness";
 import { ACTIONABLE } from "../components/actionable";
+import { RESTORABLE } from "../components/restorable";
 import { POPUP } from "../components/popup";
 import { POSITION } from "../components/position";
 import { PLAYER } from "../components/player";
@@ -114,6 +115,7 @@ describe("popup interaction", () => {
       "POPUP" | "SEQUENCABLE"
     >;
     expect(getTab(world, popup)).toBe("credits");
+    expect(popup[RESTORABLE]).toBeUndefined();
     expect(getVerticalIndex(world, popup)).toBe(0);
 
     // let opening animation settle before navigating
