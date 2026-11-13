@@ -143,10 +143,16 @@ export default function setupSequence(world: World) {
         sequenceState.elapsed += delta;
         const sequence = sequences[sequenceState.name];
         const result = sequence(world, entity, sequenceState as any); // trust me TypeScript i'm an engineer
-        if (sequenceType === "popup" && entity[POPUP]?.owner !== undefined) {
+        const owner =
+          sequenceType === "popup"
+            ? entity[POPUP]?.owner
+            : sequenceType === "interact"
+            ? sequencable.states.interact?.args.owner
+            : undefined;
+        if (owner !== undefined) {
           for (const id of Object.values(sequenceState.particles)) {
             const particle = world.getEntityByIdAndComponents(id, [PARTICLE]);
-            if (particle) particle[PARTICLE].owner = entity[POPUP].owner;
+            if (particle) particle[PARTICLE].owner = owner;
           }
         }
 

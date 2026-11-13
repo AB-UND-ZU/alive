@@ -14,7 +14,11 @@ import { POPUP } from "../components/popup";
 import { LEVEL } from "../components/level";
 import { InteractSequence, SEQUENCABLE } from "../components/sequencable";
 import { VIEWABLE } from "../components/viewable";
-import { getActiveViewable } from "../../renderers/interface/hooks";
+import { getInteraction, selectViewable } from "../players";
+import { entities } from "..";
+import { FOG } from "../components/fog";
+import { SPRITE } from "../components/sprite";
+import { registerEntity, moveEntity } from "./map";
 import { getDiscoveryTab, isInPopup, popupActions, popupIdles } from "./popup";
 import { rerenderEntity } from "./renderer";
 import { isControllable } from "./freeze";
@@ -39,22 +43,18 @@ import { isCooperating } from "./damage";
 export default function setupInteract(world: World) {
   let referenceGenerations = -1;
 
-  const onUpdate = (delta: number) => {
-    const heroEntity = world.getEntity([
-      PLAYER,
-      POSITION,
-      RENDERABLE,
-      SEQUENCABLE,
-    ]);
+  const updatePlayer = (
+    heroEntity: TypedEntity<
+      "PLAYER" | "POSITION" | "RENDERABLE" | "SEQUENCABLE"
+    >
+  ) => {
     const size = world.metadata.gameEntity[LEVEL].size;
-
-    const generation = world
-      .getEntities([RENDERABLE, REFERENCE])
-      .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
-
-    if (referenceGenerations === generation) return;
-
-    referenceGenerations = generation;
+    const interaction = getInteraction(world, heroEntity);
+    const owner = heroEntity[PLAYER].accountId
+      ? world.getEntityId(heroEntity)
+      : undefined;
+    const personal = heroEntity[PLAYER].interface;
+    if (personal) personal.prompts ||= {};
 
     let activated = false;
     const interactEntities: TypedEntity<
@@ -78,7 +78,16 @@ export default function setupInteract(world: World) {
       const distance = heroEntity
         ? getDistance(entity[POSITION], heroEntity[POSITION], size, 1, false)
         : Infinity;
-      const interactSequence = getSequence(world, entity, "interact");
+      let prompt =
+        personal &&
+        world.getEntityByIdAndComponents(personal.prompts![entityId], [
+          POSITION,
+          RENDERABLE,
+          SEQUENCABLE,
+        ]);
+      const interactSequence = personal
+        ? prompt && getSequence(world, prompt, "interact")
+        : getSequence(world, entity, "interact");
       const isAdjacent =
         !!heroEntity &&
         !isMounting(world, heroEntity) &&
@@ -109,28 +118,24 @@ export default function setupInteract(world: World) {
           (!entity[FARMABLE] && distance <= 1));
 
       // reset stale active interact
-      const activeEntity = world.getEntityById(world.metadata.interact.active);
-      if (world.metadata.interact.active && !activeEntity) {
-        world.metadata.interact.active = undefined;
+      const activeEntity = world.getEntityById(interaction.active);
+      if (interaction.active && !activeEntity) {
+        interaction.active = undefined;
       }
 
       // reset last viewed popup
       if (
         heroEntity &&
-        world.metadata.interact.last === entityId &&
+        interaction.last === entityId &&
         ((!isAdjacent && !isInPopup(world, heroEntity)) ||
-          getDistance(
-            heroEntity[POSITION],
-            world.metadata.interact.origin,
-            size
-          ) !== 0)
+          getDistance(heroEntity[POSITION], interaction.origin, size) !== 0)
       ) {
-        world.metadata.interact.last = undefined;
+        interaction.last = undefined;
       }
 
       if (isAdjacent) {
         const viewables = world.getEntities([VIEWABLE, POSITION]);
-        const viewable = getActiveViewable(viewables);
+        const viewable = selectViewable(viewables, world, owner)!;
         const offset = buildCondition
           ? orientationPoints[buildOrientation]
           : {
@@ -176,9 +181,31 @@ export default function setupInteract(world: World) {
 
         if (
           !interactSequence &&
-          !world.metadata.interact.active &&
-          world.metadata.interact.last !== entityId
+          !interaction.active &&
+          interaction.last !== entityId
         ) {
+          if (personal && !prompt) {
+            const viewpoint = entities.createViewpoint(world, {
+              [POSITION]: copy(entity[POSITION]),
+              [RENDERABLE]: { generation: 0 },
+              [VIEWABLE]: { active: false, priority: 0, owner },
+            });
+            world.addComponentToEntity(viewpoint, FOG, {
+              type: "terrain",
+              visibility: "visible",
+              fixed: true,
+            });
+            world.addComponentToEntity(viewpoint, SPRITE, none);
+            world.addComponentToEntity(viewpoint, SEQUENCABLE, { states: {} });
+            prompt = world.assertComponents(viewpoint, [
+              POSITION,
+              RENDERABLE,
+              SEQUENCABLE,
+            ]);
+            personal.prompts![entityId] = world.getEntityId(prompt);
+            registerEntity(world, prompt);
+          }
+          if (prompt) moveEntity(world, prompt, entity[POSITION]);
           // show new interact
           const sprite = buildCondition
             ? none
@@ -193,10 +220,11 @@ export default function setupInteract(world: World) {
             : popupIdles[getDiscoveryTab(world, entity)];
           createSequence<"interact", InteractSequence>(
             world,
-            entity,
+            prompt || entity,
             "interact",
             "popupInteract",
             {
+              owner,
               active: true,
               orientation,
               generation: 0,
@@ -208,34 +236,48 @@ export default function setupInteract(world: World) {
               offset: buildCondition ? delta : { x: 0, y: 0 },
             }
           );
-          world.metadata.interact = {
+          Object.assign(interaction, {
             position: targetPosition,
             size: { x: horizontal ? text.length + 2 : text.length, y: 1 },
             active: entityId,
             last: undefined,
             origin: copy(heroEntity[POSITION]),
-          };
+          });
           activated = true;
           rerenderEntity(world, heroEntity);
         } else if (
           interactSequence?.args.active &&
-          world.metadata.interact?.active === entityId &&
-          (targetPosition.x !== world.metadata.interact.position.x ||
-            targetPosition.y !== world.metadata.interact.position.y)
+          interaction?.active === entityId &&
+          (targetPosition.x !== interaction.position.x ||
+            targetPosition.y !== interaction.position.y)
         ) {
           // update position while building
-          world.metadata.interact.position = targetPosition;
+          interaction.position = targetPosition;
           rerenderEntity(world, heroEntity);
         }
       } else if (!isAdjacent && interactSequence?.args.active) {
         // abort sequence
         interactSequence.args.active = false;
         if (!activated) {
-          world.metadata.interact.active = undefined;
+          interaction.active = undefined;
         }
       }
     }
   };
 
+  const onUpdate = () => {
+    const generation = world
+      .getEntities([RENDERABLE, REFERENCE])
+      .reduce((sum, entity) => sum + entity[RENDERABLE].generation, 0);
+    if (referenceGenerations === generation) return;
+    referenceGenerations = generation;
+    for (const player of world.getEntities([
+      PLAYER,
+      POSITION,
+      RENDERABLE,
+      SEQUENCABLE,
+    ]))
+      updatePlayer(player);
+  };
   return { onUpdate };
 }

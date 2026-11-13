@@ -1,3 +1,4 @@
+import { getPlayerInterface } from "../players";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -36,7 +37,6 @@ import { getItemSprite } from "../../game/assets/utils";
 import { none } from "../../game/assets/sprites";
 import { isControllable } from "./freeze";
 import { BLOCKABLE } from "../components/blockable";
-import { getIdentifier } from "../utils";
 import { canDig, canPlant, getFarmable } from "./harvest";
 import { forgingCompleted } from "../../game/balancing/forging";
 import { canMount } from "./vessel";
@@ -248,12 +248,18 @@ export default function setupAction(world: World) {
             const delta = { x: offsetX, y: offsetY };
             const targetPosition = add(entity[POSITION], delta);
             const adjacent = getCellEntities(world, targetPosition);
-            const warpableEntity = adjacent.find((entity) => WARPABLE in entity);
-            const lockableEntity = adjacent.find((entity) => LOCKABLE in entity);
+            const warpableEntity = adjacent.find(
+              (entity) => WARPABLE in entity
+            );
+            const lockableEntity = adjacent.find(
+              (entity) => LOCKABLE in entity
+            );
             const adjacentPopup = adjacent.find((entity) =>
               isPopupAvailable(world, entity)
             );
-            const mountableEntity = adjacent.find((entity) => MOUNTABLE in entity);
+            const mountableEntity = adjacent.find(
+              (entity) => MOUNTABLE in entity
+            );
             const popupEntity =
               adjacentPopup === entity ? undefined : adjacentPopup;
             const selections = popupEntity
@@ -368,7 +374,7 @@ export default function setupAction(world: World) {
       const skill = world.getEntityById(castableEntity?.[EQUIPPABLE]?.skill);
       const tool = world.getEntityById(castableEntity?.[EQUIPPABLE]?.tool);
 
-      const usePopup = getIdentifier(world, "use");
+      const usePopup = getPlayerInterface(world, entity, "use", []);
       const currentPopup = world.getEntityByIdAndComponents(
         entity[PLAYER]?.popup,
         [POPUP]

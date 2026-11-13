@@ -1,3 +1,4 @@
+import { getInteraction } from "../../engine/players";
 import {
   useCallback,
   useEffect,
@@ -173,10 +174,11 @@ export default function Controls({
   const { ecs, setPaused, paused, initial, flipped } = useWorld();
   const level = ecs?.metadata.gameEntity[LEVEL].name;
   const size = ecs?.metadata.gameEntity[LEVEL].size || 0;
-  const interactable = ecs?.metadata.interact.active && ecs.metadata.interact;
   const { position, fraction } = useViewpoint();
   const inMenu = !TEST_MODE && level === menuName;
   const hero = useHero();
+  const interaction = ecs && hero && getInteraction(ecs, hero);
+  const interactable = interaction?.active && interaction;
   const heroRef = useRef<Entity>();
   const pausedRef = useRef(paused);
   const popup =

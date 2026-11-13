@@ -219,7 +219,10 @@ export default function setupAi(world: World) {
         isDead(world, entity) ||
         patterns.length === 0 ||
         !isControllable(world, entity) ||
-        world.metadata.interact.active === entityId
+        world.metadata.interact.active === entityId ||
+        world
+          .getEntities([PLAYER])
+          .some((player) => player[PLAYER].interact?.active === entityId)
       ) {
         if (entity[NPC]?.type === "wormBoss") {
           for (const limb of getLimbs(world, entity)) {

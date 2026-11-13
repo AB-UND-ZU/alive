@@ -8732,7 +8732,10 @@ export const popupInteract: Sequence<InteractSequence> = (
   entity,
   state
 ) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const heroEntity =
+    state.args.owner === undefined
+      ? getIdentifierAndComponents(world, "hero", [POSITION])
+      : world.getEntityByIdAndComponents(state.args.owner, [POSITION]);
   const orientation = state.args.orientation;
   const delta = orientationPoints[orientation];
   const horizontal = orientation === "left" || orientation === "right";

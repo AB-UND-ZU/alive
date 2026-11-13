@@ -1,3 +1,8 @@
+import {
+  assertPlayerInterface,
+  getInteraction,
+  selectViewable,
+} from "../players";
 import { createLevel, preloadLevel, World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -129,7 +134,6 @@ import { FRAGMENT } from "../components/fragment";
 import { createItemAsDrop } from "./drop";
 import { populateInventory, populateItems } from "../../bindings/creation";
 import { TRACKABLE } from "../components/trackable";
-import { getActiveViewable } from "../../renderers/interface/hooks";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { consumeItem, getItemConsumption } from "./consume";
 import { getHookable } from "./fishing";
@@ -300,8 +304,8 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
         disposeSequence(world, entity, "quest");
       }
 
-      const inspectEntity = assertIdentifier(world, "inspect");
-      const useEntity = assertIdentifier(world, "use");
+      const inspectEntity = assertPlayerInterface(world, entity, "inspect", []);
+      const useEntity = assertPlayerInterface(world, entity, "use", []);
       const spawnEntity = assertIdentifier(world, "spawn");
       const focusEntity = assertIdentifierAndComponents(world, "focus", [
         MOVABLE,
@@ -684,7 +688,7 @@ export const performPlot = (
 };
 
 export const getSelectedConstruction = (world: World, entity: Entity) => {
-  const useEntity = assertIdentifierAndComponents(world, "use", [POPUP]);
+  const useEntity = assertPlayerInterface(world, entity, "use", [POPUP]);
   const buildIndex = useEntity[POPUP].tabs.indexOf("build");
   const verticalIndex = useEntity[POPUP].verticalIndezes[buildIndex];
   return verticalIndex === 0
@@ -1282,7 +1286,7 @@ export default function setupTrigger(world: World) {
         entity[PLAYER]?.popup,
         [POPUP]
       );
-      const useEntity = assertIdentifierAndComponents(world, "use", [
+      const useEntity = assertPlayerInterface(world, entity, "use", [
         POPUP,
         VIEWABLE,
       ]);
@@ -1476,11 +1480,20 @@ export default function setupTrigger(world: World) {
         rerenderEntity(world, useEntity);
 
         if (shouldOpen) {
-          const inspectEntity = assertIdentifier(world, "inspect");
+          const inspectEntity = assertPlayerInterface(
+            world,
+            entity,
+            "inspect",
+            []
+          );
 
           // move viewpoints
           const viewables = world.getEntities([VIEWABLE, POSITION]);
-          const viewable = getActiveViewable(viewables);
+          const viewable = selectViewable(
+            viewables,
+            world,
+            world.getEntityId(entity)
+          )!;
           moveEntity(world, inspectEntity, viewable[POSITION]);
           moveEntity(
             world,
@@ -1514,7 +1527,7 @@ export default function setupTrigger(world: World) {
         const buildCondition = entity[CONDITIONABLE]?.build;
         const construction = getSelectedConstruction(world, entity);
 
-        if (!world.metadata.interact.active && entity[PLAYER]) {
+        if (!getInteraction(world, entity).active && entity[PLAYER]) {
           // skip
         } else if (buildCondition && construction) {
           const orientation = entity[ORIENTABLE]?.facing || "up";
@@ -1555,7 +1568,7 @@ export default function setupTrigger(world: World) {
             );
           }
           if (entity[PLAYER]) {
-            world.metadata.interact.last = world.getEntityId(entity);
+            getInteraction(world, entity).last = world.getEntityId(entity);
           }
         } else if (
           spawnEntity &&
@@ -1564,13 +1577,14 @@ export default function setupTrigger(world: World) {
         ) {
           reviveEntity(world, spawnEntity, entity);
           if (entity[PLAYER]) {
-            world.metadata.interact.last = world.getEntityId(spawnEntity);
+            getInteraction(world, entity).last = world.getEntityId(spawnEntity);
           }
         } else if (unlockEntity) {
           if (canUnlock(world, entity, unlockEntity)) {
             unlockDoor(world, entity, unlockEntity);
             if (entity[PLAYER]) {
-              world.metadata.interact.last = world.getEntityId(unlockEntity);
+              getInteraction(world, entity).last =
+                world.getEntityId(unlockEntity);
             }
           } else {
             if (entity[PLAYER]) play("deny");
@@ -1606,11 +1620,20 @@ export default function setupTrigger(world: World) {
             useEntity[POPUP].horizontalIndex = targetIndex;
             rerenderEntity(world, useEntity);
 
-            const inspectEntity = assertIdentifier(world, "inspect");
+            const inspectEntity = assertPlayerInterface(
+              world,
+              entity,
+              "inspect",
+              []
+            );
 
             // move viewpoints
             const viewables = world.getEntities([VIEWABLE, POSITION]);
-            const viewable = getActiveViewable(viewables);
+            const viewable = selectViewable(
+              viewables,
+              world,
+              world.getEntityId(entity)
+            )!;
             moveEntity(world, inspectEntity, viewable[POSITION]);
             moveEntity(
               world,
@@ -1619,7 +1642,8 @@ export default function setupTrigger(world: World) {
             );
             openPopup(world, entity, useEntity, true);
             if (entity[PLAYER]) {
-              world.metadata.interact.last = world.getEntityId(plantEntity);
+              getInteraction(world, entity).last =
+                world.getEntityId(plantEntity);
             }
           } else {
             if (entity[PLAYER]) play("deny");
@@ -1645,17 +1669,17 @@ export default function setupTrigger(world: World) {
         } else if (mountEntity) {
           mountVessel(world, entity, mountEntity);
           if (entity[PLAYER]) {
-            world.metadata.interact.last = world.getEntityId(mountEntity);
+            getInteraction(world, entity).last = world.getEntityId(mountEntity);
           }
         } else if (popupEntity && isPopupAvailable(world, popupEntity)) {
           openPopup(world, entity, popupEntity);
           if (entity[PLAYER]) {
-            world.metadata.interact.last = world.getEntityId(popupEntity);
+            getInteraction(world, entity).last = world.getEntityId(popupEntity);
           }
         }
 
         if (entity[PLAYER]) {
-          world.metadata.interact.active = undefined;
+          getInteraction(world, entity).active = undefined;
         }
       } else if (entity[ACTIONABLE].spellTriggered) {
         entity[ACTIONABLE].spellTriggered = false;

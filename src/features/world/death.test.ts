@@ -1,3 +1,5 @@
+import { getInteraction } from "../../engine/players";
+import { ensurePlayerInterface } from "../../bindings/interface";
 import {
   advanceUntil,
   countItems,
@@ -73,7 +75,11 @@ const die = (world: World) => {
 
 const respawn = (world: World) => {
   advanceUntil(world, () => isTombstoneReady(world));
-  advanceUntil(world, () => !!world.metadata.interact.active, 1000);
+  advanceUntil(
+    world,
+    () => !!getInteraction(world, assertPlayer(world)).active,
+    1000
+  );
   interactAsPlayer(world);
   advanceUntil(world, () => !!getHero(world));
   return assertUnit(world);
@@ -151,11 +157,13 @@ describe("death and respawn", () => {
     const world = createAreaWorld(area);
     const hero = assertUnit(world);
     hero[PLAYER].accountId = "owned-player";
+    const interfaceIds = ensurePlayerInterface(world, hero);
     die(world);
     advanceUntil(world, () => !!getTombstone(world));
     expect(assertPlayer(world)[PLAYER].accountId).toBe("owned-player");
     const revived = respawn(world);
     expect(revived[PLAYER].accountId).toBe("owned-player");
+    expect(revived[PLAYER].interface).toBe(interfaceIds);
   });
 
   it("keeps defeated units but drops carried items at the grave", () => {

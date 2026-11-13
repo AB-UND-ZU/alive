@@ -186,6 +186,7 @@ export type QuestSequence = {
   giver?: number;
 };
 export type InteractSequence = {
+  owner?: number;
   active: boolean;
   orientation: Orientation;
   generation: number;

@@ -1,3 +1,4 @@
+import { createPlayerInterface } from "./interface";
 import { Entity } from "ecs";
 import { isTouch } from "../renderers/interface/platform";
 import { gameVersion } from "../game/assets/version";
@@ -1058,51 +1059,8 @@ export const createCell = (
       return { cell: hero, all };
     }
 
-    // create viewpoint for inspecting
-    const inspectEntity = entities.createViewpoint(world, {
-      [POSITION]: { x: 0, y: 0 },
-      [RENDERABLE]: { generation: 0 },
-      [VIEWABLE]: { active: false, priority: 90 },
-    });
-    all.push(inspectEntity);
-    setIdentifier(world, inspectEntity, "inspect");
-
-    // create viewpoint for use
-    const useEntity = entities.createUse(world, {
-      [FOG]: { type: "terrain", visibility: "visible", fixed: true },
-      [POSITION]: { x: 0, y: 0 },
-      [RENDERABLE]: { generation: 0 },
-      [VIEWABLE]: { active: false, priority: 90 },
-      [POPUP]: {
-        active: false,
-        verticalIndezes: [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        horizontalIndex: 0,
-        selections: [[], [], [], [], [], [], [], [], []],
-        viewpoint: world.getEntityId(inspectEntity),
-        deals: [],
-        ingredients: [],
-        recipes: [],
-        lines: [],
-        targets: [],
-        focuses: [],
-        choices: [],
-        tabs: [
-          "use",
-          "inspect",
-          "gear",
-          "equip",
-          "stats",
-          "map",
-          "chat",
-          "plant",
-          "build",
-        ],
-      },
-      [SEQUENCABLE]: { states: {} },
-      [SPRITE]: none,
-    });
-    all.push(useEntity);
-    setIdentifier(world, useEntity, "use");
+    const { inspectEntity, useEntity } = createPlayerInterface(world);
+    all.push(inspectEntity, useEntity);
 
     // set initial focus on hero
     const highlightEntity = entities.createHighlight(world, {

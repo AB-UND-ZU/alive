@@ -1,3 +1,4 @@
+import { ensurePlayerInterface } from "../../bindings/interface";
 import { createWorld } from "..";
 import { createLevel, createSystems, preloadLevel } from "../ecs";
 import { createSnapshot, restoreSnapshot, WorldSnapshot } from "../snapshot";
@@ -39,6 +40,7 @@ export const createHost = (saved?: HostedWorld) => {
     const id = world.getEntityId(player);
     if (previous?.id === id) return previous.input;
     previous?.input.release();
+    ensurePlayerInterface(world, player);
     const input = createPlayerInput(world, id);
     inputs.set(accountId, { id, input });
     return input;
@@ -68,6 +70,7 @@ export const createHost = (saved?: HostedWorld) => {
       player[PLAYER].accountId = accountId;
       registerEntity(world, player);
     }
+    ensurePlayerInterface(world, player);
     getInput(accountId);
     return world.getEntityId(player);
   };

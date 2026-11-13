@@ -3,10 +3,25 @@ import { World } from "../ecs";
 import { UnitKey } from "../../game/balancing/units";
 import { Countable } from "./stats";
 import { Castable } from "./castable";
+import { Position } from "./position";
 import { Item } from "./item";
+
+export type Interaction = {
+  position: Position;
+  size: Position;
+  active?: number;
+  last?: number;
+  origin: Position;
+};
 
 export type Player = {
   accountId?: string;
+  interface?: {
+    use: number;
+    inspect: number;
+    prompts?: Record<number, number>;
+  };
+  interact?: Interaction;
   ghost: boolean;
   receivedStats: Record<
     keyof (Pick<Countable, "hp" | "maxHp" | "mp" | "maxMp" | "xp"> &

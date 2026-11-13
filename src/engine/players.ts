@@ -50,13 +50,14 @@ export const getClosestPlayer = <C extends keyof Entity>(
 
 export const selectViewable = (
   viewables: TypedEntity<"VIEWABLE" | "POSITION">[],
-  world?: World
+  world?: World,
+  actorId = world?.metadata.localPlayerId
 ) => {
-  const id = world?.metadata.localPlayerId;
+  const id = actorId;
   const player =
     id === undefined
       ? undefined
-      : world?.getEntityByIdAndComponents(id, [PLAYER, LAYER]);
+      : world?.getEntityByIdAndComponents(id, [PLAYER]);
   return viewables
     .filter((entity) => {
       if (id === undefined) return entity[VIEWABLE].active;
@@ -65,7 +66,7 @@ export const selectViewable = (
       if (entity[VIEWABLE].owner !== undefined && entity[VIEWABLE].owner !== id)
         return false;
       if (entity[STRUCTURABLE])
-        return player[LAYER].structure === world?.getEntityId(entity);
+        return player[LAYER]?.structure === world?.getEntityId(entity);
       return entity[VIEWABLE].active;
     })
     .sort(
@@ -85,4 +86,39 @@ export const getPopupPlayer = <C extends keyof Entity>(
     .getEntities([IDENTIFIABLE])
     .find((candidate) => candidate[IDENTIFIABLE].name === "hero");
   return hero && world.getEntityComponents(hero, components);
+};
+
+export const getPlayerInterface = <C extends keyof Entity>(
+  world: World,
+  player: Partial<Entity>,
+  kind: "use" | "inspect",
+  components: C[]
+) => {
+  const id = player[PLAYER]?.interface?.[kind];
+  const target =
+    id === undefined
+      ? world
+          .getEntities([IDENTIFIABLE])
+          .find((entity) => entity[IDENTIFIABLE].name === kind)
+      : world.getEntityById(id);
+  return target && world.getEntityComponents(target, components);
+};
+export const assertPlayerInterface = <C extends keyof Entity>(
+  world: World,
+  player: Partial<Entity>,
+  kind: "use" | "inspect",
+  components: C[]
+) => {
+  const target = getPlayerInterface(world, player, kind, components);
+  if (!target) throw new Error(`Missing player interface: ${kind}`);
+  return target;
+};
+
+export const getInteraction = (world: World, player: Partial<Entity>) => {
+  if (!player[PLAYER]?.accountId) return world.metadata.interact;
+  return (player[PLAYER].interact ||= {
+    position: { x: 0, y: 0 },
+    size: { x: 0, y: 0 },
+    origin: { x: 0, y: 0 },
+  });
 };
