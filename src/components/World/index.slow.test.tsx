@@ -232,6 +232,24 @@ describe("World", () => {
     expect(saveText()).toBe(readSaves()[0].name);
   });
 
+  it("saves successfully after Safari closes a background tab's database connection", async () => {
+    const { saveText } = renderGame();
+    pause();
+    await flush();
+    const [first] = readSaves();
+    act(() => step(ecs(), 30));
+    fake.closeConnections("alive", false);
+
+    pause();
+    await flush();
+
+    const [saved] = readSaves();
+    expect(saved.id).toBe(first.id);
+    expect(saved.playtime).toBeGreaterThan(first.playtime);
+    expect(saveText()).toBe(saved.name);
+    expect(context.saveStatus).toEqual({ saving: false, name: saved.name });
+  });
+
   it("shows when saving failed", async () => {
     const error = jest.spyOn(console, "error").mockImplementation(() => {});
     const { saveText } = renderGame();

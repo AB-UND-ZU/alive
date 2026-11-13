@@ -22,14 +22,28 @@ let database: Promise<IDBDatabase> | undefined;
 
 const openDatabase = () => {
   if (!database) {
-    database = new Promise((resolve, reject) => {
+    const pending = new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open(databaseName, 1);
       request.onupgradeneeded = () => {
         request.result.createObjectStore(summaryStore, { keyPath: "id" });
         request.result.createObjectStore(saveStore, { keyPath: "id" });
       };
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () => {
+        const connection = request.result;
+        connection.onclose = () => {
+          if (database === pending) database = undefined;
+        };
+        connection.onversionchange = () => {
+          if (database === pending) database = undefined;
+          connection.close();
+        };
+        resolve(connection);
+      };
       request.onerror = () => reject(request.error);
+    });
+    database = pending;
+    pending.catch(() => {
+      if (database === pending) database = undefined;
     });
   }
 
@@ -40,10 +54,26 @@ const runTransaction = async <T>(
   mode: IDBTransactionMode,
   run: (transaction: IDBTransaction) => IDBRequest<T> | void
 ) => {
-  const transaction = (await openDatabase()).transaction(
-    [summaryStore, saveStore],
-    mode
-  );
+  let transaction: IDBTransaction;
+  for (let attempt = 0; ; attempt += 1) {
+    const pending = openDatabase();
+    const connection = await pending;
+    try {
+      transaction = connection.transaction([summaryStore, saveStore], mode);
+      break;
+    } catch (error) {
+      // Safari can close a background tab's connection before delivering onclose.
+      if (
+        !(error instanceof DOMException) ||
+        error.name !== "InvalidStateError"
+      ) {
+        throw error;
+      }
+      if (database === pending) database = undefined;
+      connection.close();
+      if (attempt > 0) throw error;
+    }
+  }
   const request = run(transaction);
 
   return new Promise<T | undefined>((resolve, reject) => {

@@ -16,7 +16,7 @@ const fixture = deserialize(
   )
 );
 const entry = `
-export {loadSaveSummaries,restoreGame} from "./src/game/saves/storage";
+export {loadSaveSummaries,restoreGame,storeGame,eraseGame} from "./src/game/saves/storage";
 export {getSaveSummaries,setSaveSummaries,getSummary,isLoadable,saveVersion} from "./src/game/saves";
 export {createSystems,preloadLevel} from "./src/engine/ecs";
 export {createAreaWorld,assertHero,walk,step,trigger,advance,advanceUntil} from "./src/testing/harness";
@@ -444,5 +444,100 @@ test("a queued newer writer cannot be overwritten by an old migration read", asy
     last: { version: futureVersion, playtime: 98765 },
     summaryVersion: futureVersion,
     cacheVersion: futureVersion,
+  });
+});
+
+test("saving reopens a closed native connection and preserves the save ID", async ({
+  page,
+}) => {
+  const result = await page.evaluate(async () => {
+    const open = IDBFactory.prototype.open;
+    const connections = [];
+    IDBFactory.prototype.open = function (...args) {
+      const request = open.apply(this, args);
+      request.addEventListener("success", () =>
+        connections.push(request.result)
+      );
+      return request;
+    };
+    try {
+      await SaveMigration.loadSaveSummaries();
+      const world = await SaveMigration.restoreGame(originalSave.id);
+      connections.at(-1).close();
+      const saved = await SaveMigration.storeGame(world);
+      const record = await saveTest.read();
+      connections.at(-1).close();
+      await SaveMigration.eraseGame(saved.id);
+      const erased = await saveTest.read();
+      return {
+        id: saved.id,
+        storedId: record.save.id,
+        summaryId: record.summary.id,
+        cachedId: SaveMigration.getSaveSummaries()[0].id,
+        erased: erased.save === undefined && erased.summary === undefined,
+        opens: connections.length,
+      };
+    } finally {
+      IDBFactory.prototype.open = open;
+      connections.forEach((connection) => connection.close());
+    }
+  });
+  expect(result).toEqual({
+    id: fixture.id,
+    storedId: fixture.id,
+    summaryId: fixture.id,
+    cachedId: fixture.id,
+    erased: true,
+    opens: 3,
+  });
+});
+
+test("a persistently closing database stops after one retry and allows a later save", async ({
+  page,
+}) => {
+  const result = await page.evaluate(async () => {
+    await SaveMigration.loadSaveSummaries();
+    const world = await SaveMigration.restoreGame(originalSave.id);
+    const before = await saveTest.read();
+    const cache = SaveMigration.getSaveSummaries();
+    const transaction = IDBDatabase.prototype.transaction;
+    let attempts = 0,
+      failure;
+    IDBDatabase.prototype.transaction = function (...args) {
+      if (this.name === "alive") {
+        attempts += 1;
+        throw new DOMException(
+          "The database connection is closing",
+          "InvalidStateError"
+        );
+      }
+      return transaction.apply(this, args);
+    };
+    try {
+      await SaveMigration.storeGame(world);
+    } catch (error) {
+      failure = error.name;
+    } finally {
+      IDBDatabase.prototype.transaction = transaction;
+    }
+    const unchanged = await saveTest.read();
+    const sameCache = cache === SaveMigration.getSaveSummaries();
+    const saved = await SaveMigration.storeGame(world);
+    return {
+      attempts,
+      failure,
+      sameCache,
+      unchanged: JSON.stringify(before) === JSON.stringify(unchanged),
+      savedId: saved.id,
+      storedId: (await saveTest.read()).save.id,
+    };
+  });
+  expect(result).toEqual({
+    attempts: 2,
+    failure: "InvalidStateError",
+    sameCache: true,
+    unchanged: true,
+    savedId: fixture.id,
+    storedId: fixture.id,
   });
 });

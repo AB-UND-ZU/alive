@@ -40,6 +40,7 @@ const setPersist = (persist?: () => Promise<boolean>) =>
   });
 
 beforeEach(() => {
+  fake.closeConnections("alive");
   fake.clear();
   setSaveSummaries([]);
   setPersist(undefined);
@@ -168,6 +169,99 @@ describe("save storage", () => {
     expect(second.playtime).toBeGreaterThan(first.playtime);
     expect(readSaves()).toEqual([second]);
     expect(getSaveSummaries()).toEqual([getSummary(second)]);
+  });
+
+  it.each([true, false])(
+    "saves after the browser closes its connection (close event: %s)",
+    async (notify) => {
+      const world = createAreaWorld(area);
+      const first = await storeGame(world);
+      step(world, 30);
+      fake.closeConnections("alive", notify);
+
+      const second = await storeGame(world);
+
+      expect(second.id).toBe(first.id);
+      expect(second.playtime).toBeGreaterThan(first.playtime);
+      expect(readSaves()).toEqual([second]);
+      expect(getSaveSummaries()).toEqual([getSummary(second)]);
+      expect(createSnapshot(await restoreGame(second.id))).toEqual(
+        second.snapshot
+      );
+    }
+  );
+
+  it("lists, restores and erases saves after separate connection closures", async () => {
+    const saved = await storeGame(createAreaWorld(area));
+    setSaveSummaries([]);
+    fake.closeConnections("alive", false);
+    await loadSaveSummaries();
+    expect(getSaveSummaries()).toEqual([getSummary(saved)]);
+
+    fake.closeConnections("alive", false);
+    expect(createSnapshot(await restoreGame(saved.id))).toEqual(saved.snapshot);
+
+    fake.closeConnections("alive", false);
+    await eraseGame(saved.id);
+    expect(readSaves()).toEqual([]);
+    expect(fake.read("alive", "summaries")).toEqual([]);
+  });
+
+  it("shares a reopened connection when multiple saves encounter a closed handle", async () => {
+    await loadSaveSummaries();
+    fake.closeConnections("alive", false);
+    const open = jest.spyOn(fake.indexedDB, "open");
+    try {
+      const saves = await Promise.all([
+        storeGame(createAreaWorld(area)),
+        storeGame(createAreaWorld(area)),
+      ]);
+
+      expect(open).toHaveBeenCalledTimes(1);
+      expect(readSaves()).toEqual(saves);
+      expect(getSaveSummaries()).toHaveLength(2);
+    } finally {
+      open.mockRestore();
+    }
+  });
+
+  it("closes a connection on version changes so another tab can upgrade", async () => {
+    const open = jest.spyOn(fake.indexedDB, "open");
+    try {
+      const saved = await storeGame(createAreaWorld(area));
+      const connection = (open.mock.results[0].value as IDBOpenDBRequest)
+        .result;
+      const close = jest.spyOn(connection, "close");
+
+      connection.onversionchange?.(
+        new Event("versionchange") as IDBVersionChangeEvent
+      );
+
+      expect(close).toHaveBeenCalledTimes(1);
+      expect(createSnapshot(await restoreGame(saved.id))).toEqual(
+        saved.snapshot
+      );
+      expect(open).toHaveBeenCalledTimes(2);
+    } finally {
+      jest.restoreAllMocks();
+    }
+  });
+
+  it("can retry saving after opening the database fails", async () => {
+    const world = createAreaWorld(area);
+    const saved = await storeGame(world);
+    fake.closeConnections("alive");
+    const failure = new DOMException("Storage unavailable", "UnknownError");
+    fake.failNextOpen(failure);
+
+    await expect(storeGame(world)).rejects.toBe(failure);
+    expect(readSaves()).toEqual([saved]);
+    expect(getSaveSummaries()).toEqual([getSummary(saved)]);
+
+    step(world, 30);
+    const updated = await storeGame(world);
+    expect(updated.id).toBe(saved.id);
+    expect(readSaves()).toEqual([updated]);
   });
 
   it("adds a separate save for each new game", async () => {

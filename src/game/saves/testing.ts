@@ -32,12 +32,29 @@ const getKey = (store: Store, value: Record<string, unknown>) =>
 export const createFakeIndexedDB = () => {
   const databases = new Map<string, Database>();
   let nextAbort: Error | undefined;
+  let nextOpenError: Error | undefined;
+  const connections = new Map<
+    string,
+    Set<ReturnType<typeof createConnection>>
+  >();
 
   const createConnection = (database: Database) => ({
+    closed: false,
+    onclose: null as (() => void) | null,
+    onversionchange: null as (() => void) | null,
+    close() {
+      this.closed = true;
+    },
     createObjectStore: (name: string, { keyPath }: { keyPath: string }) => {
       database.stores.set(name, { keyPath, records: new Map() });
     },
-    transaction: (names: string[], mode: IDBTransactionMode) => {
+    transaction(names: string[], mode: IDBTransactionMode) {
+      if (this.closed) {
+        throw new DOMException(
+          "The database connection is closing",
+          "InvalidStateError"
+        );
+      }
       const operations: (() => void)[] = [];
       let records: Map<string, Map<IDBValidKey, unknown>>;
       let aborted = false;
@@ -143,6 +160,12 @@ export const createFakeIndexedDB = () => {
       const request = new FakeRequest();
 
       later(() => {
+        if (nextOpenError) {
+          request.error = nextOpenError;
+          nextOpenError = undefined;
+          request.onerror?.();
+          return;
+        }
         let database = databases.get(name);
         const upgrade = !database || database.version < version;
         if (!database) {
@@ -151,7 +174,10 @@ export const createFakeIndexedDB = () => {
         }
         database.version = Math.max(database.version, version);
 
-        request.result = createConnection(database);
+        const connection = createConnection(database);
+        if (!connections.has(name)) connections.set(name, new Set());
+        connections.get(name)!.add(connection);
+        request.result = connection;
         if (upgrade) request.onupgradeneeded?.();
         request.onsuccess?.();
       });
@@ -168,6 +194,18 @@ export const createFakeIndexedDB = () => {
 
   return {
     indexedDB: indexedDB as unknown as IDBFactory,
+    /** Close cached handles as a browser may after suspending a tab. */
+    closeConnections: (name: string, notify = true) => {
+      connections.get(name)?.forEach((connection) => {
+        connection.close();
+        if (notify) connection.onclose?.();
+      });
+      connections.delete(name);
+    },
+    /** Reject the next connection attempt without deleting stored data. */
+    failNextOpen: (error: Error) => {
+      nextOpenError = error;
+    },
     /** Names of the object stores of a database. */
     stores: (name: string) =>
       Array.from(databases.get(name)?.stores.keys() || []),
@@ -182,6 +220,7 @@ export const createFakeIndexedDB = () => {
     /** Remove all records but keep databases and their stores. */
     clear: () => {
       nextAbort = undefined;
+      nextOpenError = undefined;
       databases.forEach((database) =>
         database.stores.forEach((store) => store.records.clear())
       );
