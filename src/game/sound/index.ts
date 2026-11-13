@@ -1017,7 +1017,7 @@ class Presets extends Params {
 
   prompt(options: SoundOptions) {
     const variant = options.variant || 1;
-    this.sound_vol = 1 / 64;
+    this.sound_vol = (1 / 64) * (options.proximity || 1);
     this.wave_type = waveforms.SQUARE;
     this.p_env_attack = 0;
     this.p_env_sustain = 0.06;

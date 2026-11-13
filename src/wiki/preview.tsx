@@ -56,6 +56,10 @@ function Bridge({ setShadows }: { setShadows: (enabled: boolean) => void }) {
     let autoIndex = 0;
     let openingPopup = false;
     let timer: ReturnType<typeof setInterval> | undefined;
+    const keys =
+      name === "abilities" && option === "trap"
+        ? [...sceneDefinitions[name].keys, "ArrowDown"]
+        : sceneDefinitions[name].keys;
     const stop = () => {
       clearInterval(timer);
       automatic = false;
@@ -64,7 +68,7 @@ function Bridge({ setShadows }: { setShadows: (enabled: boolean) => void }) {
         "ArrowRight",
         "ArrowUp",
         "ArrowDown",
-        ...sceneDefinitions[name].keys,
+        ...keys,
       ]))
         window.dispatchEvent(
           new KeyboardEvent("keyup", { key, bubbles: true })
@@ -118,16 +122,12 @@ function Bridge({ setShadows }: { setShadows: (enabled: boolean) => void }) {
       if (
         name === "game" ||
         name === "interface" ||
-        (name !== "movement" && !sceneDefinitions[name].keys.length) ||
-        autoIndex >=
-          (name === "movement"
-            ? movementGoals.length
-            : sceneDefinitions[name].keys.length)
+        (name !== "movement" && !keys.length) ||
+        autoIndex >= (name === "movement" ? movementGoals.length : keys.length)
       )
         return;
       automatic = true;
       timer = setInterval(() => {
-        const keys = sceneDefinitions[name].keys;
         const hero = ecs && getHero(ecs);
         if (!hero) return;
         if (openingPopup && hero.PLAYER?.popup) {

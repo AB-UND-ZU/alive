@@ -1,7 +1,15 @@
-import { advance, assertHero, step, walk } from "../../testing/harness";
+import {
+  advance,
+  advanceUntil,
+  assertHero,
+  step,
+  walk,
+} from "../../testing/harness";
 import { saveAndLoad } from "../../testing/saves";
 import { playedSounds } from "../../testing/env";
 import { World } from "../../engine";
+import { CASTABLE } from "../../engine/components/castable";
+import { moveEntity } from "../../engine/systems/map";
 import { EXERTABLE } from "../../engine/components/exertable";
 import { NPC } from "../../engine/components/npc";
 import { POSITION } from "../../engine/components/position";
@@ -116,7 +124,7 @@ describe("saved spells", () => {
   it("triggers an armed trap once when a hostile unit steps on it", () => {
     const world = placeTrap();
     const prismId = world.getEntityId(getPrism(world));
-    expect(getTrapAreas(world)).toHaveLength(1);
+    expect(getTrapAreas(world)).toHaveLength(9);
 
     const loaded = saveAndLoad(world);
     const prism = loaded.assertByIdAndComponents(prismId, [STATS]);
@@ -128,6 +136,43 @@ describe("saved spells", () => {
     expect(playedSounds.filter((sound) => sound === "trap")).toHaveLength(2);
     expect(recordHits(loaded, [prism], 300)).toEqual([[]]);
   });
+
+  it.each([200, 700])(
+    "keeps a triggered trap's remaining lifetime after saving at %ims",
+    (elapsed) => {
+      const area = `
+|       |
+| ♀  D  |
+|       |
+|       |
+`;
+      const { world, hero } = createSpellWorld(area, trap);
+      const enemy = getUnit(world, area, "D");
+      enemy[STATS].maxHp = 99;
+      enemy[STATS].hp = 99;
+      const enemyId = world.getEntityId(enemy);
+      const center = { ...hero[POSITION] };
+      cast(world, "down");
+      walk(world, "down", 2);
+      advance(world, 5000);
+      moveEntity(world, enemy, center);
+      advanceUntil(world, () =>
+        world
+          .getEntities([CASTABLE])
+          .some((entity) => entity[CASTABLE].trigger?.frame !== undefined)
+      );
+      advance(world, elapsed);
+      const hp = enemy[STATS].hp;
+
+      const loaded = saveAndLoad(world);
+      const restoredEnemy = loaded.assertByIdAndComponents(enemyId, [STATS]);
+      expect(restoredEnemy[STATS].hp).toBe(hp);
+      const [hits] = recordHits(loaded, [restoredEnemy], 60);
+      expect(hits).toEqual(elapsed < 500 ? [getAbilityStats(trap).magic] : []);
+      expect(getTrapAreas(loaded)).toEqual([]);
+      expect(isCasting(loaded, assertHero(loaded))).toBe(false);
+    }
+  );
 
   it("removes a trap after its duration", () => {
     const area = `
@@ -144,7 +189,7 @@ describe("saved spells", () => {
 
     const loaded = saveAndLoad(world);
     advance(loaded, tick * (duration / 2 - 5));
-    expect(getTrapAreas(loaded)).toHaveLength(1);
+    expect(getTrapAreas(loaded)).toHaveLength(9);
 
     advance(loaded, tick * 7);
     step(loaded);

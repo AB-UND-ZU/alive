@@ -20,6 +20,7 @@ import {
 } from "../components/sequencable";
 import { RENDERABLE } from "../components/renderable";
 import { MOVABLE } from "../components/movable";
+import { CASTABLE } from "../components/castable";
 import { POPUP } from "../components/popup";
 import { removePopup } from "./popup";
 
@@ -220,6 +221,11 @@ export const disposeEntity = (
   ) {
     const referenceEntity = world.assertById(movableReference);
     disposeFrame(world, referenceEntity, true);
+  }
+
+  const triggerFrame = entity[CASTABLE]?.trigger?.frame;
+  if (triggerFrame !== undefined) {
+    disposeFrame(world, world.assertById(triggerFrame), deferredRemoval);
   }
 
   world.removeEntity(entity, deferredRemoval);

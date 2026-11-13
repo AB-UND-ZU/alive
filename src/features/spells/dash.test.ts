@@ -1,4 +1,3 @@
-import { materials } from "../../engine/components/item";
 import { MOVABLE } from "../../engine/components/movable";
 import { POSITION } from "../../engine/components/position";
 import { getAbilityStats } from "../../game/balancing/abilities";
@@ -142,19 +141,28 @@ describe("dash spell", () => {
     expect(hits).toEqual([[]]);
   });
 
-  it.each(materials)("deals the damage of a %s dash", (material) => {
-    const area = `
+  it.each([
+    { material: "wood", damage: 3 },
+    { material: "iron", damage: 6 },
+    { material: "gold", damage: 9 },
+    { material: "diamond", damage: 12 },
+    { material: "ruby", damage: 15 },
+  ] as const)(
+    "deals $damage damage with a $material dash",
+    ({ material, damage }) => {
+      const area = `
 |          |
 | ♀ D      |
 |          |
 `;
-    const item = { spell: "dash", material } as const;
-    const { world } = createSpellWorld(area, item, { size: 30 });
-    const dummy = getUnit(world, area, "D");
+      const item = { spell: "dash", material } as const;
+      const { world } = createSpellWorld(area, item, { size: 30 });
+      const dummy = getUnit(world, area, "D");
 
-    cast(world, "right");
-    const hits = recordHits(world, [dummy], 60);
+      cast(world, "right");
+      const hits = recordHits(world, [dummy], 60);
 
-    expect(hits).toEqual([[getAbilityStats(item).magic]]);
-  });
+      expect(hits).toEqual([[damage]]);
+    }
+  );
 });

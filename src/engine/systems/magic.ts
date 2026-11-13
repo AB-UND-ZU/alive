@@ -93,9 +93,7 @@ export const getAffectables = (
 
     if (!isFragment(world, target)) return;
 
-    const structurableEntity = world.getEntityById(
-      target[FRAGMENT].structure
-    );
+    const structurableEntity = world.getEntityById(target[FRAGMENT].structure);
 
     if (!structurableEntity) return;
 
@@ -341,6 +339,21 @@ export const hasTriggered = (
   );
 };
 
+export const getTriggerElapsed = (
+  world: World,
+  trigger: Castable["trigger"]
+) => {
+  if (trigger?.frame === undefined) return 0;
+  const frame = world.assertByIdAndComponents(trigger.frame, [
+    REFERENCE,
+    RENDERABLE,
+  ]);
+  return (
+    (frame[RENDERABLE].generation - 1) * frame[REFERENCE].tick +
+    frame[REFERENCE].delta
+  );
+};
+
 export default function setupMagic(world: World) {
   let referenceGenerations = -1;
   // continue from restored entities, so loading a saved game doesn't replay
@@ -438,6 +451,11 @@ export default function setupMagic(world: World) {
       }
 
       const casterEntity = world.getEntityById(castableEntity[CASTABLE].caster);
+      const trigger = castableEntity[CASTABLE].trigger;
+      const triggerElapsed = getTriggerElapsed(world, trigger);
+      if (trigger && triggerElapsed >= trigger.delay + trigger.duration)
+        continue;
+      const pendingTrigger = trigger && triggerElapsed < trigger.delay;
 
       const targetEntities = castableEntity[CASTABLE].melee
         ? getAttackables(world, entity[POSITION])
@@ -469,6 +487,33 @@ export default function setupMagic(world: World) {
           )
         )
           continue;
+
+        if (pendingTrigger) {
+          const friendly = isFriendlyFire(world, castableEntity, targetEntity);
+          if (
+            trigger.frame === undefined &&
+            (!friendly ||
+              (entity[POSITION].x === castableEntity[POSITION].x &&
+                entity[POSITION].y === castableEntity[POSITION].y &&
+                targetEntity[STATS] &&
+                calculateHealing(
+                  targetEntity[STATS],
+                  castableEntity[CASTABLE].heal
+                ).healing > 0))
+          ) {
+            const frame = entities.createFrame(world, {
+              [REFERENCE]: {
+                tick: trigger.delay,
+                delta: 0,
+                suspended: false,
+                suspensionCounter: -1,
+              },
+              [RENDERABLE]: { generation: 1 },
+            });
+            trigger.frame = world.getEntityId(frame);
+          }
+          continue;
+        }
 
         let hasAffected = castableEntity[CASTABLE].forceAffecting;
         const hasDamage =
@@ -619,6 +664,8 @@ export default function setupMagic(world: World) {
         }
         rerenderEntity(world, targetEntity);
       }
+
+      if (pendingTrigger) continue;
 
       // prevent cascades from affecting terrain
       if (castableEntity[CASTABLE].cascade) continue;

@@ -9,6 +9,8 @@ import {
 } from "../../engine/components/item";
 import { NpcType } from "../../engine/components/npc";
 
+export const trapActivation = { delay: 500, duration: 500 };
+
 export const abilityStats: Partial<
   Record<
     NpcType | "default",
@@ -151,7 +153,7 @@ export const abilityStats: Partial<
       // set default spell attributes
       default: {
         default: {
-          duration: 50,
+          duration: 100,
         },
       },
 
@@ -160,35 +162,35 @@ export const abilityStats: Partial<
         air: { wisdom: 1 },
         fire: { burn: 2 },
         water: { freeze: 5 },
-        earth: { heal: 3 },
+        earth: { magic: 4, heal: 3 },
       },
       iron: {
         default: { magic: 10 },
         air: { wisdom: 1 },
         fire: { burn: 2 },
         water: { freeze: 5 },
-        earth: { heal: 3 },
+        earth: { magic: 8, heal: 3 },
       },
       gold: {
         default: { magic: 15 },
         air: { wisdom: 1 },
         fire: { burn: 2 },
         water: { freeze: 5 },
-        earth: { heal: 3 },
+        earth: { magic: 12, heal: 3 },
       },
       diamond: {
         default: { magic: 20 },
         air: { wisdom: 1 },
         fire: { burn: 2 },
         water: { freeze: 5 },
-        earth: { heal: 3 },
+        earth: { magic: 16, heal: 3 },
       },
       ruby: {
         default: { magic: 25 },
         air: { wisdom: 1 },
         fire: { burn: 2 },
         water: { freeze: 5 },
-        earth: { heal: 3 },
+        earth: { magic: 20, heal: 3 },
       },
     },
     dash: {
@@ -201,7 +203,7 @@ export const abilityStats: Partial<
       },
 
       wood: {
-        default: { magic: 4 },
+        default: { magic: 3 },
         air: { wisdom: 1 },
         fire: { burn: 2 },
         water: { freeze: 5 },
@@ -211,14 +213,14 @@ export const abilityStats: Partial<
         },
       },
       iron: {
-        default: { magic: 8 },
+        default: { magic: 6 },
         air: { wisdom: 1 },
         fire: { burn: 2 },
         water: { freeze: 5 },
         earth: { magic: 6, drain: 2 },
       },
       gold: {
-        default: { magic: 12 },
+        default: { magic: 9 },
         air: { wisdom: 1 },
         fire: { burn: 2 },
         water: { freeze: 5 },
@@ -228,7 +230,7 @@ export const abilityStats: Partial<
         },
       },
       diamond: {
-        default: { magic: 16 },
+        default: { magic: 12 },
         air: { wisdom: 1 },
         fire: { burn: 2 },
         water: { freeze: 5 },
@@ -238,7 +240,7 @@ export const abilityStats: Partial<
         },
       },
       ruby: {
-        default: { magic: 20 },
+        default: { magic: 15 },
         air: { wisdom: 1 },
         fire: { burn: 2 },
         water: { freeze: 5 },

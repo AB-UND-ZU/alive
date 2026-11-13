@@ -225,6 +225,8 @@ export function GamePreview({
           <Text>
             {name === "game" && preset
               ? `Play ${presets[preset].title} using the normal game controls.`
+              : name === "abilities" && option === "trap"
+              ? "Press Space to place a trap, then step away to arm it."
               : sceneDefinitions[name].instruction}
           </Text>
         </GridCenteredNote>

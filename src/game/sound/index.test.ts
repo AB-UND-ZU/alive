@@ -98,6 +98,33 @@ describe("sound", () => {
     expect(Math.abs(rendered[length - 1])).toBeGreaterThan(peak / 1000);
   });
 
+  it("keeps the prompt cue shorter and quieter than a danger warning", () => {
+    play("prompt", { seed: 3 });
+    play("danger", { seed: 3 });
+
+    const [prompt, danger] = synthesized.mock.results.map(
+      ({ value }) => value.normalized as number[]
+    );
+    const peak = (samples: number[]) =>
+      samples.reduce((value, sample) => Math.max(value, Math.abs(sample)), 0);
+    expect(buffers.mock.calls[0][1]).toBeLessThan(buffers.mock.calls[1][1]);
+    expect(peak(prompt)).toBeLessThan(peak(danger) / 2);
+  });
+
+  it("attenuates distant prompts without changing the default UI volume or buffer", () => {
+    play("prompt", { variant: 2, seed: 0 });
+    play("prompt", { variant: 2, proximity: 1, seed: 0 });
+    play("prompt", { variant: 2, proximity: 0.25, seed: 0 });
+    play("prompt", { variant: 2, seed: 0 });
+
+    expect(starts).toHaveLength(4);
+    expect(synthesized).toHaveBeenCalledTimes(1);
+    expect(buffers).toHaveBeenCalledTimes(1);
+    expect(gains.slice(0, 2).map((node) => node.gain.value)).toEqual([1, 1]);
+    expect(gains[2].gain.value).toBeCloseTo(0.25, 1);
+    expect(gains[3].gain.value).toBe(1);
+  });
+
   it("loads every listed variant and seed once before playback", async () => {
     const loading = loadSounds({ move: [300, 266], open: [600] });
     expect(loadSounds()).toBe(loading);

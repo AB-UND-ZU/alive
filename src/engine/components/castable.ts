@@ -45,6 +45,7 @@ export type Castable = {
     retrigger: number;
     reproc: number;
     forceAffecting: boolean;
+    trigger?: { delay: number; duration: number; frame?: number };
     affected: Record<
       string,
       { generation: number; delta: number; frame?: number }

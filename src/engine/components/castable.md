@@ -4,10 +4,12 @@ Describes a spell’s damage, effects, range, caster, and hit tracking.
 
 [Trigger](../systems/trigger.md) creates casts. [Magic](../systems/magic.md) applies them to targets; [Damage](../systems/damage.md) supplies damage and relationship checks.
 
-| Field      | Meaning                                                         |
-| ---------- | --------------------------------------------------------------- |
-| `caster`   | Entity ID used for ownership and faction checks.                |
-| `affected` | Per-target hit history for this cast; shared by its area cells. |
+| Field      | Meaning                                                                     |
+| ---------- | --------------------------------------------------------------------------- |
+| `caster`   | Entity ID used for ownership and faction checks.                            |
+| `affected` | Per-target hit history for this cast; shared by its area cells.             |
+| `trigger`  | Optional contact trigger with a delay, active duration and reference frame. |
+
 <!-- source-types -->
 
 ## DamageType
@@ -71,6 +73,7 @@ export type Castable = {
     retrigger: number;
     reproc: number;
     forceAffecting: boolean;
+    trigger?: { delay: number; duration: number; frame?: number };
     affected: Record<
       string,
       { generation: number; delta: number; frame?: number }

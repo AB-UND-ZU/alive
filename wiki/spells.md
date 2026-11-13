@@ -12,6 +12,10 @@ Each cast requires mana.
 
 A cast can hit several targets. [[item:beam]] can hit the same target repeatedly while it lasts. Friendly relationships and immunity can prevent an effect.
 
+[[item:trap]] arms after you leave its cell. Enemies anywhere in its [[data:3x3]] area trigger a blinking [[data:0.5 s]] warning, followed by a [[data:0.5 s]] blast. Each enemy is hit once, including enemies that enter after activation.
+
+With [[item:earth]], an injured ally triggers it only from the center. The active area heals allies once while damaging enemies.
+
 ```widget
 items spells
 ```

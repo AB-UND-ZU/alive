@@ -301,6 +301,66 @@ export const trigger = createTemplate({
   materialElementSprite: triggerElementTemplate,
 });
 
+const triggerLine = (char: string, color = TEMPLATE_COLORS.materialPrimary) => [
+  { char, color },
+  ...(char === "|" ? [{ char: "║", color: TEMPLATE_COLORS.transparent }] : []),
+  { char: "▒", color: TEMPLATE_COLORS.transparent },
+];
+
+const triggerSideTemplate: Sprite = {
+  name: "spell_trigger_side",
+  layers: triggerLine("|"),
+  facing: {
+    right: triggerLine("-"),
+    left: triggerLine("-"),
+  },
+};
+export const triggerSide = createTemplate({
+  sprite: triggerSideTemplate,
+  materialElementSprite: {
+    ...triggerSideTemplate,
+    layers: triggerLine("|", TEMPLATE_COLORS.elementPrimary),
+  },
+});
+
+const triggerCornerTemplate: Sprite = {
+  name: "spell_trigger_corner",
+  layers: triggerLine("\\"),
+  facing: {
+    right: triggerLine("/"),
+    left: triggerLine("/"),
+  },
+};
+export const triggerCorner = createTemplate({
+  sprite: triggerCornerTemplate,
+  materialElementSprite: {
+    ...triggerCornerTemplate,
+    layers: triggerLine("\\", TEMPLATE_COLORS.elementPrimary),
+  },
+});
+
+export const trapBorder = ["─", "┐", "│", "┘", "─", "└", "│", "┌"].map(
+  (char, index) =>
+    createTemplate({
+      sprite: {
+        name: "trap_border",
+        layers: [{ char, color: TEMPLATE_COLORS.materialPrimary }],
+      },
+      materialElementSprite: {
+        name: "trap_border",
+        layers: [
+          {
+            char,
+            color:
+              index % 2
+                ? TEMPLATE_COLORS.materialPrimary
+                : TEMPLATE_COLORS.elementPrimary,
+          },
+        ],
+      },
+    })
+);
+
 const windSideTemplate: Sprite = {
   name: "wind_side",
   layers: [{ char: "~", color: TEMPLATE_COLORS.materialPrimary }],

@@ -1,4 +1,6 @@
 import { bumpEntity } from "../../engine/motion";
+import { trapActivation } from "../balancing/abilities";
+import { warnOn, warnOff } from "./sprites/particles";
 import { setParticleMotion } from "../../engine/motion";
 import { displaySpriteBuilder } from "./spriteBuilder";
 import { completeCommand } from "./commands";
@@ -70,6 +72,7 @@ import {
 } from "../../engine/systems/damage";
 import {
   disposeEntity,
+  disposeParticles,
   getCellEntities,
   moveEntity,
   registerEntity,
@@ -336,6 +339,7 @@ import {
 import { BURNABLE } from "../../engine/components/burnable";
 import { AFFECTABLE } from "../../engine/components/affectable";
 import {
+  getTriggerElapsed,
   getExertables,
   getParticleAmount,
   hasTriggered,
@@ -493,6 +497,9 @@ import {
   spearLine,
   spearTip,
   trigger,
+  triggerSide,
+  triggerCorner,
+  trapBorder,
   waveCorner,
   waveCornerDouble,
   waveSide,
@@ -2241,71 +2248,125 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
 };
 
 export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
-  const entityId = world.getEntityId(entity);
   const size = world.metadata.gameEntity[LEVEL].size;
   const progress = Math.ceil(
     state.elapsed / world.metadata.gameEntity[REFERENCE].tick
   );
   const material = state.args.material || "default";
   const element = state.args.element || "default";
-
-  let finished =
-    progress > state.args.duration ||
-    Object.keys(entity[CASTABLE].affected).length > 0;
-  let updated = false;
-
-  // create bolt particle
-  const casterEntity = world.getEntityByIdAndComponents(
-    entity[CASTABLE].caster,
-    [POSITION]
-  );
-  const hasMoved =
-    !casterEntity ||
-    getDistance(entity[POSITION], casterEntity[POSITION], size) !== 0;
-  if (!state.particles.trap && hasMoved) {
-    const trapParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: 0,
-        offsetY: 0,
-        offsetZ: effectHeight,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: trigger[material][element],
-    });
-    state.particles.trap = world.getEntityId(trapParticle);
-
-    // create effect areas
-    const aoeEntity = entities.createAoe(world, {
-      [EXERTABLE]: { castable: entityId },
-      [POSITION]: copy(entity[POSITION]),
-    });
-    registerEntity(world, aoeEntity);
-    state.args.areas.push(world.getEntityId(aoeEntity));
-    updated = true;
-  }
-
-  // dispose particles and areas
-  if (finished) {
-    if (Object.keys(entity[CASTABLE].affected).length > 0) {
-      play("trap", { intensity: 2, notes: 2, spacing: 0 });
-    }
-
-    for (const particleName in state.particles) {
-      const particleEntity = world.assertById(state.particles[particleName]);
-      disposeEntity(world, particleEntity);
-      delete state.particles[particleName];
-    }
-
-    for (const aoeId of state.args.areas) {
-      const aoeEntity = world.assertById(aoeId);
-      disposeEntity(world, aoeEntity);
-    }
-    state.args.areas = [];
-
-    updated = true;
-  }
-
+  const triggerState = (entity[CASTABLE].trigger ||= { ...trapActivation });
+  const triggerElapsed = getTriggerElapsed(world, triggerState);
+  const active = triggerElapsed >= triggerState.delay;
+  const finished =
+    triggerState.frame === undefined
+      ? progress > state.args.duration
+      : triggerElapsed >= triggerState.delay + triggerState.duration;
   state.args.progress = progress;
+  if (finished) {
+    disposeParticles(world, state);
+    for (const id of state.args.areas)
+      disposeEntity(world, world.assertById(id));
+    state.args.areas = [];
+    return { finished, updated: true };
+  }
+
+  let updated = false;
+  const place = (
+    name: string,
+    sprite: Sprite,
+    offset = { x: 0, y: 0 },
+    height = effectHeight,
+    facing?: Orientation
+  ) => {
+    const particle = entities.createFibre(world, {
+      [ORIENTABLE]: { facing },
+      [PARTICLE]: { offsetX: offset.x, offsetY: offset.y, offsetZ: height },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: sprite,
+    });
+    state.particles[name] = world.getEntityId(particle);
+    updated = true;
+  };
+
+  const caster = world.getEntityByIdAndComponents(entity[CASTABLE].caster, [
+    POSITION,
+  ]);
+  if (
+    state.args.areas.length === 0 &&
+    (!caster || getDistance(entity[POSITION], caster[POSITION], size) !== 0)
+  ) {
+    place("trap", trigger[material][element]);
+    for (let y = -1; y <= 1; y += 1) {
+      for (let x = -1; x <= 1; x += 1) {
+        const area = entities.createAoe(world, {
+          [EXERTABLE]: { castable: world.getEntityId(entity) },
+          [POSITION]: combine(size, entity[POSITION], { x, y }),
+        });
+        registerEntity(world, area);
+        state.args.areas.push(world.getEntityId(area));
+      }
+    }
+  }
+
+  if (active && state.particles.trap) {
+    disposeParticles(world, state);
+    trapBorder.forEach((sprite, index) => {
+      const iteration = iterations[Math.floor(index / 2)];
+      const origin =
+        index % 2
+          ? add(iteration.direction, iteration.normal)
+          : iteration.direction;
+      const particle = entities.createParticle(world, {
+        [PARTICLE]: {
+          offsetX: 0,
+          offsetY: 0,
+          offsetZ: particleHeight,
+          duration: triggerState.duration,
+          animatedOrigin: origin,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: sprite[material][element],
+      });
+      state.particles[`border-${index}`] = world.getEntityId(particle);
+    });
+    play("trap", { intensity: 2, notes: 2, spacing: 0 });
+    updated = true;
+  } else if (triggerState.frame !== undefined && !active) {
+    if (!state.particles.warning) {
+      place("warning", none, { x: 0, y: 0 }, particleHeight);
+      for (const { orientation, direction, normal } of iterations) {
+        place(
+          `side-${orientation}`,
+          triggerSide[material][element],
+          direction,
+          effectHeight,
+          orientation
+        );
+        place(
+          `corner-${orientation}`,
+          triggerCorner[material][element],
+          { x: direction.x - normal.x, y: direction.y - normal.y },
+          effectHeight,
+          orientation
+        );
+      }
+    }
+    const warning = world.assertByIdAndComponents(state.particles.warning, [
+      SPRITE,
+    ]);
+    const sprite = Math.floor(triggerElapsed / 100) % 2 ? warnOff : warnOn;
+    if (warning[SPRITE] !== sprite) {
+      warning[SPRITE] = sprite;
+      rerenderEntity(world, warning);
+      const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+      const distance = heroEntity
+        ? getDistance(entity[POSITION], heroEntity[POSITION], size) + 1
+        : 2;
+      if (sprite === warnOn && distance < 10)
+        play("prompt", { proximity: 1 / distance });
+      updated = true;
+    }
+  }
 
   return { finished, updated };
 };

@@ -7,7 +7,12 @@ import {
   walk,
   advance,
   holdMove,
+  step,
 } from "../testing/harness";
+import { CASTABLE } from "../engine/components/castable";
+import { EXERTABLE } from "../engine/components/exertable";
+import { POSITION } from "../engine/components/position";
+import { STATS } from "../engine/components/stats";
 import { EQUIPPABLE } from "../engine/components/equippable";
 import { ITEM } from "../engine/components/item";
 import { PLAYER } from "../engine/components/player";
@@ -30,6 +35,41 @@ describe("wiki game worlds", () => {
       ITEM,
     ]);
     expect(spell[ITEM].spell).toBe("beam");
+  });
+  it("arms the Trap example after moving and hits the neighboring dummy once", () => {
+    const world = createPreviewWorld("abilities", "trap");
+    const hero = assertHero(world);
+    const target = getCellEntities(world, { x: 4, y: 4 }).find(
+      (entity) => entity[STATS]
+    )!;
+    const targetId = world.getEntityId(target);
+    const hp = target[STATS].hp;
+    walk(world, "right", 1);
+    trigger(world, "spell");
+    const getSpell = () =>
+      world
+        .getEntities([CASTABLE, POSITION])
+        .find((entity) => entity[CASTABLE].caster === world.getEntityId(hero));
+    advanceUntil(world, () => !!getSpell());
+    const spell = getSpell()!;
+    const spellId = world.getEntityId(spell);
+    const getAreas = () =>
+      world
+        .getEntities([EXERTABLE])
+        .filter((area) => area[EXERTABLE].castable === spellId);
+    expect(spell[POSITION]).toEqual({ x: 3, y: 4 });
+    expect(getAreas()).toHaveLength(0);
+
+    walk(world, "down", 1);
+    step(world);
+    expect(getAreas()).toHaveLength(9);
+    advanceUntil(world, () => !!spell[CASTABLE].affected[targetId]);
+    expect(target[STATS].hp).toBeLessThan(hp);
+    const hit = { ...spell[CASTABLE].affected[targetId] };
+    advance(world, 500);
+    expect(spell[CASTABLE].affected).toEqual({ [targetId]: hit });
+    advanceUntil(world, () => !world.getEntityById(spellId));
+    expect(getAreas()).toHaveLength(0);
   });
   it("opens the real crafting dialog with the normal interaction trigger", () => {
     const world = createPreviewWorld("crafting");

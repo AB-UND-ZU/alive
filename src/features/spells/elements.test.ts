@@ -207,7 +207,7 @@ describe("earth spells", () => {
     cast(world, "right");
     walk(world, "right", 1);
     walk(world, "left", 1);
-    step(world, 10);
+    step(world, 20);
 
     expect(hero[STATS].hp).toBe(5 + heal);
   });

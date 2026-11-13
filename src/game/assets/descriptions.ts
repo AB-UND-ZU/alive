@@ -1447,7 +1447,7 @@ export const materialSprites: Partial<
     sprite: trapSpell,
     getDescription: (stats) => [
       createText("Damages enemies"),
-      createText("walking over it."),
+      createText("walking nearby."),
       stretch(
         [
           ...createText(stats.magic.toString(), colors.fuchsia),

@@ -371,7 +371,12 @@ export const createPreviewWorld = (name: SceneName, option = "") => {
       bound: false,
     });
   if (["abilities", "skills", "chat", "combat"].includes(name)) {
-    const target = createCell(world, { x: 6, y: 4 }, "dummy", "visible").cell;
+    const target = createCell(
+      world,
+      { x: name === "abilities" && option === "trap" ? 4 : 6, y: 4 },
+      "dummy",
+      "visible"
+    ).cell;
     setIdentifier(world, target, "target");
   }
   const stations: Record<string, string> = {
