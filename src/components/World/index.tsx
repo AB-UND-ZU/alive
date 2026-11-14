@@ -42,10 +42,12 @@ const initialLevel: LevelName = "LEVEL_MENU";
 
 export default function World({
   createInitialWorld,
+  serverStorage,
   persistent = !createInitialWorld,
   children,
 }: React.PropsWithChildren<{
   createInitialWorld?: () => WorldType;
+  serverStorage?: Pick<Storage, "getItem" | "setItem">;
   persistent?: boolean;
 }>) {
   const dimensions = useDimensions();
@@ -132,6 +134,7 @@ export default function World({
       ensureAudio();
       try {
         connectionRef.current = connectServer(address, {
+          storage: serverStorage,
           onStatus(status) {
             if (generation !== connectionGeneration.current) return;
             setServerStatus(status);

@@ -5,6 +5,8 @@
   {"source": "wiki/threejs.md", "title": "ThreeJS", "route": "game-design/clients/threejs.html", "aliases": ["threejs.html", "game-design/rendering/threejs.html"], "chapter": "Gameplay", "group": "Clients", "navigation": true},
   {"source": "wiki/html.md", "title": "HTML", "route": "game-design/clients/html.html", "aliases": ["html.html"], "chapter": "Gameplay", "group": "Clients", "navigation": true},
   {"source": "wiki/terminal.md", "title": "Terminal", "route": "game-design/clients/terminal.html", "aliases": ["terminal.html"], "chapter": "Gameplay", "group": "Clients", "navigation": true},
+  {"source": "wiki/clients-multiplayer.md", "title": "Multiplayer", "route": "game-design/clients/multiplayer.html", "aliases": ["servers.html", "game-design/clients/servers.html"], "chapter": "Gameplay", "group": "Clients", "navigation": true},
+  {"source": "wiki/server.md", "title": "Server", "route": "game-design/clients/server.html", "aliases": ["server.html"], "chapter": "Gameplay", "group": "Clients", "navigation": true},
   {"source": "wiki/interface.md", "title": "Interface", "route": "game-design/controls/interface.html", "aliases": ["interface.html"], "chapter": "Gameplay", "group": "Controls", "navigation": true},
   {"source": "wiki/keyboard-mouse.md", "title": "Keyboard/Mouse", "route": "game-design/controls/keyboard-mouse.html", "aliases": ["keyboard-mouse.html", "controls.html"], "chapter": "Gameplay", "group": "Controls", "navigation": true},
   {"source": "wiki/touch.md", "title": "Touch", "route": "game-design/controls/touch.html", "aliases": ["touch.html"], "chapter": "Gameplay", "group": "Controls", "navigation": true},

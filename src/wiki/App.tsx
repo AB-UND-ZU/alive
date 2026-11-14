@@ -67,6 +67,7 @@ import { TextGallery } from "./TextGallery";
 import { InterfaceDiagram } from "./InterfaceDiagram";
 import { Play } from "./Play";
 import { Widget } from "./Widgets";
+import { ServerPreview } from "./ServerPreview";
 import { GamePreview } from "./GamePreview";
 import { SceneName } from "./scenes";
 import { RendererComparison } from "./RendererComparison";
@@ -902,6 +903,8 @@ function Markdown({
         </p>
       );
     if (token.type === "code") {
+      if (token.lang === "scene" && token.text!.trim() === "servers")
+        return <ServerPreview key={index} base={base} />;
       if (token.lang === "scene")
         return (
           <GamePreview

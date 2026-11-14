@@ -1,3 +1,4 @@
+import { ServerGame } from "./ServerGame";
 import { enableTouchEmulation, TouchCursor } from "./TouchControls";
 import { createPresetWorld, PresetName } from "./presets";
 import { setAudioActive, ensureAudio } from "../game/sound/resumable";
@@ -374,4 +375,6 @@ function Preview() {
     </Dimensions>
   );
 }
-createRoot(document.getElementById("root")!).render(<Preview />);
+createRoot(document.getElementById("root")!).render(
+  scene === "servers" ? <ServerGame /> : <Preview />
+);

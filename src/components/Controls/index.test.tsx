@@ -594,6 +594,23 @@ describe("pausing", () => {
     }
   );
 
+  it("can keep a network preview live on blur while releasing held input and still pausing when hidden", () => {
+    const world = createAreaWorld(area);
+    const setPaused = jest.fn();
+    const hero = assertHero(world);
+    const view = renderHud(world, <Controls pauseOnBlur={false} />, {
+      setPaused,
+    });
+    view.tick(5);
+    press("ArrowRight");
+    expect(hero.MOVABLE!.orientations).toEqual(["right"]);
+    fireEvent(window, new Event("blur"));
+    expect(hero.MOVABLE!.orientations).toEqual([]);
+    expect(setPaused).not.toHaveBeenCalled();
+    fireEvent(window, new Event("pagehide"));
+    expect(setPaused).toHaveBeenCalledWith(true);
+  });
+
   it("moving focus between page controls doesn't pause or release movement", () => {
     const setPaused = jest.fn();
     const { hero, container } = setup([], { setPaused });

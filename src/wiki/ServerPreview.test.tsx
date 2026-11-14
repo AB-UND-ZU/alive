@@ -1,0 +1,97 @@
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import "../engine";
+import { ServerPreview } from "./ServerPreview";
+
+jest.mock("./visuals", () => ({
+  Text: ({ children }: React.PropsWithChildren) => <>{children}</>,
+  Input: ({
+    label,
+    value,
+    onChange,
+  }: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+  }) => (
+    <input
+      aria-label={label}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  ),
+  Button: ({
+    children,
+    onClick,
+  }: React.PropsWithChildren<{ onClick: () => void }>) => (
+    <button type="button" onClick={onClick}>
+      {children}
+    </button>
+  ),
+}));
+const connect = () => {
+  render(<ServerPreview base="/alive/wiki/" />);
+  fireEvent.change(screen.getByRole("textbox", { name: "Server URL" }), {
+    target: { value: "localhost:3001" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Connect" }));
+};
+const status = (
+  client: number,
+  state: string,
+  origin = window.location.origin
+) => {
+  const frame = screen.getByTitle(`Player ${client} game`) as HTMLIFrameElement;
+  fireEvent(
+    window,
+    new MessageEvent("message", {
+      origin,
+      source: frame.contentWindow,
+      data: { type: "server-status", status: state },
+    })
+  );
+};
+beforeEach(() => jest.useFakeTimers());
+afterEach(() => jest.useRealTimers());
+it("connects two distinct client slots to the same normalized server", () => {
+  connect();
+  for (const client of [1, 2]) {
+    const frame = screen.getByTitle(`Player ${client} game`);
+    expect(frame).toHaveAttribute(
+      "src",
+      `/alive/wiki/preview.html?server=ws%3A%2F%2Flocalhost%3A3001%2F&client=${client}#servers`
+    );
+    status(client, "connected");
+  }
+  act(() => jest.advanceTimersByTime(20000));
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});
+it.each(["rejected", "reconnecting"])(
+  "reports a failed initial connection on %s and permits a retry",
+  (failed) => {
+    connect();
+    status(1, failed, "https://untrusted.example");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    status(1, "connected");
+    status(2, failed);
+    expect(screen.getByRole("alert")).toHaveTextContent("Connection failed");
+    expect(screen.queryByTitle("Player 1 game")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Connect" }));
+    expect(screen.getByTitle("Player 2 game")).toBeInTheDocument();
+  }
+);
+it("times out if either game cannot finish connecting", () => {
+  connect();
+  status(1, "connected");
+  act(() => jest.advanceTimersByTime(15000));
+  expect(screen.getByRole("alert")).toHaveTextContent("Connection failed");
+});
+it("allows an established client to reconnect without discarding either view", () => {
+  connect();
+  status(1, "connected");
+  status(2, "connected");
+  status(1, "reconnecting");
+  act(() => jest.advanceTimersByTime(1000));
+  status(1, "connected");
+  act(() => jest.advanceTimersByTime(20000));
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});

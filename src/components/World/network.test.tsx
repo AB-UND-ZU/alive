@@ -41,13 +41,15 @@ it("pauses only its own server connection, avoids local game saves and returns t
     context = useWorld();
     return null;
   }
+  const storage = { getItem: jest.fn(), setItem: jest.fn() };
   const view = render(
-    <World createInitialWorld={() => local} persistent>
+    <World createInitialWorld={() => local} persistent serverStorage={storage}>
       <Probe />
     </World>
   );
   act(() => context.joinServer!("host:3001"));
   const options = jest.mocked(connectServer).mock.calls[0][1]!;
+  expect(options.storage).toBe(storage);
   act(() => {
     options.onStatus!("connected");
     options.onReady!(replica.world);

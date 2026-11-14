@@ -5,6 +5,7 @@ Owns level creation, pause/suspension state and the world context used by the HU
 | Prop | Behavior |
 | --- | --- |
 | `createInitialWorld` | Inject a composed world instead of generating the menu |
+| `serverStorage` | Optional reconnect-credential store; defaults to browser localStorage |
 | `persistent` | Enable storage; defaults off for injected worlds and on for ordinary play |
 | `children` | UI mounted inside the world context |
 

@@ -168,8 +168,9 @@ const swipeThreshold = 10;
 
 export default function Controls({
   compact = false,
+  pauseOnBlur = true,
   children,
-}: React.PropsWithChildren<{ compact?: boolean }>) {
+}: React.PropsWithChildren<{ compact?: boolean; pauseOnBlur?: boolean }>) {
   const dimensions = useDimensions();
   const { ecs, setPaused, paused, initial, flipped } = useWorld();
   const level = ecs?.metadata.gameEntity[LEVEL].name;
@@ -1075,11 +1076,14 @@ export default function Controls({
     [handleMove, releaseTouch, setJoystickOrientations, ecs]
   );
 
-  const handleDeactivate = useCallback(() => {
-    releaseTouch();
-    pointer.current = undefined;
-    setPaused(true);
-  }, [releaseTouch, setPaused]);
+  const handleDeactivate = useCallback(
+    (event?: Event) => {
+      releaseTouch();
+      pointer.current = undefined;
+      if (pauseOnBlur || event?.type !== "blur") setPaused(true);
+    },
+    [releaseTouch, setPaused, pauseOnBlur]
+  );
 
   const handleVisibility = useCallback(() => {
     if (document.hidden) handleDeactivate();
