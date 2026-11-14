@@ -17,3 +17,5 @@ Feature previews supply the terminal center to the shared controls using `--cont
 Visible autoplay is silent. A pointer, touch or keyboard interaction enables the frame audio activity gate and resumes its AudioContext. Blur, pause and page unload disable the gate. This is separate from the player's Sound FX setting, so refocusing never overrides a muted game.
 
 The Light scene exposes a Shadows lever. It updates native lighting in the existing frame without resetting exploration or changing fog of war.
+
+Client scenes select Three.js, HTML or the native terminal cell renderer from the Markdown scene variant. They share an arena, focus handling, visibility pause and reset. The terminal adapter draws its own HUD and frame, so it replaces browser Stats, Terminal and Controls rather than nesting another frame. Client changes clear readiness before loading the next renderer.

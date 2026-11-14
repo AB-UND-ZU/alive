@@ -1,0 +1,24 @@
+.TerminalBrowserPreview {
+  background: #000;
+  font-family: "Perfect DOS VGA 437 Win", monospace;
+  line-height: var(--cell-height);
+  width: max-content;
+}
+
+.TerminalBrowserPreview > .Row {
+  justify-content: flex-start;
+}
+
+.TerminalBrowserPreview .Cell {
+  flex-shrink: 0;
+  margin-left: 0;
+}
+
+.TerminalBrowserPreview .Layer {
+  font-size: var(--cell-height);
+}
+
+.TerminalBrowserPreview .Cell > svg {
+  width: var(--cell-width);
+  height: var(--cell-height);
+}

@@ -325,3 +325,21 @@ test("the Chat scene opens the native input ready for commands", () => {
   const popup = world.assertByIdAndComponents(hero.PLAYER!.popup, [POPUP]);
   expect(getTab(world, popup)).toBe("chat");
 });
+
+it("gives renderer clients one playable arena with spell and crafting controls", () => {
+  const world = createPreviewWorld("clients", "terminal");
+  const hero = world.assertComponents(assertHero(world), [EQUIPPABLE, PLAYER]);
+  const spell = world.assertByIdAndComponents(hero[EQUIPPABLE].spell!, [ITEM]);
+  expect(spell[ITEM].spell).toBe("wave");
+  expect(world.metadata.gameEntity.LEVEL.size).toBeGreaterThanOrEqual(65);
+  advance(world, 500);
+  walk(world, "right", 2);
+  trigger(world, "spell");
+  advanceUntil(world, () => world.getEntities([CASTABLE]).length > 0);
+  walk(world, "up", 1);
+  trigger(world, "interact");
+  advanceUntil(world, () => !!hero[PLAYER].popup);
+  expect(
+    world.assertByIdAndComponents(hero[PLAYER].popup, [POPUP])[POPUP].tabs
+  ).toContain("craft");
+});

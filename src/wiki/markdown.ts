@@ -145,7 +145,8 @@ export function parseMarkdown(
       if (
         token.lang === "scene" &&
         !scenes.includes(token.text!.trim()) &&
-        !/^game\/(menu|dungeon|island)$/.test(token.text!.trim())
+        !/^game\/(menu|dungeon|island)$/.test(token.text!.trim()) &&
+        !/^clients\/(three-js|html|terminal)$/.test(token.text!.trim())
       )
         throw new Error("Unknown scene " + token.text);
       token.syntax = syntax(

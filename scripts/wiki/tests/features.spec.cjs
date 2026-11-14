@@ -42,6 +42,7 @@ test("navigation follows the design and implementation groups with Welcome and P
   await expect(page.locator('nav a[aria-label="Game"]')).toHaveCount(0);
   expect(await page.locator(".NavGroupTitle").allTextContents()).toEqual([
     "[INTRO]",
+    "[CLIENTS]",
     "[CONTROLS]",
     "[WORLD]",
     "[CHARACTERS]",

@@ -258,7 +258,7 @@
 | [TerminalCell](renderers/terminal/sprites.md#type-terminalcell) | `src/renderers/terminal/sprites.ts` |
 | [TerminalFrame](renderers/terminal/frame.md#type-terminalframe) | `src/renderers/terminal/frame.ts` |
 | [TerminalKey](renderers/terminal/input.md#type-terminalkey) | `src/renderers/terminal/input.ts` |
-| [TerminalSession](renderers/terminal/index.md#type-terminalsession) | `src/renderers/terminal/index.tsx` |
+| [TerminalSession](renderers/terminal/screen.md#type-terminalsession) | `src/renderers/terminal/screen.ts` |
 | [TerminalSprite](renderers/terminal/frame.md#type-terminalsprite) | `src/renderers/terminal/frame.ts` |
 | [TerminalState](renderers/terminal/frame.md#type-terminalstate) | `src/renderers/terminal/frame.ts` |
 | [TestWorldOptions](testing/harness.md#type-testworldoptions) | `src/testing/harness.ts` |
@@ -276,6 +276,7 @@
 | [UnlockSequence](engine/components/sequencable.md#type-unlocksequence) | `src/engine/components/sequencable.ts` |
 | [VanishSequence](engine/components/sequencable.md#type-vanishsequence) | `src/engine/components/sequencable.ts` |
 | [Vanishable](engine/components/vanishable.md#type-vanishable) | `src/engine/components/vanishable.ts` |
+| [ViewState](game/assets/popupView.md#type-viewstate) | `src/game/assets/popupView.ts` |
 | [Viewable](engine/components/viewable.md#type-viewable) | `src/engine/components/viewable.ts` |
 | [VisionSequence](engine/components/sequencable.md#type-visionsequence) | `src/engine/components/sequencable.ts` |
 | [VortexSequence](engine/components/sequencable.md#type-vortexsequence) | `src/engine/components/sequencable.ts` |

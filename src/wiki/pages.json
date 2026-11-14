@@ -1,6 +1,10 @@
 [
   {"source": "wiki/index.md", "title": "ALIVE", "route": "index.html", "aliases": [], "chapter": "Gameplay", "group": "Intro", "navigation": true},
   {"source": "wiki/play.md", "title": "Play", "route": "intro/play.html", "aliases": ["play.html"], "chapter": "Gameplay", "group": "Intro", "navigation": true},
+  {"source": "wiki/renderers.md", "title": "Renderers", "route": "game-design/clients/renderers.html", "aliases": ["renderers.html"], "chapter": "Gameplay", "group": "Clients", "navigation": true},
+  {"source": "wiki/threejs.md", "title": "ThreeJS", "route": "game-design/clients/threejs.html", "aliases": ["threejs.html", "game-design/rendering/threejs.html"], "chapter": "Gameplay", "group": "Clients", "navigation": true},
+  {"source": "wiki/html.md", "title": "HTML", "route": "game-design/clients/html.html", "aliases": ["html.html"], "chapter": "Gameplay", "group": "Clients", "navigation": true},
+  {"source": "wiki/terminal.md", "title": "Terminal", "route": "game-design/clients/terminal.html", "aliases": ["terminal.html"], "chapter": "Gameplay", "group": "Clients", "navigation": true},
   {"source": "wiki/interface.md", "title": "Interface", "route": "game-design/controls/interface.html", "aliases": ["interface.html"], "chapter": "Gameplay", "group": "Controls", "navigation": true},
   {"source": "wiki/keyboard-mouse.md", "title": "Keyboard/Mouse", "route": "game-design/controls/keyboard-mouse.html", "aliases": ["keyboard-mouse.html", "controls.html"], "chapter": "Gameplay", "group": "Controls", "navigation": true},
   {"source": "wiki/touch.md", "title": "Touch", "route": "game-design/controls/touch.html", "aliases": ["touch.html"], "chapter": "Gameplay", "group": "Controls", "navigation": true},
@@ -48,7 +52,6 @@
   {"source": "wiki/building.md", "title": "Building", "route": "game-design/interactions/building.html", "aliases": ["building.html"], "chapter": "Gameplay", "group": "Interactions", "navigation": true},
   {"source": "wiki/sprites.md", "title": "Sprites", "route": "game-design/rendering/sprites.html", "aliases": ["sprites.html"], "chapter": "Gameplay", "group": "Rendering", "navigation": true},
   {"source": "wiki/light.md", "title": "Light", "route": "game-design/rendering/light.html", "aliases": ["light.html"], "chapter": "Gameplay", "group": "Rendering", "navigation": true},
-  {"source": "wiki/threejs.md", "title": "ThreeJS", "route": "game-design/rendering/threejs.html", "aliases": ["threejs.html"], "chapter": "Gameplay", "group": "Rendering", "navigation": true},
   {"source": "wiki/responsive.md", "title": "Responsive", "route": "game-design/rendering/responsive.html", "aliases": ["responsive.html"], "chapter": "Gameplay", "group": "Rendering", "navigation": true},
   {"source": "wiki/animations.md", "title": "Animations", "route": "game-design/rendering/animations.html", "aliases": ["animations.html"], "chapter": "Gameplay", "group": "Rendering", "navigation": true},
   {"source": "src/bindings/hooks.md", "title": "World Hooks", "route": "development/engine/hooks.html", "aliases": ["development/src/bindings/hooks.html"], "chapter": "Development", "group": "Engine", "navigation": true},
@@ -251,6 +254,8 @@
   {"source": "src/wiki/DungeonMap.md", "title": "Dungeon Diagram", "route": "development/wiki/dungeonmap.html", "aliases": ["development/src/wiki/DungeonMap.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/EquippedPreview.md", "title": "Equipped Preview", "route": "development/wiki/equippedpreview.html", "aliases": ["development/src/wiki/EquippedPreview.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/FarmingProgression.md", "title": "Crop Growth", "route": "development/wiki/farmingprogression.html", "aliases": ["development/src/wiki/FarmingProgression.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
+  {"source": "src/wiki/RendererComparison.md", "title": "Client Features", "route": "development/wiki/renderer-comparison.html", "aliases": [], "chapter": "Development", "group": "Wiki", "navigation": true},
+  {"source": "src/wiki/RendererExamples.md", "title": "Client Examples", "route": "development/wiki/renderer-examples.html", "aliases": [], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/GamePreview.md", "title": "Game Previews", "route": "development/wiki/gamepreview.html", "aliases": ["development/src/wiki/GamePreview.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/GridCenteredNote.md", "title": "Preview Notes", "route": "development/wiki/gridcenterednote.html", "aliases": ["development/src/wiki/GridCenteredNote.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/GridTable.md", "title": "Grid Tables", "route": "development/wiki/gridtable.html", "aliases": ["development/src/wiki/GridTable.html"], "chapter": "Development", "group": "Wiki", "navigation": true},
@@ -307,6 +312,8 @@
   {"source": "src/renderers/terminal/input.md", "title": "Terminal Input", "route": "development/renderers/terminal/input.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
   {"source": "src/renderers/terminal/cli.md", "title": "Terminal CLI", "route": "development/renderers/terminal/cli.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
   {"source": "src/renderers/terminal/sprites.md", "title": "Terminal Glyphs", "route": "development/renderers/terminal/sprites.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
+  {"source": "src/renderers/terminal/screen.md", "title": "Terminal Screen", "route": "development/renderers/terminal/screen.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
+  {"source": "src/renderers/terminal/BrowserPreview.md", "title": "Terminal Preview", "route": "development/renderers/terminal/browser-preview.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
   {"source": "src/renderers/terminal/index.md", "title": "Terminal", "route": "development/renderers/terminal/index.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
   {"source": "src/renderers/terminal/react.md", "title": "Terminal React", "route": "development/renderers/terminal/react.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true}
 ]

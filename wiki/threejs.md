@@ -1,5 +1,9 @@
 # ThreeJS
 
-The world uses an orthographic camera: cells keep the same size at every distance. Character [sprites](sprites.md) use the same DOS font and palette as the interface. The camera follows the active viewpoint and can shift to show a dialog.
+The default browser client draws the world with WebGL, [light and shadows](light.md). Cells keep the same size at every distance. The camera follows the player and shifts to show dialogs.
 
-[Renderer](../src/engine/systems/renderer.md) and [Camera](../src/renderers/three-js/Camera/index.md) describe the implementation.
+[Keyboard, mouse](keyboard-mouse.md) and [touch](touch.md) controls are supported.
+
+```scene
+clients/three-js
+```

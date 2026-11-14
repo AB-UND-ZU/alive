@@ -128,3 +128,14 @@ body {
   .DemoActions {
   bottom: calc(var(--cell-height) * 2);
 }
+
+.preview-clients .Stats {
+  height: calc(2 * var(--cell-height));
+}
+.preview-clients .Stats > :is(.StatHP, .StatMP) {
+  display: flex;
+}
+.ClientTerminal {
+  position: relative;
+  height: 480px;
+}

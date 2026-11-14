@@ -22,6 +22,7 @@ createCell(world, { x: 3, y: 4 }, "bench", "visible");
 populateInventory(world, hero, ingredients, equipment);
 preloadLevel(world);
 ```
+The Clients arena uses a 96-cell world so the native terminal viewport does not repeat its contents. The three renderers share the same terrain, equipment, target and crafting station. Game factories, class data and inventory helpers supply the scene.
 <!-- source-types -->
 
 ## SceneName

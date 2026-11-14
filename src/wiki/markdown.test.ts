@@ -113,3 +113,22 @@ test("plain text fences remain literal even when words match source symbols", ()
   expect(tokens[0].text).toBe("Item -> Widget");
   expect(tokens[0].syntax).toBeUndefined();
 });
+
+test.each(["three-js", "html", "terminal"])(
+  "accepts the %s client scene",
+  (client) => {
+    expect(
+      parseMarkdown(
+        "```scene\nclients/" + client + "\n```",
+        page,
+        [page],
+        {}
+      )[0]
+    ).toMatchObject({ lang: "scene", text: "clients/" + client });
+  }
+);
+test("rejects an unknown renderer client", () => {
+  expect(() =>
+    parseMarkdown("```scene\nclients/missing\n```", page, [page], {})
+  ).toThrow("Unknown scene");
+});

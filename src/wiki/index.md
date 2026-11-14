@@ -36,7 +36,7 @@ Production assets use `/alive/wiki/`. `scripts/wiki/routes.mjs` copies CRA's gen
 
 `App.tsx` renders the page and handles browser history. Routes follow `game-design/<group>/<page>.html` and `development/<group>/<source>.html`; Welcome remains `index.html`. `markdown.ts` parses content, resolves links and supplies Prism syntax tokens. Code fences accept a filename after the language and retain native popup borders, line numbers and Copy. Use `<br>` for separate entries inside Markdown table cells; arbitrary HTML is not accepted.
 
-`GamePreview.tsx` manages isolated frames; `preview.tsx` mounts the game. `Widgets.tsx` imports game data and calculators. The Chat scene uses native dialog completion. Popup widgets show settled native screens; a suffix selects a populated dialog stage such as `forge:add` or `brew:ingredients`.
+`GamePreview.tsx` manages isolated frames; `preview.tsx` mounts the game. Client pages use `clients/three-js`, `clients/html` and `clients/terminal` scene fences to run the same arena through each renderer. `Widgets.tsx` imports game data and calculators. The Chat scene uses native dialog completion. Popup widgets show settled native screens; a suffix selects a populated dialog stage such as `forge:add` or `brew:ingredients`.
 
 Readable symbol aliases use the existing stacked text sprites over a selectable source character. The wiki uses the existing DOS font without generating or adding font assets. Body cells are 18 by 32 pixels, headings use three character rows, and scrolling is native.
 

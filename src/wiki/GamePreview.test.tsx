@@ -128,3 +128,36 @@ it("keeps a hidden page paused and resumes when the page becomes visible", () =>
     window.location.origin
   );
 });
+
+it("uses the native client variant and reloads readiness when the renderer changes", () => {
+  const { rerender } = render(
+    <GamePreview name="clients" variant="terminal" base="/" />
+  );
+  const target = screen.getByRole("region", { name: "Renderer" });
+  const bounds = target.getBoundingClientRect();
+  act(() =>
+    notify(
+      [
+        {
+          target,
+          time: 0,
+          isIntersecting: true,
+          intersectionRatio: 1,
+          boundingClientRect: bounds,
+          intersectionRect: bounds,
+          rootBounds: null,
+        },
+      ],
+      observer
+    )
+  );
+  const iframe = screen.getByTitle("Renderer") as HTMLIFrameElement;
+  expect(iframe.src).toContain("#clients/terminal");
+  expect(iframe).toHaveStyle({ height: "480px" });
+  rerender(<GamePreview name="clients" variant="html" base="/" />);
+  expect(screen.getByTitle("Renderer")).not.toBe(iframe);
+  expect(screen.getByTitle("Renderer").getAttribute("src")).toContain(
+    "#clients/html"
+  );
+  expect(screen.getByRole("status")).toBeInTheDocument();
+});

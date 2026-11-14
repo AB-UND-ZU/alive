@@ -16,11 +16,13 @@ export function GamePreview({
   base,
   preset,
   testMode = true,
+  variant,
 }: {
   name: SceneName;
   base: string;
   preset?: PresetName;
   testMode?: boolean;
+  variant?: string;
 }) {
   const frame = useRef<HTMLIFrameElement>(null),
     container = useRef<HTMLElement>(null),
@@ -42,9 +44,12 @@ export function GamePreview({
     sprite?: Sprite;
   }>({});
   const responsive = name === "chat" || name === "sprites";
-  const [width, setWidth] = useState(
-    name === "game" || name === "interface" ? 576 : 414
-  );
+  const wide = name === "game" || name === "interface" || name === "clients";
+  const height =
+    name === "clients" && variant === "terminal"
+      ? 480
+      : sceneLayout(name).height;
+  const [width, setWidth] = useState(wide ? 576 : 414);
   const options: Partial<Record<SceneName, string[]>> = {
     abilities: ["wave", "beam", "trap", "dash", "bolt", "blast"],
     skills: ["slash", "bow", "spear", "wand", "zap", "block", "totem"],
@@ -54,6 +59,10 @@ export function GamePreview({
   const send = (type: string) =>
     frame.current?.contentWindow?.postMessage({ type }, window.location.origin);
   useEffect(() => {
+    ready.current = false;
+    setReady(false);
+    setState({});
+    setActive(false);
     const pause = () => {
       pending.current = undefined;
       send("pause");
@@ -122,8 +131,8 @@ export function GamePreview({
     const resize = new ResizeObserver(([entry]) =>
       setWidth(
         Math.max(
-          name === "game" || name === "interface" ? 378 : 414,
-          name === "game" || name === "interface"
+          wide ? 378 : 414,
+          wide
             ? Math.min(576, Math.floor(entry.contentRect.width / 18) * 18)
             : 414
         )
@@ -139,7 +148,7 @@ export function GamePreview({
       window.removeEventListener("message", message);
       document.removeEventListener("visibilitychange", visibility);
     };
-  }, [name]);
+  }, [name, wide, preset, variant]);
   useEffect(() => {
     if (name === "light" && isReady)
       frame.current?.contentWindow?.postMessage(
@@ -181,23 +190,20 @@ export function GamePreview({
           )}
           {loaded ? (
             <iframe
-              key={`${name}-${revision}`}
+              key={`${name}-${variant || preset || ""}-${revision}`}
               ref={frame}
               title={sceneDefinitions[name].title}
               tabIndex={name === "interface" ? -1 : 0}
               src={`${base}preview.html${testMode ? "?test" : ""}#${name}${
-                preset || option
-                  ? "/" + encodeURIComponent(preset || option)
+                preset || variant || option
+                  ? "/" + encodeURIComponent(preset || variant || option)
                   : ""
               }`}
               style={{
                 width,
-                height: name === "chat" ? "auto" : sceneLayout(name).height,
+                height: name === "chat" ? "auto" : height,
                 maxWidth: responsive ? "100%" : undefined,
-                aspectRatio:
-                  name === "chat"
-                    ? `414 / ${sceneLayout(name).height}`
-                    : undefined,
+                aspectRatio: name === "chat" ? `414 / ${height}` : undefined,
               }}
               data-x={state.x}
               data-y={state.y}
@@ -210,12 +216,9 @@ export function GamePreview({
               className="PreviewPlaceholder"
               style={{
                 width,
-                height: name === "chat" ? "auto" : sceneLayout(name).height,
+                height: name === "chat" ? "auto" : height,
                 maxWidth: responsive ? "100%" : undefined,
-                aspectRatio:
-                  name === "chat"
-                    ? `414 / ${sceneLayout(name).height}`
-                    : undefined,
+                aspectRatio: name === "chat" ? `414 / ${height}` : undefined,
               }}
               aria-label="Preview loads when visible"
             />

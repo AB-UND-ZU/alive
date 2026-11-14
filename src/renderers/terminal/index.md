@@ -45,16 +45,5 @@ box-drawing characters remain readable. Semantic sprites retain recognizable
 source glyphs and colors; terrain uses background colors. See
 [Sprite projection](./sprites.md) for the projection rules.
 Terminal popup headers use bracketed tab names with the core selected and inactive palettes. Full titles stay visible; the close button moves right when the longer header needs room.
-<!-- source-types -->
 
-## TerminalSession
-
-```ts src/renderers/terminal/index.tsx
-export type TerminalSession = {
-  paused?: boolean;
-  suspended?: boolean;
-  saveName?: string;
-  selection?: number;
-  failed?: boolean;
-};
-```
+The native React host exports these screen helpers from [Terminal screen](./screen.md).

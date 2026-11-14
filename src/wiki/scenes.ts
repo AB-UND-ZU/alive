@@ -28,6 +28,12 @@ import { Item } from "../engine/components/item";
 import { setIdentifier } from "../engine/utils";
 
 export const sceneDefinitions = {
+  clients: {
+    title: "Renderer",
+    instruction:
+      "Move with the arrow keys, cast with Space, or press Enter at the workbench.",
+    keys: ["ArrowRight", "ArrowRight", " ", "ArrowLeft", "ArrowLeft"],
+  },
   game: {
     title: "Game",
     instruction: "Choose a preset below, then use the normal game controls.",
@@ -159,6 +165,8 @@ export const sceneLayout = (name: SceneName) => {
   const topHudRows =
     name === "game" || name === "interface"
       ? 4
+      : name === "clients"
+      ? 2
       : name === "abilities" || name === "food"
       ? 1
       : 0;
@@ -191,7 +199,86 @@ const terrainArea = `
 |,,,,,,,░░░~≈≈|
 |,,,,,,░░░░~≈≈|`;
 
+const createClientWorld = () => {
+  const rows: string[][] = Array.from({ length: 15 }, (_, y) =>
+    Array.from({ length: 23 }, (_, x) =>
+      y === 0 || y === 14 || x === 0 || x === 22 ? "█" : ","
+    )
+  );
+  rows[7][8] = "♀";
+  const world = createAreaWorld(
+    rows.map((row) => `|${row.join("")}|`).join("\n"),
+    { size: 96 }
+  );
+  const hero = world.assertComponents(assertHero(world), [
+    STATS,
+    SPAWNABLE,
+    SPRITE,
+    LIGHT,
+    VIEWABLE,
+    "INVENTORY",
+    "POSITION",
+  ]);
+  const data = getClassData("rogue");
+  Object.assign(hero[STATS]!, data.stats, {
+    hp: data.stats.maxHp,
+    mp: data.stats.maxMp,
+  });
+  hero[SPRITE] = data.sprite;
+  hero[SPAWNABLE]!.classKey = "rogue";
+  hero[LIGHT] = calculateVision(7);
+  for (let x = 4; x <= 16; x++)
+    createCell(world, { x, y: 7 }, "path", "hidden");
+  for (let y = 2; y <= 12; y++) {
+    for (let x = 18; x <= 21; x++)
+      createCell(
+        world,
+        { x, y },
+        x === 18 ? "water_shallow" : "water_deep",
+        "hidden"
+      );
+    if (y >= 4 && y <= 10)
+      createCell(world, { x: 15, y }, "mountain", "hidden");
+  }
+  createCell(world, { x: 5, y: 4 }, "tree", "hidden");
+  createCell(world, { x: 6, y: 10 }, "bush", "hidden");
+  createCell(world, { x: 10, y: 5 }, "bench", "hidden");
+  createCell(world, { x: 12, y: 7 }, "dummy", "hidden");
+  createCell(world, { x: 13, y: 10 }, "woodChest", "hidden");
+  populateInventory(
+    world,
+    hero,
+    [
+      { stackable: "charge", amount: 20 },
+      { stackable: "apple", amount: 3 },
+      { stackable: "stick", amount: 10 },
+      { stackable: "leaf", amount: 10 },
+    ],
+    [
+      { weapon: "sword", material: "wood", amount: 1, bound: false },
+      {
+        spell: "wave",
+        material: "wood",
+        element: "fire",
+        amount: 1,
+        bound: false,
+      },
+      { skill: "slash", material: "wood", amount: 1, bound: false },
+      { ...commandItems.compass, amount: 1, bound: false },
+    ]
+  );
+  createViewpoint(world, {
+    POSITION: { x: 11, y: 7 },
+    VIEWABLE: { active: true, priority: 80, spring: { duration: 0 } },
+    RENDERABLE: { generation: 0 },
+  });
+  initializeArea(world, { x: 0, y: 0 }, { x: 22, y: 14 });
+  preloadLevel(world);
+  return world;
+};
+
 export const createPreviewWorld = (name: SceneName, option = "") => {
+  if (name === "clients") return createClientWorld();
   const terrain =
     name === "movement"
       ? movementArea

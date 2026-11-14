@@ -12,7 +12,8 @@ import { createRoot } from "react-dom/client";
 import { CSSProperties, useEffect, useState } from "react";
 import World from "../components/World";
 import { useWorld } from "../renderers/interface/hooks";
-import Dimensions from "../components/Dimensions";
+import Dimensions, { useDimensions } from "../components/Dimensions";
+import TerminalClientPreview from "../renderers/terminal/BrowserPreview";
 import Terminal from "../components/Terminal";
 import Controls from "../components/Controls";
 import Stats from "../components/Stats";
@@ -29,6 +30,7 @@ setAudioActive(false);
 const [scene, option = ""] = window.location.hash.slice(1).split("/");
 const name = (scene || "game") as SceneName;
 if (name === "touch") void enableTouchEmulation();
+const terminalClient = name === "clients" && option === "terminal";
 function DemoActions() {
   if (name === "game" || name === "interface") return null;
   return (
@@ -96,6 +98,7 @@ function Bridge({ setShadows }: { setShadows: (enabled: boolean) => void }) {
       const hero = ecs && getHero(ecs);
       if (
         name !== "chat" &&
+        name !== "clients" &&
         !hero?.PLAYER?.popup &&
         (["c", "C", "/"].includes(event.key) ||
           (event.key === "Enter" && !ecs?.metadata.interact.active))
@@ -307,6 +310,28 @@ function Bridge({ setShadows }: { setShadows: (enabled: boolean) => void }) {
   }, [ecs, setPaused, setInitial, setShadows]);
   return null;
 }
+function NativeClient() {
+  const { ecs, paused, suspended } = useWorld();
+  const dimensions = useDimensions();
+  if (!ecs) return null;
+  return (
+    <div className="ClientTerminal">
+      <TerminalClientPreview
+        world={ecs}
+        columns={Math.max(
+          33,
+          Math.min(65, Math.floor(dimensions.screenWidth / 9))
+        )}
+        rows={30}
+        cellWidth={9}
+        cellHeight={16}
+        paused={paused || suspended}
+      />
+      <DemoActions />
+    </div>
+  );
+}
+
 function Preview() {
   const [shadows, setShadows] = useState(true);
   useEffect(() => {
@@ -350,13 +375,24 @@ function Preview() {
             : () => createPreviewWorld(name, decodeURIComponent(option))
         }
       >
-        <Stats />
-        <Terminal shadows={shadows}>
-          {name !== "game" && name !== "interface" && <DemoFrame />}
-        </Terminal>
-        <Controls compact={name !== "game" && name !== "interface"}>
-          <DemoActions />
-        </Controls>
+        {terminalClient ? (
+          <NativeClient />
+        ) : (
+          <>
+            <Stats />
+            <Terminal
+              shadows={shadows}
+              renderer={
+                name === "clients" && option === "html" ? "html" : "three-js"
+              }
+            >
+              {name !== "game" && name !== "interface" && <DemoFrame />}
+            </Terminal>
+            <Controls compact={name !== "game" && name !== "interface"}>
+              <DemoActions />
+            </Controls>
+          </>
+        )}
         {name === "touch" && <TouchCursor />}
         <Bridge setShadows={setShadows} />
       </World>
