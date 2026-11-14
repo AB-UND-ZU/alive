@@ -64,7 +64,7 @@ it("streams overlapping game sounds to one mono PCM player", () => {
   expect(mockSpawn).toHaveBeenCalledTimes(1);
   expect(mockSpawn).toHaveBeenCalledWith(
     "ffplay",
-    expect.arrayContaining(["f32le", "44100", "pipe:0"]),
+    expect.arrayContaining(["f32le", "44100", "-ch_layout", "mono", "pipe:0"]),
     { stdio: ["pipe", "ignore", "ignore"] }
   );
   expect(child.stdin.write).toHaveBeenCalledTimes(1);
