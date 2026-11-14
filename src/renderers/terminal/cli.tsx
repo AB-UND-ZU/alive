@@ -32,6 +32,10 @@ import { createTerminalInput } from "./input";
 import { frameToAnsi, frameToText } from "./frame";
 import { startTerminalAudio } from "./audio";
 import { setAudioActive } from "../../game/sound/resumable";
+import { loadSounds } from "../../game/sound";
+import { classDefinitions } from "../../game/balancing/classes";
+import { getHasteInterval } from "../../engine/systems/movement";
+import { frameHeight, popupDelay } from "../../game/assets/utils";
 
 const savePath = () =>
   join(
@@ -63,7 +67,7 @@ export const openTerminalLink = (url: string) => {
   child.unref();
 };
 
-export const runTerminal = () => {
+export const runTerminal = async () => {
   const args = process.argv.slice(2);
   const levelArg = args[args.indexOf("--level") + 1];
   const level = Object.keys(levelConfig).find(
@@ -171,6 +175,15 @@ export const runTerminal = () => {
       "Use an interactive terminal, or --frames 1 to print a frame"
     );
   const closeAudio = startTerminalAudio();
+  if (closeAudio) {
+    process.stdout.write("Loading game...\n");
+    await loadSounds({
+      move: Object.values(classDefinitions).map(({ stats }) =>
+        getHasteInterval(world, stats.haste)
+      ),
+      open: [(frameHeight - 1) * popupDelay],
+    });
+  }
   const root = createTerminalRoot((output) => process.stdout.write(output));
   const render = () => {
     const { columns, rows } = dimensions();

@@ -50,7 +50,12 @@ class FakeAudioContext {
     return new FakeAudioNode();
   }
   createBuffer(_channels: number, length: number) {
-    return { getChannelData: () => new Float32Array(length) };
+    const data = Array.from({ length: _channels }, () => new Float32Array(length));
+    return {
+      getChannelData: (channel: number) => data[channel],
+      copyToChannel: (samples: Float32Array, channel: number) =>
+        data[channel].set(samples),
+    };
   }
   async resume() {
     this.state = "running";

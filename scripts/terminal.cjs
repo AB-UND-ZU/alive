@@ -14,7 +14,7 @@ try {
     platform: "node",
     format: "cjs",
     loader: { ".css": "empty", ".woff": "empty", ".woff2": "empty" },
-    external: ["jsfxr"],
+    external: ["jsfxr", "node-web-audio-api"],
     define: { "process.env.NODE_ENV": '"production"' },
     logLevel: "error",
   });

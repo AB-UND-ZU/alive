@@ -25,7 +25,7 @@ helpers as browser controls. The outer chrome spans the terminal width.
 At least 33 columns by 24 rows are required. Smaller windows pause the game
 and show a resize message.
 
-Sounds use the existing synthesized samples through `ffplay` or `aplay` when installed. One audio process mixes simultaneous effects; Pause and mute clear queued sounds. Audio plays on the host running the game, including over SSH.
+Sounds use the existing Web Audio buffers and scheduling through a native audio context. Its audio thread runs independently of terminal rendering. Pause and mute use the shared gain controls. Audio plays on the host running the game; SSH does not forward it to the connected client.
 
 The renderer uses the normal ECS, sequences, popup sprites, fog and fixed-step
 clock. It has no lights, shadows, entity health bars or stack dots. Movement

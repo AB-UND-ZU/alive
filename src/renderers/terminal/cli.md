@@ -15,8 +15,11 @@ are shared with the renderer so camera framing and terminal bounds agree.
 `--frames` emits ANSI on a TTY and plain text when redirected. `--color` and
 `--plain` override that choice. `--test` enables the engine's test commands.
 
-Interactive audio uses FFmpeg’s native macOS output, `ffplay` or `aplay` when available, playing the normal game sounds on the host machine. Pause clears queued sounds; quitting stops the audio process.
+Interactive audio uses native Web Audio, playing the normal game sounds on the host machine. Pause mutes the shared gain; quitting releases the audio device.
 
 The build wrapper bundles this entry point to a temporary directory and
-removes the bundle on exit. Browser CSS is omitted; jsfxr remains external
-because its CommonJS entry uses sloppy-mode global initialization.
+removes the bundle on exit. Browser CSS is omitted. The wrapper leaves jsfxr
+external for its CommonJS initialization, and native Web Audio external so it
+can load its platform binary.
+
+Before opening the interactive screen, the client preloads the same sound catalog as the browser, including class movement speeds and popup timing. First-use playback does not need to synthesize these sounds.

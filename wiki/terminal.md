@@ -6,7 +6,7 @@ Play in a UTF-8 terminal, locally or over SSH. Each cell has one character, a fo
 npm run terminal
 ```
 
-Use `npm run terminal -- --test` to enable [chat commands](chat.md). Sounds play on the host machine when `ffplay` or `aplay` is installed. Terminal saves are separate from browser [savegames](savegames.md).
+Use `npm run terminal -- --test` to enable [chat commands](chat.md). Sounds play on the host machine through native Web Audio. The terminal client requires Node.js 24 or newer. Terminal saves are separate from browser [savegames](savegames.md).
 
 | Input | Action |
 | --- | --- |

@@ -9,6 +9,9 @@ test("activity gates silence output without changing the user's Sound FX setting
     connect(target: object) {
       edges.set(this, target);
     },
+    disconnect() {
+      edges.delete(this);
+    },
     start() {
       let volume = 1;
       let current = edges.get(this);
@@ -27,7 +30,7 @@ test("activity gates silence output without changing the user's Sound FX setting
     createGain = makeNode;
     createBufferSource = makeNode;
     createBuffer() {
-      return { getChannelData: () => new Float32Array(1) };
+      return { copyToChannel() {} };
     }
   };
   try {
@@ -78,7 +81,7 @@ describe("audio recovery", () => {
         this.state = "suspended";
       });
       createGain() {
-        return { gain: { value: 1 }, connect() {} };
+        return { gain: { value: 1 }, connect() {}, disconnect() {} };
       }
       constructor() {
         context = this;
@@ -140,7 +143,7 @@ describe("audio recovery", () => {
   });
 });
 
-it("uses an installed terminal audio output without a browser audio context", () => {
+it("uses the injected native context clock, scheduling and gain gates", async () => {
   const original = window.AudioContext;
   (window as any).AudioContext = undefined;
   try {
@@ -148,27 +151,76 @@ it("uses an installed terminal audio output without a browser audio context", ()
     jest.isolateModules(() => {
       audio = jest.requireActual("./resumable");
     });
-    const play = jest.fn(),
-      stop = jest.fn();
-    audio!.setAudioOutput({ now: () => 2, play, stop });
-    const samples = [0.5, -0.5];
-    const sound = audio!.createSoundBuffer(samples, 44100);
+    const gains: {
+      gain: { value: number };
+      connect: jest.Mock;
+      disconnect: jest.Mock;
+    }[] = [];
+    const starts: number[] = [];
+    const context = {
+      state: "running",
+      currentTime: 2,
+      destination: {},
+      createGain: () => {
+        const node = {
+          gain: { value: 1 },
+          connect: jest.fn(),
+          disconnect: jest.fn(),
+        };
+        gains.push(node);
+        return node;
+      },
+      createBuffer: () => ({ copyToChannel: jest.fn() }),
+      createBufferSource: () => ({
+        connect: jest.fn(),
+        start: (time: number) => starts.push(time),
+      }),
+      suspend: jest.fn(async () => {
+        context.state = "suspended";
+      }),
+      resume: jest.fn(async () => {
+        context.state = "running";
+      }),
+    };
+    audio!.setAudioContext(context as unknown as AudioContext);
+    const sound = audio!.createSoundBuffer(new Float32Array([0.5, -0.5]), 44100);
     expect(audio!.isPlaying()).toBe(true);
     expect(audio!.getAudioTime(250)).toBe(2.25);
     sound.play(2.25, 0.5);
-    expect(play).toHaveBeenCalledWith(samples, 44100, 2.25, 0.5, 1);
-    audio!.muteAudio();
-    sound.play(3);
-    audio!.unmuteAudio();
+    expect(starts).toEqual([2.25]);
+    expect(gains[2].gain.value).toBe(0.5);
+    expect(gains[2].connect).toHaveBeenCalledWith(gains[0]);
     audio!.setAudioActive(false);
-    sound.play(3);
-    expect(play).toHaveBeenCalledTimes(1);
+    expect(gains[1].gain.value).toBe(0);
+    audio!.muteAudio();
     audio!.setAudioActive(true);
-    sound.play(3);
-    expect(play).toHaveBeenCalledTimes(2);
-    audio!.setAudioOutput();
-    expect(stop).toHaveBeenCalledTimes(3);
     expect(audio!.isPlaying()).toBe(false);
+    expect(gains[0].gain.value).toBe(0);
+    audio!.unmuteAudio();
+    expect(audio!.isPlaying()).toBe(true);
+    await audio!.suspendAudio();
+    expect(audio!.isPlaying()).toBe(false);
+    await audio!.ensureAudio();
+    expect(audio!.isPlaying()).toBe(true);
+    context.currentTime = 3;
+    sound.play(2);
+    expect(starts).toEqual([2.25, 3]);
+    audio!.muteAudio();
+    audio!.setAudioActive(false);
+    audio!.setAudioContext({ ...context } as unknown as AudioContext);
+    const playsBeforeReplacement = starts.length;
+    sound.play(4);
+    expect(starts).toHaveLength(playsBeforeReplacement);
+    expect(gains[0].disconnect).toHaveBeenCalledTimes(1);
+    expect(gains[1].disconnect).toHaveBeenCalledTimes(1);
+    expect(gains[4].gain.value).toBe(0);
+    expect(gains[5].gain.value).toBe(0);
+    audio!.setAudioContext();
+    expect(gains[4].disconnect).toHaveBeenCalledTimes(1);
+    expect(audio!.isPlaying()).toBe(false);
+    const previous = starts.length;
+    sound.play(4);
+    expect(starts).toHaveLength(previous);
   } finally {
     window.AudioContext = original;
   }
@@ -178,7 +230,8 @@ it("deinterleaves stereo PCM into browser audio channels", () => {
   const original = window.AudioContext;
   const channels = [new Float32Array(2), new Float32Array(2)];
   const createBuffer = jest.fn(() => ({
-    getChannelData: (channel: number) => channels[channel],
+    copyToChannel: (samples: Float32Array, channel: number) =>
+      channels[channel].set(samples),
   }));
   (window as any).AudioContext = class {
     destination = {};
@@ -197,4 +250,22 @@ it("deinterleaves stereo PCM into browser audio channels", () => {
   } finally {
     window.AudioContext = original;
   }
+});
+
+it("copies a mono Float32Array directly without cloning it", () => {
+  jest.isolateModules(() => {
+    const audio = jest.requireActual<typeof import("./resumable")>("./resumable");
+    const copyToChannel = jest.fn();
+    const context = {
+      destination: {},
+      createGain: () => ({ gain: { value: 1 }, connect() {}, disconnect() {} }),
+      createBuffer: () => ({ copyToChannel }),
+    };
+    audio.setAudioContext(context as unknown as AudioContext);
+    const samples = new Float32Array([0.25, -0.5]);
+    audio.createSoundBuffer(samples, 44100);
+    expect(copyToChannel).toHaveBeenCalledWith(samples, 0);
+    expect(copyToChannel.mock.calls[0][0]).toBe(samples);
+    audio.setAudioContext();
+  });
 });

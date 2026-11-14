@@ -15,7 +15,7 @@
 | [ArrowSequence](engine/components/sequencable.md#type-arrowsequence) | `src/engine/components/sequencable.ts` |
 | [Attackable](engine/components/attackable.md#type-attackable) | `src/engine/components/attackable.ts` |
 | [Attributes](engine/components/stats.md#type-attributes) | `src/engine/components/stats.ts` |
-| [AudioOutput](game/sound/resumable.md#type-audiooutput) | `src/game/sound/resumable.ts` |
+| [AudioChannels](game/sound/resumable.md#type-audiochannels) | `src/game/sound/resumable.ts` |
 | [AuraSequence](engine/components/sequencable.md#type-aurasequence) | `src/engine/components/sequencable.ts` |
 | [Baitable](engine/components/baitable.md#type-baitable) | `src/engine/components/baitable.ts` |
 | [BarModifier](engine/components/stats.md#type-barmodifier) | `src/engine/components/stats.ts` |
