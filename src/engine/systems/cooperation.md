@@ -6,4 +6,4 @@ Hosted worlds install `metadata.warpPlayer`. Single-player worlds keep their exi
 
 Defeated-unit counts belong to the shared level as well as each character. All characters in that level get quest kill credit, and a new arrival starts with the level's current totals. Ordinary ground loot stays shared rather than being copied for every character.
 
-The dungeon's first stick uses this same reward log when collected, so every teammate can obtain their starter weapon, including later arrivals. Its physical pickup can be claimed only once. Other ground loot keeps its ordinary shared ownership.
+Ground loot, including the first dungeon stick, belongs to whoever collects it. Players can break fences for additional sticks. Only quest rewards use the cooperative reward log.

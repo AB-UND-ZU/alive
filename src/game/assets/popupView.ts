@@ -113,6 +113,8 @@ export const getPopupInputs = (
   return JSON.stringify([
     entity[RENDERABLE].generation,
     popup,
+    world.metadata.serverError,
+    entity[POPUP].server?.address,
     hero?.[PLAYER].naming,
     hero?.[PLAYER].nameError,
     hero?.[PLAYER].admin,

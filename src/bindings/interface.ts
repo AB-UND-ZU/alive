@@ -85,6 +85,24 @@ export const ensurePlayerInterface = (
     };
     player[PLAYER].interface = ids;
   }
+  if (
+    world.metadata.warpPlayer &&
+    (!ids.camera || !world.getEntityById(ids.camera))
+  ) {
+    const camera = entities.createViewpoint(world, {
+      POSITION: { ...player.POSITION! },
+      RENDERABLE: { generation: 0 },
+      VIEWABLE: { active: false, priority: 30, owner },
+    });
+    registerEntity(world, camera);
+    ids.camera = world.getEntityId(camera);
+  }
+  if (ids.camera) {
+    const camera = world.assertByIdAndComponents(ids.camera, [VIEWABLE]);
+    camera[VIEWABLE].owner = owner;
+    if (player[PLAYER].ghost || player[PLAYER].connected === false)
+      camera[VIEWABLE].active = false;
+  }
   if (!ids.focus || !world.getEntityById(ids.focus)) {
     const focus = createPlayerFocus(
       world,

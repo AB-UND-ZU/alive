@@ -13,6 +13,7 @@ before(async () => {
   await buildServer({
     stdin: {
       contents: `export {createHost} from "./src/engine/network/host";
+    export {createReplica} from "./src/engine/network/replica";
     export {encodeState,decodeState} from "./src/engine/network/codec";
     export {giveItems} from "./src/testing/harness";
     export {submitChat} from "./src/engine/systems/popup";`,
@@ -259,9 +260,19 @@ test("a stalled client receives one full state and catches up directly after ack
     slow.socket.on("message", (bytes) => {
       if (JSON.parse(bytes.toString()).type === "state") states++;
     });
-    await slow.next("welcome");
+    const welcome = await slow.next("welcome");
     const first = engine.decodeState((await slow.next("state")).state);
+    const replica = engine.createReplica();
+    replica.world.metadata.localPlayerId = welcome.actorId;
+    replica.receive(first);
+    const actor = replica.world.getEntityById(welcome.actorId);
+    const sprite = actor.SPRITE;
+    slow.send({ type: "input", input: { sequence: 0, move: ["right"] } });
+    await slow.next("ack");
     for (let step = 0; step < 30; step++) server.simulation.step();
+    const world = server.simulation.worldFor(welcome.id);
+    const authoritative = world.getEntityById(welcome.actorId);
+    world.removeComponentFromEntity(authoritative, "TOOLTIP", false);
     for (let publish = 0; publish < 50; publish++) server.publish();
     slow.send({ type: "heartbeat" });
     await slow.next("pong");
@@ -280,6 +291,15 @@ test("a stalled client receives one full state and catches up directly after ack
     const current = engine.decodeState((await slow.next("state")).state);
     assert.equal(current.serverTime, server.simulation.serverTime);
     assert.equal(states, 2);
+    assert.ok(Array.isArray(current.removed));
+    assert.ok(
+      current.snapshot.entities.length < first.snapshot.entities.length
+    );
+    assert.equal(replica.receive(current), true);
+    assert.equal(replica.world.getEntityById(welcome.actorId), actor);
+    assert.equal(actor.SPRITE, sprite);
+    assert.deepEqual(actor.POSITION, authoritative.POSITION);
+    assert.equal(actor.TOOLTIP, undefined);
   } finally {
     await server.close();
   }

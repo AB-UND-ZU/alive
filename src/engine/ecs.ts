@@ -34,7 +34,16 @@ export type PatchedWorld = ECSWorld & { ecs: World };
 export default function createWorld() {
   const world = ECS.createWorld() as PatchedWorld;
 
-  const createEntity = ECS.createEntity.bind(ECS, world);
+  let presentationId = -1;
+  const createEntity = () => {
+    if (!world.ecs?.metadata.presentation) return ECS.createEntity(world);
+    const ids = world as unknown as { nextId: number };
+    const nextId = ids.nextId;
+    ids.nextId = presentationId--;
+    const entity = ECS.createEntity(world);
+    ids.nextId = nextId;
+    return entity;
+  };
   // recreate an entity with its previous ID, e.g. when loading a saved game
   const restoreEntity = (entityId: number) => {
     const ids = world as unknown as { nextId: number };
@@ -224,6 +233,7 @@ export default function createWorld() {
       initial: true,
       // milliseconds spent in levels other than the menu
       playtime: 0,
+      presentation: false,
       elapsed: 0,
       renderTime: 0,
       occlusionGeneration: 0,
@@ -240,6 +250,13 @@ export default function createWorld() {
             pause: (paused: boolean) => void;
             render: (delta: number) => void;
           },
+      connectServer: undefined as
+        | undefined
+        | ((address: string, username?: string) => void),
+      hasServerPlayer: (_address: string) => false,
+      leaveServer: () => {},
+      serverError: "",
+      serverAddress: "",
       serverCommand: undefined as
         | undefined
         | ((accountId: string, args: string[]) => string | undefined),

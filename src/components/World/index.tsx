@@ -1,4 +1,8 @@
-import { connectServer, ConnectionStatus } from "../../engine/network/client";
+import {
+  connectServer,
+  ConnectionStatus,
+  serverUrl,
+} from "../../engine/network/client";
 import {
   Fragment,
   useCallback,
@@ -57,6 +61,7 @@ export default function World({
   const [initial, setInitial] = useState(!createInitialWorld);
   const [flipped, setFlipped] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>();
+  const worldRef = useRef<WorldType>();
   const [serverStatus, setServerStatus] = useState<ConnectionStatus>();
   const connectionRef = useRef<ReturnType<typeof connectServer>>();
   const connectionGeneration = useRef(0);
@@ -69,6 +74,13 @@ export default function World({
   // world callbacks only use stable state setters, so they are created once
   const [actions] = useState(() => {
     const connectWorld = (world: WorldType) => {
+      worldRef.current = world;
+      world.metadata.connectServer = joinServer;
+      world.metadata.leaveServer = openMenu;
+      world.metadata.hasServerPlayer = (address) =>
+        !!(serverStorage || localStorage).getItem(
+          `alive.server:${serverUrl(address)}`
+        );
       world.metadata.suspend = () => setSuspended(true);
       world.metadata.resume = () => setSuspended(false);
       world.metadata.setFlipped = setFlipped;
@@ -130,6 +142,8 @@ export default function World({
 
     const joinServer = (address: string, username?: string) => {
       disconnectServer();
+      const origin = worldRef.current;
+      if (origin) origin.metadata.serverError = "";
       const generation = ++connectionGeneration.current;
       ensureAudio();
       try {
@@ -140,6 +154,10 @@ export default function World({
             if (generation !== connectionGeneration.current) return;
             setServerStatus(status);
             if (status === "reconnecting" || status === "rejected") {
+              if (!worldRef.current?.metadata.network) {
+                if (origin) origin.metadata.serverError = "Connection failed!";
+                return;
+              }
               connectionRef.current?.pause(true);
               pauseRef.current = true;
               setPaused(true);
@@ -149,6 +167,7 @@ export default function World({
           onReady(world) {
             if (generation !== connectionGeneration.current) return;
             connectWorld(world);
+            world.metadata.serverAddress = serverUrl(address);
             showWorld(world);
             setSuspended(false);
             setInitial(false);
@@ -158,6 +177,7 @@ export default function World({
           },
         });
       } catch (error) {
+        if (origin) origin.metadata.serverError = "Connection failed!";
         setServerStatus("rejected");
       }
     };

@@ -138,13 +138,22 @@ export const createHost = (saved?: HostedWorld) => {
   };
   for (const data of saved?.realms || []) {
     const world = restoreSnapshot(data.snapshot);
+    for (const view of [...world.getEntities([POPUP])])
+      if (view[POPUP].source) disposeEntity(world, view, false, false);
     world.metadata.elapsed = elapsed;
+    for (const source of world.getEntities([POPUP]))
+      if (source[POPUP].viewers) {
+        source[POPUP].viewers = {};
+        source[POPUP].active = false;
+        source[POPUP].owner = undefined;
+      }
     for (const player of world.getEntities([PLAYER]))
       if (player[PLAYER].accountId) {
         player[PLAYER].connected = false;
         player[PLAYER].admin = false;
         const popup = world.getEntityById(player[PLAYER].popup);
         if (popup) closePopup(world, player, popup);
+        player[PLAYER].popup = undefined;
       }
     createSystems(world);
     world.metadata.initial = false;
@@ -273,12 +282,16 @@ export const createHost = (saved?: HostedWorld) => {
   ) => {
     const popup = world.getEntityById(player[PLAYER].popup);
     if (popup) closePopup(world, player, popup);
+    for (const view of [...world.getEntities([POPUP])])
+      if (view[POPUP].source && view[POPUP].owner === world.getEntityId(player))
+        disposeEntity(world, view, false, false);
     const ui = player[PLAYER].interface;
     if (ui)
       for (const id of [
         ui.use,
         ui.inspect,
         ...(ui.server ? [ui.server] : []),
+        ...(ui.camera ? [ui.camera] : []),
         ...(ui.focus ? [ui.focus] : []),
         ...Object.values(ui.prompts || {}),
       ]) {
@@ -489,12 +502,14 @@ export const createHost = (saved?: HostedWorld) => {
       getInput(accountId)?.receive(message) || false,
     frame: (accountId?: string) => {
       const world = (accountId && actor(accountId)?.world) || menu.world;
+      const snapshot = createSnapshot(world, true);
+      const transmitted = new Set(snapshot.entities.map(([id]) => id));
       return {
         sequence,
         serverTime: elapsed,
         realm: world.metadata.gameEntity[LEVEL].name,
-        snapshot: createSnapshot(world),
-        motions: captureMotions(world),
+        snapshot,
+        motions: captureMotions(world).filter(([id]) => transmitted.has(id)),
         sounds: (sounds.get(world) || []).filter(
           (event) => event.time >= elapsed - 1000
         ),

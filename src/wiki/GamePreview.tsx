@@ -19,6 +19,8 @@ export function GamePreview({
   testMode = true,
   variant,
   renderer = "three-js",
+  server,
+  onFrame,
 }: {
   name: SceneName;
   base: string;
@@ -26,14 +28,16 @@ export function GamePreview({
   testMode?: boolean;
   variant?: string;
   renderer?: RendererName;
+  server?: { url: string; username?: string; client: number };
+  onFrame?: (frame: HTMLIFrameElement | null) => void;
 }) {
-  const frame = useRef<HTMLIFrameElement>(null),
+  const frame = useRef<HTMLIFrameElement | null>(null),
     container = useRef<HTMLElement>(null),
     pending = useRef<string>(),
     ready = useRef(false),
     visible = useRef(false);
   const [shadows, setShadows] = useState(true);
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(!!server);
   const [isReady, setReady] = useState(false);
   const [active, setActive] = useState(false),
     [revision, setRevision] = useState(0),
@@ -207,10 +211,17 @@ export function GamePreview({
           {loaded ? (
             <iframe
               key={`${name}-${renderer}-${testMode}-${variant || preset || ""}-${revision}`}
-              ref={frame}
-              title={sceneDefinitions[name].title}
+              ref={(element) => {
+                frame.current = element;
+                onFrame?.(element);
+              }}
+              title={
+                server
+                  ? `Player ${server.client} game`
+                  : sceneDefinitions[name].title
+              }
               tabIndex={name === "interface" ? -1 : 0}
-              src={source}
+              src={server ? `${base}preview.html?server=${encodeURIComponent(server.url)}&client=${server.client}&username=${encodeURIComponent(server.username || "")}#servers` : source}
               style={{
                 width,
                 height: name === "chat" ? "auto" : height,
@@ -238,7 +249,7 @@ export function GamePreview({
         </div>
         <GridCenteredNote>
           <Text>
-            {name === "clients"
+            {server ? "Click to control this player." : name === "clients"
               ? "Play using the normal game controls."
               : name === "game" && preset
               ? `Play ${presets[preset].title} using the normal game controls.`

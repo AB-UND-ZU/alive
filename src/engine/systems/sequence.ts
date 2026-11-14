@@ -1,6 +1,6 @@
+import { presentationNames, presentations } from "../presentation";
 import { soundSource, withSoundSource } from "../../game/sound/events";
 import { PLAYER } from "../components/player";
-import { FOCUSABLE } from "../components/focusable";
 import { POPUP } from "../components/popup";
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
@@ -38,7 +38,12 @@ const shotParticle: ReturnType<typeof entities.createParticle> = {
 };
 
 export const getParticles = (world: World, entity: Entity) =>
-  getSequences(world, entity)
+  [
+    ...getSequences(world, entity),
+    ...Object.values(
+      presentations.get(world)?.get(world.getEntityId(entity)) || {}
+    ),
+  ]
     .reduce<Entity[]>(
       (all, sequence) =>
         all.concat(
@@ -97,6 +102,15 @@ export const createSequence = <T extends keyof Sequencable["states"], A>(
 
   (entity[SEQUENCABLE].states[type] as SequenceState<A>) = {
     name,
+    ...(presentationNames.has(name)
+      ? {
+          started: world.metadata.elapsed,
+          initialArgs: {
+            ...(args as object),
+            ...(name === "weatherStorm" ? { drops: [] } : {}),
+          } as A,
+        }
+      : {}),
     reference: world.getEntityId(sequenceEntity),
     elapsed: 0,
     args,
@@ -150,8 +164,6 @@ export default function setupSequence(world: World) {
             ? entity[POPUP]?.owner
             : sequenceType === "interact"
             ? sequencable.states.interact?.args.owner
-            : sequenceType === "focus"
-            ? entity[FOCUSABLE]?.owner
             : undefined;
         const source = soundSource(world, entity);
         source.owner =
@@ -162,7 +174,7 @@ export default function setupSequence(world: World) {
         const result = withSoundSource(source, () =>
           sequence(world, entity, sequenceState as any)
         );
-        if (owner !== undefined) {
+        if (owner !== undefined || sequenceType === "focus") {
           for (const id of Object.values(sequenceState.particles)) {
             const particle = world.getEntityByIdAndComponents(id, [PARTICLE]);
             if (particle) particle[PARTICLE].owner = owner;

@@ -196,3 +196,12 @@ describe("Systems", () => {
     expect(snapshot(world)).toBe(before);
   });
 });
+
+it("tolerates an old selected camera losing its component during a world transition", async () => {
+  const world = createAreaWorld(area, { size: 48 });
+  const viewpoint = getActiveViewable(world.getEntities([VIEWABLE, POSITION]));
+  const { renderer, advanceFrames } = await renderScene(world, <Systems />);
+  world.removeComponentFromEntity(viewpoint, VIEWABLE, false);
+  await expect(advanceFrames(2)).resolves.not.toThrow();
+  await renderer.unmount();
+});

@@ -1,3 +1,8 @@
+import { serverUrl } from "../network/url";
+import { SEQUENCABLE } from "../components/sequencable";
+import { SPRITE } from "../components/sprite";
+import { BREWABLE } from "../components/brewable";
+import { WARPABLE } from "../components/warpable";
 import { isTestMode } from "../mode";
 import { soundSource } from "../../game/sound/events";
 import { getPopupPlayer } from "../players";
@@ -144,6 +149,7 @@ export const isInTab = (
 
 export const isPopupAvailable = (world: World, entity: Entity) =>
   POPUP in entity &&
+  !entity[POPUP].source &&
   !isDead(world, entity) &&
   (!isEnemy(world, entity) || isNeutral(world, entity));
 
@@ -206,7 +212,7 @@ export const typeChat = (
   const popup = world.getEntityByIdAndComponents(heroEntity[PLAYER]?.popup, [
     POPUP,
   ]);
-  if (!popup || getTab(world, popup) !== "chat") return;
+  if (!popup || !["chat", "server"].includes(getTab(world, popup))) return;
 
   if (world.metadata.network) {
     for (const index of Array.isArray(keyIndex) ? keyIndex : [keyIndex])
@@ -332,6 +338,33 @@ export const submitChat = (
   heroEntity: Entity,
   line: string | string[] = ""
 ) => {
+  const serverPopup = world.getEntityByIdAndComponents(
+    heroEntity[PLAYER]?.popup,
+    [POPUP]
+  );
+  if (serverPopup && getTab(world, serverPopup) === "server") {
+    if (world.metadata.warpPlayer || world.metadata.network) return;
+    const input = [...line].join("").trim();
+    const config = (serverPopup[POPUP].server ||= {});
+    world.metadata.serverError = "";
+    try {
+      if (!config.address) {
+        const address = serverUrl(input);
+        if (world.metadata.hasServerPlayer(address))
+          world.metadata.connectServer?.(address);
+        else {
+          config.address = address;
+          serverPopup[POPUP].selections[serverPopup[POPUP].horizontalIndex] =
+            [];
+        }
+      } else if (input) world.metadata.connectServer?.(config.address, input);
+      else world.metadata.serverError = "Enter a username!";
+    } catch {
+      world.metadata.serverError = "Invalid server URL!";
+    }
+    rerenderEntity(world, serverPopup);
+    return;
+  }
   if (heroEntity[PLAYER]?.naming) {
     const error = world.metadata.chooseUsername?.(
       heroEntity[PLAYER].accountId!,
@@ -621,6 +654,7 @@ export const popupIdles = {
   use: undefined,
   equip: undefined,
   chat: undefined,
+  server: mapDiscovery,
   build: undefined,
   credits: info,
   load: mapDiscovery,
@@ -630,6 +664,7 @@ export const popupIdles = {
 };
 
 export const popupActions = {
+  server: "SERVERS",
   craft: "CRAFT",
   forge: "FORGE",
   brew: "BREW",
@@ -715,11 +750,16 @@ export const gearTitles: Record<Equipment, string> = {
 
 export const mapScroll = 4;
 
+const popupRevisions = new WeakMap<Entity, number>();
+
 export const createPopup = (
   world: World,
   entity: Entity,
   popup: Pick<Popup, "tabs"> & Partial<Popup>
 ) => {
+  const revision =
+    Math.max(popupRevisions.get(entity) || 0, entity[POPUP]?.revision || 0) + 1;
+  popupRevisions.set(entity, revision);
   if (popup.tabs.includes("load")) addRestorable(world, entity, {});
   const idle = popupIdles[getDiscoveryTab(world, { [POPUP]: popup })];
 
@@ -752,6 +792,7 @@ export const createPopup = (
   registerEntity(world, viewpointEntity);
   const component = {
     active: false,
+    revision,
     verticalIndezes: Array.from({ length: popup.tabs.length }, () => 0),
     horizontalIndex: 0,
     selections: Array.from({ length: popup.tabs.length }, () => []),
@@ -794,6 +835,7 @@ export const removePopup = (world: World, entity: Entity) => {
   disposeEntity(world, viewpointEntity);
 
   // remove popup
+  popupRevisions.set(entity, entity[POPUP].revision || 0);
   world.removeComponentFromEntity(entity as TypedEntity<"POPUP">, POPUP, false);
   if (getSequence(world, entity, "discovery")) {
     disposeSequence(world, entity, "discovery");
@@ -805,12 +847,87 @@ export const removePopup = (world: World, entity: Entity) => {
   }
 };
 
+const sharedPopupFields = [
+  "deals",
+  "ingredients",
+  "recipes",
+  "lines",
+  "targets",
+  "focuses",
+  "choices",
+  "tabs",
+] as const;
+
+const bindPopupView = (world: World, view: Entity, source: Entity) => {
+  const original = source[POPUP];
+  for (const key of sharedPopupFields)
+    Object.defineProperty(view[POPUP], key, {
+      configurable: true,
+      enumerable: true,
+      get: () => (source[POPUP] || original)[key],
+      set: (value) => {
+        (source[POPUP] || original)[key] = value;
+      },
+    });
+  view[POPUP].sourceRevision = original.revision;
+};
+
+const getPopupView = (world: World, player: Entity, source: Entity) => {
+  const owner = world.getEntityId(player),
+    sourceId = world.getEntityId(source);
+  const viewers = (source[POPUP].viewers ||= {});
+  let view = world.getEntityByIdAndComponents(viewers[owner], [POPUP]);
+  if (!view) {
+    view = entities.createViewpoint(world, {
+      POSITION: { ...source[POSITION] },
+      RENDERABLE: { generation: 0 },
+      VIEWABLE: { active: false, priority: 90, owner },
+    }) as TypedEntity<"POPUP">;
+    world.addComponentToEntity(view, SEQUENCABLE, { states: {} });
+    world.addComponentToEntity(view, SPRITE, none);
+    world.addComponentToEntity(view, FOG, {
+      visibility: "visible",
+      type: "float",
+      fixed: true,
+    });
+    createPopup(world, view, {
+      tabs: source[POPUP].tabs,
+      source: sourceId,
+      owner,
+    });
+    for (const key of [INVENTORY, BREWABLE, WARPABLE] as const)
+      if (source[key])
+        world.addComponentToEntity(view, key, source[key] as never);
+    if (source[FORGABLE])
+      world.addComponentToEntity(view, FORGABLE, {
+        ...source[FORGABLE],
+        steps: [...source[FORGABLE].steps],
+      });
+    if (source[RESTORABLE]) world.addComponentToEntity(view, RESTORABLE, {});
+    registerEntity(world, view);
+    viewers[owner] = world.getEntityId(view);
+  }
+  bindPopupView(world, view, source);
+  return view;
+};
+
 export const openPopup = (
   world: World,
   heroEntity: Entity,
   popupEntity: Entity,
   instant = false
-) => {
+): false | undefined => {
+  if (
+    world.metadata.warpPlayer &&
+    !popupEntity[POPUP].source &&
+    (popupEntity[POPUP].owner === undefined || popupEntity[POPUP].viewers)
+  ) {
+    const source = popupEntity;
+    const view = getPopupView(world, heroEntity, source);
+    source[POPUP].active = true;
+    source[POPUP].owner ??= world.getEntityId(heroEntity);
+    return openPopup(world, heroEntity, view, instant);
+  }
   if (
     popupEntity[POPUP].active &&
     popupEntity[POPUP].owner !== undefined &&
@@ -933,6 +1050,16 @@ export const closePopup = (
   heroEntity[PLAYER].popup = undefined;
   updateMovementInterval(world, heroEntity);
   popupEntity[POPUP].active = false;
+  const source = world.getEntityByIdAndComponents(popupEntity[POPUP].source, [
+    POPUP,
+  ]);
+  if (source) {
+    const active = Object.values(source[POPUP].viewers || {})
+      .map((id) => world.getEntityByIdAndComponents(id, [POPUP]))
+      .find((view) => view?.[POPUP].active);
+    source[POPUP].active = !!active;
+    source[POPUP].owner = active?.[POPUP].owner;
+  }
   popupEntity[POPUP].chatSuggestion = 0;
   popupEntity[POPUP].selections = Array.from(
     { length: popupEntity[POPUP].tabs.length },
@@ -957,7 +1084,7 @@ export const closePopup = (
     isQuestCompleted(world, heroEntity, popupEntity) &&
     selections.length === 2
   ) {
-    removePopup(world, popupEntity);
+    removePopup(world, source || popupEntity);
   }
 };
 
@@ -1004,6 +1131,11 @@ export const updateInventorySelections = (
 ) => {
   if (!hero[PLAYER]) return;
   for (const entity of world.getEntities([POPUP])) {
+    if (
+      entity[POPUP].owner !== undefined &&
+      entity[POPUP].owner !== world.getEntityId(hero)
+    )
+      continue;
     entity[POPUP].tabs.forEach((tab, tabIndex) => {
       if (tab !== "forge") return;
       const selections = entity[POPUP].selections[tabIndex];
@@ -1859,7 +1991,7 @@ export default function setupPopup(world: World) {
             delay: 0,
           });
         }
-      } else if (tab === "chat") {
+      } else if (tab === "chat" || tab === "server") {
         submitChat(world, heroEntity, selections.map(getKeyFromIndex));
       } else if (tab === "use") {
         if (addEntity && selections.length === 0) {
@@ -1888,7 +2020,11 @@ export default function setupPopup(world: World) {
         selections.length === 2;
       const forgeCompleted = tab === "forge" && selections.length === 4;
 
-      if (tab === "chat") {
+      if (tab === "server") {
+        world.metadata.serverError = "";
+        popupEntity[POPUP].server = {};
+        popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] = [];
+      } else if (tab === "chat") {
         // clear chat
         popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] = [];
         play("back", {}, soundSource(world, heroEntity, true));
@@ -1937,6 +2073,35 @@ export default function setupPopup(world: World) {
   };
 
   const onUpdate = () => {
+    for (const view of [...world.getEntities([POPUP, POSITION])]) {
+      if (!view[POPUP].source) continue;
+      const sourceEntity = world.getEntityById(view[POPUP].source);
+      if (!sourceEntity) {
+        const owner = world.getEntityByIdAndComponents(view[POPUP].owner, [
+          PLAYER,
+        ]);
+        if (owner && owner[PLAYER].popup === world.getEntityId(view))
+          closePopup(world, owner, view);
+        disposeEntity(world, view, false, false);
+        continue;
+      }
+      const source = world.getEntityComponents(sourceEntity, [POPUP, POSITION]);
+      if (!source) continue;
+      (source[POPUP].viewers ||= {})[view[POPUP].owner!] =
+        world.getEntityId(view);
+      if (source[POPUP].revision !== view[POPUP].sourceRevision) {
+        bindPopupView(world, view, source);
+        view[POPUP].horizontalIndex = 0;
+        view[POPUP].verticalIndezes = source[POPUP].tabs.map(() => 0);
+        view[POPUP].selections = source[POPUP].tabs.map(() => []);
+        rerenderEntity(world, view);
+      }
+      if (
+        view[POSITION].x !== source[POSITION].x ||
+        view[POSITION].y !== source[POSITION].y
+      )
+        moveEntity(world, view, source[POSITION]);
+    }
     for (const player of world.getEntities([
       ACTIONABLE,
       EQUIPPABLE,

@@ -1,5 +1,3 @@
-import { LEVEL } from "../components/level";
-import { shareQuestRewards } from "./cooperation";
 import { soundSource } from "../../game/sound/events";
 import { TRACKABLE } from "../components/trackable";
 import { bumpEntity } from "../motion";
@@ -172,15 +170,6 @@ export const collectItem = (
         delay: getLootDelay(world, entity, 1),
       });
     }
-
-    if (
-      entity[PLAYER] &&
-      world.metadata.gameEntity[LEVEL].name === "LEVEL_TUTORIAL" &&
-      target[IDENTIFIABLE]?.name === "wood_one"
-    )
-      shareQuestRewards(world, entity, [
-        { stackable: "stick", amount: collectAmount },
-      ]);
 
     // play sound
     if (!(stat && !material)) {

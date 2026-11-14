@@ -189,3 +189,35 @@ it("drops old presentation clocks when an authenticated connection starts a new 
     y: actor[POSITION].y,
   });
 });
+
+it("patches changed components without replacing or deleting untouched world state", () => {
+  const { server, replica } = setup();
+  const hero = assertHero(server),
+    id = server.getEntityId(hero);
+  const actor = replica.world.assertById(id),
+    sprite = actor.SPRITE,
+    level = replica.world.metadata.gameEntity.LEVEL;
+  const snapshot = createSnapshot(server);
+  expect(
+    replica.receive({
+      sequence: 1,
+      serverTime: server.metadata.elapsed,
+      removed: [],
+      removedComponents: [[id, ["TOOLTIP"]]],
+      snapshot: { ...snapshot, entities: [[id, { POSITION: { x: 5, y: 1 } }]] },
+    })
+  ).toBe(true);
+  expect(actor.POSITION).toEqual({ x: 5, y: 1 });
+  expect(actor.SPRITE).toBe(sprite);
+  expect(actor.TOOLTIP).toBeUndefined();
+  expect(replica.world.metadata.gameEntity.LEVEL).toBe(level);
+  expect(replica.world.getEntityById(id)).toBe(actor);
+  expect(replica.world.metadata.gameEntity.LEVEL.map[5][1][id]).toBe(actor);
+  replica.receive({
+    sequence: 2,
+    serverTime: server.metadata.elapsed,
+    removed: [id],
+    snapshot: { ...snapshot, entities: [] },
+  });
+  expect(replica.world.getEntityById(id)).toBeUndefined();
+});

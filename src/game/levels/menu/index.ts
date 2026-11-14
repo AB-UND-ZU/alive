@@ -16,6 +16,7 @@ import { createItemAsDrop } from "../../../engine/systems/drop";
 import { Item, ITEM } from "../../../engine/components/item";
 import { ORIENTABLE } from "../../../engine/components/orientable";
 import {
+  setIdentifier,
   assertIdentifierAndComponents,
   TEST_MODE,
 } from "../../../engine/utils";
@@ -29,6 +30,8 @@ import { none } from "../../assets/sprites";
 import { STICKY } from "../../../engine/components/sticky";
 import { createPopup } from "../../../engine/systems/popup";
 import { getItemBuyPrice, purchasableItems } from "../../balancing/trading";
+import { POPUP } from "../../../engine/components/popup";
+import { getCellEntities } from "../../../engine/systems/map";
 import { TRACKABLE } from "../../../engine/components/trackable";
 
 export const menuSize = 42;
@@ -682,4 +685,11 @@ export const generateMenu = async (world: World) => {
     menuCorner,
     add(menuCorner, { x: menuWidth, y: menuHeight })
   );
+  setMatrix(worldMatrix, 8, 20, "portal");
+  initializeCell(world, 8, 20);
+  const serverPortal = getCellEntities(world, { x: 8, y: 20 }).find(
+    (entity) => entity[POPUP]
+  )!;
+  createPopup(world, serverPortal, { tabs: ["server"], server: {} });
+  setIdentifier(world, serverPortal, "server_portal");
 };

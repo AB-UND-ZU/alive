@@ -147,3 +147,71 @@ it("starts a new reader at the beginning without inheriting the previous reader'
   expect(sign[POPUP].verticalIndezes).toEqual([0]);
   expect(sign[POPUP].selections).toEqual([[]]);
 });
+
+it.each([
+  "info",
+  "talk",
+  "quest",
+  "buy",
+  "sell",
+  "craft",
+  "brew",
+  "forge",
+  "class",
+  "style",
+  "warp",
+  "load",
+  "credits",
+] as const)(
+  "keeps two readers' %s selections separate while sharing source data",
+  (tab) => {
+    const { world, first, second, signs } = setup();
+    world.metadata.warpPlayer = () => {};
+    const source = signs[0];
+    createPopup(world, source, {
+      tabs: [tab],
+      deals: [
+        {
+          item: { consume: "potion", material: "wood", stat: "hp", amount: 1 },
+          stock: 1,
+          prices: [],
+        },
+      ],
+    });
+    openPopup(world, first, source, true);
+    openPopup(world, second, source, true);
+    const one = world.assertByIdAndComponents(first[PLAYER].popup, [POPUP]);
+    const two = world.assertByIdAndComponents(second[PLAYER].popup, [POPUP]);
+    expect(one).not.toBe(two);
+    one[POPUP].verticalIndezes[0] = 3;
+    one[POPUP].selections[0].push(2);
+    expect(two[POPUP].verticalIndezes[0]).toBe(0);
+    expect(two[POPUP].selections[0]).toEqual([]);
+    one[POPUP].deals[0].stock--;
+    expect(source[POPUP].deals[0].stock).toBe(0);
+    expect(two[POPUP].deals[0].stock).toBe(0);
+    closePopup(world, first, one);
+    expect(second[PLAYER].popup).toBe(world.getEntityId(two));
+    expect(two[POPUP].active).toBe(true);
+  }
+);
+
+it("updates other readers when a source changes its quest without inheriting completed selections", () => {
+  const { world, first, second, signs } = setup();
+  world.metadata.warpPlayer = () => {};
+  const source = signs[0];
+  createPopup(world, source, { tabs: ["quest"], deals: [] });
+  openPopup(world, first, source, true);
+  openPopup(world, second, source, true);
+  const other = world.assertByIdAndComponents(second[PLAYER].popup, [POPUP]);
+  other[POPUP].selections[0] = [0, 0];
+  removePopup(world, source);
+  createPopup(world, source, {
+    tabs: ["info"],
+    lines: [[createText("Next quest")]],
+  });
+  advance(world, 100);
+  expect(other[POPUP].tabs).toEqual(["info"]);
+  expect(other[POPUP].selections).toEqual([[]]);
+  expect(second[PLAYER].popup).toBe(world.getEntityId(other));
+});

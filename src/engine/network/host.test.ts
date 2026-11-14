@@ -111,7 +111,8 @@ it("releases an NPC dialog on disconnect and restores saved characters offline u
     .getEntities([POPUP, "POSITION"])
     .find((entity) => entity[POPUP].tabs.includes("info"))!;
   openPopup(host.world, hero, sign, true);
-  expect(openPopup(host.world, other, sign, true)).toBe(false);
+  expect(openPopup(host.world, other, sign, true)).not.toBe(false);
+  expect(hero[PLAYER].popup).not.toBe(other[PLAYER].popup);
   host.disconnect("first");
   expect(openPopup(host.world, other, sign, true)).not.toBe(false);
   const restored = createHost(host.save());
@@ -293,4 +294,35 @@ it("keeps username but derives admin permissions and roster afresh after a save"
     host.world.assertByIdAndComponents(host.actorId("first"), [PLAYER])[PLAYER]
       .admin
   ).toBe(true);
+});
+
+it("reconnects after saving while several players read the same NPC without stale dialog IDs", () => {
+  const host = createHost();
+  host.join("a");
+  host.join("b");
+  const source = host.world
+    .getEntities([POPUP])
+    .find((entity) => entity[POPUP].tabs.includes("info"))!;
+  for (const account of ["a", "b"])
+    openPopup(
+      host.world,
+      host.world.assertByIdAndComponents(host.actorId(account), [PLAYER]),
+      source,
+      true
+    );
+  const restored = createHost(host.save());
+  for (const account of ["a", "b"]) {
+    restored.join(account);
+    expect(
+      restored.world.assertByIdAndComponents(restored.actorId(account), [
+        PLAYER,
+      ])[PLAYER].popup
+    ).toBeUndefined();
+    expect(restored.receive(account, { sequence: 0, move: ["right"] })).toBe(
+      true
+    );
+  }
+  expect(
+    restored.world.getEntities([POPUP]).some((entity) => entity[POPUP].source)
+  ).toBe(false);
 });

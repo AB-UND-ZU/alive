@@ -6,6 +6,7 @@ import { Position } from "./position";
 export type Viewable = {
   active: boolean;
   owner?: number;
+  radius?: number;
   quake?: number;
   priority: number; // 10 - hero, 30 - spawn, 50 - buildings, 90 - popups
   spring?: SpringConfig;

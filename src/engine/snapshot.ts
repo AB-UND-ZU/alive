@@ -1,7 +1,13 @@
+import { isPresentationSequence } from "./presentation";
+import { SEQUENCABLE } from "./components/sequencable";
+import { LIQUID } from "./components/liquid";
+import { RENDERABLE } from "./components/renderable";
+import { REFERENCE } from "./components/reference";
 import createWorld, { World } from "./ecs";
 import * as sprites from "../game/assets/sprites";
 import { Sprite } from "./components/sprite";
 import { INVENTORY } from "./components/inventory";
+import { LEVEL } from "./components/level";
 import { ITEM } from "./components/item";
 import { TypedEntity } from "./entities";
 
@@ -70,7 +76,10 @@ const copyValue = (
   return copy;
 };
 
-export const createSnapshot = (world: World): WorldSnapshot => {
+export const createSnapshot = (
+  world: World,
+  network = false
+): WorldSnapshot => {
   const ecs = world.metadata.ecs as unknown as {
     nextId: number;
     entities: Record<string, unknown>[];
@@ -85,17 +94,82 @@ export const createSnapshot = (world: World): WorldSnapshot => {
     if (entityId) return { $entity: entityId } as EntityToken;
   };
 
+  const omitted = new Set<number>();
+  const cosmeticFrames = new Set<number>();
+  const authoritativeFrames = new Set<number>();
+  if (network)
+    for (const entity of ecs.entities)
+      for (const state of Object.values(
+        (
+          entity[SEQUENCABLE] as
+            | import("./components/sequencable").Sequencable
+            | undefined
+        )?.states || {}
+      )) {
+        if (isPresentationSequence(entity as TypedEntity, state!)) {
+          for (const id of Object.values(state!.particles)) omitted.add(id);
+          cosmeticFrames.add(state!.reference);
+        } else authoritativeFrames.add(state!.reference);
+      }
   const entities: WorldSnapshot["entities"] = [];
   for (const entity of ecs.entities) {
-    if (ecs.deferredRemovals.entities.has(entity)) continue;
+    if (
+      ecs.deferredRemovals.entities.has(entity) ||
+      omitted.has(world.getEntityId(entity as TypedEntity))
+    )
+      continue;
 
     const components: Record<string, unknown> = {};
     for (const componentName in entity) {
-      components[componentName] = copyValue(
-        entity[componentName],
-        replace,
-        copies
-      );
+      let value = entity[componentName];
+      if (network) {
+        if (componentName === LEVEL)
+          value = {
+            ...(value as object),
+            map: {},
+            walkable: [],
+            initialized: [],
+          };
+        if (componentName === SEQUENCABLE) {
+          const states = (
+            value as import("./components/sequencable").Sequencable
+          ).states;
+          value = {
+            states: Object.fromEntries(
+              Object.entries(states).map(([key, state]) => [
+                key,
+                isPresentationSequence(entity as TypedEntity, state!)
+                  ? {
+                      ...state,
+                      started:
+                        state!.started ??
+                        Math.round(world.metadata.elapsed - state!.elapsed),
+                      elapsed: 0,
+                      args: state!.initialArgs || {},
+                      particles: {},
+                    }
+                  : state,
+              ])
+            ),
+          };
+        }
+        if (
+          componentName === LIQUID &&
+          (
+            entity[SEQUENCABLE] as
+              | import("./components/sequencable").Sequencable
+              | undefined
+          )?.states.splash?.name === "bubbleSplash"
+        )
+          value = { ...(value as object), amount: 0 };
+        const id = world.getEntityId(entity as TypedEntity);
+        if (cosmeticFrames.has(id) && !authoritativeFrames.has(id)) {
+          if (componentName === RENDERABLE) value = { generation: 0 };
+          if (componentName === REFERENCE)
+            value = { ...(value as object), delta: 0 };
+        }
+      }
+      components[componentName] = copyValue(value, replace, copies);
     }
     entities.push([world.getEntityId(entity as TypedEntity), components]);
   }
@@ -113,21 +187,39 @@ export const createSnapshot = (world: World): WorldSnapshot => {
 /** Create a world with identical entities and IDs, but without systems. */
 export const restoreSnapshot = (
   snapshot: WorldSnapshot,
-  world = createWorld()
+  world = createWorld(),
+  removed?: number[],
+  removedComponents: [number, string[]][] = []
 ) => {
   const records = new Map(snapshot.entities);
   const current = (world.metadata.ecs as unknown as { entities: TypedEntity[] })
     .entities;
-  for (const entity of [...current]) {
+  for (const id of removed || []) {
+    const entity = world.getEntityById(id);
+    if (entity) world.removeEntity(entity, false);
+  }
+  for (const entity of removed
+    ? snapshot.entities.flatMap(([id]) => {
+        const entity = world.getEntityById(id);
+        return entity ? [entity] : [];
+      })
+    : [...current]) {
     const components = records.get(world.getEntityId(entity));
     if (!components) {
+      if (world.getEntityId(entity) < 0) continue;
       world.removeEntity(entity, false);
       continue;
     }
     for (const name in entity) {
-      if (!(name in components))
+      if (removed === undefined && !(name in components))
         world.removeComponentFromEntity(entity, name as never, false);
     }
+  }
+  for (const [id, names] of removedComponents) {
+    const entity = world.getEntityById(id);
+    if (entity)
+      for (const name of names)
+        world.removeComponentFromEntity(entity, name as never, false);
   }
   const copies = new Map<unknown, unknown>();
   const restored = snapshot.entities.map(
@@ -152,7 +244,9 @@ export const restoreSnapshot = (
     for (const componentName in components) {
       const entity = restored[index];
       const data = copyValue(components[componentName], replace, copies);
-      if (componentName in entity)
+      if (removed !== undefined && componentName === LEVEL && entity[LEVEL])
+        Object.assign(entity[LEVEL], data);
+      else if (componentName in entity)
         Object.assign(entity, { [componentName]: data });
       else
         world.addComponentToEntity(

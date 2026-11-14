@@ -1,3 +1,4 @@
+import { ensurePlayerInterface } from "../../bindings/interface";
 import { getScriptPlayer } from "../../engine/players";
 import { entities } from "../../engine";
 import { BEHAVIOUR, Pattern } from "../../engine/components/behaviour";
@@ -194,6 +195,7 @@ const menuItems: { name: string; disabled?: () => boolean }[] = [
   { name: "sound-fx" },
   { name: "controls" },
   { name: "credits" },
+  { name: "servers" },
 ];
 
 const circleTime = 100;
@@ -613,12 +615,49 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
         )
       );
       const playerId = player[PLAYER].accountId || world.getEntityId(player);
+      const camera = world.assertByIdAndComponents(
+        ensurePlayerInterface(world, player).camera,
+        [VIEWABLE, POSITION]
+      );
+      camera[VIEWABLE].active = !!room;
+      if (
+        room &&
+        (camera[POSITION].x !== room.offsetX ||
+          camera[POSITION].y !== room.offsetY)
+      ) {
+        moveEntity(world, camera, { x: room.offsetX, y: room.offsetY });
+        rerenderEntity(world, camera);
+      }
       if (!room || playerRooms[playerId] === room.name) continue;
       playerRooms[playerId] = room.name;
       if (room.quest) questSequence(world, player, room.quest, {});
     }
   }
 
+  if (world.metadata.warpPlayer && state.args.step === "fight") {
+    const room = state.args.memory.room;
+    heroEntity =
+      room &&
+      world
+        .getEntities([PLAYER, POSITION, VIEWABLE, LIGHT, SPAWNABLE])
+        .find(
+          (player) =>
+            player[PLAYER].connected !== false &&
+            !isDead(world, player) &&
+            within(
+              {
+                x: room.offsetX - roomSize.x / 2,
+                y: room.offsetY - roomSize.y / 2,
+              },
+              {
+                x: room.offsetX + roomSize.x / 2,
+                y: room.offsetY + roomSize.y / 2,
+              },
+              player[POSITION],
+              size
+            )
+        );
+  }
   tutorialRooms.forEach(({ name, offsetX, offsetY, quest, waves }) => {
     const topLeft = {
       x: offsetX - roomSize.x * 0.5,
@@ -704,8 +743,7 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
           questSequence(world, heroEntity, quest, {});
 
         if (shouldSpawn) {
-          // Keep teammates able to enter an ongoing fight.
-          if (!world.metadata.warpPlayer) {
+          {
             [-0.5, 0.5].forEach((y) => {
               const mountainEntity = createCell(
                 world,
@@ -3174,6 +3212,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
       moveEntity(world, entity, { x: 0, y: -2 });
       entity[VIEWABLE].active = true;
       entity[VIEWABLE].fraction = undefined;
+      entity[VIEWABLE].radius = 5.43;
 
       // lock door again
       lockDoor(world, doorEntity);
@@ -3324,7 +3363,15 @@ export const oakRoom: Sequence<NpcSequence> = (world, entity, state) => {
     INVENTORY,
   ]);
 
+  roomEntity[VIEWABLE].radius = 5.43;
   if (!heroEntity) {
+    if (world.metadata.warpPlayer) {
+      roomEntity[VIEWABLE].active = false;
+      for (const barrier of world.getEntities([IDENTIFIABLE]))
+        if (barrier[IDENTIFIABLE].name === "oak:barrier")
+          disposeEntity(world, barrier);
+      state.args.step = "wait";
+    }
     return { finished: stage.finished, updated: stage.updated };
   }
 
@@ -3875,6 +3922,16 @@ export const wormRoom: Sequence<NpcSequence> = (world, entity, state) => {
       state.args.memory.start =
         world.metadata.gameEntity[RENDERABLE].generation;
       hero[VIEWABLE].quake = state.args.memory.start + 8;
+      if (world.metadata.warpPlayer)
+        for (const player of world.getEntities([PLAYER, POSITION, VIEWABLE])) {
+          if (
+            Math.abs(signedDistance(center.x, player[POSITION].x, size)) <
+              wormSize.x &&
+            Math.abs(signedDistance(center.y, player[POSITION].y, size)) <
+              wormSize.y
+          )
+            player[VIEWABLE].quake = state.args.memory.start + 8;
+        }
       rerenderEntity(world, hero);
       return true;
     },

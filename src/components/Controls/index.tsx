@@ -590,7 +590,11 @@ export default function Controls({
       const hero = heroRef.current;
       event.preventDefault();
       if (
-        (inMenu && !ecs?.metadata.network) ||
+        (inMenu &&
+          !ecs?.metadata.network &&
+          !(
+            hero && getActivePopup(ecs!, hero)?.POPUP?.tabs.includes("server")
+          )) ||
         !ecs ||
         !hero ||
         pausedRef.current ||
@@ -694,9 +698,11 @@ export default function Controls({
     ) => {
       event.preventDefault();
 
-      handleAction("left");
+      if (ecs?.metadata.network && popupTab === "server")
+        ecs.metadata.leaveServer();
+      else handleAction("left");
     },
-    [handleAction]
+    [handleAction, ecs, popupTab]
   );
 
   const handleRight = useCallback(
@@ -829,7 +835,8 @@ export default function Controls({
           (event.repeat &&
             !(
               !!ecs &&
-              popupTab === "chat" &&
+              (popupTab === "chat" ||
+                (popupTab === "server" && !ecs?.metadata.network)) &&
               (getIndexFromKey(event.key) || backspaceKeys.includes(event.key))
             )))
       )
@@ -837,7 +844,8 @@ export default function Controls({
 
       if (
         !!ecs &&
-        popupTab === "chat" &&
+        (popupTab === "chat" ||
+          (popupTab === "server" && !ecs?.metadata.network)) &&
         !interactKeys.includes(event.key) &&
         !closeKeys.includes(event.key) &&
         event.type === "keydown"
@@ -1021,7 +1029,15 @@ export default function Controls({
       const onKeyboard = [...event.changedTouches].some((touch) =>
         (touch.target as HTMLElement).closest("#keyboard")
       );
-      if (onKeyboard && !(!!ecs && popupTab === "chat")) return;
+      if (
+        onKeyboard &&
+        !(
+          !!ecs &&
+          (popupTab === "chat" ||
+            (popupTab === "server" && !ecs?.metadata.network))
+        )
+      )
+        return;
 
       const [x, y] = [touch.clientX, touch.clientY];
       if (!touchOrigin.current) touchOrigin.current = [x, y];
@@ -1042,7 +1058,11 @@ export default function Controls({
       if (nextOrientations.length > 0) {
         // handle history in single steps
         const primaryOrientation = nextOrientations[0];
-        if (!!ecs && popupTab === "chat") {
+        if (
+          !!ecs &&
+          (popupTab === "chat" ||
+            (popupTab === "server" && !ecs?.metadata.network))
+        ) {
           if (
             primaryOrientation === "right" &&
             pressedOrientations.current[0] !== "right"
@@ -1468,7 +1488,8 @@ export default function Controls({
             data-rows={(popupSequence?.args.windowHeight || frameHeight) - 2}
             onClick={handleContent}
           />
-          {popupTab === "chat" && <Keyboard />}
+          {(popupTab === "chat" ||
+            (popupTab === "server" && !ecs?.metadata.network)) && <Keyboard />}
         </>
       )}
       {children}

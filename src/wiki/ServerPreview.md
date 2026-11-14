@@ -7,3 +7,5 @@ The parent accepts status messages only from its own frames on the same origin. 
 The form uses native wiki Input, Button and Text sprites. The two games sit side by side on wide pages and stack on smaller screens.
 
 Each player has a username input. Names are passed separately to the two frames on Connect; blank names use the native chat prompt. The server always prefers a saved name for returning credentials.
+
+Frames now use the same GamePreview component as other scenes, including visibility pausing and native scroll-key capture. A player may leave to the local menu without closing the other frame.

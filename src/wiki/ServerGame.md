@@ -5,3 +5,5 @@ A Servers preview frame mounts the normal game with a slot-specific credential s
 The frame reports connection status to its parent and enables sound only after interaction. Controls release held input on blur while keeping the view live; page hiding still pauses normally. Unmounting closes the native connection.
 
 The optional `username` query parameter is forwarded when joining; credentials still come from the isolated client-slot storage.
+
+The native Servers portal can leave and reconnect independently. Parent frame status distinguishes a locally returned game from an initial connection failure.

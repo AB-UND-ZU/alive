@@ -1,4 +1,8 @@
-import { getPopupPlayer, getScriptPlayer } from "../../engine/players";
+import {
+  getPopupPlayer,
+  getScriptPlayer,
+  getLocalPlayer,
+} from "../../engine/players";
 import type { Entity } from "ecs";
 import type { World } from "../../engine";
 import type { SequenceState } from "../../engine/components/sequencable";
@@ -3557,7 +3561,9 @@ export const weatherStorm: Sequence<WeatherSequence> = (
   let updated = false;
 
   const size = world.metadata.gameEntity[LEVEL].size;
-  const viewables = world.metadata.warpPlayer
+  const viewables = world.metadata.presentation
+    ? [getLocalPlayer(world, [POSITION])]
+    : world.metadata.warpPlayer
     ? world
         .getEntities([PLAYER, POSITION])
         .filter((player) => player[PLAYER].connected !== false)
@@ -3648,7 +3654,7 @@ export const weatherStorm: Sequence<WeatherSequence> = (
       disposeEntity(world, world.assertById(state.particles[drop.particle]));
       delete state.particles[drop.particle];
 
-      if (state.args.intensity !== 0) {
+      if (!world.metadata.presentation && state.args.intensity !== 0) {
         if (state.args.type === "rain") {
           createBubble(world, drop.position, "rain");
         } else {
@@ -4005,7 +4011,7 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
     handler = displayPlant;
   } else if (transaction === "build") {
     handler = displayBuild;
-  } else if (transaction === "chat") {
+  } else if (transaction === "chat" || transaction === "server") {
     handler = displayChat;
   } else if (transaction === "credits") {
     handler = displayCredits;
@@ -7264,6 +7270,26 @@ export const displayQuest = displayPopupView((world, entity, state) => {
 export const displayChat = displayPopupView((world, entity, state) => {
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
   const player = getPopupPlayer(world, entity, [PLAYER]);
+  const server = getTab(world, entity) === "server";
+  const connected =
+    server && !!(world.metadata.warpPlayer || world.metadata.network);
+  if (connected)
+    return {
+      icon: popupIdles.server,
+      content: [
+        createText("Connected"),
+        ...chunked(createText(world.metadata.serverAddress), frameWidth - 2),
+        [],
+        ...chunked(createText(player?.[PLAYER].username || ""), frameWidth - 2),
+        [],
+        createText("Player ID:"),
+        ...chunked(
+          createText(player?.[PLAYER].accountId || ""),
+          frameWidth - 2
+        ),
+      ],
+      leftButton: createButton("LEAVE", 7, false, false, false, "red"),
+    };
   const naming = player?.[PLAYER].naming;
   const showCaret = generation % 2 === 0;
 
@@ -7276,23 +7302,35 @@ export const displayChat = displayPopupView((world, entity, state) => {
     })
   );
   const input = selections.map(getKeyFromIndex).join("");
-  const suggestion = isTestMode(world, getPopupPlayer(world, entity, [PLAYER]))
-    ? createText(
-        completeCommand(world, input, entity[POPUP].chatSuggestion),
-        colors.grey
-      )
-    : [];
+  const suggestion =
+    !server && isTestMode(world, getPopupPlayer(world, entity, [PLAYER]))
+      ? createText(
+          completeCommand(world, input, entity[POPUP].chatSuggestion),
+          colors.grey
+        )
+      : [];
   const lines = [...typed, ...suggestion];
   lines[typed.length] = showCaret
     ? mergeSprites(caret, suggestion[0] || none)
     : suggestion[0] || none;
   const width = frameWidth - 2;
-  const windowHeight = naming ? 8 : 6;
+  const windowHeight = naming || server ? 10 : 6;
   const firstRow = Math.max(
     0,
     Math.floor(typed.length / width) - (windowHeight - 2) + 1
   );
   const content: Sprite[][] = [
+    ...(server
+      ? [
+          ...chunked(
+            createText(
+              entity[POPUP].server?.address ? "Username:" : "Server URL:"
+            ),
+            width
+          ),
+          ...chunked(createText(world.metadata.serverError, colors.red), width),
+        ]
+      : []),
     ...(naming
       ? [
           createText("Choose username:"),
@@ -7310,7 +7348,13 @@ export const displayChat = displayPopupView((world, entity, state) => {
     icon: popupIdles[getTab(world, entity)],
     content,
     rightButton: createButton(
-      naming ? "JOIN" : "SEND",
+      server
+        ? entity[POPUP].server?.address
+          ? "CONNECT"
+          : "NEXT"
+        : naming
+        ? "JOIN"
+        : "SEND",
       6,
       selections.length === 0,
       false,

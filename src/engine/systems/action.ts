@@ -260,8 +260,14 @@ export default function setupAction(world: World) {
             const mountableEntity = adjacent.find(
               (entity) => MOUNTABLE in entity
             );
+            const currentPopup = world.getEntityById(entity[PLAYER]?.popup);
             const popupEntity =
-              adjacentPopup === entity ? undefined : adjacentPopup;
+              adjacentPopup === entity
+                ? undefined
+                : currentPopup?.[POPUP]?.source ===
+                  world.getEntityId(adjacentPopup || {})
+                ? currentPopup
+                : adjacentPopup;
             const selections = popupEntity
               ? getTabSelections(world, popupEntity)
               : [];
@@ -275,7 +281,7 @@ export default function setupAction(world: World) {
               warpableEntity &&
               isInTab(world, entity, "warp")
             ) {
-              warp = warpableEntity;
+              warp = popupEntity?.[WARPABLE] ? popupEntity : warpableEntity;
               action = warp;
             }
 

@@ -13,7 +13,7 @@ test.beforeAll(async () => {
   await buildServer({
     stdin: {
       contents:
-        'export {createHost} from "./src/engine/network/host"; export {encodeState, decodeState} from "./src/engine/network/codec"; export {getKeyFromIndex} from "./src/components/Keyboard";',
+        'export {createHost} from "./src/engine/network/host"; export {encodeState, decodeState} from "./src/engine/network/codec"; export {getKeyFromIndex} from "./src/components/Keyboard"; export {moveEntity} from "./src/engine/systems/map";',
       resolveDir: path.resolve(__dirname, "../../.."),
       loader: "ts",
     },
@@ -88,9 +88,29 @@ test("Multiplayer connects two independently playable clients and preserves thei
     const actor = world.getEntityById(server.simulation.actorId(playerId));
     const before = { ...actor.POSITION };
     await frame.locator("canvas").click({ position: { x: 30, y: 30 } });
+    const scrollY = await page.evaluate(() => window.scrollY);
     await frame.locator("body").press("ArrowRight");
+    expect(await page.evaluate(() => window.scrollY)).toBe(scrollY);
     await expect.poll(() => actor.POSITION).not.toEqual(before);
   }
+  const firstFrame = page.frameLocator('iframe[title="Player 1 game"]');
+  await firstFrame.locator("canvas").click({ position: { x: 30, y: 30 } });
+  await firstFrame.locator("body").press("Escape");
+  await expect(firstFrame.locator("#pause-resume")).toBeVisible();
+  await expect(firstFrame.locator("#pause-menu")).toBeVisible();
+  await expect(firstFrame.locator("#pause-save")).toBeVisible();
+  const buttons = await firstFrame
+    .locator(".PauseButton")
+    .evaluateAll((buttons) => buttons.map((button) => button.id));
+  expect(buttons).toEqual(["pause-resume", "pause-menu", "pause-save"]);
+  await page.screenshot({
+    path: testInfo.outputPath("pause-desktop.png"),
+    fullPage: true,
+  });
+  await firstFrame.locator("#pause-save").click();
+  await expect(firstFrame.locator("#pause-resume")).toBeVisible();
+  await firstFrame.locator("#pause-resume").click();
+  await expect(firstFrame.locator("#pause-resume")).toHaveCount(0);
   await page.screenshot({
     path: testInfo.outputPath("servers-desktop.png"),
     fullPage: true,
@@ -335,4 +355,101 @@ test("server admins receive private player lists and complete usernames before g
   } finally {
     await managed.close();
   }
+});
+
+test("the native menu portal connects, leaves and reuses the saved identity", async ({
+  page,
+}, testInfo) => {
+  const errors = [];
+  const identities = [];
+  const frames = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("websocket", (socket) =>
+    socket.on("framereceived", ({ payload }) => {
+      const message = JSON.parse(payload.toString());
+      if (message.type === "welcome") identities.push(message.id);
+      if (message.type === "state")
+        frames.push(engine.decodeState(message.state));
+    })
+  );
+  await page.goto("/preview.html?test#game/menu");
+  await expect
+    .poll(() => page.evaluate(() => typeof window.aliveChat))
+    .toBe("function");
+  await page.locator("#resume").click();
+  await page.evaluate(() => window.aliveChat("/tp 7,20"));
+  // Allow the native interaction system to discover the adjacent portal.
+  await page.waitForTimeout(150);
+  await page.locator("body").press("Enter");
+  await expect(page.locator("#keyboard")).toBeVisible();
+  await page
+    .locator("body")
+    .pressSequentially(`127.0.0.1:${server.address.port}`, { delay: 30 });
+  await page.locator("body").press("Enter");
+  await page.waitForTimeout(150);
+  await page.screenshot({ path: testInfo.outputPath("native-username.png") });
+  await page.locator("body").pressSequentially("Clara", { delay: 40 });
+  await page.locator("body").press("Enter");
+  await page.screenshot({ path: testInfo.outputPath("native-connecting.png") });
+  await expect.poll(() => identities.length).toBe(1);
+  await expect(page.locator("#keyboard")).toHaveCount(0, { timeout: 15000 });
+  expect(server.simulation.worldFor(identities[0]).getEntityById(server.simulation.actorId(identities[0])).PLAYER.username).toBe("Clara");
+  await page.locator("body").press("Escape");
+  await expect(page.locator("#pause-menu")).toBeVisible();
+  await page.screenshot({
+    path: testInfo.outputPath("native-server-pause.png"),
+  });
+  await page.locator("#pause-resume").click();
+  const world = server.simulation.worldFor(identities[0]);
+  const hero = world.getEntityById(server.simulation.actorId(identities[0]));
+  const portal = world
+    .getEntities(["IDENTIFIABLE", "POPUP"])
+    .find((entity) => entity.IDENTIFIABLE.name === "server_portal");
+  engine.moveEntity(world, hero, { x: 7, y: 20 });
+  await expect
+    .poll(() => hero.ACTIONABLE.popup)
+    .toBe(world.getEntityId(portal));
+  await expect
+    .poll(() =>
+      frames.some((frame) =>
+        frame.snapshot.entities.some(
+          ([id, components]) =>
+            id === world.getEntityId(hero) &&
+            components.ACTIONABLE?.popup === world.getEntityId(portal)
+        )
+      )
+    )
+    .toBe(true);
+  await page.evaluate(
+    () =>
+      new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve))
+      )
+  );
+  await page.locator("body").press("Enter");
+  await expect
+    .poll(() => world.getEntityById(hero.PLAYER.popup)?.POPUP.tabs)
+    .toEqual(["server"]);
+  await expect(page.locator("#left")).toBeVisible();
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: testInfo.outputPath("native-connected.png") });
+  await page.locator("#left").click();
+  await expect.poll(() => hero.PLAYER.connected).toBe(false);
+  await expect(page.locator(".Paused")).toHaveCount(0);
+  await expect
+    .poll(() => page.evaluate(() => typeof window.aliveChat))
+    .toBe("function");
+  await page.evaluate(() => window.aliveChat("/tp 7,20"));
+  // Allow the native interaction system to discover the adjacent portal.
+  await page.waitForTimeout(150);
+  await page.locator("body").press("Enter");
+  await expect(page.locator("#keyboard")).toBeVisible();
+  await page
+    .locator("body")
+    .pressSequentially(`127.0.0.1:${server.address.port}`, { delay: 30 });
+  await page.locator("body").press("Enter");
+  await page.screenshot({ path: testInfo.outputPath("native-return.png") });
+  await expect.poll(() => identities.length).toBe(2);
+  expect(identities[1]).toBe(identities[0]);
+  expect(errors).toEqual([]);
 });

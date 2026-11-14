@@ -16,6 +16,8 @@ Defines camera activation, priority, spring, and fractional position.
 ```ts src/engine/components/viewable.ts
 export type Viewable = {
   active: boolean;
+  owner?: number;
+  radius?: number;
   quake?: number;
   priority: number; // 10 - hero, 30 - spawn, 50 - buildings, 90 - popups
   spring?: SpringConfig;

@@ -72,7 +72,21 @@ export const selectViewable = (
         return false;
       if (entity[STRUCTURABLE])
         return player[LAYER]?.structure === world?.getEntityId(entity);
-      if (!entity[PLAYER] && entity[VIEWABLE].owner === undefined) return false;
+      if (!entity[PLAYER] && entity[VIEWABLE].owner === undefined) {
+        const radius = entity[VIEWABLE].radius;
+        if (
+          radius === undefined ||
+          !player?.[POSITION] ||
+          !player[STATS] ||
+          player[STATS].hp <= 0 ||
+          getDistance(
+            player[POSITION],
+            entity[POSITION],
+            world!.metadata.gameEntity[LEVEL].size
+          ) >= radius
+        )
+          return false;
+      }
       return entity[VIEWABLE].active;
     })
     .sort(
@@ -134,6 +148,8 @@ export const getScriptPlayer = <C extends keyof Entity>(
   entity: Partial<Entity>,
   components: C[]
 ) => {
+  if (world.metadata.network || world.metadata.presentation)
+    return getLocalPlayer(world, components);
   if (!world.metadata.warpPlayer) {
     const hero = world
       .getEntities([IDENTIFIABLE])

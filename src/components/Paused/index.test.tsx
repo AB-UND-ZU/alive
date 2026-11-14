@@ -236,3 +236,20 @@ it("connects from the Servers menu and shows a failed claim without dismissing t
   fireEvent.click(screen.getByRole("button", { name: "Back to menu" }));
   expect(view.openMenu).toHaveBeenCalled();
 });
+
+it("keeps the standard pause layout with disabled saving on a server", () => {
+  const world = createAreaWorld(area);
+  world.metadata.network = { send: jest.fn() } as unknown as NonNullable<
+    typeof world.metadata.network
+  >;
+  const view = renderPaused(world, { serverStatus: "connected" });
+  expect(
+    Array.from(view.container.querySelectorAll(".PauseButton")).map(
+      (button) => button.id
+    )
+  ).toEqual(["pause-resume", "pause-menu", "pause-save"]);
+  expect(view.isDisabled("pause-save")).toBe(true);
+  expect(view.overlay().slice(-1)[0]).toBe("Server autosaves");
+  view.click("pause-save");
+  expect(view.saveGame).not.toHaveBeenCalled();
+});

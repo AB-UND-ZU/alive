@@ -235,7 +235,9 @@ it("lets the second player buy the dungeon key from the freshly generated Guide"
   for (let frame = 0; frame < 90; frame++) host.step();
   host.receive("second", { sequence: 0, action: { kind: "interact" } });
   for (let frame = 0; frame < 30; frame++) host.step();
-  expect(shopper[PLAYER].popup).toBe(world.getEntityId(guide));
+  const view = world.assertByIdAndComponents(shopper[PLAYER].popup, [POPUP]);
+  expect(view[POPUP].source).toBe(world.getEntityId(guide));
+  expect(view[POPUP].owner).toBe(world.getEntityId(shopper));
   expect(guide[POPUP].owner).toBe(world.getEntityId(shopper));
   expect(player(host, "first")[PLAYER].popup).toBeUndefined();
   host.receive("second", { sequence: 1, action: { kind: "right" } });

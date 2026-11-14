@@ -1,3 +1,4 @@
+import { selectViewable } from "../../engine/players";
 import { PLAYER } from "../../engine/components/player";
 import { LEVEL } from "../../engine/components/level";
 import { INVENTORY } from "../../engine/components/inventory";
@@ -174,7 +175,7 @@ describe("tutorial rooms", () => {
   });
 });
 
-it("starts a shared dungeon fight for the arriving teammate and keeps its entrances open", () => {
+it("starts a dungeon fight for the arriving teammate and closes its barriers", () => {
   const { world, hero, viewpoint } = setupTutorial();
   world.metadata.warpPlayer = () => {};
   const teammate = createHero(world, hero);
@@ -187,11 +188,11 @@ it("starts a shared dungeon fight for the arriving teammate and keeps its entran
       (entity) => entity.SPAWNABLE || entity.BEHAVIOUR
     )
   ).toBe(true);
-  expect(named(world, "north3:blocker")).toHaveLength(0);
-  expect(named(world, "north3:barrier")).toHaveLength(0);
+  expect(named(world, "north3:blocker").length).toBeGreaterThan(0);
+  expect(named(world, "north3:barrier").length).toBeGreaterThan(0);
 });
 
-it("shares the tutorial starter stick once with teammates and late arrivals", () => {
+it("keeps the tutorial starter stick as shared ground loot, without giving teammates swords", () => {
   const { world, hero } = setupTutorial();
   world.metadata.warpPlayer = () => {};
   const teammate = createHero(world, hero);
@@ -203,19 +204,16 @@ it("shares the tutorial starter stick once with teammates and late arrivals", ()
     player[INVENTORY].items
       .map((id) => world.assertByIdAndComponents(id, [ITEM]))
       .filter((item) => item[ITEM].weapon === "sword");
-  expect(swords(teammate)).toHaveLength(1);
-  expect(teammate[EQUIPPABLE].weapon).toBe(
-    world.getEntityId(swords(teammate)[0])
-  );
+  expect(swords(teammate)).toHaveLength(0);
   expect(hero[EQUIPPABLE]!.weapon).not.toBe(teammate[EQUIPPABLE].weapon);
   expect(collectItem(world, hero, source)).toBe(false);
-  expect(world.metadata.gameEntity[LEVEL].cooperativeRewards).toHaveLength(1);
+  expect(world.metadata.gameEntity[LEVEL].cooperativeRewards).toBeUndefined();
   const arriving = createHero(world, hero);
   arriving.PLAYER!.rewardOffsets = {};
   registerEntity(world, arriving);
   advance(world, 1500);
-  expect(swords(arriving)).toHaveLength(1);
-  expect(swords(teammate)).toHaveLength(1);
+  expect(swords(arriving)).toHaveLength(0);
+  expect(swords(teammate)).toHaveLength(0);
 });
 
 it("keeps the single-player starter pickup as one ordinary wooden sword", () => {
@@ -289,4 +287,20 @@ it("reveals the optional pond when another teammate has already cleared a later 
   const quest = getSequence(world, teammate, "quest");
   advance(world, 1000);
   expect(getSequence(world, teammate, "quest")).toBe(quest);
+});
+
+it("keeps dungeon cameras in each player's own room", () => {
+  const { world, hero } = setupTutorial();
+  world.metadata.warpPlayer = () => {};
+  const teammate = createHero(world, hero);
+  registerEntity(world, teammate);
+  teleport(world, hero, { x: 0, y: -roomSize.y });
+  teleport(world, teammate, { x: 0, y: 0 });
+  advance(world, 1000);
+  const cameras = world.getEntities([VIEWABLE, POSITION]);
+  const first = selectViewable(cameras, world, world.getEntityId(hero));
+  const second = selectViewable(cameras, world, world.getEntityId(teammate));
+  expect(first).not.toBe(second);
+  expect(first?.[POSITION]).toEqual({ x: 0, y: 72 - roomSize.y });
+  expect(second?.[POSITION]).toEqual({ x: 0, y: 0 });
 });

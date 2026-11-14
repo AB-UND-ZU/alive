@@ -1,3 +1,4 @@
+const { isDeepStrictEqual } = require("node:util");
 const { createAdministration } = require("./administration.cjs");
 const { WebSocketServer, WebSocket } = require("ws");
 const {
@@ -97,16 +98,51 @@ exports.createGameServer = async ({
         const world = simulation.worldFor(client.account.id);
         if (!states.has(world)) {
           const frame = simulation.frame(client.account.id);
-          states.set(world, {
-            sequence: frame.sequence,
-            state: engine.encodeState(frame),
-          });
+          states.set(world, { frame });
         }
-        client.pendingState = states.get(world).sequence;
+        const current = states.get(world);
+        const frame = current.frame;
+        let transmitted = frame;
+        if (client.previous?.realm === frame.realm) {
+          const previous = new Map(client.previous.snapshot.entities);
+          const removedComponents = [];
+          const entities = frame.snapshot.entities.flatMap(([id, data]) => {
+            const before = previous.get(id);
+            previous.delete(id);
+            if (!before) return [[id, data]];
+            const changed = {};
+            for (const [key, value] of Object.entries(data)) {
+              if (key === "LEVEL" && before.LEVEL) {
+                const fields = {};
+                for (const name of new Set([
+                  ...Object.keys(before.LEVEL),
+                  ...Object.keys(value),
+                ]))
+                  if (!isDeepStrictEqual(before.LEVEL[name], value[name]))
+                    fields[name] = value[name];
+                if (Object.keys(fields).length) changed.LEVEL = fields;
+              } else if (!isDeepStrictEqual(before[key], value))
+                changed[key] = value;
+            }
+            const removed = Object.keys(before).filter((key) => !(key in data));
+            if (removed.length) removedComponents.push([id, removed]);
+            return Object.keys(changed).length || removed.length
+              ? [[id, changed]]
+              : [];
+          });
+          transmitted = {
+            ...frame,
+            snapshot: { ...frame.snapshot, entities },
+            removed: [...previous.keys()],
+            removedComponents,
+          };
+        }
+        client.previous = frame;
+        client.pendingState = frame.sequence;
         send(socket, {
           type: "state",
           actorId: simulation.actorId(client.account.id),
-          state: states.get(world).state,
+          state: engine.encodeState(transmitted),
         });
       }
     }

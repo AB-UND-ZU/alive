@@ -192,18 +192,6 @@ export default function Paused() {
                 />
               </>
             )}
-            {remote && (
-              <Row
-                cells={createText(
-                  serverStatus === "reconnecting"
-                    ? "Reconnecting..."
-                    : serverStatus === "rejected"
-                    ? "Connection rejected"
-                    : "Server autosaves",
-                  colors.grey
-                )}
-              />
-            )}
             {canMenu && (
               <>
                 <Row />
@@ -219,22 +207,33 @@ export default function Paused() {
                     "red"
                   )}
                 />
-                {!remote && (
-                  <>
-                    <Row />
-                    <PauseButton
-                      id="pause-save"
-                      onClick={handleSave}
-                      button={createButton("SAVE", pauseButtonWidth, !saveable)}
-                    />
-                    <Row
-                      cells={addBackground(
-                        getSaveText(ecs, saveStatus),
-                        colors.black
-                      )}
-                    />
-                  </>
-                )}
+                <Row />
+                <PauseButton
+                  id="pause-save"
+                  onClick={handleSave}
+                  button={createButton(
+                    "SAVE",
+                    pauseButtonWidth,
+                    remote || !saveable
+                  )}
+                />
+                <Row
+                  cells={
+                    remote
+                      ? createText(
+                          serverStatus === "reconnecting"
+                            ? "Reconnecting..."
+                            : serverStatus === "rejected"
+                            ? "Connection rejected"
+                            : "Server autosaves",
+                          colors.grey
+                        )
+                      : addBackground(
+                          getSaveText(ecs, saveStatus),
+                          colors.black
+                        )
+                  }
+                />
               </>
             )}
           </>

@@ -126,7 +126,7 @@ export const isCooperating = (world: World, entity: Entity, target: Entity) =>
     (isNeutral(world, target) || isFriendlyFire(world, entity, target)));
 
 export const createTooltip = (world: World, entity: Entity) => {
-  const text = entity[SPRITE].name;
+  const text = entity[PLAYER]?.username || entity[SPRITE].name;
   const enemy = isEnemy(world, entity) && !isNeutral(world, entity);
   const friendly = isTribe(world, entity);
   return [

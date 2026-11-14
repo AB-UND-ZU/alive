@@ -10,6 +10,7 @@ import {
   getScriptPlayer,
   selectViewable,
 } from "./players";
+import { createTooltip } from "./systems/damage";
 import { createPopup } from "./systems/popup";
 import { createHero } from "./systems/fate";
 import { advance, assertHero, createAreaWorld } from "../testing/harness";
@@ -148,4 +149,30 @@ it("selects the dialog owner for shared scripts and otherwise follows the neares
   expect(getScriptPlayer(world, sign, [STATS])).toBe(second);
   second[STATS].hp = 0;
   expect(getScriptPlayer(world, sign, [STATS])).toBeUndefined();
+});
+
+it("limits shared boss viewpoints to living participants inside their arena", () => {
+  const { world, first, second } = setup();
+  moveEntity(world, second, { x: 14, y: 1 });
+  const boss = entities.createViewpoint(world, {
+    POSITION: { x: 2, y: 1 },
+    RENDERABLE: { generation: 0 },
+    VIEWABLE: { active: true, priority: 100, radius: 4 },
+  });
+  const views = world.getEntities([VIEWABLE, POSITION]);
+  expect(selectViewable(views, world, world.getEntityId(first))).toBe(boss);
+  expect(selectViewable(views, world, world.getEntityId(second))).toBe(second);
+  first[STATS].hp = 0;
+  expect(selectViewable(views, world, world.getEntityId(first))).toBe(first);
+});
+
+it("uses a player's username in their hover tooltip", () => {
+  const { world, first } = setup();
+  first[PLAYER].username = "Alice";
+  expect(
+    createTooltip(world, first)
+      .slice(1, -1)
+      .map((sprite) => sprite.layers[sprite.layers.length - 1].char)
+      .join("")
+  ).toBe("Alice");
 });

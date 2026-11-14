@@ -47,6 +47,7 @@ export type WeatherSequence = {
   ratio?: number;
   generation: number;
   drops: {
+    owner?: number;
     position: Position;
     fast: boolean;
     timestamp: number;
@@ -353,6 +354,7 @@ export type QuestSequence = {
 
 ```ts src/engine/components/sequencable.ts
 export type InteractSequence = {
+  owner?: number;
   active: boolean;
   orientation: Orientation;
   generation: number;
@@ -449,6 +451,8 @@ export type PopupSequence = {
 
 ```ts src/engine/components/sequencable.ts
 export type SequenceState<A> = {
+  started?: number;
+  initialArgs?: A;
   name: keyof typeof sequences; // TODO: only allow valid keys
   reference: number;
   elapsed: number;

@@ -40,7 +40,7 @@ const setup = () => {
   return { world, first, second };
 };
 
-it("keeps each player's waypoint and its rendered particles private", () => {
+it("keeps individual waypoint targets and displays both players' highlights", () => {
   const { world, first, second } = setup();
   setHighlight(world, "quest", second, undefined, first);
   setHighlight(world, "enemy", first, undefined, second);
@@ -51,10 +51,10 @@ it("keeps each player's waypoint and its rendered particles private", () => {
   expect(two[FOCUSABLE].target).toBe(world.getEntityId(first));
   world.metadata.localPlayerId = world.getEntityId(first);
   expect(getParticles(world, one).length).toBeGreaterThan(0);
-  expect(getParticles(world, two)).toHaveLength(0);
+  expect(getParticles(world, two).length).toBeGreaterThan(0);
   world.metadata.localPlayerId = world.getEntityId(second);
   expect(getParticles(world, two).length).toBeGreaterThan(0);
-  expect(getParticles(world, one)).toHaveLength(0);
+  expect(getParticles(world, one).length).toBeGreaterThan(0);
   setHighlight(world, undefined, undefined, undefined, first);
   expect(one[FOCUSABLE].pendingTarget).toBeUndefined();
   expect(two[FOCUSABLE].pendingTarget).toBe(world.getEntityId(first));

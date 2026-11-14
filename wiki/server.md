@@ -13,7 +13,7 @@ Enter the printed WebSocket address on [Multiplayer](clients-multiplayer.md). Us
 
 The server runs movement, combat, enemies and quests. Players send actions and see the server's results.
 
-Players share the world, ground loot and quest progress. Everyone receives completed quest rewards. Each player has their own character, equipment and dialogs. Pausing one game leaves the world running.
+Players share the world, ground loot and quest progress. Everyone receives completed quest rewards. Each player has their own character, equipment and dialog selections. Stock and brewing queues are shared. Pausing one game leaves the world running.
 
 ## Savegames
 

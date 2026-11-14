@@ -4,7 +4,7 @@ Experimental local-network co-op supports up to [[data:8]] connected players. A 
 
 ## Join a server
 
-Open the game from the host's game address. Pause, choose [[button:SERVERS]], enter the host address and choose [[button:CONNECT]]. The host supplies a WebSocket address such as `ws://192.168.1.10:3001`.
+Open [[button:SERVERS]] in the [Menu](menu.md). Enter the host address, then choose a username if this browser has not joined before. Choose [[button:CONNECT]]. The host supplies a WebSocket address such as `ws://192.168.1.10:3001`.
 
 Choose a username in the chat prompt when first connecting. The server remembers it with your reconnect key.
 
@@ -20,9 +20,9 @@ Each player has their own character, equipment, quick items, dialogs, camera, co
 
 Everyone receives the same completed quest rewards once. Disconnected characters receive them too; dead characters receive pending rewards after revival. Later arrivals catch up with completed quest rewards and use the current shared checkpoint.
 
-The first tutorial stick supplies a starter weapon for every teammate. Dungeon quest hints follow the room each character enters.
+The first tutorial stick belongs to whoever collects it. Other players can break fences to get their own sticks and wooden swords. Dungeon quest hints follow the room each character enters.
 
-Only one player can read a particular shared dialog at a time. Teammates can pass through each other, and dungeon fight entrances stay open for the party.
+Each player can read the same dialog independently. Quest progress, shop stock and brewing queues update for everyone. Teammates can pass through each other. Fight barriers close when combat begins; players outside wait until the fight ends.
 
 [[key:C]] Open chat.
 
@@ -32,8 +32,8 @@ On touch screens, open the use window and choose [[button:CHAT]]. Messages appea
 
 ## Pause, leave and return
 
-Pausing stops your input while the shared world continues. Your character can still be attacked. Returning to the local menu or closing the connection leaves the character on the server, hidden from active play until it reconnects.
+Pausing stops your input while the shared world continues. Your character can still be attacked. Choose [[button:LEAVE]] in the Servers portal to return to the single-player menu. Closing the connection leaves the character on the server, hidden from active play until it reconnects.
 
 The server saves automatically. Its save contains the shared worlds and every character. The browser's single-player save list does not contain server characters. See [Savegames](savegames.md) for local games.
 
-During connection loss, movement stops and old actions are discarded. Reconnecting loads current server state. Movement and spells wait for server confirmation; fast sprite changes may look less smooth on a slow connection.
+During connection loss, movement stops and old actions are discarded. Reconnecting loads current server state. Movement and spells wait for server confirmation. Decorative particles and read-only dialog animations play locally.

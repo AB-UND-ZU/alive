@@ -1,3 +1,4 @@
+import { GamePreview } from "./GamePreview";
 import { useEffect, useRef, useState } from "react";
 import { serverUrl, ConnectionStatus } from "../engine/network/client";
 import { Button, Input, Text } from "./visuals";
@@ -48,7 +49,7 @@ export function ServerPreview({ base }: { base: string }) {
         return;
       if (
         status === "rejected" ||
-        status === "closed" ||
+        (status === "closed" && !connected[index]) ||
         (status === "reconnecting" && !connected[index])
       ) {
         fail();
@@ -58,7 +59,8 @@ export function ServerPreview({ base }: { base: string }) {
       states[index] = status;
       if (status === "connected") connected[index] = true;
       setStatuses([...states]);
-      if (states.every((state) => state === "connected")) clearTimeout(timer);
+      if (states.every((state) => state === "connected" || state === "closed"))
+        clearTimeout(timer);
       else if (previous === "connected") wait();
     };
     window.addEventListener("message", message);
@@ -116,24 +118,26 @@ export function ServerPreview({ base }: { base: string }) {
           <section key={index} aria-label={`Player ${index + 1}`}>
             <p role="status">
               <Text>{`Player ${index + 1}${
-                statuses[index] ? ": " + statuses[index] : ""
+                statuses[index]
+                  ? ": " +
+                    (statuses[index] === "closed" ? "local" : statuses[index])
+                  : ""
               }`}</Text>
             </p>
             {connection && (
-              <iframe
+              <GamePreview
                 key={connection.revision}
-                ref={(frame) => {
+                name="game"
+                base={base}
+                testMode={false}
+                server={{
+                  url: connection.url,
+                  client: index + 1,
+                  username: connection.usernames[index],
+                }}
+                onFrame={(frame) => {
                   frames.current[index] = frame;
                 }}
-                title={`Player ${index + 1} game`}
-                src={`${base}preview.html?server=${encodeURIComponent(
-                  connection.url
-                )}&client=${index + 1}${
-                  connection.usernames[index]
-                    ? "&username=" +
-                      encodeURIComponent(connection.usernames[index])
-                    : ""
-                }#servers`}
               />
             )}
           </section>

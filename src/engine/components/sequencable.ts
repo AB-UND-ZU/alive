@@ -245,6 +245,8 @@ export type PopupSequence = {
 };
 
 export type SequenceState<A> = {
+  started?: number;
+  initialArgs?: A;
   name: keyof typeof sequences; // TODO: only allow valid keys
   reference: number;
   elapsed: number;

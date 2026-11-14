@@ -3,6 +3,8 @@ import "../engine";
 import { ServerPreview } from "./ServerPreview";
 
 jest.mock("./visuals", () => ({
+  Pixels: () => null,
+  Choice: () => null,
   Text: ({ children }: React.PropsWithChildren) => <>{children}</>,
   Input: ({
     label,
@@ -54,8 +56,32 @@ const status = (
     })
   );
 };
-beforeEach(() => jest.useFakeTimers());
-afterEach(() => jest.useRealTimers());
+const originalIntersectionObserver = window.IntersectionObserver;
+const originalResizeObserver = window.ResizeObserver;
+beforeEach(() => {
+  jest.useFakeTimers();
+  window.IntersectionObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return [];
+    }
+    root = null;
+    rootMargin = "";
+    thresholds = [];
+  } as unknown as typeof IntersectionObserver;
+  window.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
+});
+afterEach(() => {
+  jest.useRealTimers();
+  window.IntersectionObserver = originalIntersectionObserver;
+  window.ResizeObserver = originalResizeObserver;
+});
 it("connects two distinct client slots to the same normalized server", () => {
   connect();
   for (const client of [1, 2]) {

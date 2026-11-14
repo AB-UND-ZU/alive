@@ -24,6 +24,8 @@ The result must be stored with structured cloning, as IndexedDB does, to keep sh
 
 Passing an existing world as the second argument applies a snapshot in place. Existing entity objects retain their identity, missing components and entities are removed immediately, and shared component references are reconstructed. This is used by read-only network replicas, which have no gameplay systems installed. View-local metadata and listeners remain attached to that world.
 
+Network snapshots omit derived spatial grids and cosmetic particles. The replica rebuilds grids from confirmed entities and keeps its particles in a negative ID range. Component patches apply explicit entity and component removals; level fields merge individually. Save snapshots still contain the complete world.
+
 Older saves can contain inventory IDs for loot that was already removed by arena cleanup. Restoration removes these missing item references while keeping all remaining items and IDs.
 
 Renaming or removing an exported sprite makes older snapshots fail to load unless a save upgrade maps the name.

@@ -70,6 +70,12 @@ export type Focus = {
 
 ```ts src/engine/components/popup.ts
 export type Popup = {
+  server?: { address?: string };
+  source?: number;
+  revision?: number;
+  sourceRevision?: number;
+  viewers?: Record<number, number>;
+  owner?: number;
   active: boolean;
   verticalIndezes: number[];
   horizontalIndex: number;

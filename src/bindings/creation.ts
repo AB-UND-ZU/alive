@@ -4675,6 +4675,9 @@ export const createCell = (
       [],
       [],
       [..."Credits   ", ".\x00:", ..."  ", ".\x00:"],
+      [],
+      [],
+      [..."Servers   ", ".\x00:", ..."  ", ".\x00:"],
     ];
 
     patterns.forEach((pattern, rowIndex) => {

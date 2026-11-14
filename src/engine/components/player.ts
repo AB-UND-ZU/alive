@@ -27,6 +27,7 @@ export type Player = {
     use: number;
     inspect: number;
     server?: number;
+    camera?: number;
     focus?: number;
     prompts?: Record<number, number>;
   };

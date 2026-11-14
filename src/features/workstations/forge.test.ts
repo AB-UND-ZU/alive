@@ -1,3 +1,5 @@
+import { POSITION } from "../../engine/components/position";
+import { SEQUENCABLE } from "../../engine/components/sequencable";
 import { ensurePlayerInterface } from "../../bindings/interface";
 import { createHero } from "../../engine/systems/fate";
 import { moveEntity, registerEntity } from "../../engine/systems/map";
@@ -426,7 +428,7 @@ describe("forging selections after inventory changes", () => {
 });
 
 it("hurts only the player using the anvil when a teammate is present", () => {
-  const { world, hero, anvil } = setup([]);
+  const { world, hero } = setup([]);
   const smith = createHero(world, hero);
   smith[STATS].maxHp = 10;
   smith[STATS].hp = 10;
@@ -440,6 +442,12 @@ it("hurts only the player using the anvil when a teammate is present", () => {
   moveEntity(world, hero, { x: 20, y: 20 });
   giveItems(world, smith, [ironSword, fireUpgrade.add]);
   openStation(world);
+  const anvil = world.assertByIdAndComponents(smith[PLAYER].popup, [
+    POPUP,
+    FORGABLE,
+    POSITION,
+    SEQUENCABLE,
+  ]);
   selectItems(world, anvil, [0, 1]);
   act(world, "right");
   const hp = smith[STATS].hp;

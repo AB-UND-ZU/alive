@@ -1,3 +1,4 @@
+import { capturePreviewKey } from "./previewInput";
 import { ServerGame } from "./ServerGame";
 import { enableTouchEmulation, TouchCursor } from "./TouchControls";
 import { createPresetWorld, PresetName } from "./presets";
@@ -88,21 +89,7 @@ function Bridge({ setShadows }: { setShadows: (enabled: boolean) => void }) {
     };
     const capture = (event: KeyboardEvent) => {
       if (name === "interface") return;
-      if (
-        [
-          "ArrowUp",
-          "ArrowDown",
-          "ArrowLeft",
-          "ArrowRight",
-          " ",
-          "Tab",
-          "PageUp",
-          "PageDown",
-          "Home",
-          "End",
-        ].includes(event.key)
-      )
-        event.preventDefault();
+      capturePreviewKey(event);
       if (name === "game") return;
       event.preventDefault();
       const hero = ecs && getHero(ecs);
