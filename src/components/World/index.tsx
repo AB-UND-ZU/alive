@@ -1,3 +1,4 @@
+import { connectServer, ConnectionStatus } from "../../engine/network/client";
 import {
   Fragment,
   useCallback,
@@ -54,6 +55,9 @@ export default function World({
   const [initial, setInitial] = useState(!createInitialWorld);
   const [flipped, setFlipped] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>();
+  const [serverStatus, setServerStatus] = useState<ConnectionStatus>();
+  const connectionRef = useRef<ReturnType<typeof connectServer>>();
+  const connectionGeneration = useRef(0);
   const pauseRef = useRef(paused);
   const suspendedRef = useRef(suspended);
   const dimensionsRef = useRef(dimensions);
@@ -91,7 +95,14 @@ export default function World({
       return world;
     };
 
+    const disconnectServer = () => {
+      connectionGeneration.current += 1;
+      connectionRef.current?.close();
+      connectionRef.current = undefined;
+      setServerStatus(undefined);
+    };
     const openMenu = () => {
+      disconnectServer();
       setSuspended(true);
       setSaveStatus(undefined);
       const world = createMenu();
@@ -115,7 +126,38 @@ export default function World({
       }
     };
 
-    return { connectWorld, createMenu, openMenu };
+    const joinServer = (address: string) => {
+      disconnectServer();
+      const generation = ++connectionGeneration.current;
+      ensureAudio();
+      try {
+        connectionRef.current = connectServer(address, {
+          onStatus(status) {
+            if (generation !== connectionGeneration.current) return;
+            setServerStatus(status);
+            if (status === "reconnecting" || status === "rejected") {
+              connectionRef.current?.pause(true);
+              pauseRef.current = true;
+              setPaused(true);
+              suspendAudio();
+            }
+          },
+          onReady(world) {
+            if (generation !== connectionGeneration.current) return;
+            connectWorld(world);
+            showWorld(world);
+            setSuspended(false);
+            setInitial(false);
+            setSaveStatus(undefined);
+            pauseRef.current = false;
+            setPaused(false);
+          },
+        });
+      } catch (error) {
+        setServerStatus("rejected");
+      }
+    };
+    return { connectWorld, createMenu, openMenu, joinServer, disconnectServer };
   });
 
   const [current, setCurrent] = useState(() => {
@@ -159,7 +201,13 @@ export default function World({
 
   const saveGame = useCallback(() => {
     // Composed wiki scenes must not overwrite playable saves.
-    if (!persistent || suspendedRef.current || !canSave(ecs)) return;
+    if (
+      !persistent ||
+      ecs.metadata.network ||
+      suspendedRef.current ||
+      !canSave(ecs)
+    )
+      return;
 
     setSaveStatus({ saving: true });
     storeGame(ecs).then(
@@ -178,6 +226,7 @@ export default function World({
 
       if (!newPause && suspendedRef.current) return;
       ecs.metadata.initial = false;
+      ecs.metadata.network?.pause(newPause);
 
       // toggle sound and save when pausing
       if (newPause) {
@@ -214,6 +263,8 @@ export default function World({
       saveStatus,
       saveGame,
       openMenu,
+      joinServer: persistent ? actions.joinServer : undefined,
+      serverStatus,
     }),
     [
       ecs,
@@ -227,6 +278,9 @@ export default function World({
       saveStatus,
       saveGame,
       openMenu,
+      actions.joinServer,
+      persistent,
+      serverStatus,
     ]
   );
 
@@ -239,7 +293,7 @@ export default function World({
   }, [persistent]);
 
   useEffect(() => {
-    if (!TEST_MODE) return;
+    if (!TEST_MODE || ecs.metadata.network) return;
     const aliveChat = (line = "") => {
       const hero = ecs.getEntities([PLAYER, POSITION])[0];
       if (hero) return submitChat(ecs, hero, line);
@@ -249,6 +303,14 @@ export default function World({
       if (window.aliveChat === aliveChat) delete window.aliveChat;
     };
   }, [ecs]);
+
+  useEffect(
+    () => () => {
+      connectionGeneration.current += 1;
+      connectionRef.current?.close();
+    },
+    []
+  );
 
   // expose utilities to world metadata
   useEffect(() => {

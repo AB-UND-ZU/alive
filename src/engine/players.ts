@@ -38,7 +38,12 @@ export const getClosestPlayer = <C extends keyof Entity>(
     STATS,
     ...components,
   ])) {
-    if (player[PLAYER].ghost || player[STATS].hp <= 0) continue;
+    if (
+      player[PLAYER].connected === false ||
+      player[PLAYER].ghost ||
+      player[STATS].hp <= 0
+    )
+      continue;
     const next = getDistance(position, player[POSITION], size);
     if (next < distance) {
       closest = player;
@@ -67,6 +72,7 @@ export const selectViewable = (
         return false;
       if (entity[STRUCTURABLE])
         return player[LAYER]?.structure === world?.getEntityId(entity);
+      if (!entity[PLAYER] && entity[VIEWABLE].owner === undefined) return false;
       return entity[VIEWABLE].active;
     })
     .sort(

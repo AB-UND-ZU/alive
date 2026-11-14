@@ -71,6 +71,7 @@ export const isSliding = (world: World, entity: Entity) =>
 
 export const isActionable = (world: World, entity: Entity) =>
   MOVABLE in entity &&
+  entity[PLAYER]?.connected !== false &&
   !isDead(world, entity) &&
   !isFrozen(world, entity) &&
   !isSliding(world, entity);

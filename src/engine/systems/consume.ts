@@ -275,6 +275,7 @@ export default function setupConsume(world: World) {
     for (const entity of world.getEntities([INVENTORY, STATS])) {
       // skip if currently consuming or unit
       if (
+        entity[PLAYER]?.connected === false ||
         getSequence(world, entity, "consume") ||
         (!entity[PLAYER] && !entity[NPC])
       )
@@ -350,6 +351,7 @@ export default function setupConsume(world: World) {
 
     // process changes in stats
     for (const entity of world.getEntities([PLAYER, STATS, MOVABLE])) {
+      if (entity[PLAYER].connected === false) continue;
       const entityId = world.getEntityId(entity);
       const haste = getEntityHaste(world, entity);
       const vision = getEntityVision(world, entity);

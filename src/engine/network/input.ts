@@ -99,6 +99,7 @@ export const isPlayerInput = (value: unknown): value is PlayerInput => {
 export const createPlayerInput = (world: World, playerId: number) => {
   let received = -1;
   let move: Orientation[] = [];
+  let tap: Orientation | undefined;
   let pending: InputAction | undefined;
   const text: InputAction[] = [];
   let lastActionGeneration = -1;
@@ -108,7 +109,11 @@ export const createPlayerInput = (world: World, playerId: number) => {
     if (!isPlayerInput(message) || message.sequence <= received) return false;
     received = message.sequence;
     lastMessageTime = world.metadata.elapsed;
-    if (message.move) move = [...message.move];
+    if (message.move) {
+      if (message.move.length && message.move[0] !== move[0])
+        tap = message.move[0];
+      move = [...message.move];
+    }
     // Never build an action backlog, including when a client floods the socket.
     if (message.action?.kind === "text") {
       if (text.length < 16) text.push({ ...message.action });
@@ -117,6 +122,7 @@ export const createPlayerInput = (world: World, playerId: number) => {
   };
   const release = () => {
     move = [];
+    tap = undefined;
     pending = undefined;
     text.length = 0;
     lastMessageTime = -Infinity;
@@ -146,12 +152,16 @@ export const createPlayerInput = (world: World, playerId: number) => {
       !move.length &&
       frame[REFERENCE].suspensionCounter === -1
     ) {
-      frame[REFERENCE].suspensionCounter = 0;
+      frame[REFERENCE].suspensionCounter = player[MOVABLE].pendingOrientation
+        ? 1
+        : 0;
     }
-    if (!move.length) player[MOVABLE].pendingOrientation = undefined;
-    if (move.length) {
-      player[MOVABLE].pendingOrientation = move[0];
-      frame[REFERENCE].suspensionCounter = -1;
+    if (world.metadata.elapsed - lastMessageTime > 1000)
+      player[MOVABLE].pendingOrientation = undefined;
+    if (move.length || tap) {
+      if (tap) player[MOVABLE].pendingOrientation = tap;
+      frame[REFERENCE].suspensionCounter = move.length ? -1 : 1;
+      tap = undefined;
       frame[REFERENCE].suspended = false;
     }
     if (

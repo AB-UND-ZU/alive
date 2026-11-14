@@ -1,8 +1,9 @@
+import Servers from "../Servers";
 import { backdrop } from "../../game/assets/sprites";
 import { isTouch, useDimensions } from "../Dimensions";
 import Row from "../Row";
 import "./index.css";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useWorld } from "../../renderers/interface/hooks";
 import { repeat } from "../../game/math/std";
 import { colors } from "../../game/assets/colors";
@@ -59,10 +60,15 @@ export default function Paused() {
     saveStatus,
     saveGame,
     openMenu,
+    joinServer,
+    serverStatus,
   } = useWorld();
   const dimensions = useDimensions();
+  const [servers, setServers] = useState(false);
+  const remote = !!ecs?.metadata.network;
   const inGame = !!ecs && ecs.metadata.gameEntity[LEVEL]?.name !== "LEVEL_MENU";
-  const saveable = inGame && !saveStatus?.saving && canSave(ecs);
+  const canMenu = inGame || remote;
+  const saveable = inGame && !remote && !saveStatus?.saving && canSave(ecs);
   const handleSave = useCallback(
     (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       event.preventDefault();
@@ -73,21 +79,22 @@ export default function Paused() {
   const handleMenu = useCallback(
     (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       event.preventDefault();
-      if (inGame) openMenu();
+      if (canMenu) openMenu();
     },
-    [inGame, openMenu]
+    [canMenu, openMenu]
   );
   const handleResume = useCallback(
     (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       event.preventDefault();
 
+      if (remote && serverStatus !== "connected") return;
       setPaused(false);
 
       if (initial) {
         setInitial(false);
       }
     },
-    [initial, setPaused, setInitial]
+    [initial, setPaused, setInitial, remote, serverStatus]
   );
 
   if (!paused && !initial && !suspended) return null;
@@ -107,7 +114,14 @@ export default function Paused() {
       </div>
 
       <div className="Overlay">
-        {suspended ? (
+        {servers ? (
+          <Servers
+            onBack={() => {
+              setServers(false);
+              openMenu();
+            }}
+          />
+        ) : suspended ? (
           <>
             <Row
               cells={createDialog(
@@ -155,13 +169,42 @@ export default function Paused() {
               button={createButton(
                 "RESUME",
                 pauseButtonWidth,
-                false,
+                remote && serverStatus !== "connected",
                 false,
                 false,
                 "lime"
               )}
             />
-            {inGame && (
+            {!remote && !inGame && joinServer && (
+              <>
+                <Row />
+                <PauseButton
+                  id="pause-servers"
+                  onClick={() => setServers(true)}
+                  button={createButton(
+                    "SERVERS",
+                    pauseButtonWidth,
+                    false,
+                    false,
+                    false,
+                    "yellow"
+                  )}
+                />
+              </>
+            )}
+            {remote && (
+              <Row
+                cells={createText(
+                  serverStatus === "reconnecting"
+                    ? "Reconnecting..."
+                    : serverStatus === "rejected"
+                    ? "Connection rejected"
+                    : "Server autosaves",
+                  colors.grey
+                )}
+              />
+            )}
+            {canMenu && (
               <>
                 <Row />
                 <PauseButton
@@ -176,24 +219,28 @@ export default function Paused() {
                     "red"
                   )}
                 />
-                <Row />
-                <PauseButton
-                  id="pause-save"
-                  onClick={handleSave}
-                  button={createButton("SAVE", pauseButtonWidth, !saveable)}
-                />
-                <Row
-                  cells={addBackground(
-                    getSaveText(ecs, saveStatus),
-                    colors.black
-                  )}
-                />
+                {!remote && (
+                  <>
+                    <Row />
+                    <PauseButton
+                      id="pause-save"
+                      onClick={handleSave}
+                      button={createButton("SAVE", pauseButtonWidth, !saveable)}
+                    />
+                    <Row
+                      cells={addBackground(
+                        getSaveText(ecs, saveStatus),
+                        colors.black
+                      )}
+                    />
+                  </>
+                )}
               </>
             )}
           </>
         )}
       </div>
-      {!suspended && (
+      {!suspended && !servers && (
         <div className="Resume" id="resume" onClick={handleResume} />
       )}
     </div>

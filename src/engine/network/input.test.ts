@@ -128,3 +128,14 @@ it("bounds queued chat edits and applies them only during server updates", () =>
   input.onUpdate();
   expect(getTabSelections(world, use)).toHaveLength(16);
 });
+
+it("keeps one short movement tap until the native player tick without repeating it", () => {
+  const { world, hero, input } = setup();
+  const before = { ...hero[POSITION] };
+  input.receive({ sequence: 0, move: ["right"] });
+  input.receive({ sequence: 1, move: [] });
+  advance(world, 900);
+  expect(hero[POSITION]).toEqual({ x: before.x + 1, y: before.y });
+  advance(world, 900);
+  expect(hero[POSITION]).toEqual({ x: before.x + 1, y: before.y });
+});

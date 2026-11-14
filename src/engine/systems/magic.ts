@@ -764,6 +764,10 @@ export default function setupMagic(world: World) {
     ])) {
       const entityId = world.getEntityId(entity);
       const dot = entity[AFFECTABLE].dot;
+      if (entity[PLAYER]?.connected === false) {
+        entityDots[entityId] = dot;
+        continue;
+      }
       const delta = dot - (entityDots[entityId] || 0);
 
       if (delta === 0) continue;

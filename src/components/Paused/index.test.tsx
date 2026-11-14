@@ -1,5 +1,5 @@
 /* eslint-disable testing-library/no-node-access, testing-library/no-container -- pause screen is drawn as glyph spans without accessible roles */
-import { fireEvent } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import Paused from ".";
 import { World } from "../../engine";
 import { MOVABLE } from "../../engine/components/movable";
@@ -220,4 +220,19 @@ describe("Paused", () => {
 
     expect(saveGame).toHaveBeenCalledTimes(1);
   });
+});
+
+it("connects from the Servers menu and shows a failed claim without dismissing the host field", () => {
+  const joinServer = jest.fn();
+  const view = renderPaused(menu, { joinServer });
+  view.click("pause-servers");
+  const field = screen.getByRole("textbox", { name: "Host URL" });
+  fireEvent.change(field, { target: { value: "192.168.0.2:3001" } });
+  fireEvent.click(screen.getByRole("button", { name: "Connect to server" }));
+  expect(joinServer).toHaveBeenCalledWith("192.168.0.2:3001");
+  view.update({ serverStatus: "rejected" });
+  expect(view.overlay().join("\n")).toContain("Connection rejected");
+  expect(field).toHaveValue("192.168.0.2:3001");
+  fireEvent.click(screen.getByRole("button", { name: "Back to menu" }));
+  expect(view.openMenu).toHaveBeenCalled();
 });

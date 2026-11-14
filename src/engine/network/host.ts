@@ -13,7 +13,8 @@ import { STATS } from "../components/stats";
 import { VIEWABLE } from "../components/viewable";
 import { LIGHT } from "../components/light";
 import { createHero } from "../systems/fate";
-import { disposeEntity, registerEntity } from "../systems/map";
+import { disposeEntity, registerEntity, updateWalkable } from "../systems/map";
+import { rerenderEntity } from "../systems/renderer";
 import { closePopup } from "../systems/popup";
 import { restorePlayerConsumption } from "../systems/consume";
 import { calculateVision } from "../systems/visibility";
@@ -88,6 +89,12 @@ export const createHost = (saved?: HostedWorld) => {
   for (const data of saved?.realms || []) {
     const world = restoreSnapshot(data.snapshot);
     world.metadata.elapsed = elapsed;
+    for (const player of world.getEntities([PLAYER]))
+      if (player[PLAYER].accountId) {
+        player[PLAYER].connected = false;
+        const popup = world.getEntityById(player[PLAYER].popup);
+        if (popup) closePopup(world, player, popup);
+      }
     createSystems(world);
     world.metadata.initial = false;
     bindRealm({ world, spawn: data.spawn });
@@ -171,6 +178,7 @@ export const createHost = (saved?: HostedWorld) => {
       if (!transfer?.resetClass) player[STATS] = { ...donor[STATS] };
     }
     player[PLAYER].accountId = accountId;
+    player[PLAYER].connected = true;
     player[VIEWABLE].active = true;
     player[VIEWABLE].owner = world.getEntityId(player);
     const light = calculateVision(
@@ -185,6 +193,9 @@ export const createHost = (saved?: HostedWorld) => {
   const join = (accountId: string) => {
     let current = actor(accountId);
     if (!current) current = { ...menu, player: createActor(menu, accountId) };
+    current.player[PLAYER].connected = true;
+    updateWalkable(current.world, current.player[POSITION]);
+    rerenderEntity(current.world, current.player);
     release(accountId);
     inputs.delete(accountId);
     getInput(accountId);
@@ -277,6 +288,18 @@ export const createHost = (saved?: HostedWorld) => {
     },
     step,
     release,
+    disconnect(accountId: string) {
+      release(accountId);
+      const current = actor(accountId);
+      if (!current) return;
+      current.player[PLAYER].connected = false;
+      const popup = current.world.getEntityById(current.player[PLAYER].popup);
+      if (popup) closePopup(current.world, current.player, popup);
+      if (current.player[PLAYER].interact)
+        current.player[PLAYER].interact!.active = undefined;
+      updateWalkable(current.world, current.player[POSITION]);
+      rerenderEntity(current.world, current.player);
+    },
     actorId: (accountId: string) => {
       const current = actor(accountId);
       return current && current.world.getEntityId(current.player);

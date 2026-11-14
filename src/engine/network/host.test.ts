@@ -1,3 +1,8 @@
+import { moveEntity } from "../systems/map";
+import { isWalkable } from "../systems/movement";
+import { getClosestPlayer } from "../players";
+import { openPopup } from "../systems/popup";
+import { POPUP } from "../components/popup";
 import { createHost } from "./host";
 import { PLAYER } from "../components/player";
 import { POSITION } from "../components/position";
@@ -56,4 +61,64 @@ it("does not inherit another player's private quick items, chat or camera state"
   expect(
     host.world.assertByIdAndComponents(first, ["VIEWABLE"]).VIEWABLE
   ).not.toBe(host.world.assertByIdAndComponents(second, ["VIEWABLE"]).VIEWABLE);
+});
+
+it("keeps disconnected characters owned without blocking paths or attracting enemies", () => {
+  const host = createHost();
+  const first = host.join("first"),
+    second = host.join("second");
+  const hero = host.world.assertByIdAndComponents(first, [
+    PLAYER,
+    POSITION,
+    "STATS",
+    "AFFECTABLE",
+  ]);
+  moveEntity(host.world, hero, { x: 1, y: 0 });
+  expect(isWalkable(host.world, hero[POSITION])).toBe(false);
+  hero.STATS.hp = 20;
+  hero.STATS.maxHp = 20;
+  hero.STATS.xp = 19;
+  host.disconnect("first");
+  expect(hero[PLAYER].connected).toBe(false);
+  expect(isWalkable(host.world, hero[POSITION])).toBe(true);
+  expect(getClosestPlayer(host.world, hero[POSITION], [PLAYER])).toBe(
+    host.world.getEntityById(second)
+  );
+  hero.AFFECTABLE.dot += 5;
+  host.step();
+  expect(hero.STATS.hp).toBe(20);
+  expect(host.join("first")).toBe(first);
+  host.step();
+  expect(hero[PLAYER].connected).toBe(true);
+  expect(hero.STATS.hp).toBe(20);
+  expect(hero.STATS.xp).toBe(19);
+  expect(isWalkable(host.world, hero[POSITION])).toBe(false);
+});
+
+it("releases an NPC dialog on disconnect and restores saved characters offline until authenticated", () => {
+  const host = createHost();
+  const first = host.join("first"),
+    second = host.join("second");
+  const hero = host.world.assertByIdAndComponents(first, [PLAYER]);
+  const other = host.world.assertByIdAndComponents(second, [PLAYER]);
+  const sign = host.world
+    .getEntities([POPUP, "POSITION"])
+    .find((entity) => entity[POPUP].tabs.includes("info"))!;
+  openPopup(host.world, hero, sign, true);
+  expect(openPopup(host.world, other, sign, true)).toBe(false);
+  host.disconnect("first");
+  expect(openPopup(host.world, other, sign, true)).not.toBe(false);
+  const restored = createHost(host.save());
+  expect(
+    restored.world
+      .getEntities([PLAYER])
+      .every((player) => player[PLAYER].connected === false)
+  ).toBe(true);
+  expect(
+    getClosestPlayer(restored.world, { x: 0, y: 0 }, [PLAYER])
+  ).toBeUndefined();
+  restored.join("second");
+  expect(
+    restored.world.assertByIdAndComponents(second, [PLAYER])[PLAYER].connected
+  ).toBe(true);
 });

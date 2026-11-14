@@ -1,6 +1,6 @@
 # WebSocket engine transport
 
-`createGameServer` wires an engine host to a WebSocket server and durable server persistence. Its default address is loopback and an ephemeral port. The `manual` option disables automatic simulation/publishing for deterministic socket tests. `npm run server` launches it on port 3001; the browser’s Servers menu is still being integrated.
+`createGameServer` wires an engine host to a WebSocket server and durable server persistence. Its default address is loopback and an ephemeral port. The `manual` option disables automatic simulation/publishing for deterministic socket tests. `npm run server` launches it on port 3001; the browser’s local pause menu exposes Servers for connecting.
 
 The server steps at 30 Hz with up to five catch-up frames. A long CPU stall slows simulation rather than accepting client time or rolling back. It publishes full encoded snapshots every 100 ms. Sockets with more than 2 MiB buffered are skipped; paused or application-stalled clients do not receive an accumulating snapshot history. Application heartbeats resume current-state delivery. WebSocket pings detect dead connections.
 

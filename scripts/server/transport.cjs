@@ -91,7 +91,7 @@ exports.createGameServer = async ({
       client.alive = Date.now();
     });
     socket.on("close", () => {
-      if (client.account) simulation.release(client.account.id);
+      if (client.account) simulation.disconnect(client.account.id);
       clients.delete(socket);
     });
     socket.on("message", async (bytes) => {

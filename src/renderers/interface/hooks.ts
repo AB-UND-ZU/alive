@@ -1,3 +1,4 @@
+import type { ConnectionStatus } from "../../engine/network/client";
 import { selectViewable } from "../../engine/players";
 import { cameraSpring } from "../../engine/motion";
 import {
@@ -37,6 +38,8 @@ export type WorldContext = {
   saveStatus?: SaveStatus;
   saveGame: () => void;
   openMenu: () => void;
+  joinServer?: (address: string) => void;
+  serverStatus?: ConnectionStatus;
 };
 
 const initialContext: WorldContext = {

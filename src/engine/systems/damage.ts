@@ -231,7 +231,9 @@ export const isFightable = (world: World, entity: Entity) =>
   !isDecaying(world, entity);
 
 export const isAttackable = (world: World, entity: Entity) =>
-  ATTACKABLE in entity && STATS in entity;
+  ATTACKABLE in entity &&
+  STATS in entity &&
+  entity[PLAYER]?.connected !== false;
 
 export const getAttackables = (
   world: World,
@@ -250,9 +252,7 @@ export const getAttackables = (
 
     if (!isFragment(world, target)) return;
 
-    const structurableEntity = world.getEntityById(
-      target[FRAGMENT].structure
-    );
+    const structurableEntity = world.getEntityById(target[FRAGMENT].structure);
 
     if (!structurableEntity) return;
 

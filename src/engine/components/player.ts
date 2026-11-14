@@ -16,6 +16,7 @@ export type Interaction = {
 
 export type Player = {
   accountId?: string;
+  connected?: boolean;
   interface?: {
     use: number;
     inspect: number;

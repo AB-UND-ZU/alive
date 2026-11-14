@@ -112,3 +112,16 @@ it("uses the selected player's building membership instead of another player's r
     building
   );
 });
+
+it("keeps a shared world cutscene camera from pulling a remote player's view away", () => {
+  const { world, second } = setup();
+  world.metadata.localPlayerId = world.getEntityId(second);
+  entities.createViewpoint(world, {
+    POSITION: { x: 20, y: 20 },
+    RENDERABLE: { generation: 0 },
+    VIEWABLE: { active: true, priority: 30 },
+  });
+  expect(selectViewable(world.getEntities([VIEWABLE, POSITION]), world)).toBe(
+    second
+  );
+});

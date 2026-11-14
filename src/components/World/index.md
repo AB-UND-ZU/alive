@@ -12,6 +12,8 @@ Normal startup paints "Loading game...", loads the shared sound catalog, then sw
 
 Pausing a playable world and returning to the menu save to [local storage](../../game/saves/storage.md). Continue restores a snapshot, reconnects UI callbacks and systems, preloads the world, then remounts its children.
 
+Persistent sessions expose `joinServer` and `serverStatus` in the world context. Joining attaches a confirmed replica without local gameplay systems. Pause affects only that client’s input and presentation; network worlds never write a local game snapshot. Connection loss clears input and leaves the view paused through reconnect until the player resumes. Returning to Menu closes the connection and ignores late callbacks from it.
+
 Play presets enable persistence. Feature snippets leave it off, so their experiments cannot overwrite a real save.
 
 With `?test`, `window.aliveChat("hello")` submits a line for the current hero. Slash commands such as `window.aliveChat("/stat hp 12")` use the same submission function as chat and wiki command previews. The binding follows level changes and is removed when the world unmounts; it is absent in normal play.

@@ -8,4 +8,6 @@ Hosted portal transitions enqueue a transfer at the simulation boundary. Menu, d
 
 Terrain initializes around every hosted player, rather than one global camera. Fog remains cooperative. Snapshots are selected by the authenticated account’s current world, and a client discards old entity identities when changing realms. The same numeric ID may refer to different entities in different worlds.
 
-The transport and engine support realm transfers, but the browser connection flow, cooperative quest rewards and script targeting audit are still unfinished. Reconnecting resumes the character in its own saved world; game progression remains shared within that world.
+The transport and engine support realm transfers, and browser connection flow work together; cooperative quest rewards and the script targeting audit are still unfinished. Reconnecting resumes the character in its own saved world; game progression remains shared within that world.
+
+A hosted `PLAYER.connected` flag distinguishes saved characters from active participants. Disconnecting releases their NPC dialog, removes them from targeting and passability checks and hides their actor in other client views. Characters remain in the authoritative save at their last position. Damage over time is ignored while disconnected without accumulating a burst for reconnect, and passive potions are not consumed. Restarted hosts mark all saved characters offline until authenticated. Pausing stops only input and leaves the character in play.

@@ -98,7 +98,9 @@ export default function setupInitialize(world: World) {
     const viewables = world.getEntities([VIEWABLE, POSITION]);
     const viewable = getActiveViewable(viewables);
     const targets = world.metadata.warpPlayer
-      ? world.getEntities([PLAYER, POSITION])
+      ? world
+          .getEntities([PLAYER, POSITION])
+          .filter((player) => player[PLAYER].connected !== false)
       : viewable
       ? [viewable]
       : [];
@@ -113,6 +115,12 @@ export default function setupInitialize(world: World) {
           viewablePosition.x !== currentPosition.x ||
           viewablePosition.y !== currentPosition.y)
       ) {
+        if (world.metadata.warpPlayer)
+          initializeArea(
+            world,
+            add(currentPosition, { x: -2, y: -2 }),
+            add(currentPosition, { x: 2, y: 2 })
+          );
         const initializeCorner = {
           x:
             currentPosition.x -
