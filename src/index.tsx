@@ -2,6 +2,9 @@ import o9n from "o9n";
 import React from "react";
 import ReactDOM from "react-dom/client";
 
+__webpack_public_path__ =
+  (process.env.PUBLIC_URL || "").replace(/\/$/, "") + "/";
+
 if (process.env.REACT_APP_WIKI === "true") {
   void import("./wiki");
 } else {
