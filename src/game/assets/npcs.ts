@@ -1,3 +1,4 @@
+import { getScriptPlayer } from "../../engine/players";
 import { entities } from "../../engine";
 import { BEHAVIOUR, Pattern } from "../../engine/components/behaviour";
 import { buildConstructions } from "../balancing/building";
@@ -271,10 +272,7 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
   };
 
   const size = world.metadata.gameEntity[LEVEL].size;
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
-    MOVABLE,
-    POSITION,
-  ]);
+  const heroEntity = getScriptPlayer(world, entity, [MOVABLE, POSITION]);
   const heroPosition =
     heroEntity && !isDead(world, heroEntity)
       ? heroEntity[POSITION]
@@ -564,13 +562,15 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
   };
 
   const size = world.metadata.gameEntity[LEVEL].size;
-  const heroEntity = world.getEntity([
-    PLAYER,
-    POSITION,
-    VIEWABLE,
-    LIGHT,
-    SPAWNABLE,
-  ]);
+  let heroEntity = world.metadata.warpPlayer
+    ? getScriptPlayer(world, entity, [
+        PLAYER,
+        POSITION,
+        VIEWABLE,
+        LIGHT,
+        SPAWNABLE,
+      ])
+    : world.getEntity([PLAYER, POSITION, VIEWABLE, LIGHT, SPAWNABLE]);
 
   // unlock final room when lever is activated
   const unlockLever = assertIdentifierAndComponents(world, "unlock_lever", [
@@ -620,12 +620,31 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
     step({
       stage,
       name,
-      forceEnter: () =>
-        ![name, "fight", "death"].includes(state.args.step) &&
-        !state.args.memory.changed &&
-        !!heroEntity &&
-        !isDead(world, heroEntity) &&
-        within(topLeft, bottomRight, heroEntity[POSITION], size),
+      forceEnter: () => {
+        if (
+          [name, "fight", "death"].includes(state.args.step) ||
+          state.args.memory.changed
+        )
+          return false;
+        if (world.metadata.warpPlayer) {
+          const candidate = world
+            .getEntities([PLAYER, POSITION, VIEWABLE, LIGHT, SPAWNABLE])
+            .find(
+              (player) =>
+                player[PLAYER].connected !== false &&
+                !isDead(world, player) &&
+                within(topLeft, bottomRight, player[POSITION], size)
+            );
+          if (!candidate) return false;
+          heroEntity = candidate;
+          return true;
+        }
+        return (
+          !!heroEntity &&
+          !isDead(world, heroEntity) &&
+          within(topLeft, bottomRight, heroEntity[POSITION], size)
+        );
+      },
       onEnter: () => {
         state.args.memory.changed = true;
 
@@ -656,66 +675,70 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
           });
 
         if (heroEntity && quest) {
-          questSequence(world, heroEntity, quest, {});
+          const players = world.metadata.warpPlayer
+            ? world.getEntities([PLAYER, POSITION])
+            : [heroEntity];
+          for (const player of players) questSequence(world, player, quest, {});
         }
 
         if (shouldSpawn) {
-          // close entrances
-          [-0.5, 0.5].forEach((y) => {
-            const mountainEntity = createCell(
-              world,
-              { x: offsetX, y: roomSize.y * y + offsetY },
-              "mountain",
-              "visible"
-            ).cell;
-            setIdentifier(world, mountainEntity, `${name}:blocker`);
-          });
-
-          // create barrier
-          const horizontalOffset = roomSize.x / 2;
-          const verticalOffset = roomSize.y / 2;
-          for (const iteration of iterations) {
-            const delta = orientationPoints[iteration.orientation];
-            const corner = {
-              x: (delta.x - iteration.normal.x) * horizontalOffset + offsetX,
-              y: (delta.y - iteration.normal.y) * verticalOffset + offsetY,
-            };
-            const cornerEntity = entities.createBarrier(world, {
-              [BLOCKABLE]: {},
-              [COLLIDABLE]: {},
-              [FOG]: { visibility: "visible", type: "float", fixed: true },
-              [ORIENTABLE]: { facing: iteration.orientation },
-              [POSITION]: corner,
-              [SPRITE]: barrierCorner,
-              [RENDERABLE]: { generation: 0 },
+          // Keep teammates able to enter an ongoing fight.
+          if (!world.metadata.warpPlayer) {
+            [-0.5, 0.5].forEach((y) => {
+              const mountainEntity = createCell(
+                world,
+                { x: offsetX, y: roomSize.y * y + offsetY },
+                "mountain",
+                "visible"
+              ).cell;
+              setIdentifier(world, mountainEntity, `${name}:blocker`);
             });
-            setIdentifier(world, cornerEntity, `${name}:barrier`);
 
-            const length = Math.abs(
-              (roomSize.x - 1) * iteration.normal.x +
-                (roomSize.y - 1) * iteration.normal.y
-            );
-
-            for (let sideOffset = 1; sideOffset <= length; sideOffset += 1) {
-              const sideEntity = entities.createBarrier(world, {
+            // create barrier
+            const horizontalOffset = roomSize.x / 2;
+            const verticalOffset = roomSize.y / 2;
+            for (const iteration of iterations) {
+              const delta = orientationPoints[iteration.orientation];
+              const corner = {
+                x: (delta.x - iteration.normal.x) * horizontalOffset + offsetX,
+                y: (delta.y - iteration.normal.y) * verticalOffset + offsetY,
+              };
+              const cornerEntity = entities.createBarrier(world, {
                 [BLOCKABLE]: {},
                 [COLLIDABLE]: {},
                 [FOG]: { visibility: "visible", type: "float", fixed: true },
                 [ORIENTABLE]: { facing: iteration.orientation },
-                [POSITION]: add(
-                  {
-                    x: sideOffset * iteration.normal.x,
-                    y: sideOffset * iteration.normal.y,
-                  },
-                  corner
-                ),
-                [SPRITE]: barrierSide,
+                [POSITION]: corner,
+                [SPRITE]: barrierCorner,
                 [RENDERABLE]: { generation: 0 },
               });
-              setIdentifier(world, sideEntity, `${name}:barrier`);
+              setIdentifier(world, cornerEntity, `${name}:barrier`);
+
+              const length = Math.abs(
+                (roomSize.x - 1) * iteration.normal.x +
+                  (roomSize.y - 1) * iteration.normal.y
+              );
+
+              for (let sideOffset = 1; sideOffset <= length; sideOffset += 1) {
+                const sideEntity = entities.createBarrier(world, {
+                  [BLOCKABLE]: {},
+                  [COLLIDABLE]: {},
+                  [FOG]: { visibility: "visible", type: "float", fixed: true },
+                  [ORIENTABLE]: { facing: iteration.orientation },
+                  [POSITION]: add(
+                    {
+                      x: sideOffset * iteration.normal.x,
+                      y: sideOffset * iteration.normal.y,
+                    },
+                    corner
+                  ),
+                  [SPRITE]: barrierSide,
+                  [RENDERABLE]: { generation: 0 },
+                });
+                setIdentifier(world, sideEntity, `${name}:barrier`);
+              }
             }
           }
-
           // activate spawners
           waves.forEach(({ position, types }) => {
             const spawnerEntity = getCellEntities(world, position).find(
@@ -825,7 +848,7 @@ export const earthTownNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const { topLeft, bottomRight, spawn } = state.args.memory;
 
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
+  const heroEntity = getScriptPlayer(world, entity, [
     POSITION,
     VIEWABLE,
     LIGHT,
@@ -1964,7 +1987,7 @@ export const fireHavenNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const { spawn, center, radius, ratio } = state.args.memory;
 
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
+  const heroEntity = getScriptPlayer(world, entity, [
     POSITION,
     VIEWABLE,
     LIGHT,
@@ -2306,7 +2329,7 @@ export const fireJettyGuardNpc: Sequence<NpcSequence> = (
   entity,
   state
 ) => {
-  const hero = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const hero = getScriptPlayer(world, entity, [POSITION]);
   const size = world.metadata.gameEntity[LEVEL].size;
   const memory = state.args.memory;
   memory.origin ||= copy(entity[POSITION]);
@@ -2656,7 +2679,7 @@ export const fireNomadNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
   const nomadChest = getIdentifierAndComponents(world, "nomadChest", [STATS]);
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const heroEntity = getScriptPlayer(world, entity, [POSITION]);
   const inArea =
     !!heroEntity &&
     !isDead(world, heroEntity) &&
@@ -2964,7 +2987,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const { townPosition, townWidth, townHeight } = state.args.memory;
 
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
+  const heroEntity = getScriptPlayer(world, entity, [
     POSITION,
     VIEWABLE,
     LIGHT,
@@ -3270,7 +3293,7 @@ export const oakRoom: Sequence<NpcSequence> = (world, entity, state) => {
     BELONGABLE,
     POSITION,
   ]);
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
+  const heroEntity = getScriptPlayer(world, entity, [
     LIGHT,
     POSITION,
     EQUIPPABLE,
@@ -3390,7 +3413,7 @@ export const chestNpc: Sequence<NpcSequence> = (world, entity, state) => {
     updated: false,
   };
 
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
+  const heroEntity = getScriptPlayer(world, entity, [
     POSITION,
     EQUIPPABLE,
     STATS,
@@ -3709,7 +3732,7 @@ export const wormRoom: Sequence<NpcSequence> = (world, entity, state) => {
     finished: false,
     updated: false,
   };
-  const hero = getIdentifierAndComponents(world, "hero", [POSITION, VIEWABLE]);
+  const hero = getScriptPlayer(world, entity, [POSITION, VIEWABLE]);
   if (!hero) return { finished: false, updated: false };
   const size = world.metadata.gameEntity[LEVEL].size;
   const center = entity[POSITION];

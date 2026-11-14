@@ -128,3 +128,32 @@ export const getInteraction = (world: World, player: Partial<Entity>) => {
     origin: { x: 0, y: 0 },
   });
 };
+
+export const getScriptPlayer = <C extends keyof Entity>(
+  world: World,
+  entity: Partial<Entity>,
+  components: C[]
+) => {
+  if (!world.metadata.warpPlayer) {
+    const hero = world
+      .getEntities([IDENTIFIABLE])
+      .find((candidate) => candidate[IDENTIFIABLE].name === "hero");
+    return hero && world.getEntityComponents(hero, components);
+  }
+  if (entity[PLAYER])
+    return entity[PLAYER].connected === false
+      ? undefined
+      : world.getEntityByIdAndComponents(world.getEntityId(entity), components);
+  if (entity[POPUP]?.active && entity[POPUP].owner !== undefined) {
+    const owner = world.getEntityByIdAndComponents(entity[POPUP].owner, [
+      PLAYER,
+      ...components,
+    ]);
+    if (owner && owner[PLAYER].connected !== false) return owner;
+  }
+  return getClosestPlayer(
+    world,
+    entity[POSITION] || { x: 0, y: 0 },
+    components
+  );
+};

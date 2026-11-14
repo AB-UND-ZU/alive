@@ -9,6 +9,8 @@ import { SEQUENCABLE } from "../../engine/components/sequencable";
 import { SPRITE } from "../../engine/components/sprite";
 import { STATS } from "../../engine/components/stats";
 import { VIEWABLE } from "../../engine/components/viewable";
+import { createHero } from "../../engine/systems/fate";
+import { registerEntity } from "../../engine/systems/map";
 import { disposeEntity, getCellEntities } from "../../engine/systems/map";
 import { getSequence } from "../../engine/systems/sequence";
 import { assertIdentifierAndComponents } from "../../engine/utils";
@@ -163,4 +165,21 @@ describe("tutorial rooms", () => {
     expect(lever[SPRITE]).toBe(leverOn);
     expect(isBlocked()).toBe(false);
   });
+});
+
+it("starts a shared dungeon fight for the arriving teammate and keeps its entrances open", () => {
+  const { world, hero, viewpoint } = setupTutorial();
+  world.metadata.warpPlayer = () => {};
+  const teammate = createHero(world, hero);
+  registerEntity(world, teammate);
+  teleport(world, teammate, { x: 0, y: -roomSize.y * 3 + 1 });
+  refresh(world);
+  advanceUntil(world, () => getStep(world, viewpoint) === "fight", 2000);
+  expect(
+    named(world, "north3:spawner").some(
+      (entity) => entity.SPAWNABLE || entity.BEHAVIOUR
+    )
+  ).toBe(true);
+  expect(named(world, "north3:blocker")).toHaveLength(0);
+  expect(named(world, "north3:barrier")).toHaveLength(0);
 });

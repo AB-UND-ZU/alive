@@ -229,7 +229,7 @@ export default function setupAction(world: World) {
       // check direct actions
 
       // tombstones can revive player
-      const spawnEntity = getRevivable(world, entity[POSITION]);
+      const spawnEntity = getRevivable(world, entity[POSITION], entity);
       if (isDead(world, entity)) {
         if (spawnEntity && canRevive(world, spawnEntity, entity)) {
           spawn = spawnEntity;

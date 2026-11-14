@@ -135,3 +135,15 @@ it("removing the second actor's dialog leaves the first actor's dialog open", ()
   expect(first[PLAYER].popup).toBe(world.getEntityId(signs[0]));
   expect(signs[0][POPUP].active).toBe(true);
 });
+
+it("starts a new reader at the beginning without inheriting the previous reader's selections", () => {
+  const { world, first, second, signs } = setup();
+  const sign = signs[0];
+  openPopup(world, first, sign, true);
+  sign[POPUP].verticalIndezes = [5];
+  sign[POPUP].selections = [[2]];
+  closePopup(world, first, sign);
+  openPopup(world, second, sign, true);
+  expect(sign[POPUP].verticalIndezes).toEqual([0]);
+  expect(sign[POPUP].selections).toEqual([[]]);
+});

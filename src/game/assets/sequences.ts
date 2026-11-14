@@ -1,4 +1,4 @@
-import { getPopupPlayer } from "../../engine/players";
+import { getPopupPlayer, getScriptPlayer } from "../../engine/players";
 import type { Entity } from "ecs";
 import type { World } from "../../engine";
 import type { SequenceState } from "../../engine/components/sequencable";
@@ -376,7 +376,7 @@ import {
   popupIdles,
   visibleStats,
 } from "../../engine/systems/popup";
-import { getIdentifierAndComponents, TEST_MODE } from "../../engine/utils";
+import { TEST_MODE } from "../../engine/utils";
 import { play } from "../sound";
 import { extinguishEntity } from "../../engine/systems/burn";
 import {
@@ -2369,7 +2369,7 @@ export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
     if (warning[SPRITE] !== sprite) {
       warning[SPRITE] = sprite;
       rerenderEntity(world, warning);
-      const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+      const heroEntity = getScriptPlayer(world, entity, [POSITION]);
       const distance = heroEntity
         ? getDistance(entity[POSITION], heroEntity[POSITION], size) + 1
         : 2;
@@ -2405,7 +2405,7 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
   let updated = false;
 
   // scale sounds by distance to hero
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const heroEntity = getScriptPlayer(world, entity, [POSITION]);
   const dashProximity = heroEntity
     ? 1 / (getDistance(entity[POSITION], heroEntity[POSITION], size) + 1)
     : 0.5;
@@ -2964,7 +2964,7 @@ export const totemAura: Sequence<AuraSequence> = (world, entity, state) => {
 
     // swell along with the aura brightening
     if ((auraGeneration + 10) % 15 === 12 && !finished) {
-      const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+      const heroEntity = getScriptPlayer(world, entity, [POSITION]);
       const distance = heroEntity
         ? getDistance(entity[POSITION], heroEntity[POSITION], size) + 1
         : 2;
@@ -3863,11 +3863,7 @@ const xpTime = 180;
 
 export const acquireXp: Sequence<XpSequence> = (world, entity, state) => {
   const size = world.metadata.gameEntity[LEVEL].size;
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
-    PLAYER,
-    POSITION,
-    STATS,
-  ]);
+  const heroEntity = getScriptPlayer(world, entity, [PLAYER, POSITION, STATS]);
   const generation = Math.floor(state.elapsed / xpTime);
   const particleLength = Object.keys(state.particles).length;
 
@@ -7669,7 +7665,7 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
   const burnGeneration = Math.ceil(state.elapsed / fireTick);
   const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
   const worldDelta = world.metadata.gameEntity[REFERENCE].delta;
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const heroEntity = getScriptPlayer(world, entity, [POSITION]);
   const size = world.metadata.gameEntity[LEVEL].size;
   const entityId = world.getEntityId(entity);
 
@@ -8734,7 +8730,7 @@ export const popupInteract: Sequence<InteractSequence> = (
 ) => {
   const heroEntity =
     state.args.owner === undefined
-      ? getIdentifierAndComponents(world, "hero", [POSITION])
+      ? getScriptPlayer(world, entity, [POSITION])
       : world.getEntityByIdAndComponents(state.args.owner, [POSITION]);
   const orientation = state.args.orientation;
   const delta = orientationPoints[orientation];
@@ -8971,7 +8967,7 @@ export const discoveryIdle: Sequence<DiscoverySequence> = (
   entity,
   state
 ) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const heroEntity = getScriptPlayer(world, entity, [POSITION]);
 
   const size = world.metadata.gameEntity[LEVEL].size;
   const controlled = state.args.force !== undefined;
@@ -9077,7 +9073,7 @@ const shoutSprites = {
 };
 
 export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const heroEntity = getScriptPlayer(world, entity, [POSITION]);
 
   let updated = false;
 
@@ -9513,7 +9509,7 @@ const vortexColors = ["red", "lime", "yellow"] as const;
 export const vortexDots: Sequence<VortexSequence> = (world, entity, state) => {
   const generation = Math.floor(state.elapsed / vortexTime);
   const size = world.metadata.gameEntity[LEVEL].size;
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const heroEntity = getScriptPlayer(world, entity, [POSITION]);
   const particleCount = Object.keys(state.particles).length;
 
   let updated = false;
@@ -9609,7 +9605,7 @@ export const fountainSplash: Sequence<FountainSequence> = (
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const heroEntity = getScriptPlayer(world, entity, [POSITION]);
 
   const distance = heroEntity
     ? getDistance(heroEntity[POSITION], entity[POSITION], size, 1, false)
@@ -9743,7 +9739,7 @@ export const fountainSplash: Sequence<FountainSequence> = (
 const branchTime = 100;
 
 export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const heroEntity = getScriptPlayer(world, entity, [POSITION]);
   const oakEntity = getStructure(world, entity);
 
   if (!oakEntity) return { finished: true, updated: false };

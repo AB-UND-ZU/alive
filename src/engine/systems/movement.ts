@@ -170,7 +170,13 @@ export const isPassable = (
 
   return (
     (!collidable || collidable === exclude) &&
-    (!attackable || attackable === exclude) &&
+    (!attackable ||
+      attackable === exclude ||
+      !!(
+        world.metadata.warpPlayer &&
+        exclude?.[PLAYER] &&
+        attackable[PLAYER]
+      )) &&
     !(lockable && isLocked(world, lockable)) &&
     !getLootable(world, position) &&
     !getCollecting(world, position) &&
@@ -226,7 +232,11 @@ export const isLimbWalkable = (
       return true;
   }
 
-  return isWalkable(world, position);
+  return isWalkable(
+    world,
+    position,
+    world.metadata.warpPlayer && entity[PLAYER] ? entity : undefined
+  );
 };
 
 export const isFlyable = (world: World, position: Position) => {

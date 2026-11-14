@@ -5676,7 +5676,9 @@ export default function setupAi(world: World) {
           const wavesTicks = 15;
           const wavesShots = 5;
 
-          const heroEntity = getIdentifier(world, "hero");
+          const heroEntity = getClosestPlayer(world, entity[POSITION], [
+            PLAYER,
+          ]);
           const heroId = heroEntity && world.getEntityId(heroEntity);
           const spellItem = world.getEntityByIdAndComponents(
             entity[INVENTORY]?.items.find(

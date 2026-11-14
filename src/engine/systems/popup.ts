@@ -765,7 +765,19 @@ export const openPopup = (
     popupEntity[POPUP].owner !== world.getEntityId(heroEntity)
   )
     return false;
-  popupEntity[POPUP].owner = world.getEntityId(heroEntity);
+  const owner = world.getEntityId(heroEntity);
+  if (
+    popupEntity[POPUP].owner !== undefined &&
+    popupEntity[POPUP].owner !== owner
+  ) {
+    const popup = popupEntity[POPUP] as Popup;
+    popup.selections = popup.tabs.map(() => []);
+    popup.verticalIndezes = popup.tabs.map((tab, index) =>
+      tab === "warp" ? popup.verticalIndezes[index] : 0
+    );
+    popup.horizontalIndex = 0;
+  }
+  popupEntity[POPUP].owner = owner;
   if (popupEntity[POPUP].tabs.includes("load") && !popupEntity[RESTORABLE]) {
     addRestorable(world, popupEntity, {});
   }

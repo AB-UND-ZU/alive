@@ -72,13 +72,23 @@ export const isSoulReady = (world: World, entity: Entity) =>
 export const isRevivable = (world: World, entity: Entity) =>
   entity[REVIVABLE]?.available;
 
-export const getRevivable = (world: World, position: Position) =>
-  getCellEntities(world, position).find((target) =>
-    isRevivable(world, target)
+export const getRevivable = (
+  world: World,
+  position: Position,
+  player?: Entity
+) =>
+  getCellEntities(world, position).find(
+    (target) =>
+      isRevivable(world, target) &&
+      (!player || canRevive(world, target, player))
   ) as Entity | undefined;
 
 export const canRevive = (world: World, entity: Entity, target: Entity) =>
-  isRevivable(world, entity) && isGhost(world, target) && SOUL in target;
+  isRevivable(world, entity) &&
+  isGhost(world, target) &&
+  SOUL in target &&
+  (!world.metadata.warpPlayer ||
+    target[SOUL].tombstoneId === world.getEntityId(entity));
 
 export const reviveEntity = (world: World, entity: Entity, target: Entity) => {
   entity[REVIVABLE].available = false;
@@ -101,7 +111,10 @@ export const reviveEntity = (world: World, entity: Entity, target: Entity) => {
     "soulRespawn",
     {
       tombstoneId: world.getEntityId(entity),
-      target: target[SPAWNABLE].position,
+      target:
+        (world.metadata.warpPlayer &&
+          getIdentifier(world, "spawn")?.POSITION) ||
+        target[SPAWNABLE].position,
       viewable: target[SPAWNABLE].viewable,
       light: target[SPAWNABLE].light,
       compassId: target[SPAWNABLE].compassId,

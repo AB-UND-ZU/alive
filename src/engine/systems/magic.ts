@@ -358,10 +358,9 @@ export default function setupMagic(world: World) {
   let referenceGenerations = -1;
   // continue from restored entities, so loading a saved game doesn't replay
   // received stats or damage over time
-  const playerStats: Player["receivedStats"] = {
-    ...(world.getEntity([PLAYER])?.[PLAYER].receivedStats ||
-      emptyReceivedStats),
-  };
+  const receivedStats = new WeakMap<Entity, Player["receivedStats"]>();
+  for (const player of world.getEntities([PLAYER]))
+    receivedStats.set(player, { ...player[PLAYER].receivedStats });
   const entityDots: Record<number, number> = {};
   for (const entity of world.getEntities([AFFECTABLE])) {
     entityDots[world.getEntityId(entity)] = entity[AFFECTABLE].dot;
@@ -711,6 +710,10 @@ export default function setupMagic(world: World) {
     // process healing, mana and XP animation after consumption
     for (const entity of world.getEntities([SEQUENCABLE, PLAYER, STATS])) {
       let previousStats = 0;
+      const playerStats = receivedStats.get(entity) || {
+        ...emptyReceivedStats,
+      };
+      receivedStats.set(entity, playerStats);
 
       for (const key in entity[PLAYER].receivedStats) {
         const statName = key as keyof Player["receivedStats"];

@@ -4,7 +4,13 @@ import { LAYER } from "./components/layer";
 import { VIEWABLE } from "./components/viewable";
 import { STRUCTURABLE } from "./components/structurable";
 import { updateCameraMotion } from "./motion";
-import { getClosestPlayer, getLocalPlayer, selectViewable } from "./players";
+import {
+  getClosestPlayer,
+  getLocalPlayer,
+  getScriptPlayer,
+  selectViewable,
+} from "./players";
+import { createPopup } from "./systems/popup";
 import { createHero } from "./systems/fate";
 import { advance, assertHero, createAreaWorld } from "../testing/harness";
 import { POSITION } from "./components/position";
@@ -124,4 +130,22 @@ it("keeps a shared world cutscene camera from pulling a remote player's view awa
   expect(selectViewable(world.getEntities([VIEWABLE, POSITION]), world)).toBe(
     second
   );
+});
+
+it("selects the dialog owner for shared scripts and otherwise follows the nearest active character", () => {
+  const { world, first, second } = setup();
+  world.metadata.warpPlayer = () => {};
+  const sign = world.createEntity();
+  world.addComponentToEntity(sign, POSITION, { x: 7, y: 1 });
+  expect(getScriptPlayer(world, sign, [STATS])).toBe(second);
+  world.addComponentToEntity(sign, "SEQUENCABLE", { states: {} });
+  world.addComponentToEntity(sign, "RENDERABLE", { generation: 0 });
+  createPopup(world, sign, { tabs: ["info"] });
+  sign.POPUP!.active = true;
+  sign.POPUP!.owner = world.getEntityId(first);
+  expect(getScriptPlayer(world, sign, [STATS])).toBe(first);
+  first[PLAYER].connected = false;
+  expect(getScriptPlayer(world, sign, [STATS])).toBe(second);
+  second[STATS].hp = 0;
+  expect(getScriptPlayer(world, sign, [STATS])).toBeUndefined();
 });

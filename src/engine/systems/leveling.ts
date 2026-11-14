@@ -1,3 +1,4 @@
+import { getClosestPlayer } from "../players";
 import { Entity } from "ecs";
 import { POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -179,9 +180,8 @@ export default function setupLeveling(world: World) {
       world.metadata.gameEntity[RENDERABLE].generation;
 
     if (
-      !hero ||
-      isDead(world, hero) ||
-      isGhost(world, hero) ||
+      (!world.metadata.warpPlayer &&
+        (!hero || isDead(world, hero) || isGhost(world, hero))) ||
       currentWorldGeneration === worldGeneration
     )
       return;
@@ -194,10 +194,14 @@ export default function setupLeveling(world: World) {
       LOOTABLE,
       POSITION,
     ])) {
+      const collector = world.metadata.warpPlayer
+        ? getClosestPlayer(world, entity[POSITION], [PLAYER])
+        : hero;
       // skip if not visible or not in range
       if (
+        !collector ||
         entity[FOG].visibility !== "visible" ||
-        getDistance(hero[POSITION], entity[POSITION], size, 1) > 4
+        getDistance(collector[POSITION], entity[POSITION], size, 1) > 4
       )
         continue;
 
