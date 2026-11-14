@@ -1,3 +1,5 @@
+import { POSITION } from "./components/position";
+import { registerEntity } from "./systems/map";
 import {
   initializeParticleMotion,
   releaseMotion,
@@ -360,9 +362,11 @@ export const createSystems = (world: World) => {
 };
 
 export const preloadLevel = (world: World) => {
-  // ensure all entities are registered by running map system once
+  // Cleanup may have consumed creation events before the level was preloaded.
   const mapSystem = systems.setupMap(world);
   mapSystem.onUpdate(0);
+  for (const entity of world.getEntities([POSITION]))
+    registerEntity(world, entity);
 
   // run one full game tick
   world.metadata.ecs.ecs.update(0);

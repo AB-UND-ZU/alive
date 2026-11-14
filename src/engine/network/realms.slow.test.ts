@@ -1,3 +1,4 @@
+import { moveEntity, getCellEntities } from "../systems/map";
 import { selectViewable } from "../players";
 import { getIdentifier } from "../utils";
 import { INVENTORY } from "../components/inventory";
@@ -206,4 +207,40 @@ it("reconnects a saved ghost and restores its owned camera and interfaces after 
     ].owner
   ).toBe(owner);
   expect(host.actorId("second")).not.toBe(owner);
+});
+
+it("lets the second player buy the dungeon key from the freshly generated Guide", () => {
+  const host = createHost();
+  host.join("first");
+  host.join("second");
+  warp(host, "first", "LEVEL_TUTORIAL");
+  warp(host, "second", "LEVEL_TUTORIAL");
+  const world = host.worldFor("second")!;
+  const guide = world.assertComponents(getIdentifier(world, "guide")!, [
+    POSITION,
+    POPUP,
+  ]);
+  expect(getCellEntities(world, guide[POSITION])).toContain(guide);
+  const shopper = player(host, "second");
+  moveEntity(world, shopper, {
+    x: guide[POSITION].x - 1,
+    y: guide[POSITION].y,
+  });
+  giveItems(world, shopper, [{ stackable: "coin", amount: 1 }]);
+  for (let frame = 0; frame < 90; frame++) host.step();
+  host.receive("second", { sequence: 0, action: { kind: "interact" } });
+  for (let frame = 0; frame < 30; frame++) host.step();
+  expect(shopper[PLAYER].popup).toBe(world.getEntityId(guide));
+  expect(guide[POPUP].owner).toBe(world.getEntityId(shopper));
+  expect(player(host, "first")[PLAYER].popup).toBeUndefined();
+  host.receive("second", { sequence: 1, action: { kind: "right" } });
+  for (let frame = 0; frame < 30; frame++) host.step();
+  expect(getItems(world, shopper)).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ consume: "key", material: "iron", amount: 1 }),
+    ])
+  );
+  expect(
+    getItems(world, shopper).some((item) => item.stackable === "coin")
+  ).toBe(false);
 });

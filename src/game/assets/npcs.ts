@@ -600,6 +600,25 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
     },
   });
 
+  if (world.metadata.warpPlayer) {
+    const playerRooms = (state.args.memory.playerRooms ||= {});
+    for (const player of world.getEntities([PLAYER, POSITION])) {
+      if (player[PLAYER].connected === false || isDead(world, player)) continue;
+      const room = tutorialRooms.find(({ offsetX, offsetY }) =>
+        within(
+          { x: offsetX - roomSize.x / 2, y: offsetY - roomSize.y / 2 },
+          { x: offsetX + roomSize.x / 2, y: offsetY + roomSize.y / 2 },
+          player[POSITION],
+          size
+        )
+      );
+      const playerId = player[PLAYER].accountId || world.getEntityId(player);
+      if (!room || playerRooms[playerId] === room.name) continue;
+      playerRooms[playerId] = room.name;
+      if (room.quest) questSequence(world, player, room.quest, {});
+    }
+  }
+
   tutorialRooms.forEach(({ name, offsetX, offsetY, quest, waves }) => {
     const topLeft = {
       x: offsetX - roomSize.x * 0.5,
@@ -627,6 +646,8 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
         )
           return false;
         if (world.metadata.warpPlayer) {
+          if (state.args.memory.visitedRooms?.includes(name) && !shouldSpawn)
+            return false;
           const candidate = world
             .getEntities([PLAYER, POSITION, VIEWABLE, LIGHT, SPAWNABLE])
             .find(
@@ -647,6 +668,11 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
       },
       onEnter: () => {
         state.args.memory.changed = true;
+        if (
+          world.metadata.warpPlayer &&
+          !state.args.memory.visitedRooms?.includes(name)
+        )
+          (state.args.memory.visitedRooms ||= []).push(name);
 
         entity[VIEWABLE].active = true;
 
@@ -674,12 +700,8 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
             disposeEntity(world, entity);
           });
 
-        if (heroEntity && quest) {
-          const players = world.metadata.warpPlayer
-            ? world.getEntities([PLAYER, POSITION])
-            : [heroEntity];
-          for (const player of players) questSequence(world, player, quest, {});
-        }
+        if (heroEntity && quest && !world.metadata.warpPlayer)
+          questSequence(world, heroEntity, quest, {});
 
         if (shouldSpawn) {
           // Keep teammates able to enter an ongoing fight.

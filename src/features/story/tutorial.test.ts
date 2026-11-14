@@ -1,3 +1,9 @@
+import { PLAYER } from "../../engine/components/player";
+import { LEVEL } from "../../engine/components/level";
+import { INVENTORY } from "../../engine/components/inventory";
+import { ITEM } from "../../engine/components/item";
+import { EQUIPPABLE } from "../../engine/components/equippable";
+import { collectItem } from "../../engine/systems/collect";
 import { World } from "../../engine";
 import { BEHAVIOUR } from "../../engine/components/behaviour";
 import { CLICKABLE } from "../../engine/components/clickable";
@@ -17,6 +23,7 @@ import { assertIdentifierAndComponents } from "../../engine/utils";
 import { leverOff, leverOn } from "../../game/assets/sprites";
 import { roomSize } from "../../game/levels/tutorial/areas";
 import {
+  advance,
   advanceUntil,
   assertHero,
   createTestWorld,
@@ -182,4 +189,104 @@ it("starts a shared dungeon fight for the arriving teammate and keeps its entran
   ).toBe(true);
   expect(named(world, "north3:blocker")).toHaveLength(0);
   expect(named(world, "north3:barrier")).toHaveLength(0);
+});
+
+it("shares the tutorial starter stick once with teammates and late arrivals", () => {
+  const { world, hero } = setupTutorial();
+  world.metadata.warpPlayer = () => {};
+  const teammate = createHero(world, hero);
+  registerEntity(world, teammate);
+  const source = assertIdentifierAndComponents(world, "wood_one", [INVENTORY]);
+  expect(collectItem(world, hero, source)).toBe(true);
+  advance(world, 1500);
+  const swords = (player: typeof teammate) =>
+    player[INVENTORY].items
+      .map((id) => world.assertByIdAndComponents(id, [ITEM]))
+      .filter((item) => item[ITEM].weapon === "sword");
+  expect(swords(teammate)).toHaveLength(1);
+  expect(teammate[EQUIPPABLE].weapon).toBe(
+    world.getEntityId(swords(teammate)[0])
+  );
+  expect(hero[EQUIPPABLE]!.weapon).not.toBe(teammate[EQUIPPABLE].weapon);
+  expect(collectItem(world, hero, source)).toBe(false);
+  expect(world.metadata.gameEntity[LEVEL].cooperativeRewards).toHaveLength(1);
+  const arriving = createHero(world, hero);
+  arriving.PLAYER!.rewardOffsets = {};
+  registerEntity(world, arriving);
+  advance(world, 1500);
+  expect(swords(arriving)).toHaveLength(1);
+  expect(swords(teammate)).toHaveLength(1);
+});
+
+it("keeps the single-player starter pickup as one ordinary wooden sword", () => {
+  const { world, hero } = setupTutorial();
+  const source = assertIdentifierAndComponents(world, "wood_one", [INVENTORY]);
+  expect(collectItem(world, hero, source)).toBe(true);
+  advance(world, 1500);
+  const items = world.assertComponents(hero, [INVENTORY])[INVENTORY].items;
+  expect(items).toHaveLength(1);
+  expect(world.assertByIdAndComponents(items[0], [ITEM])[ITEM].weapon).toBe(
+    "sword"
+  );
+  expect(world.metadata.gameEntity[LEVEL].cooperativeRewards).toBeUndefined();
+});
+
+it("keeps dungeon quests stable while teammates occupy different rooms", () => {
+  const { world, hero } = setupTutorial();
+  world.metadata.warpPlayer = () => {};
+  const teammate = createHero(world, hero);
+  registerEntity(world, teammate);
+  enterRoom(world, -roomSize.y);
+  teleport(world, teammate, { x: 0, y: -roomSize.y * 2 + 1 });
+  advance(world, 1500);
+  const quest = getSequence(world, teammate, "quest");
+  expect(quest?.name).toBe("north2Quest");
+  expect(getSequence(world, hero, "quest")?.name).toBe("north1Quest");
+  advance(world, 2000);
+  expect(getSequence(world, teammate, "quest")).toBe(quest);
+  const arriving = createHero(world, hero);
+  registerEntity(world, arriving);
+  teleport(world, arriving, teammate[POSITION]);
+  advance(world, 1000);
+  expect(getSequence(world, arriving, "quest")?.name).toBe("north2Quest");
+  expect(getSequence(world, teammate, "quest")).toBe(quest);
+});
+
+it("restarts an interrupted cooperative fight when the party reconnects", () => {
+  const { world, hero, viewpoint } = setupTutorial();
+  world.metadata.warpPlayer = () => {};
+  enterRoom(world, -roomSize.y * 3);
+  advanceUntil(world, () => getStep(world, viewpoint) === "fight", 2000);
+  hero[PLAYER]!.connected = false;
+  advanceUntil(world, () => getStep(world, viewpoint) === "wait", 2000);
+  hero[PLAYER]!.connected = true;
+  advanceUntil(world, () => getStep(world, viewpoint) === "fight", 2000);
+  expect(
+    named(world, "north3:spawner").some(
+      (spawner) => spawner[BEHAVIOUR]?.patterns[0]?.name === "spawner"
+    )
+  ).toBe(true);
+});
+
+it("reveals the optional pond when another teammate has already cleared a later room", () => {
+  const { world, hero, viewpoint } = setupTutorial();
+  world.metadata.warpPlayer = () => {};
+  enterRoom(world, -roomSize.y * 3);
+  advanceUntil(world, () => getStep(world, viewpoint) === "fight", 2000);
+  named(world, "north3:spawner").forEach((spawner) =>
+    disposeEntity(world, spawner)
+  );
+  advanceUntil(world, () => getStep(world, viewpoint) === "wait", 2000);
+  const teammate = createHero(world, hero);
+  registerEntity(world, teammate);
+  teleport(world, teammate, { x: roomSize.x, y: -roomSize.y * 2 });
+  advanceUntil(
+    world,
+    () => named(world, "north2east1:float").length === 0,
+    2000
+  );
+  expect(getSequence(world, teammate, "quest")?.name).toBe("north2East1Quest");
+  const quest = getSequence(world, teammate, "quest");
+  advance(world, 1000);
+  expect(getSequence(world, teammate, "quest")).toBe(quest);
 });
