@@ -1,0 +1,34 @@
+{
+  "files": {
+    "main.js": "/alive/terminal/static/js/main.66089335.js",
+    "static/css/711.b1d85280.chunk.css": "/alive/terminal/static/css/711.b1d85280.chunk.css",
+    "static/js/711.1f90829d.chunk.js": "/alive/terminal/static/js/711.1f90829d.chunk.js",
+    "static/css/510.ae8a4ded.chunk.css": "/alive/terminal/static/css/510.ae8a4ded.chunk.css",
+    "static/js/510.ae6ef59c.chunk.js": "/alive/terminal/static/js/510.ae6ef59c.chunk.js",
+    "static/css/145.3a9da321.chunk.css": "/alive/terminal/static/css/145.3a9da321.chunk.css",
+    "static/js/145.17cd35dc.chunk.js": "/alive/terminal/static/js/145.17cd35dc.chunk.js",
+    "static/js/706.c39a2351.chunk.js": "/alive/terminal/static/js/706.c39a2351.chunk.js",
+    "static/js/918.92c83454.chunk.js": "/alive/terminal/static/js/918.92c83454.chunk.js",
+    "static/js/943.7dac7c96.chunk.js": "/alive/terminal/static/js/943.7dac7c96.chunk.js",
+    "static/js/526.bbd8e91d.chunk.js": "/alive/terminal/static/js/526.bbd8e91d.chunk.js",
+    "static/js/78.1cf2ebdf.chunk.js": "/alive/terminal/static/js/78.1cf2ebdf.chunk.js",
+    "static/media/MostPerfectDOSVGA.woff": "/alive/terminal/static/media/MostPerfectDOSVGA.ff65b94f203e7b207f3c.woff",
+    "static/media/MostPerfectDOSVGA.woff2": "/alive/terminal/static/media/MostPerfectDOSVGA.d0760396b796111f4b25.woff2",
+    "index.html": "/alive/terminal/index.html",
+    "main.66089335.js.map": "/alive/terminal/static/js/main.66089335.js.map",
+    "711.b1d85280.chunk.css.map": "/alive/terminal/static/css/711.b1d85280.chunk.css.map",
+    "711.1f90829d.chunk.js.map": "/alive/terminal/static/js/711.1f90829d.chunk.js.map",
+    "510.ae8a4ded.chunk.css.map": "/alive/terminal/static/css/510.ae8a4ded.chunk.css.map",
+    "510.ae6ef59c.chunk.js.map": "/alive/terminal/static/js/510.ae6ef59c.chunk.js.map",
+    "145.3a9da321.chunk.css.map": "/alive/terminal/static/css/145.3a9da321.chunk.css.map",
+    "145.17cd35dc.chunk.js.map": "/alive/terminal/static/js/145.17cd35dc.chunk.js.map",
+    "706.c39a2351.chunk.js.map": "/alive/terminal/static/js/706.c39a2351.chunk.js.map",
+    "918.92c83454.chunk.js.map": "/alive/terminal/static/js/918.92c83454.chunk.js.map",
+    "943.7dac7c96.chunk.js.map": "/alive/terminal/static/js/943.7dac7c96.chunk.js.map",
+    "526.bbd8e91d.chunk.js.map": "/alive/terminal/static/js/526.bbd8e91d.chunk.js.map",
+    "78.1cf2ebdf.chunk.js.map": "/alive/terminal/static/js/78.1cf2ebdf.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.66089335.js"
+  ]
+}

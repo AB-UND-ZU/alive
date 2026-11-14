@@ -1,0 +1,36 @@
+# Motion timing
+
+Entity movement, animated particles, bumps and the camera use the simulation clock rather than elapsed render frames. `elapsed` advances once per ECS update. `Systems` adds its unprocessed fractional step to `renderTime` and samples positions before instance uploads and shadow checks. Pause and suspension stop both clocks and preserve the fractional remainder, so resuming does not rewind or lose animation time. The existing limit on simulation catch-up still applies after a long stall.
+
+`moveEntity` records every movement target, including changes during simulation catch-up. After each simulation update, a set containing only animated particles records their targets before a later React commit can collapse them. Disposing a particle records its final target and removes it from that set. Its weak motion record remains available until the renderer releases the entity, so the last mounted frame continues along the same path. New particles start at their animated origin at creation time. When an existing particle gains an origin, `updateParticleMotion` registers it; popup borders use this when their window starts opening. Motion records live in WeakMaps; they are neither ECS components nor saved-game data, and do not keep disposed entities alive.
+
+`bumpEntity` records the bump direction and generation together with its simulation-time motion. Pickup, switches, harvesting, digging, fishing, spikes, combat and AI all use this same entry point, including actions that do not rerender the entity immediately. Rendering samples the recorded bump and cannot restart it.
+
+A motion stores its origin, target, start time, configuration and initial velocity. Duration animations sample their configured easing at the requested time. Retargeting first samples the old motion at the event time, retaining continuity and physics momentum. Wrapped movement follows the adjacent world quadrant. Runtime movement-duration changes, such as a golem fist stopping or mounting a vessel, synchronize at the simulation event and preserve the existing normalized progress.
+
+Physics sampling raises the existing spring's 1 ms semi-implicit Euler transition matrix to the elapsed step count. Fractional milliseconds interpolate adjacent steps. This preserves the old mass, tension and friction response without looping over every missed millisecond. Regression tests compare the game's spring configurations against React Spring's original integrator. Position animation does not depend on React Spring's 64 ms frame-delta limit.
+
+The forging hammer has an explicit repeating back-and-forth trajectory. Each swing uses the sequence's elapsed phase, including fractional render time, so a frame immediately after a reversal shows the correct side and direction. Hit/drop/return transitions replace the repeating motion normally. Existing swing endpoints, timing, sprites and hit rules are preserved; the first swing now begins on the correct side. Returning after a hit finishes at that same starting edge, avoiding a jump when the next swing begins.
+
+Animated groups read live targets and sample their motion before drawing. React initializes each group's transform once; subsequent prop commits cannot overwrite a sampled position with the next target. Local matrices update only when a sampled position changes. This keeps settled groups out of Three.js's repeated local-matrix calculations while preserving world-matrix and shadow updates.
+
+The camera records the highest-priority active viewpoint after each simulation update. Its existing default spring, viewpoint overrides, fractional offsets and immediate level changes use the same clock as entities. Camera records are released when the camera unmounts.
+
+Opacity, health-bar scaling, swimming effects and screen shake continue using their existing visual springs. They do not determine entity or hammer positions.
+<!-- source-types -->
+
+## Motion
+
+```ts src/engine/motion.ts
+export type Motion = {
+  x: number;
+  y: number;
+  fromX: number;
+  fromY: number;
+  velocityX: number;
+  velocityY: number;
+  startedAt: number;
+  config: SpringConfig;
+  pingPong?: boolean;
+};
+```
