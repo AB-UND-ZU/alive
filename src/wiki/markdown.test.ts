@@ -132,3 +132,11 @@ test("rejects an unknown renderer client", () => {
     parseMarkdown("```scene\nclients/missing\n```", page, [page], {})
   ).toThrow("Unknown scene");
 });
+
+test.each(["../", "../html/", "../terminal/"])(
+  "keeps the %s live client link relative to the wiki",
+  (href) => {
+    const tokens = parseMarkdown(`[Play](${href})`, page, [page], {});
+    expect(tokens[0].tokens?.[0]).toMatchObject({ type: "link", href });
+  }
+);

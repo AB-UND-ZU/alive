@@ -60,3 +60,23 @@ test("the wiki dev server rebuilds and reloads a Markdown edit", async ({
     expect(response.headers()["content-type"]).not.toContain("text/html");
   }
 });
+
+test("wiki development previews open each client's standard menu", async ({
+  page,
+}) => {
+  test.setTimeout(90000);
+  for (const [client, host] of [
+    ["threejs", "canvas"],
+    ["html", ".HtmlRenderer"],
+    ["terminal", ".TerminalBrowserPreview"],
+  ]) {
+    await page.goto(`/game-design/clients/${client}.html`);
+    const preview = page.locator('[data-scene="clients"]');
+    await preview.scrollIntoViewIfNeeded();
+    const iframe = preview.locator("iframe");
+    await expect(iframe).toHaveAttribute("data-x", /\d+/, { timeout: 30000 });
+    await expect(
+      page.frameLocator('iframe[title="Renderer"]').locator(host)
+    ).toBeVisible();
+  }
+});

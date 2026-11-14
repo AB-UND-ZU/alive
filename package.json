@@ -34,7 +34,7 @@
   },
   "scripts": {
     "start": "FAST_REFRESH=false react-scripts start",
-    "build": "react-scripts build",
+    "build": "node scripts/build-clients.mjs",
     "test": "react-scripts test --testPathIgnorePatterns='\\.generation\\.test\\.'",
     "test:fast": "CI=true react-scripts test --watchAll=false --testPathIgnorePatterns='\\.(slow|generation)\\.test\\.'",
     "test:slow": "CI=true react-scripts test --watchAll=false --testPathPattern='\\.slow\\.test\\.'",
@@ -57,7 +57,9 @@
     "wiki:sources": "node scripts/wiki/item-sources.mjs",
     "wiki:references": "node scripts/wiki/references.mjs",
     "wiki:world": "WIKI_WORLD_SNAPSHOT=true CI=true react-scripts test --watchAll=false --runInBand --runTestsByPath src/wiki/WorldMapData.generation.test.ts",
-    "terminal": "node scripts/terminal.cjs"
+    "terminal": "node scripts/terminal.cjs",
+    "build:client": "react-scripts build",
+    "build:test": "node --test scripts/build-clients.test.mjs"
   },
   "eslintConfig": {
     "extends": [

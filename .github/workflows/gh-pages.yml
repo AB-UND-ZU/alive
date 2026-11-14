@@ -36,7 +36,9 @@ jobs:
       - name: Verify wiki
         run: npm run wiki:test
       # build type checks, but skips its own lint
-      - name: Build page
+      - name: Verify client build tooling
+        run: npm run build:test
+      - name: Build ThreeJS, HTML and Terminal clients
         run: npm run build
         env:
           DISABLE_ESLINT_PLUGIN: true

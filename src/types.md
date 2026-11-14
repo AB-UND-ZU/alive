@@ -197,6 +197,7 @@
 | [RenderLayerProps](renderers/interface/segments.md#type-renderlayerprops) | `src/renderers/interface/segments.ts` |
 | [Renderable](engine/components/renderable.md#type-renderable) | `src/engine/components/renderable.ts` |
 | [RendererCapabilities](renderers/interface/types.md#type-renderercapabilities) | `src/renderers/interface/types.ts` |
+| [RendererName](renderers/interface/types.md#type-renderername) | `src/renderers/interface/types.ts` |
 | [RendererProps](renderers/interface/types.md#type-rendererprops) | `src/renderers/interface/types.ts` |
 | [ResourceItem](engine/components/item.md#type-resourceitem) | `src/engine/components/item.ts` |
 | [Resource](engine/components/harvestable.md#type-resource) | `src/engine/components/harvestable.ts` |
@@ -208,7 +209,7 @@
 | [SaveStatus](renderers/interface/hooks.md#type-savestatus) | `src/renderers/interface/hooks.ts` |
 | [SaveSummary](game/saves/index.md#type-savesummary) | `src/game/saves/index.ts` |
 | [SceneEntity](renderers/interface/scene.md#type-sceneentity) | `src/renderers/interface/scene.ts` |
-| [SceneName](wiki/scenes.md#type-scenename) | `src/wiki/scenes.ts` |
+| [SceneName](wiki/sceneDefinitions.md#type-scenename) | `src/wiki/sceneDefinitions.ts` |
 | [SceneSprite](renderers/interface/frame.md#type-scenesprite) | `src/renderers/interface/frame.ts` |
 | [SceneState](renderers/interface/frame.md#type-scenestate) | `src/renderers/interface/frame.ts` |
 | [SceneViewport](renderers/interface/scene.md#type-sceneviewport) | `src/renderers/interface/scene.ts` |

@@ -5,6 +5,12 @@
 `RendererCapabilities` records support for lighting, shadows, health bars, stack dots and smooth movement. Fog visibility belongs to the engine and applies to every renderer.
 <!-- source-types -->
 
+## RendererName
+
+```ts src/renderers/interface/types.ts
+export type RendererName = "three-js" | "html" | "terminal";
+```
+
 ## RendererProps
 
 ```ts src/renderers/interface/types.ts

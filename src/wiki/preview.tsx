@@ -1,6 +1,5 @@
 import { enableTouchEmulation, TouchCursor } from "./TouchControls";
 import { createPresetWorld, PresetName } from "./presets";
-import { DemoFrame } from "./DemoFrame";
 import { setAudioActive, ensureAudio } from "../game/sound/resumable";
 import { findPath, relativeOrientations } from "../game/math/path";
 import { getIdentifierAndComponents } from "../engine/utils";
@@ -9,14 +8,10 @@ import { isInteractable } from "../engine/systems/freeze";
 import { getHero } from "../testing/harness";
 import { Button } from "./visuals";
 import { createRoot } from "react-dom/client";
-import { CSSProperties, useEffect, useState } from "react";
+import { CSSProperties, lazy, Suspense, useEffect, useState } from "react";
 import World from "../components/World";
 import { useWorld } from "../renderers/interface/hooks";
-import Dimensions, { useDimensions } from "../components/Dimensions";
-import TerminalClientPreview from "../renderers/terminal/BrowserPreview";
-import Terminal from "../components/Terminal";
-import Controls from "../components/Controls";
-import Stats from "../components/Stats";
+import Dimensions from "../components/Dimensions";
 import {
   createPreviewWorld,
   sceneDefinitions,
@@ -30,7 +25,21 @@ setAudioActive(false);
 const [scene, option = ""] = window.location.hash.slice(1).split("/");
 const name = (scene || "game") as SceneName;
 if (name === "touch") void enableTouchEmulation();
-const terminalClient = name === "clients" && option === "terminal";
+let PreviewClient: React.LazyExoticComponent<
+  React.ComponentType<
+    React.PropsWithChildren<{ name: SceneName; shadows: boolean }>
+  >
+>;
+if (process.env.REACT_APP_RENDERER === "terminal") {
+  PreviewClient = lazy(() => import("../renderers/terminal/FeaturePreview"));
+} else if (
+  process.env.NODE_ENV === "development" &&
+  window.location.pathname.split("/").includes("terminal")
+) {
+  PreviewClient = lazy(() => import("../renderers/terminal/FeaturePreview"));
+} else {
+  PreviewClient = lazy(() => import("./BrowserPreviewClient"));
+}
 function DemoActions() {
   if (name === "game" || name === "interface") return null;
   return (
@@ -310,27 +319,6 @@ function Bridge({ setShadows }: { setShadows: (enabled: boolean) => void }) {
   }, [ecs, setPaused, setInitial, setShadows]);
   return null;
 }
-function NativeClient() {
-  const { ecs, paused, suspended } = useWorld();
-  const dimensions = useDimensions();
-  if (!ecs) return null;
-  return (
-    <div className="ClientTerminal">
-      <TerminalClientPreview
-        world={ecs}
-        columns={Math.max(
-          33,
-          Math.min(65, Math.floor(dimensions.screenWidth / 9))
-        )}
-        rows={30}
-        cellWidth={9}
-        cellHeight={16}
-        paused={paused || suspended}
-      />
-      <DemoActions />
-    </div>
-  );
-}
 
 function Preview() {
   const [shadows, setShadows] = useState(true);
@@ -375,30 +363,13 @@ function Preview() {
             : () => createPreviewWorld(name, decodeURIComponent(option))
         }
       >
-        {terminalClient ? (
-          <NativeClient />
-        ) : (
-          <>
-            <Stats />
-            <Terminal
-              shadows={shadows}
-              renderer={
-                name === "clients"
-                  ? option === "html"
-                    ? "html"
-                    : "three-js"
-                  : undefined
-              }
-            >
-              {name !== "game" && name !== "interface" && <DemoFrame />}
-            </Terminal>
-            <Controls compact={name !== "game" && name !== "interface"}>
-              <DemoActions />
-            </Controls>
-          </>
-        )}
+        <Suspense fallback={null}>
+          <PreviewClient name={name} shadows={shadows}>
+            <DemoActions />
+          </PreviewClient>
+          <Bridge setShadows={setShadows} />
+        </Suspense>
         {name === "touch" && <TouchCursor />}
-        <Bridge setShadows={setShadows} />
       </World>
     </Dimensions>
   );

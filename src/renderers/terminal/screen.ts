@@ -46,7 +46,6 @@ import { getItemSprite } from "../../game/assets/utils";
 import { colors } from "../../game/assets/colors";
 import { repeat, padCenter } from "../../game/math/std";
 import { getActionActivations, getActionName } from "../interface/actions";
-import { RendererCapabilities } from "../interface/types";
 import { getSceneFrame } from "../interface/frame";
 import {
   createTerminalFrame,
@@ -56,13 +55,7 @@ import {
   shakeTerminalFrame,
 } from "./frame";
 
-export const capabilities: RendererCapabilities = {
-  lighting: false,
-  shadows: false,
-  healthBars: false,
-  stackDots: false,
-  smoothMovement: false,
-};
+export { capabilities } from "./capabilities";
 
 export type TerminalSession = {
   paused?: boolean;

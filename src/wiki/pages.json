@@ -316,5 +316,14 @@
   {"source": "src/renderers/terminal/screen.md", "title": "Terminal Screen", "route": "development/renderers/terminal/screen.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
   {"source": "src/renderers/terminal/BrowserPreview.md", "title": "Terminal Preview", "route": "development/renderers/terminal/browser-preview.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
   {"source": "src/renderers/terminal/index.md", "title": "Terminal", "route": "development/renderers/terminal/index.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
-  {"source": "src/renderers/terminal/react.md", "title": "Terminal React", "route": "development/renderers/terminal/react.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true}
+  {"source": "src/renderers/terminal/react.md", "title": "Terminal React", "route": "development/renderers/terminal/react.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
+  {"source": "src/wiki/sceneDefinitions.md", "title": "Scene Metadata", "route": "development/wiki/scene-definitions.html", "aliases": [], "chapter": "Development", "group": "Wiki", "navigation": true},
+  {"source": "src/wiki/BrowserPreviewClient.md", "title": "Browser Scenes", "route": "development/wiki/browser-preview-client.html", "aliases": [], "chapter": "Development", "group": "Wiki", "navigation": true},
+  {"source": "src/renderers/interface/ClientPreview.md", "title": "Client Preview", "route": "development/renderers/interface/client-preview.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
+  {"source": "src/renderers/terminal/App.md", "title": "Text Client", "route": "development/renderers/terminal/app.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
+  {"source": "src/renderers/terminal/FeaturePreview.md", "title": "Text Scenes", "route": "development/renderers/terminal/feature-preview.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
+  {"source": "src/renderers/three-js/capabilities.md", "title": "ThreeJS Features", "route": "development/renderers/three-js/capabilities.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
+  {"source": "src/renderers/html/capabilities.md", "title": "HTML Features", "route": "development/renderers/html/capabilities.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
+  {"source": "src/renderers/terminal/capabilities.md", "title": "Text Features", "route": "development/renderers/terminal/capabilities.html", "aliases": [], "chapter": "Development", "group": "Renderers", "navigation": true},
+  {"source": "scripts/build-clients.md", "title": "Client Builds", "route": "development/wiki/client-builds.html", "aliases": [], "chapter": "Development", "group": "Wiki", "navigation": true}
 ]

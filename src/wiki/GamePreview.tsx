@@ -9,7 +9,8 @@ import { Pixels, Text } from "./visuals";
 import "./preview-layout.css";
 import { GridCenteredNote } from "./GridCenteredNote";
 import { Choice } from "./visuals";
-import { sceneDefinitions, sceneLayout, SceneName } from "./scenes";
+import { sceneDefinitions, sceneLayout, SceneName } from "./sceneDefinitions";
+import type { RendererName } from "../renderers/interface/types";
 
 export function GamePreview({
   name,
@@ -17,12 +18,14 @@ export function GamePreview({
   preset,
   testMode = true,
   variant,
+  renderer = "three-js",
 }: {
   name: SceneName;
   base: string;
   preset?: PresetName;
   testMode?: boolean;
   variant?: string;
+  renderer?: RendererName;
 }) {
   const frame = useRef<HTMLIFrameElement>(null),
     container = useRef<HTMLElement>(null),
@@ -46,10 +49,22 @@ export function GamePreview({
   const responsive = name === "chat" || name === "sprites";
   const wide = name === "game" || name === "interface" || name === "clients";
   const height =
-    name === "clients" && variant === "terminal"
+    name === "clients" && renderer === "terminal"
       ? 480
       : sceneLayout(name).height;
   const [width, setWidth] = useState(wide ? 576 : 414);
+  const clientBase = new URL(
+    renderer === "three-js" ? "../" : `../${renderer}/`,
+    new URL(base, window.location.href)
+  ).href;
+  const source =
+    name === "clients"
+      ? `${clientBase}?preview${testMode ? "&test" : ""}`
+      : `${clientBase}preview.html${testMode ? "?test" : ""}#${name}${
+          preset || variant || option
+            ? "/" + encodeURIComponent(preset || variant || option)
+            : ""
+        }`;
   const options: Partial<Record<SceneName, string[]>> = {
     abilities: ["wave", "beam", "trap", "dash", "bolt", "blast"],
     skills: ["slash", "bow", "spear", "wand", "zap", "block", "totem"],
@@ -148,7 +163,7 @@ export function GamePreview({
       window.removeEventListener("message", message);
       document.removeEventListener("visibilitychange", visibility);
     };
-  }, [name, wide, preset, variant]);
+  }, [name, wide, preset, variant, renderer, testMode]);
   useEffect(() => {
     if (name === "light" && isReady)
       frame.current?.contentWindow?.postMessage(
@@ -162,6 +177,7 @@ export function GamePreview({
       id={name === "game" && preset ? "scenario-" + preset : undefined}
       className={`Preview ${active ? "active" : ""}`}
       data-scene={name}
+      data-renderer={renderer}
       aria-label={sceneDefinitions[name].title}
     >
       {options[name] && (
@@ -190,15 +206,11 @@ export function GamePreview({
           )}
           {loaded ? (
             <iframe
-              key={`${name}-${variant || preset || ""}-${revision}`}
+              key={`${name}-${renderer}-${testMode}-${variant || preset || ""}-${revision}`}
               ref={frame}
               title={sceneDefinitions[name].title}
               tabIndex={name === "interface" ? -1 : 0}
-              src={`${base}preview.html${testMode ? "?test" : ""}#${name}${
-                preset || variant || option
-                  ? "/" + encodeURIComponent(preset || variant || option)
-                  : ""
-              }`}
+              src={source}
               style={{
                 width,
                 height: name === "chat" ? "auto" : height,
@@ -226,7 +238,9 @@ export function GamePreview({
         </div>
         <GridCenteredNote>
           <Text>
-            {name === "game" && preset
+            {name === "clients"
+              ? "Play using the normal game controls."
+              : name === "game" && preset
               ? `Play ${presets[preset].title} using the normal game controls.`
               : name === "abilities" && option === "trap"
               ? "Press Space to place a trap, then step away to arm it."

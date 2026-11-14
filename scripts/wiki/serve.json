@@ -1,3 +1,13 @@
 {
-  "cleanUrls": false
+  "cleanUrls": false,
+  "directoryListing": false,
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/html", "destination": "/html/index.html" },
+    { "source": "/html/", "destination": "/html/index.html" },
+    { "source": "/terminal", "destination": "/terminal/index.html" },
+    { "source": "/terminal/", "destination": "/terminal/index.html" },
+    { "source": "/wiki", "destination": "/wiki/index.html" },
+    { "source": "/wiki/", "destination": "/wiki/index.html" }
+  ]
 }

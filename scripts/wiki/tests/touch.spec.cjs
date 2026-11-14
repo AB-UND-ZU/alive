@@ -1,6 +1,5 @@
 const { test, expect } = require("./fixtures.cjs");
 
-
 test("Interface loads native controls after navigation from Welcome", async ({
   page,
 }) => {
@@ -19,7 +18,13 @@ test("Interface loads native controls after navigation from Welcome", async ({
         .locator(".Controls .Cell")
         .evaluateAll((nodes) =>
           nodes
-            .map((node) => node.getAttribute("data-glyph") || Array.from(node.querySelectorAll(".Layer")).pop()?.textContent || " ")
+            .map(
+              (node) =>
+                node.getAttribute("data-glyph") ||
+                Array.from(node.querySelectorAll(".Layer")).pop()
+                  ?.textContent ||
+                " "
+            )
             .join("")
         )
     )
@@ -30,7 +35,13 @@ test("Interface loads native controls after navigation from Welcome", async ({
         .locator(".Controls .Cell")
         .evaluateAll((nodes) =>
           nodes
-            .map((node) => node.getAttribute("data-glyph") || Array.from(node.querySelectorAll(".Layer")).pop()?.textContent || " ")
+            .map(
+              (node) =>
+                node.getAttribute("data-glyph") ||
+                Array.from(node.querySelectorAll(".Layer")).pop()
+                  ?.textContent ||
+                " "
+            )
             .join("")
         )
     )
@@ -41,7 +52,13 @@ test("Interface loads native controls after navigation from Welcome", async ({
         .locator(".Controls .Cell")
         .evaluateAll((nodes) =>
           nodes
-            .map((node) => node.getAttribute("data-glyph") || Array.from(node.querySelectorAll(".Layer")).pop()?.textContent || " ")
+            .map(
+              (node) =>
+                node.getAttribute("data-glyph") ||
+                Array.from(node.querySelectorAll(".Layer")).pop()
+                  ?.textContent ||
+                " "
+            )
             .join("")
         )
     )
@@ -71,7 +88,9 @@ test("desktop joystick reference points toward the cursor", async ({
 });
 
 async function touchScene(page) {
-  await page.goto("/game-design/controls/touch.html");
+  await page.goto(
+    `${process.env.WIKI_TEST_DEV === "true" ? "" : "/wiki"}/game-design/controls/touch.html`
+  );
   const preview = page.locator('[data-scene="touch"]');
   await preview.scrollIntoViewIfNeeded();
   const iframe = preview.locator("iframe");

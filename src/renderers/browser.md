@@ -1,12 +1,5 @@
-# Browser renderer
+# Browser Renderer
 
-The game uses Three.js by default. Open `?renderer=html` to use HTML and SVG instead, or `?test&renderer=html` to enable chat commands too. Both renderers share the normal keyboard, mouse and touch controls, saves and dialogs.
+The build fixes this component to ThreeJS or HTML with `REACT_APP_RENDERER`. Each branch imports only its selected renderer. Terminal uses its own entry and chrome.
 
-`Terminal` can also select a renderer through its `renderer` prop. The HTML implementation loads on demand. Its scene advances the same fixed-step world clock, without lighting or shadows.
-<!-- source-types -->
-
-## BrowserRendererName
-
-```ts src/renderers/browser.tsx
-export type BrowserRendererName = "three-js" | "html";
-```
+Development previews may select a renderer by client path or query; those runtime branches are omitted from production builds. `scripts/build-clients.mjs` checks emitted source maps for renderer isolation.

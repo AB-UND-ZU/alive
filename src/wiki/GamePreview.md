@@ -18,4 +18,4 @@ Visible autoplay is silent. A pointer, touch or keyboard interaction enables the
 
 The Light scene exposes a Shadows lever. It updates native lighting in the existing frame without resetting exploration or changing fog of war.
 
-Client scenes select Three.js, HTML or the native terminal cell renderer from the Markdown scene variant. They share an arena, focus handling, visibility pause and reset. The terminal adapter draws its own HUD and frame, so it replaces browser Stats, Terminal and Controls rather than nesting another frame. Client changes clear readiness before loading the next renderer.
+Client scenes pass an explicit renderer type and load its deployed entry point with `?preview`, starting at the standard menu. The parent still controls visibility, focus and reset through messages. The terminal menu uses its own frame and chrome. Other feature scenes load `preview.html` from the selected client directory, so no renderer implementation is loaded by the parent wiki page. Client changes clear readiness before loading the next bundle.

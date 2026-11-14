@@ -33,6 +33,8 @@ jobs:
         with:
           name: coverage
           path: coverage/lcov-report
+      - name: Verify client build tooling
+        run: npm run build:test
       - name: Verify wiki
         run: npm run wiki:test
       - name: Build wiki

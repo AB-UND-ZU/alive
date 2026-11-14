@@ -611,7 +611,7 @@ function Link({
   return (
     <a
       href={
-        href.startsWith("http") || href.startsWith("#") ? href : base + href
+        href.startsWith("#") ? href : new URL(href, base).href
       }
       aria-label={
         label ||
@@ -620,6 +620,7 @@ function Link({
       className="WikiLink"
       onClick={(event) => {
         if (
+          destination &&
           !/^(https?:|mailto:|#)/.test(href) &&
           !event.metaKey &&
           !event.ctrlKey &&
@@ -911,9 +912,12 @@ function Markdown({
                 ? undefined
                 : (token.text!.trim().split("/")[1] as PresetName | undefined)
             }
-            variant={
+            renderer={
               token.text!.trim().split("/")[0] === "clients"
-                ? token.text!.trim().split("/")[1]
+                ? (token.text!.trim().split("/")[1] as
+                    | "three-js"
+                    | "html"
+                    | "terminal")
                 : undefined
             }
             testMode={token.text!.trim().split("/")[0] !== "game"}

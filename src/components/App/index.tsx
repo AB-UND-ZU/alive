@@ -4,6 +4,9 @@ import Dimensions from "../Dimensions";
 import Stats from "../Stats";
 import Terminal from "../Terminal";
 import World from "../World";
+import ClientPreview, {
+  isClientPreview,
+} from "../../renderers/interface/ClientPreview";
 import "./index.css";
 
 if (process.env.NODE_ENV !== "development") {
@@ -25,12 +28,14 @@ if (process.env.NODE_ENV !== "development") {
 }
 
 export default function App() {
+  const preview = isClientPreview();
   return (
     <Dimensions className="App">
-      <World>
+      <World persistent={!preview}>
         <Stats />
         <Terminal />
         <Controls />
+        {preview && <ClientPreview />}
       </World>
     </Dimensions>
   );

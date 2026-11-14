@@ -1,24 +1,13 @@
 .TerminalBrowserPreview {
   background: #000;
   font-family: "Perfect DOS VGA 437 Win", monospace;
-  line-height: var(--cell-height);
-  width: max-content;
-}
-
-.TerminalBrowserPreview > .Row {
-  justify-content: flex-start;
-}
-
-.TerminalBrowserPreview .Cell {
-  flex-shrink: 0;
-  margin-left: 0;
-}
-
-.TerminalBrowserPreview .Layer {
   font-size: var(--cell-height);
-}
-
-.TerminalBrowserPreview .Cell > svg {
-  width: var(--cell-width);
-  height: var(--cell-height);
+  line-height: var(--cell-height);
+  letter-spacing: calc(var(--cell-width) - var(--cell-height) * 9 / 16);
+  font-variant-ligatures: none;
+  white-space: pre;
+  -webkit-user-select: text;
+  user-select: text;
+  width: max-content;
+  margin: 0;
 }

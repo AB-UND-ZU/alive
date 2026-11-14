@@ -6,15 +6,14 @@ import { colors } from "../../game/assets/colors";
 import { overscanRows } from "../Dimensions/sizing";
 import { createText } from "../../game/assets/ui";
 import { useWorld } from "../../renderers/interface/hooks";
-import BrowserRenderer, { BrowserRendererName } from "../../renderers/browser";
+import BrowserRenderer from "../../renderers/browser";
 
 export const frameColor = colors.silver;
 
 export default function Terminal({
   children,
   shadows = true,
-  renderer,
-}: React.PropsWithChildren<{ shadows?: boolean; renderer?: BrowserRendererName }>) {
+}: React.PropsWithChildren<{ shadows?: boolean }>) {
   const dimensions = useDimensions();
   const { ecs, paused, suspended } = useWorld();
 
@@ -29,7 +28,6 @@ export default function Terminal({
       </div>
       {ecs && (
         <BrowserRenderer
-          renderer={renderer}
           world={ecs}
           columns={dimensions.renderedColumns}
           rows={dimensions.renderedRows}

@@ -1,6 +1,6 @@
-import { capabilities as three } from "../renderers/three-js";
-import { capabilities as html } from "../renderers/html";
-import { capabilities as terminal } from "../renderers/terminal/screen";
+import { capabilities as three } from "../renderers/three-js/capabilities";
+import { capabilities as html } from "../renderers/html/capabilities";
+import { capabilities as terminal } from "../renderers/terminal/capabilities";
 import { GridTable } from "./GridTable";
 import { ReferenceLink } from "./references";
 import { Text } from "./visuals";
@@ -25,7 +25,7 @@ export function RendererComparison() {
     <GridTable
       headers={["Feature", ...rendererHeaders()]}
       rows={[
-        ["Runs in", "Browser", "Browser", "Terminal / SSH"],
+        ["Runs in", "Browser", "Browser", "Browser / Terminal / SSH"],
         ["Display", "WebGL", "HTML / SVG", "ANSI"],
         ["Sprites", "Layered", "Layered", "One character"],
         ["Palette", "16 colors", "16 colors", "16 colors"],

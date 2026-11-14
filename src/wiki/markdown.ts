@@ -113,7 +113,8 @@ export function parseMarkdown(
     const token = value as typeof value & WikiToken;
     if (
       token.type === "link" &&
-      !/^(?:[a-z][\w+.-]*:|\/\/|#)/i.test(token.href!)
+      !/^(?:[a-z][\w+.-]*:|\/\/|#)/i.test(token.href!) &&
+      !["../", "../html/", "../terminal/"].includes(token.href!)
     ) {
       const target = new URL(token.href!, source);
       const name =

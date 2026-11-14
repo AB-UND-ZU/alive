@@ -48,7 +48,7 @@ afterEach(() => {
 });
 
 const visibility = (...states: boolean[]) => {
-  const target = screen.getByRole("region", { name: "Movement" });
+  const target = screen.getByRole("region");
   const bounds = target.getBoundingClientRect();
   act(() => {
     notify(
@@ -131,7 +131,7 @@ it("keeps a hidden page paused and resumes when the page becomes visible", () =>
 
 it("uses the native client variant and reloads readiness when the renderer changes", () => {
   const { rerender } = render(
-    <GamePreview name="clients" variant="terminal" base="/" />
+    <GamePreview name="clients" renderer="terminal" base="/alive/wiki/" />
   );
   const target = screen.getByRole("region", { name: "Renderer" });
   const bounds = target.getBoundingClientRect();
@@ -152,12 +152,37 @@ it("uses the native client variant and reloads readiness when the renderer chang
     )
   );
   const iframe = screen.getByTitle("Renderer") as HTMLIFrameElement;
-  expect(iframe.src).toContain("#clients/terminal");
+  expect(iframe.src).toBe("http://localhost/alive/terminal/?preview&test");
   expect(iframe).toHaveStyle({ height: "480px" });
-  rerender(<GamePreview name="clients" variant="html" base="/" />);
+  rerender(<GamePreview name="clients" renderer="html" base="/alive/wiki/" />);
   expect(screen.getByTitle("Renderer")).not.toBe(iframe);
   expect(screen.getByTitle("Renderer").getAttribute("src")).toContain(
-    "#clients/html"
+    "/alive/html/?preview&test"
   );
   expect(screen.getByRole("status")).toBeInTheDocument();
+});
+
+it("loads feature scenes from the selected client bundle", () => {
+  render(<GamePreview name="movement" renderer="html" base="/alive/wiki/" />);
+  visibility(true);
+  expect(screen.getByTitle("Movement")).toHaveAttribute(
+    "src",
+    "http://localhost/alive/html/preview.html?test#movement"
+  );
+});
+
+it("does not enable test commands when the menu preview opts out", () => {
+  render(
+    <GamePreview
+      name="clients"
+      renderer="three-js"
+      base="/alive/wiki/"
+      testMode={false}
+    />
+  );
+  visibility(true);
+  expect(screen.getByTitle("Renderer")).toHaveAttribute(
+    "src",
+    "http://localhost/alive/?preview"
+  );
 });

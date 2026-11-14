@@ -27,6 +27,8 @@ test("Clients lists renderer features and keeps the old ThreeJS route", async ({
     "clients"
   );
   await expect(page.locator("main")).toContainText("default browser client");
+  await page.goto("/development/wiki/preview.html");
+  await expect(page.locator("main h1")).toHaveAccessibleName("Game Frame");
 });
 
 for (const width of [1440, 390]) {
@@ -46,10 +48,19 @@ for (const width of [1440, 390]) {
       await preview.scrollIntoViewIfNeeded();
       const iframe = preview.locator("iframe");
       await expect(iframe).toBeVisible();
+      await expect(preview).toHaveAttribute("data-renderer", client);
+      const clientPath = client === "three-js" ? "/" : `/${client}/`;
       await expect(iframe).toHaveAttribute(
         "src",
-        new RegExp(`#clients/${client}$`)
+        new URL(`${clientPath}?preview&test`, page.url()).href
       );
+      await expect(
+        page.getByRole("link", {
+          name: new RegExp(
+            `^Play ${client === "three-js" ? "ThreeJS" : client === "html" ? "HTML" : "Terminal"}\\.?$`
+          ),
+        })
+      ).toHaveAttribute("href", new URL(clientPath, page.url()).href);
       const frame = page.frameLocator('iframe[title="Renderer"]');
       if (client === "terminal") {
         await expect(frame.locator(".TerminalBrowserPreview")).toBeVisible();
@@ -60,22 +71,57 @@ for (const width of [1440, 390]) {
         await expect(
           frame.locator(client === "html" ? ".HtmlRenderer" : "canvas")
         ).toBeVisible();
-        await expect(frame.locator(".DemoFrame")).toHaveCount(1);
+        await expect(frame.locator(".DemoFrame")).toHaveCount(0);
       }
       await expect(iframe).toHaveAttribute("data-x", /\d+/);
       await frame
         .locator(
-          client === "terminal" ? ".TerminalBrowserPreview" : ".DemoFrame"
+          client === "terminal" ? ".TerminalBrowserPreview" : ".Terminal"
         )
         .evaluate(() => window.focus());
       await iframe.click({ position: { x: 150, y: 180 } });
+      const level = await frame
+        .locator(
+          client === "terminal" ? ".TerminalBrowserPreview" : ".Terminal"
+        )
+        .evaluate((element) => {
+          let fiber =
+            element[
+              Object.keys(element).find((name) =>
+                name.startsWith("__reactFiber")
+              )
+            ];
+          while (fiber && !fiber.memoizedProps?.value?.ecs)
+            fiber = fiber.return;
+          return fiber?.memoizedProps.value.ecs.metadata.gameEntity.LEVEL.name;
+        });
+      expect(level).toBe("LEVEL_MENU");
       await page.keyboard.press("b");
       await expect(iframe).toHaveAttribute("data-dialog", "inspect");
       await page.keyboard.press("Escape");
       await expect(iframe).toHaveAttribute("data-dialog", "");
       await expect(
         frame.getByRole("button", { name: "Reset", exact: true })
-      ).toBeVisible();
+      ).toHaveCount(0);
+      const scripts = await frame
+        .locator(
+          client === "terminal" ? ".TerminalBrowserPreview" : ".Terminal"
+        )
+        .evaluate(() =>
+          performance
+            .getEntriesByType("resource")
+            .map((entry) => new URL(entry.name))
+            .filter((url) => url.pathname.endsWith(".js"))
+            .map((url) => url.pathname)
+        );
+      expect(scripts.length).toBeGreaterThan(0);
+      expect(
+        scripts.every((path) => path.startsWith(`${clientPath}static/js/`))
+      ).toBe(true);
+      if (client === "terminal")
+        await expect(frame.locator(".TerminalBrowserPreview svg")).toHaveCount(
+          0
+        );
       expect(errors).toEqual([]);
     });
   }

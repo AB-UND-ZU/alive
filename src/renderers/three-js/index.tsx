@@ -7,15 +7,9 @@ import Systems from "./Systems";
 import { InstanceRoot } from "./Entity/Instances";
 import { LightingContext } from "./Entity/CoveredLight";
 import ShadowCache from "./Entity/ShadowCache";
-import type { RendererCapabilities, RendererProps } from "../interface/types";
+import type { RendererProps } from "../interface/types";
 
-export const capabilities: RendererCapabilities = {
-  lighting: true,
-  shadows: true,
-  healthBars: true,
-  stackDots: true,
-  smoothMovement: true,
-};
+export { capabilities } from "./capabilities";
 
 export default function ThreeJsRenderer({
   world,

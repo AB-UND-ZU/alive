@@ -1,5 +1,5 @@
 import { CSSProperties, useEffect, useReducer, useMemo, useRef } from "react";
-import { RendererCapabilities, RendererProps } from "../interface/types";
+import { RendererProps } from "../interface/types";
 import { characterMarkup } from "../../components/Row/characters";
 import { getSceneFrame, SceneSprite } from "../interface/frame";
 import "./style.css";
@@ -22,13 +22,7 @@ import { fogOfWar } from "../../game/assets/sprites";
 const fogLayers = [{ char: "▓", color: colors.black }];
 const swimmingLayers = [{ char: "▄", color: colors.navy }];
 
-export const capabilities: RendererCapabilities = {
-  lighting: false,
-  shadows: false,
-  healthBars: true,
-  stackDots: true,
-  smoothMovement: true,
-};
+export { capabilities } from "./capabilities";
 
 export default function HtmlRenderer({
   world,

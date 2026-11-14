@@ -1,15 +1,18 @@
 const { test, expect } = require("./fixtures.cjs");
 
 const openScene = async (page, renderer, scene) => {
-  await page.goto(`/preview.html?test&renderer=${renderer}#${scene}`);
+  await page.goto(
+    `${renderer === "html" ? "/html" : ""}/preview.html?test#${scene}`
+  );
   await expect(
     page.locator(renderer === "html" ? ".HtmlRenderer" : "canvas")
   ).toBeVisible();
   await page.evaluate(() => {
     const terminal = document.querySelector(".Terminal");
-    let fiber = terminal[
-      Object.keys(terminal).find((name) => name.startsWith("__reactFiber"))
-    ];
+    let fiber =
+      terminal[
+        Object.keys(terminal).find((name) => name.startsWith("__reactFiber"))
+      ];
     while (fiber && !fiber.memoizedProps?.value?.ecs) fiber = fiber.return;
     window.rendererWorld = fiber.memoizedProps.value.ecs;
     window.postMessage({ type: "play" }, location.origin);
@@ -39,8 +42,8 @@ for (const renderer of ["three-js", "html"]) {
       await page.keyboard.down(key);
       await page.waitForFunction(
         () =>
-          window.rendererWorld.getEntities(["PLAYER", "POSITION"])[0]
-            .POSITION.y === 4
+          window.rendererWorld.getEntities(["PLAYER", "POSITION"])[0].POSITION
+            .y === 4
       );
       await page.keyboard.up(key);
       await expect
@@ -74,8 +77,11 @@ test("HTML shows a viewpoint earthquake without hero damage and settles afterwar
     const viewpoint = world
       .getEntities(["VIEWABLE", "POSITION"])
       .filter((entity) => entity.VIEWABLE.active)
-      .sort((left, right) => right.VIEWABLE.priority - left.VIEWABLE.priority)[0];
-    viewpoint.VIEWABLE.quake = world.metadata.gameEntity.RENDERABLE.generation + 8;
+      .sort(
+        (left, right) => right.VIEWABLE.priority - left.VIEWABLE.priority
+      )[0];
+    viewpoint.VIEWABLE.quake =
+      world.metadata.gameEntity.RENDERABLE.generation + 8;
   });
   await expect.poll(() => camera.getAttribute("style")).not.toBe(idle);
   await page.evaluate(() => {
