@@ -400,6 +400,8 @@ export const renderPopup = (
       ? 1
       : 0;
   const scrolled = verticalIndex !== state.args.verticalIndex;
+  // capture this before the scrollbar updates scrollIndex for hit testing
+  const scrollChanged = scrollIndex !== state.args.scrollIndex;
   let renderContent = generationChanged;
   let renderTabs = horizontalIndex !== state.args.horizontalIndex;
   let renderDetails = settled && (generationChanged || !cached.settled);
@@ -690,7 +692,7 @@ export const renderPopup = (
 
   // clear content on changes
   if (
-    (generationChanged || scrollIndex !== state.args.scrollIndex) &&
+    (generationChanged || scrollChanged) &&
     (state.elapsed > popupTime || state.args.instant)
   ) {
     state.args.generation = generation;
