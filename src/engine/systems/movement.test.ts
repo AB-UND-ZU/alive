@@ -4,11 +4,14 @@ import {
   assertHero,
   createAreaWorld,
   findInArea,
+  findEntityAt,
   FRAME,
   holdMove,
   step,
   walk,
 } from "../../testing/harness";
+import { LOCKABLE } from "../components/lockable";
+import { openDoor } from "./trigger";
 import { MOVABLE } from "../components/movable";
 import { POSITION } from "../components/position";
 import { REFERENCE } from "../components/reference";
@@ -73,6 +76,58 @@ describe("movement", () => {
     expect(hero[POSITION]).toEqual(stopped);
     expect(reference.suspended).toBe(true);
   });
+
+  it.each(["wood_door", "wood_entry", "entry"])(
+    "continues through an opened %s after releasing movement",
+    (cell) => {
+      const world = createAreaWorld(
+        `
+|         |
+|  ♀D     |
+|         |
+`,
+        { legend: { D: cell } }
+      );
+      const hero = assertHero(world);
+      const door = findEntityAt(world, { x: 3, y: 1 }, [LOCKABLE])!;
+      openDoor(world, door);
+
+      holdMove(world, ["right"]);
+      advanceUntil(world, () => hero[POSITION].x === 3);
+      holdMove(world, []);
+      advance(world, 1200);
+
+      expect(hero[POSITION]).toEqual({ x: 4, y: 1 });
+      expect(hero[MOVABLE].momentum).toBeUndefined();
+      const reference = world.assertByIdAndComponents(hero[MOVABLE].reference, [
+        REFERENCE,
+      ])[REFERENCE];
+      expect(reference.suspended).toBe(true);
+    }
+  );
+
+  it.each([
+    ["%%% ", 6],
+    ["%%%█", 5],
+  ])(
+    "continues over ice %s after release and stops at the next obstacle or solid ground",
+    (terrain, x) => {
+      const world = createAreaWorld(`
+|           |
+|  ♀${terrain}    |
+|           |
+`);
+      const hero = assertHero(world);
+      holdMove(world, ["right"]);
+      advanceUntil(world, () => hero[POSITION].x === 3);
+      holdMove(world, []);
+      advance(world, 2000);
+
+      expect(hero[POSITION]).toEqual({ x, y: 1 });
+      expect(hero[MOVABLE].momentum).toBeUndefined();
+      expect(hero[MOVABLE].orientations).toEqual([]);
+    }
+  );
 
   it("wraps around the edges of the map", () => {
     const world = createAreaWorld(openArea);

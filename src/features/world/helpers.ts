@@ -17,7 +17,10 @@ import { REFERENCE } from "../../engine/components/reference";
 import { TypedEntity } from "../../engine/entities";
 import { getEntityStats } from "../../engine/systems/damage";
 import { registerEntity } from "../../engine/systems/map";
-import { getHasteInterval } from "../../engine/systems/movement";
+import {
+  getHasteInterval,
+  setMovementOrientations,
+} from "../../engine/systems/movement";
 import { assertHero, FRAME, step } from "../../testing/harness";
 
 /** The controlled entity, which is the ghost while the hero is dead. */
@@ -39,18 +42,7 @@ const getPlayerReference = (world: World) =>
  * sliding players going, like the controls do.
  */
 export const hold = (world: World, orientations: Orientation[]) => {
-  const player = assertPlayer(world);
-  const reference = getPlayerReference(world);
-
-  player[MOVABLE].orientations = orientations;
-  if (orientations[0]) player[MOVABLE].pendingOrientation = orientations[0];
-
-  if (orientations.length > 0) {
-    reference.suspensionCounter = -1;
-    reference.suspended = false;
-  } else if (!player[MOVABLE].momentum) {
-    reference.suspensionCounter = 0;
-  }
+  setMovementOrientations(world, assertPlayer(world), orientations);
 };
 
 /** Hold a direction for a while and release it, even if blocked. */

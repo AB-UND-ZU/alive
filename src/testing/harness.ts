@@ -22,8 +22,10 @@ import { SPRITE } from "../engine/components/sprite";
 import { Player, PLAYER } from "../engine/components/player";
 import { ACTIONABLE } from "../engine/components/actionable";
 import { Entity, TypedEntity } from "../engine/entities";
-import { isInPopup } from "../engine/systems/popup";
-import { getHasteInterval } from "../engine/systems/movement";
+import {
+  getHasteInterval,
+  setMovementOrientations,
+} from "../engine/systems/movement";
 import { getEntityStats } from "../engine/systems/damage";
 import { getCellEntities } from "../engine/systems/map";
 import { Item, ITEM } from "../engine/components/item";
@@ -190,30 +192,10 @@ export const assertHero = (world: World) => {
 
 /**
  * Hold (or release with `[]`) directional input for the hero.
- * Mirrors the essential part of `handleMove` in components/Controls.
+ * Uses the same movement policy as browser and terminal controls.
  */
 export const holdMove = (world: World, orientations: Orientation[]) => {
-  const hero = assertHero(world);
-  const reference = world.assertByIdAndComponents(hero[MOVABLE].reference, [
-    REFERENCE,
-  ])[REFERENCE];
-
-  if (
-    orientations.length &&
-    !hero[MOVABLE].orientations.length &&
-    isInPopup(world, hero)
-  ) {
-    reference.delta = reference.tick;
-  }
-  hero[MOVABLE].orientations = orientations;
-  if (orientations[0]) hero[MOVABLE].pendingOrientation = orientations[0];
-
-  if (orientations.length === 0) {
-    reference.suspensionCounter = 0;
-  } else {
-    reference.suspensionCounter = -1;
-    reference.suspended = false;
-  }
+  setMovementOrientations(world, assertHero(world), orientations);
 };
 
 export type HeroAction =

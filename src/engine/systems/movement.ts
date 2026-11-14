@@ -53,6 +53,7 @@ import { EXERTABLE } from "../components/exertable";
 import { CASTABLE } from "../components/castable";
 import { DISPLACABLE } from "../components/displacable";
 import { EQUIPPABLE } from "../components/equippable";
+import { ACTIONABLE } from "../components/actionable";
 
 const chatHaste = -1001;
 const popupHaste = -1002;
@@ -76,6 +77,46 @@ export const getHasteInterval = (world: World, haste: number) =>
     : haste === popupHaste
     ? 175
     : Math.floor(1000 / (Math.max(haste, -4) + 5) + 100);
+
+export const setMovementOrientations = (
+  world: World,
+  entity: Entity,
+  orientations: Orientation[]
+) => {
+  if (!entity[MOVABLE]) return;
+  const reference = world.assertByIdAndComponents(entity[MOVABLE].reference, [
+    REFERENCE,
+  ])[REFERENCE];
+
+  // A new dialog press steps immediately, then uses the normal repeat clock.
+  if (
+    orientations.length &&
+    !entity[MOVABLE].orientations.length &&
+    isInPopup(world, entity)
+  ) {
+    reference.delta = reference.tick;
+  }
+  entity[MOVABLE].orientations = orientations;
+  if (orientations[0]) entity[MOVABLE].pendingOrientation = orientations[0];
+
+  if (orientations.length === 0 && !entity[MOVABLE].momentum) {
+    reference.suspensionCounter = 0;
+    // Keep late direction taps and queued actions for the next tick.
+    if (
+      (reference.tick - reference.delta < 50 &&
+        entity[MOVABLE].pendingOrientation) ||
+      entity[ACTIONABLE]?.spellTriggered ||
+      entity[ACTIONABLE]?.skillTriggered ||
+      entity[ACTIONABLE]?.interactTriggered ||
+      entity[PLAYER]?.actionTriggered
+    ) {
+      reference.suspensionCounter += 1;
+    }
+  } else {
+    reference.suspensionCounter = -1;
+    reference.suspended = false;
+  }
+};
 
 export const getTempo = (world: World, position: Position) =>
   sum(

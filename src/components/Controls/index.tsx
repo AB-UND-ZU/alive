@@ -9,6 +9,7 @@ import {
 import { isTouch, useDimensions } from "../Dimensions";
 import "./index.css";
 import { MOVABLE } from "../../engine/components/movable";
+import { setMovementOrientations } from "../../engine/systems/movement";
 import {
   useHero,
   useViewpoint,
@@ -81,9 +82,6 @@ import {
   getActionActivations,
   getActionName,
 } from "../../renderers/interface/actions";
-
-// allow queueing of next actions 50ms before start of next tick
-const queueThreshold = 50;
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -763,57 +761,8 @@ export default function Controls({
   const handleMove = useCallback(
     (orientations: Orientation[]) => {
       const heroEntity = heroRef.current;
-
-      if (
-        !heroEntity ||
-        !heroEntity[MOVABLE] ||
-        !ecs ||
-        isDead(ecs, heroEntity)
-      )
-        return;
-
-      const reference = ecs.assertByIdAndComponents(
-        heroEntity[MOVABLE].reference,
-        [REFERENCE]
-      )[REFERENCE];
-
-      if (!reference) return;
-
-      const attemptedOrientations = orientations;
-      // Start a new dialog press immediately, then use the normal repeat clock.
-      if (
-        attemptedOrientations.length &&
-        !heroEntity[MOVABLE].orientations.length &&
-        isInPopup(ecs, heroEntity)
-      ) {
-        reference.delta = reference.tick;
-      }
-      heroEntity[MOVABLE].orientations = attemptedOrientations;
-      const pendingOrientation = attemptedOrientations[0];
-
-      if (pendingOrientation) {
-        heroEntity[MOVABLE].pendingOrientation = pendingOrientation;
-      }
-
-      if (attemptedOrientations.length === 0 && !heroEntity[MOVABLE].momentum) {
-        reference.suspensionCounter = 0;
-
-        // only allow queueing actions in short moment at end of frame
-        const remaining = reference.tick - reference.delta;
-
-        if (
-          (remaining < queueThreshold &&
-            heroEntity[MOVABLE].pendingOrientation) ||
-          heroEntity[ACTIONABLE].spellTriggered ||
-          heroEntity[ACTIONABLE].skillTriggered ||
-          heroEntity[ACTIONABLE].interactTriggered ||
-          heroEntity[PLAYER].actionTriggered
-        ) {
-          reference.suspensionCounter += 1;
-        }
-      } else {
-        reference.suspensionCounter = -1;
-        reference.suspended = false;
+      if (ecs && heroEntity && !isDead(ecs, heroEntity)) {
+        setMovementOrientations(ecs, heroEntity, orientations);
       }
     },
     [ecs]

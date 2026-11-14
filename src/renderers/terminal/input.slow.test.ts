@@ -18,7 +18,12 @@ import { ACTIONABLE } from "../../engine/components/actionable";
 import { REFERENCE } from "../../engine/components/reference";
 import { POSITION } from "../../engine/components/position";
 import { getVerticalIndex, isInPopup } from "../../engine/systems/popup";
-import { openChat, getPrompt, getDialog, getMenu } from "../../features/chat/helpers";
+import {
+  openChat,
+  getPrompt,
+  getDialog,
+  getMenu,
+} from "../../features/chat/helpers";
 import { createTerminalInput } from "./input";
 
 jest.mock("../../engine/utils", () => ({
@@ -149,6 +154,39 @@ describe("native terminal controls", () => {
     expect(hero[MOVABLE].orientations).toEqual([]);
     input.stop();
   });
+
+  it.each([
+    ["D", 2],
+    ["%%%", 4],
+  ])(
+    "keeps momentum over %s after the terminal key release",
+    (terrain, distance) => {
+      jest.useFakeTimers();
+      const world = createAreaWorld(
+        `
+|           |
+| ♀${terrain.padEnd(3)}      |
+|           |
+`,
+        { legend: { D: "entry" } }
+      );
+      const hero = assertHero(world);
+      const start = hero[POSITION].x;
+      const input = createTerminalInput(world);
+      try {
+        input.press({ name: "right" });
+        advanceUntil(world, () => hero[POSITION].x === start + 1);
+        expect(hero[MOVABLE].momentum).toBe("right");
+        jest.advanceTimersByTime(100);
+        expect(hero[MOVABLE].orientations).toEqual([]);
+        advance(world, 1600);
+        expect(hero[POSITION]).toEqual({ x: start + distance, y: 1 });
+        expect(hero[MOVABLE].momentum).toBeUndefined();
+      } finally {
+        input.stop();
+      }
+    }
+  );
 
   it("maps terminal skill keys without turning them into a spell or movement", () => {
     const { hero, input } = setup();

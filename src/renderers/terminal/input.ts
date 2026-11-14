@@ -11,7 +11,6 @@ import {
   closePopup,
   getTab,
   getVerticalIndex,
-  isInPopup,
   typeChat,
   completeChat,
   navigateChat,
@@ -20,6 +19,7 @@ import { TEST_MODE } from "../../engine/utils";
 import { credits } from "../../game/assets/credits";
 import { play } from "../../game/sound";
 import { isDead } from "../../engine/systems/damage";
+import { setMovementOrientations } from "../../engine/systems/movement";
 import {
   getIndexFromKey,
   keyboardColumns,
@@ -73,11 +73,7 @@ export const createTerminalInput = (
     clearTimeout(release);
     const hero = getHero();
     if (!hero) return;
-    hero[MOVABLE].orientations = [];
-    const reference = world.assertByIdAndComponents(hero[MOVABLE].reference, [
-      REFERENCE,
-    ])[REFERENCE];
-    reference.suspensionCounter = 0;
+    setMovementOrientations(world, hero, []);
   };
   const press = (key: TerminalKey) => {
     const hero = getHero();
@@ -117,12 +113,7 @@ export const createTerminalInput = (
     ])[REFERENCE];
     const direction = directions[name];
     if (direction && !key.ctrl && !isDead(world, hero)) {
-      if (!hero[MOVABLE].orientations.length && isInPopup(world, hero))
-        reference.delta = reference.tick;
-      hero[MOVABLE].orientations = [direction];
-      hero[MOVABLE].pendingOrientation = direction;
-      reference.suspensionCounter = -1;
-      reference.suspended = false;
+      setMovementOrientations(world, hero, [direction]);
       clearTimeout(release);
       release = setTimeout(stop, 100);
       return;
