@@ -265,3 +265,19 @@ it("accepts pasted text as one bounded action and rejects malformed batches", ()
     isPlayerInput({ sequence: 1, action: { kind: "text", indices: [-1] } })
   ).toBe(false);
 });
+
+it("uses the latest scrollbar target received before the server tick", () => {
+  const { world, hero, input } = setup();
+  const popup = assertIdentifierAndComponents(world, "use", [POPUP]);
+  createPopup(world, popup, {
+    tabs: ["info"],
+    lines: [Array.from({ length: 40 }, (_, i) => createText(`Row ${i}`))],
+  });
+  openPopup(world, hero, popup, true);
+  advance(world, 500);
+  input.receive({ sequence: 0, action: { kind: "scroll", index: 0 } });
+  input.receive({ sequence: 1, action: { kind: "scroll", index: 0.4 } });
+  input.receive({ sequence: 2, action: { kind: "scroll", index: 1 } });
+  advance(world, 500);
+  expect(getVerticalIndex(world, popup)).toBe(31);
+});

@@ -14,6 +14,7 @@ import { ITEM } from "../../engine/components/item";
 import { Deal, POPUP } from "../../engine/components/popup";
 import {
   getTab,
+  openPopup,
   getVerticalIndex,
   isInPopup,
 } from "../../engine/systems/popup";
@@ -250,3 +251,26 @@ describe("buying from a trader", () => {
     expect(hero[ACTIONABLE].popup).toBe(world.getEntityId(trader));
   });
 });
+
+it.each([false, true])(
+  "buys from the open shop with a competing adjacent dialog (multiplayer: %s)",
+  (multiplayer) => {
+    const { world, hero, trader } = setup([
+      getTraderDeal({ stackable: "apple" }, 1),
+    ]);
+    if (multiplayer) world.metadata.warpPlayer = () => {};
+    const other = createShop(
+      world,
+      { x: 2, y: 1 },
+      { tabs: ["buy"], deals: [getTraderDeal({ stackable: "banana" }, 1)] }
+    );
+    giveItems(world, hero, [{ stackable: "coin", amount: applePrice }]);
+    openPopup(world, hero, trader, true);
+    step(world, 15);
+    expect(hero[ACTIONABLE].trade).toBe(hero.PLAYER.popup);
+    act(world, "right");
+    expect(countItems(world, hero, { stackable: "apple" })).toBe(1);
+    expect(trader.POPUP.deals[0].stock).toBe(0);
+    expect(other.POPUP.deals[0].stock).toBe(1);
+  }
+);

@@ -28,3 +28,5 @@ UI indices are checked against native window and keyboard bounds, and explicit t
 `complete` accepts the server-selected command suffix through the normal bounded action mailbox. Unnamed actors accept only chat editing/submission intents; movement, tab changes and gameplay actions are rejected.
 
 Clipboard text uses one bounded text action containing up to 128 native key indices. The server validates each index and applies its existing prompt length limit. Pasting does not enqueue one network packet per character.
+
+Scrollbar input replaces an already pending scrollbar target with its newest position. Other actions keep the single-action mailbox, so dragging cannot build a backlog or drop its final position.

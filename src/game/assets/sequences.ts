@@ -7336,7 +7336,7 @@ export const displayChat = displayPopupView((world, entity, state) => {
     rightButton: createButton(
       server
         ? entity[POPUP].server?.address
-          ? "CONNECT"
+          ? "ENTER"
           : "NEXT"
         : naming
         ? "JOIN"

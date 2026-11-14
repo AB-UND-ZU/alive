@@ -160,7 +160,12 @@ export const createPlayerInput = (world: World, playerId: number) => {
           ...message.action,
           indices: message.action.indices && [...message.action.indices],
         });
-    } else if (message.action && !pending) pending = { ...message.action };
+    } else if (
+      message.action &&
+      (!pending ||
+        (pending.kind === "scroll" && message.action.kind === "scroll"))
+    )
+      pending = { ...message.action };
     return true;
   };
   const release = () => {

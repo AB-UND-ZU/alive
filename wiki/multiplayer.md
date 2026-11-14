@@ -4,7 +4,7 @@ Experimental local-network co-op supports up to [[data:8]] connected players. A 
 
 ## Join a server
 
-Open [[button:SERVERS]] in the [Menu](menu.md). Enter the host address, then choose a username if this browser has not joined before. Choose [[button:CONNECT]]. The host supplies a WebSocket address such as `ws://192.168.1.10:3001`.
+Open the Servers portal in the [Menu](menu.md). Enter the host address, then choose a username if this browser has not joined before. Choose [[button:ENTER]]. The host supplies a WebSocket address such as `ws://192.168.1.10:3001`.
 
 Choose a username in the chat prompt when first connecting. The server remembers it with your reconnect key.
 

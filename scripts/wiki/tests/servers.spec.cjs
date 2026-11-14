@@ -13,7 +13,7 @@ test.beforeAll(async () => {
   await buildServer({
     stdin: {
       contents:
-        'export {createHost} from "./src/engine/network/host"; export {encodeState, decodeState} from "./src/engine/network/codec"; export {getKeyFromIndex} from "./src/components/Keyboard"; export {moveEntity} from "./src/engine/systems/map";',
+        'export {createHost} from "./src/engine/network/host"; export {encodeState, decodeState} from "./src/engine/network/codec"; export {getKeyFromIndex} from "./src/components/Keyboard"; export {moveEntity} from "./src/engine/systems/map"; export {createPopup,openPopup} from "./src/engine/systems/popup"; export {createText} from "./src/game/assets/ui"; export {giveItems} from "./src/testing/harness";',
       resolveDir: path.resolve(__dirname, "../../.."),
       loader: "ts",
     },
@@ -465,4 +465,121 @@ test("the native menu portal connects, leaves and reuses the saved identity", as
   await expect.poll(() => identities.length).toBe(2);
   expect(identities[1]).toBe(identities[0]);
   expect(errors).toEqual([]);
+});
+
+test("multiplayer popup hit areas follow rendered content, dragging and dialog buttons", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/game-design/clients/multiplayer.html");
+  await page
+    .getByRole("textbox", { name: "Server URL" })
+    .fill(`127.0.0.1:${server.address.port}`);
+  await page
+    .getByRole("textbox", { name: "Player 1 username" })
+    .fill("Clicker");
+  await page
+    .getByRole("textbox", { name: "Player 2 username" })
+    .fill("Watcher");
+  await page.getByRole("button", { name: "Connect", exact: true }).click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "connected" })
+  ).toHaveCount(2, { timeout: 15000 });
+  const frame = page.frameLocator('iframe[title="Player 1 game"]');
+  await frame.locator("canvas").click({ position: { x: 100, y: 100 } });
+  const world = server.simulation.world;
+  const hero = world
+    .getEntities(["PLAYER"])
+    .find((actor) => actor.PLAYER.username === "Clicker");
+  const other = world
+    .getEntities(["PLAYER"])
+    .find((actor) => actor.PLAYER.username === "Watcher");
+  engine.giveItems(world, hero, [{ stackable: "coin", amount: 100 }]);
+  const source = world
+    .getEntities(["IDENTIFIABLE", "POPUP"])
+    .find((entity) => entity.IDENTIFIABLE.name === "server_portal");
+  engine.moveEntity(world, source, {
+    x: hero.POSITION.x + 1,
+    y: hero.POSITION.y,
+  });
+  engine.createPopup(world, source, {
+    tabs: ["buy", "info"],
+    deals: Array.from({ length: 40 }, () => ({
+      item: { consume: "potion", material: "wood", stat: "hp", amount: 1 },
+      stock: 1,
+      prices: [{ stackable: "coin", amount: 1 }],
+    })),
+    lines: [[], [engine.createText("Shared stock")]],
+  });
+  engine.openPopup(world, hero, source);
+  const popup = () => world.getEntityById(hero.PLAYER.popup);
+  const row = () => popup()?.POPUP.verticalIndezes[0];
+  await expect(frame.locator("#scroll")).toBeVisible();
+  await expect
+    .poll(() =>
+      frame
+        .locator(".Controls")
+        .evaluate((element) => element.style.getPropertyValue("--popup-height"))
+    )
+    .toBe("11");
+  await expect
+    .poll(() => popup()?.SEQUENCABLE.states.popup.args.contentClickable)
+    .toBe(true);
+  const bar = await frame.locator("#scroll").boundingBox();
+  const cell = bar.height / 9;
+  await page.mouse.move(bar.x + bar.width / 2, bar.y + 2 * cell);
+  await page.mouse.down();
+  await page.mouse.move(bar.x + bar.width / 2, bar.y + bar.height - 2 * cell, {
+    steps: 12,
+  });
+  await page.mouse.up();
+  await expect.poll(row).toBe(39);
+  const top = popup().SEQUENCABLE.states.popup.args.scrollIndex;
+  await frame.locator("#content").click({ position: { x: 50, y: cell / 2 } });
+  await expect.poll(row).toBe(top);
+  await expect
+    .poll(() => hero.ACTIONABLE.trade)
+    .toBe(world.getEntityId(popup()));
+  await frame.locator("#right").click();
+  await expect.poll(() => source.POPUP.deals[top].stock).toBe(0);
+  expect(other.PLAYER.popup).toBeUndefined();
+  await page.screenshot({
+    path: testInfo.outputPath("popup-hitareas-desktop.png"),
+    fullPage: true,
+  });
+  await frame.locator("#tab-1").click();
+  await expect.poll(() => popup()?.POPUP.horizontalIndex).toBe(1);
+  await frame.locator("#close").click();
+  await expect.poll(() => hero.PLAYER.popup).toBeUndefined();
+  const gameUrl = await page
+    .locator('iframe[title="Player 1 game"]')
+    .getAttribute("src");
+  await page.addInitScript(() => {
+    window.addEventListener("message", (event) => {
+      if (
+        event.data?.type === "server-status" &&
+        event.data.status === "connected"
+      )
+        window.serverReady = true;
+    });
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(gameUrl);
+  await page.waitForFunction(() => window.serverReady);
+  await page.locator("canvas").click({ position: { x: 100, y: 100 } });
+  engine.openPopup(world, hero, source);
+  await page.locator("#tab-0").click();
+  await expect.poll(() => popup()?.POPUP.horizontalIndex).toBe(0);
+  await expect(page.locator("#scroll")).toBeVisible();
+  const mobileBar = await page.locator("#scroll").boundingBox();
+  await page
+    .locator("#scroll")
+    .click({ position: { x: mobileBar.width / 2, y: mobileBar.height - 1 } });
+  await expect.poll(row).toBe(39);
+  await page.waitForTimeout(1000);
+  await page.screenshot({
+    path: testInfo.outputPath("popup-hitareas-mobile.png"),
+    fullPage: true,
+  });
+  await page.locator("#close").click();
+  await expect.poll(() => hero.PLAYER.popup).toBeUndefined();
 });

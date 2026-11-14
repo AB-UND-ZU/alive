@@ -2182,7 +2182,7 @@ export const createCell = (
           ? [
               ...createText("Tap", colors.grey),
               ...createText(" the "),
-              ...createButton("BUTTON", 8, false, false, false, "lime"),
+              ...createButton("ENTER", 8, false, false, false, "lime"),
             ]
           : [
               ...createText("Press "),

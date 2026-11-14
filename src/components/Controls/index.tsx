@@ -10,11 +10,11 @@ import {
 import { isTouch, useDimensions } from "../Dimensions";
 import "./index.css";
 import { MOVABLE } from "../../engine/components/movable";
-import { setMovementOrientations } from "../../engine/systems/movement";
 import {
   useHero,
   useViewpoint,
   useWorld,
+  useRenderable,
 } from "../../renderers/interface/hooks";
 import { REFERENCE } from "../../engine/components/reference";
 import { ORIENTABLE, Orientation } from "../../engine/components/orientable";
@@ -186,11 +186,9 @@ export default function Controls({
   const interactable = interaction?.active && interaction;
   const heroRef = useRef<Entity>();
   const pausedRef = useRef(paused);
-  const popup =
-    ecs &&
-    hero &&
-    isInPopup(ecs, hero) &&
-    ecs.getEntityByIdAndComponents(hero[PLAYER].popup, [POPUP, SEQUENCABLE]);
+  const popupId =
+    ecs && hero && isInPopup(ecs, hero) ? hero[PLAYER].popup : undefined;
+  const popup = useRenderable([POPUP, SEQUENCABLE], popupId || 0)[0];
   const popupTabs =
     ecs && popup && !getSequence(ecs, popup, "popup")?.args.instant
       ? popup[POPUP].tabs.length

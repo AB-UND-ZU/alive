@@ -48,3 +48,5 @@ export type WorldContext = {
   openMenu: () => void;
 };
 ```
+
+`useRenderable` accepts an entity ID for a narrow subscription. Controls subscribe to the current popup so local presentation changes update hit areas without waiting for an unrelated hero or camera tick. Changing the ID resets the selected entity list even when render generations match.

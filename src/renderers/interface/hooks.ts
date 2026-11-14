@@ -81,12 +81,13 @@ const useId = () => {
 
 export const useRenderable = <C extends keyof Entity>(
   componentNames: C[],
-  identifier?: string
+  identifier?: string | number
 ) => {
   const { ecs } = useWorld();
   const id = useId();
   const pendingGeneration = useRef(-1);
   const initializedWorld = useRef<WorldType>();
+  const initializedIdentifier = useRef<string | number>();
   const setGeneration = useState(-1)[1];
 
   const [entities, setEntities] = useState<TypedEntity<"RENDERABLE" | C>[]>([]);
@@ -99,13 +100,25 @@ export const useRenderable = <C extends keyof Entity>(
 
       if (!ecs) return null;
 
-      const entities = identifier
-        ? (ecs
-            .getEntities([RENDERABLE, IDENTIFIABLE, ...componentNames])
-            .filter(
-              (entity) => entity[IDENTIFIABLE].name === identifier
-            ) as TypedEntity<"RENDERABLE" | C>[])
-        : ecs.getEntities([RENDERABLE, ...componentNames]);
+      const selected =
+        typeof identifier === "number"
+          ? ecs.getEntityByIdAndComponents(identifier, [
+              RENDERABLE,
+              ...componentNames,
+            ])
+          : undefined;
+      const entities =
+        typeof identifier === "number"
+          ? selected
+            ? [selected]
+            : []
+          : identifier
+          ? (ecs
+              .getEntities([RENDERABLE, IDENTIFIABLE, ...componentNames])
+              .filter(
+                (entity) => entity[IDENTIFIABLE].name === identifier
+              ) as TypedEntity<"RENDERABLE" | C>[])
+          : ecs.getEntities([RENDERABLE, ...componentNames]);
       const nextGeneration =
         entities.length === 0
           ? -1
@@ -114,7 +127,7 @@ export const useRenderable = <C extends keyof Entity>(
               0
             );
 
-      if (nextGeneration !== pendingGeneration.current) {
+      if (reset || nextGeneration !== pendingGeneration.current) {
         pendingGeneration.current = nextGeneration;
         setGeneration(nextGeneration);
         setEntities(entities);
@@ -128,15 +141,19 @@ export const useRenderable = <C extends keyof Entity>(
     if (!ecs) return;
 
     ecs.metadata.listeners[id] = listener;
-    if (initializedWorld.current !== ecs) {
+    if (
+      initializedWorld.current !== ecs ||
+      initializedIdentifier.current !== identifier
+    ) {
       initializedWorld.current = ecs;
-      listener();
+      initializedIdentifier.current = identifier;
+      listener(true);
     }
 
     return () => {
       delete ecs.metadata.listeners[id];
     };
-  }, [id, ecs, listener]);
+  }, [id, ecs, listener, identifier]);
 
   return entities;
 };

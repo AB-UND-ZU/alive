@@ -262,12 +262,8 @@ export default function setupAction(world: World) {
             );
             const currentPopup = world.getEntityById(entity[PLAYER]?.popup);
             const popupEntity =
-              adjacentPopup === entity
-                ? undefined
-                : currentPopup?.[POPUP]?.source ===
-                  world.getEntityId(adjacentPopup || {})
-                ? currentPopup
-                : adjacentPopup;
+              currentPopup ||
+              (adjacentPopup === entity ? undefined : adjacentPopup);
             const selections = popupEntity
               ? getTabSelections(world, popupEntity)
               : [];
