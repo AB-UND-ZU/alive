@@ -1,3 +1,5 @@
+import { createPlayerFocus } from "./creation";
+import { FOCUSABLE } from "../engine/components/focusable";
 import { entities, World } from "../engine";
 import { FOG } from "../engine/components/fog";
 import { POSITION } from "../engine/components/position";
@@ -83,6 +85,17 @@ export const ensurePlayerInterface = (
     };
     player[PLAYER].interface = ids;
   }
+  if (!ids.focus || !world.getEntityById(ids.focus)) {
+    const focus = createPlayerFocus(
+      world,
+      player.POSITION || { x: 0, y: 0 },
+      owner
+    );
+    registerEntity(world, focus);
+    ids.focus = world.getEntityId(focus);
+  }
+  world.assertByIdAndComponents(ids.focus, [FOCUSABLE])[FOCUSABLE].owner =
+    owner;
   world.assertByIdAndComponents(ids.use, [POPUP])[POPUP].owner = owner;
   world.assertByIdAndComponents(ids.inspect, [VIEWABLE])[VIEWABLE].owner =
     owner;

@@ -56,9 +56,13 @@ import {
   hittingWidth,
 } from "../../game/balancing/forging";
 import { getCraftingDeal } from "../../game/balancing/crafting";
-import { getIdentifierAndComponents, setHighlight, TEST_MODE } from "../utils";
+import {
+  getIdentifierAndComponents,
+  setHighlight,
+  getPlayerFocus,
+  TEST_MODE,
+} from "../utils";
 import { FOCUSABLE } from "../components/focusable";
-import { TRACKABLE } from "../components/trackable";
 import { displayedClasses, hairColors } from "../../game/assets/pixels";
 import { credits } from "../../game/assets/credits";
 import {
@@ -849,12 +853,9 @@ export const openPopup = (
   );
 
   // unmark highlight
-  const focusEntity = getIdentifierAndComponents(world, "focus", [
-    FOCUSABLE,
-    TRACKABLE,
-  ]);
+  const focusEntity = getPlayerFocus(world, heroEntity);
   if (focusEntity?.[FOCUSABLE].target === popupId) {
-    setHighlight(world);
+    setHighlight(world, undefined, undefined, undefined, heroEntity);
   }
 };
 

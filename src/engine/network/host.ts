@@ -226,6 +226,7 @@ export const createHost = (saved?: HostedWorld) => {
       for (const id of [
         ui.use,
         ui.inspect,
+        ...(ui.focus ? [ui.focus] : []),
         ...Object.values(ui.prompts || {}),
       ]) {
         const entity = world.getEntityById(id);

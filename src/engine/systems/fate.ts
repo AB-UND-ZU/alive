@@ -259,8 +259,8 @@ export default function setupFate(world: World) {
     ])) {
       if (isDead(world, entity) && isDecayed(world, entity)) {
         // disable any focus
-        setNeedle(world);
-        setHighlight(world);
+        setNeedle(world, undefined, entity);
+        setHighlight(world, undefined, undefined, undefined, entity);
 
         // close popups
         if (entity[PLAYER].popup) {
@@ -431,7 +431,7 @@ export default function setupFate(world: World) {
         // set needle to spawn
         const spawnEntity = getIdentifier(world, "spawn");
         if (spawnEntity) {
-          setNeedle(world, spawnEntity);
+          setNeedle(world, spawnEntity, heroEntity);
         }
       } else if (compassEntity) {
         // only update needle

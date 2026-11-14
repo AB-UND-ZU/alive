@@ -1,3 +1,4 @@
+import { FOCUSABLE } from "../components/focusable";
 import { POPUP } from "../components/popup";
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
@@ -148,6 +149,8 @@ export default function setupSequence(world: World) {
             ? entity[POPUP]?.owner
             : sequenceType === "interact"
             ? sequencable.states.interact?.args.owner
+            : sequenceType === "focus"
+            ? entity[FOCUSABLE]?.owner
             : undefined;
         if (owner !== undefined) {
           for (const id of Object.values(sequenceState.particles)) {

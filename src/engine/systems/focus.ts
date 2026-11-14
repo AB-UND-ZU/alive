@@ -15,7 +15,6 @@ export default function setupFocus(world: World) {
   let referenceGenerations = -1;
 
   const onUpdate = (delta: number) => {
-    const heroEntity = world.getEntity([PLAYER]);
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
       .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
@@ -26,6 +25,12 @@ export default function setupFocus(world: World) {
 
     // handle focus highlights and trigger on any reference frame changes for simplicity
     for (const entity of world.getEntities([FOCUSABLE, RENDERABLE, POSITION])) {
+      const owner = entity[FOCUSABLE].owner;
+      const heroEntity =
+        owner === undefined
+          ? world.getEntity([PLAYER])
+          : world.getEntityByIdAndComponents(owner, [PLAYER]);
+      if (world.metadata.warpPlayer && owner === undefined) continue;
       let targetId = entity[FOCUSABLE].target;
       let pendingId = entity[FOCUSABLE].pendingTarget;
 

@@ -522,13 +522,13 @@ const executeList = (world: World, entity: Entity, list: string) => {
 
 const executeFocus = (world: World, entity: Entity, id: string) => {
   if (!id) {
-    setHighlight(world);
+    setHighlight(world, undefined, undefined, undefined, entity);
     return;
   }
 
   const target = getIdentifierAndComponents(world, id, [POSITION]);
   if (target) {
-    setHighlight(world, "quest", target);
+    setHighlight(world, "quest", target, undefined, entity);
     return;
   }
 

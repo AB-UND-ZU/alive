@@ -1,3 +1,5 @@
+import { FOCUSABLE } from "../components/focusable";
+import { getClosestPlayer } from "../players";
 import { World } from "../ecs";
 import { POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -40,14 +42,41 @@ export default function setupNeedle(world: World) {
       const originId = entity[ITEM] ? entity[ITEM].carrier : entityId;
       const targetId = entity[TRACKABLE].target;
 
-      const heroEntity = world.getEntity([PLAYER]);
+      const carrier = world.getEntityByIdAndComponents(entity[ITEM]?.carrier, [
+        PLAYER,
+      ]);
+      const owner = world.getEntityByIdAndComponents(entity[FOCUSABLE]?.owner, [
+        PLAYER,
+      ]);
+      const heroEntity = world.metadata.warpPlayer
+        ? carrier ||
+          owner ||
+          getClosestPlayer(
+            world,
+            entity[POSITION] ||
+              world.getEntityById(entity[ITEM]?.carrier)?.POSITION || {
+                x: 0,
+                y: 0,
+              },
+            [PLAYER]
+          )
+        : world.getEntity([PLAYER]);
       const heroId = heroEntity && world.getEntityId(heroEntity);
 
-      if (heroId && !entity[TRACKABLE].target) {
+      if (
+        (!world.metadata.warpPlayer || !entity[FOCUSABLE]) &&
+        heroId &&
+        !entity[TRACKABLE].target
+      ) {
         // point dropped compass to hero
         entity[TRACKABLE].target = heroId;
         continue;
-      } else if (originId === targetId && targetId === heroId) {
+      } else if (
+        (originId === targetId && targetId === heroId) ||
+        (world.metadata.warpPlayer &&
+          carrier &&
+          world.getEntityById(targetId)?.[PLAYER])
+      ) {
         // point picked up compass to player spawn
         const spawn = getIdentifier(world, "spawn");
         entity[TRACKABLE].target = spawn && world.getEntityId(spawn);

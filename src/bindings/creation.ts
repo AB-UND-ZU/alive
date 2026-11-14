@@ -418,6 +418,41 @@ export const cellNames = [
 ] as const;
 export type CellType = (typeof cellNames)[number];
 
+export const createPlayerFocus = (
+  world: World,
+  position: Position,
+  owner?: number
+) => {
+  const highlightEntity = entities.createHighlight(world, {
+    [FOCUSABLE]: { owner },
+    [MOVABLE]: {
+      orientations: [],
+      reference: world.getEntityId(world.metadata.gameEntity),
+      spring: {
+        duration: 500,
+      },
+      lastInteraction: 0,
+      flying: false,
+      swimming: false,
+    },
+    [ORIENTABLE]: {},
+    [POSITION]: { ...position },
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: none,
+    [TRACKABLE]: {},
+  });
+  createSequence<"focus", FocusSequence>(
+    world,
+    highlightEntity,
+    "focus",
+    "focusCircle",
+    {}
+  );
+  setIdentifier(world, highlightEntity, "focus");
+  return highlightEntity;
+};
+
 export const populateItems = (
   world: World,
   entity: TypedEntity<"INVENTORY" | "POSITION">,
@@ -1062,35 +1097,8 @@ export const createCell = (
     const { inspectEntity, useEntity } = createPlayerInterface(world);
     all.push(inspectEntity, useEntity);
 
-    // set initial focus on hero
-    const highlightEntity = entities.createHighlight(world, {
-      [FOCUSABLE]: {},
-      [MOVABLE]: {
-        orientations: [],
-        reference: world.getEntityId(world.metadata.gameEntity),
-        spring: {
-          duration: 500,
-        },
-        lastInteraction: 0,
-        flying: false,
-        swimming: false,
-      },
-      [ORIENTABLE]: {},
-      [POSITION]: { x, y },
-      [RENDERABLE]: { generation: 0 },
-      [SEQUENCABLE]: { states: {} },
-      [SPRITE]: none,
-      [TRACKABLE]: {},
-    });
+    const highlightEntity = createPlayerFocus(world, { x, y });
     all.push(highlightEntity);
-    createSequence<"focus", FocusSequence>(
-      world,
-      highlightEntity,
-      "focus",
-      "focusCircle",
-      {}
-    );
-    setIdentifier(world, highlightEntity, "focus");
 
     // create spawn dummy to set needle target
     const spawnEntity = entities.createViewpoint(world, {

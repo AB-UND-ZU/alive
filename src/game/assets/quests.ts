@@ -88,7 +88,7 @@ export const menuQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "sign",
     onEnter: () => {
-      setHighlight(world, "quest", menuSign);
+      setHighlight(world, "quest", menuSign, undefined, entity);
       return true;
     },
     isCompleted: () =>
@@ -102,7 +102,7 @@ export const menuQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "warp",
     onEnter: () => {
-      setHighlight(world, "quest", menuPortal);
+      setHighlight(world, "quest", menuPortal, undefined, entity);
       return true;
     },
     isCompleted: () => true,
@@ -153,7 +153,7 @@ export const centerQuest: Sequence<QuestSequence> = (world, entity, state) => {
       (state.args.step !== START_STEP && inEntrance) ||
       (!spawnSign && state.args.step === "sign"),
     onEnter: () => {
-      setHighlight(world);
+      setHighlight(world, undefined, undefined, undefined, entity);
       return true;
     },
     isCompleted: () => true,
@@ -171,7 +171,7 @@ export const centerQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "sign",
     onEnter: () => {
-      setHighlight(world, "quest", spawnSign);
+      setHighlight(world, "quest", spawnSign, undefined, entity);
       return true;
     },
     isCompleted: () =>
@@ -185,7 +185,7 @@ export const centerQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "key",
     onEnter: () => {
-      setHighlight(world, "quest", spawnKey);
+      setHighlight(world, "quest", spawnKey, undefined, entity);
       return true;
     },
     isCompleted: () => !spawnKey,
@@ -196,7 +196,7 @@ export const centerQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "door",
     onEnter: () => {
-      setHighlight(world, "quest", centerUpDoor);
+      setHighlight(world, "quest", centerUpDoor, undefined, entity);
       return true;
     },
   });
@@ -243,7 +243,7 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
       (state.args.step !== START_STEP && inEntrance) ||
       (!guideSign && state.args.step === "sign"),
     onEnter: () => {
-      setHighlight(world);
+      setHighlight(world, undefined, undefined, undefined, entity);
       return true;
     },
     isCompleted: () => true,
@@ -254,7 +254,7 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "sign",
     onEnter: () => {
-      setHighlight(world, "quest", guideSign);
+      setHighlight(world, "quest", guideSign, undefined, entity);
       return true;
     },
     isCompleted: () =>
@@ -268,7 +268,7 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "stick",
     onEnter: () => {
-      setHighlight(world, "quest", woodOne);
+      setHighlight(world, "quest", woodOne, undefined, entity);
       return true;
     },
     isCompleted: () => !!entity[EQUIPPABLE].weapon,
@@ -279,7 +279,7 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "dummy",
     onEnter: () => {
-      setHighlight(world, "enemy", dummy);
+      setHighlight(world, "enemy", dummy, undefined, entity);
       return true;
     },
     isCompleted: () => !dummy && !!coinDrop,
@@ -294,7 +294,7 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
         coinDrop?.[ITEM].carrier,
         [POSITION]
       );
-      setHighlight(world, "quest", carrierEntity);
+      setHighlight(world, "quest", carrierEntity, undefined, entity);
       return true;
     },
     isCompleted: () => coinDrop?.[ITEM].carrier === entityId,
@@ -305,7 +305,7 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "shop",
     onEnter: () => {
-      setHighlight(world, "quest", guideEntity);
+      setHighlight(world, "quest", guideEntity, undefined, entity);
       return true;
     },
     isCompleted: () =>
@@ -323,7 +323,7 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "door",
     onEnter: () => {
-      setHighlight(world, "quest", north1UpDoor);
+      setHighlight(world, "quest", north1UpDoor, undefined, entity);
       return true;
     },
   });
@@ -370,7 +370,7 @@ export const north2Quest: Sequence<QuestSequence> = (world, entity, state) => {
       (state.args.step !== START_STEP && inEntrance) ||
       (!fruitSign && state.args.step === "sign"),
     onEnter: () => {
-      setHighlight(world);
+      setHighlight(world, undefined, undefined, undefined, entity);
       return true;
     },
     isCompleted: () => true,
@@ -388,7 +388,7 @@ export const north2Quest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "cactus",
     onEnter: () => {
-      setHighlight(world, "enemy", cactusEntities[1]);
+      setHighlight(world, "enemy", cactusEntities[1], undefined, entity);
       return true;
     },
     isCompleted: () => cactusEntities.length < 3,
@@ -399,7 +399,7 @@ export const north2Quest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "sign",
     onEnter: () => {
-      setHighlight(world, "quest", fruitSign);
+      setHighlight(world, "quest", fruitSign, undefined, entity);
       return true;
     },
     isCompleted: () =>
@@ -413,7 +413,7 @@ export const north2Quest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "chest",
     onEnter: () => {
-      setHighlight(world, "enemy", fruitChest);
+      setHighlight(world, "enemy", fruitChest, undefined, entity);
       return true;
     },
     isCompleted: () => !fruitChest,
@@ -424,7 +424,7 @@ export const north2Quest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "gold_door",
     onEnter: () => {
-      setHighlight(world, "quest", north2RightDoor);
+      setHighlight(world, "quest", north2RightDoor, undefined, entity);
       return true;
     },
     isCompleted: () =>
@@ -442,7 +442,7 @@ export const north2Quest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "iron_door",
     onEnter: () => {
-      setHighlight(world, "quest", north2UpDoor);
+      setHighlight(world, "quest", north2UpDoor, undefined, entity);
       return true;
     },
   });
@@ -491,9 +491,9 @@ export const north2East1Quest: Sequence<QuestSequence> = (
       (state.args.step !== START_STEP && inEntrance) || !potionChest,
     onEnter: () => {
       if (isUnlocked(world, north2UpDoor)) {
-        setHighlight(world);
+        setHighlight(world, undefined, undefined, undefined, entity);
       } else {
-        setHighlight(world, "quest", north2RightDoor);
+        setHighlight(world, "quest", north2RightDoor, undefined, entity);
       }
       return true;
     },
@@ -505,7 +505,7 @@ export const north2East1Quest: Sequence<QuestSequence> = (
     stage,
     name: "chest",
     onEnter: () => {
-      setHighlight(world, "enemy", potionChest);
+      setHighlight(world, "enemy", potionChest, undefined, entity);
       return true;
     },
   });
@@ -535,7 +535,7 @@ export const spawnQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: START_STEP,
     onEnter: () => {
-      setHighlight(world, "quest", spawnSign);
+      setHighlight(world, "quest", spawnSign, undefined, entity);
       return true;
     },
     isCompleted: () =>
@@ -551,7 +551,13 @@ export const spawnQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "town",
     onEnter: () => {
-      setHighlight(world, "quest", earthChief, earthChief && { x: 0, y: 0 });
+      setHighlight(
+        world,
+        "quest",
+        earthChief,
+        earthChief && { x: 0, y: 0 },
+        entity
+      );
       return true;
     },
     isCompleted: () =>
@@ -559,7 +565,7 @@ export const spawnQuest: Sequence<QuestSequence> = (world, entity, state) => {
       (isInPopup(world, entity) &&
         entity[PLAYER].popup === world.getEntityId(earthChief)),
     onLeave: () => {
-      setHighlight(world);
+      setHighlight(world, undefined, undefined, undefined, entity);
       return END_STEP;
     },
   });
@@ -602,14 +608,14 @@ export const waypointQuest: Sequence<QuestSequence> = (
     stage,
     name: "search",
     onEnter: () => {
-      setHighlight(world, highlight || "quest", targetEntity, quadrant);
+      setHighlight(world, highlight || "quest", targetEntity, quadrant, entity);
       return true;
     },
     isCompleted: () =>
       !!targetEntity &&
       getDistance(entity[POSITION], targetEntity[POSITION], size) <= distance,
     onLeave: () => {
-      setHighlight(world);
+      setHighlight(world, undefined, undefined, undefined, entity);
       return END_STEP;
     },
   });
@@ -647,7 +653,7 @@ export const tombstoneQuest: Sequence<QuestSequence> = (
     stage,
     name: "search",
     onEnter: () => {
-      setHighlight(world, "tombstone", tombstoneEntity);
+      setHighlight(world, "tombstone", tombstoneEntity, undefined, entity);
       return true;
     },
     isCompleted: () =>
@@ -655,7 +661,7 @@ export const tombstoneQuest: Sequence<QuestSequence> = (
       getDistance(entity[POSITION], tombstoneEntity[POSITION], size) <=
         tombstoneDistance,
     onLeave: () => {
-      setHighlight(world);
+      setHighlight(world, undefined, undefined, undefined, entity);
 
       // restart existing quest
       const currentQuest = (entity[SPAWNABLE] as Spawnable).quest;

@@ -1,3 +1,4 @@
+import { ITEM } from "./components/item";
 import { World } from ".";
 import { IDENTIFIABLE } from "./components/identifiable";
 import { TRACKABLE } from "./components/trackable";
@@ -80,38 +81,63 @@ export const getIdentifiersAndComponents = <C extends keyof Entity>(
     .filter(Boolean) as TypedEntity<C>[];
 };
 
+export const getPlayerFocus = (world: World, player?: TypedEntity) => {
+  const id = player?.[PLAYER]?.interface?.focus;
+  return id === undefined
+    ? getIdentifierAndComponents(world, "focus", [FOCUSABLE, TRACKABLE])
+    : world.getEntityByIdAndComponents(id, [FOCUSABLE, TRACKABLE]);
+};
+
 export const setHighlight = (
   world: World,
   highlight?: Focusable["highlight"],
   entity?: TypedEntity,
-  quadrant?: Position
+  quadrant?: Position,
+  player?: TypedEntity
 ) => {
-  const entityId = highlight && entity && world.getEntityId(entity);
-  const focusEntity = getIdentifierAndComponents(world, "focus", [
-    FOCUSABLE,
-    TRACKABLE,
-  ]);
-  const heroEntity = getIdentifierAndComponents(world, "hero", [PLAYER]);
-
-  if (!focusEntity) return;
-
-  focusEntity[FOCUSABLE].pendingTarget = entityId;
-  focusEntity[FOCUSABLE].highlight = highlight;
-  focusEntity[TRACKABLE].target = heroEntity && world.getEntityId(heroEntity);
-  focusEntity[TRACKABLE].quadrant = quadrant;
-  rerenderEntity(world, focusEntity);
+  const focuses =
+    world.metadata.warpPlayer && !player
+      ? world
+          .getEntities([FOCUSABLE, TRACKABLE])
+          .filter((focus) => focus[FOCUSABLE].owner !== undefined)
+      : [getPlayerFocus(world, player)].filter(Boolean);
+  for (const focus of focuses) {
+    if (!focus) continue;
+    focus[FOCUSABLE].pendingTarget =
+      highlight && entity ? world.getEntityId(entity) : undefined;
+    focus[FOCUSABLE].highlight = highlight;
+    const hero =
+      player ||
+      (focus[FOCUSABLE].owner
+        ? world.getEntityById(focus[FOCUSABLE].owner)
+        : getIdentifierAndComponents(world, "hero", [PLAYER]));
+    focus[TRACKABLE].target = hero && world.getEntityId(hero);
+    focus[TRACKABLE].quadrant = quadrant;
+    rerenderEntity(world, focus);
+  }
 };
 
-export const setNeedle = (world: World, entity?: TypedEntity) => {
-  const entityId = entity && world.getEntityId(entity);
-  const compassEntity = getIdentifierAndComponents(world, "compass", [
-    TRACKABLE,
-  ]);
-
-  if (!compassEntity) return;
-
-  compassEntity[TRACKABLE].target = entityId;
-  rerenderEntity(world, compassEntity);
+export const setNeedle = (
+  world: World,
+  entity?: TypedEntity,
+  player?: TypedEntity
+) => {
+  const compasses = world.metadata.warpPlayer
+    ? world
+        .getEntities([ITEM, TRACKABLE])
+        .filter(
+          (compass) =>
+            compass[ITEM].accessory === "compass" &&
+            (!player || compass[ITEM].carrier === world.getEntityId(player))
+        )
+    : [getIdentifierAndComponents(world, "compass", [TRACKABLE])].filter(
+        Boolean
+      );
+  for (const compass of compasses) {
+    if (!compass) continue;
+    compass[TRACKABLE].target = entity && world.getEntityId(entity);
+    rerenderEntity(world, compass);
+  }
 };
 
 export const setPoi = (world: World, entity: TypedEntity, sprite: Sprite) => {

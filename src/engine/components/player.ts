@@ -22,6 +22,7 @@ export type Player = {
   interface?: {
     use: number;
     inspect: number;
+    focus?: number;
     prompts?: Record<number, number>;
   };
   interact?: Interaction;

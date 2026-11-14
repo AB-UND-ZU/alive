@@ -2,6 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type Focusable = {
+  owner?: number;
   target?: number;
   pendingTarget?: number;
   highlight?: "quest" | "tombstone" | "enemy";
