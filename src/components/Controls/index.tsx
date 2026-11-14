@@ -920,6 +920,7 @@ export default function Controls({
             heroEntity[MOVABLE].pendingOrientation) ||
           heroEntity[ACTIONABLE].spellTriggered ||
           heroEntity[ACTIONABLE].skillTriggered ||
+          heroEntity[ACTIONABLE].interactTriggered ||
           heroEntity[PLAYER].actionTriggered
         ) {
           reference.suspensionCounter += 1;

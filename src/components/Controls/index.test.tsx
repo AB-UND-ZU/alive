@@ -211,6 +211,45 @@ describe("keyboard movement", () => {
     expect(hero[POSITION]).toEqual(stopped);
   });
 
+  it("opens the adjacent interaction after moving, pressing Enter and releasing movement", () => {
+    const { world, hero, tick } = setup([], {}, `
+|     |
+| ♀   |
+|     |
+| ¾   |
+|     |
+`);
+    press("ArrowDown");
+    runUntil(world, () => hero[POSITION].y === 2);
+    press("Enter");
+    release("Enter");
+    release("ArrowDown");
+    tick(60);
+
+    expect(hero[POSITION]).toEqual({ x: 1, y: 2 });
+    expect(isInPopup(world, hero)).toBe(true);
+    expect(hero[ACTIONABLE].interactTriggered).toBe(false);
+    const popup = world.assertByIdAndComponents(hero[PLAYER].popup, [POPUP]);
+    expect(getTab(world, popup)).toBe("credits");
+  });
+
+  it("clears a queued interaction without a target so the next action still works", () => {
+    const { world, hero, tick } = setup();
+    const x = hero[POSITION].x;
+    press("ArrowRight");
+    runUntil(world, () => hero[POSITION].x === x + 1);
+    press("Enter");
+    release("Enter");
+    release("ArrowRight");
+    tick(60);
+
+    expect(isInPopup(world, hero)).toBeFalsy();
+    expect(hero[ACTIONABLE].interactTriggered).toBe(false);
+    press("g");
+    runUntil(world, () => !!isInPopup(world, hero));
+    expect(getTab(world, getMenu(world))).toBe("gear");
+  });
+
   it("follows the latest held direction and resumes the earlier one", () => {
     const { hero } = setup();
 
