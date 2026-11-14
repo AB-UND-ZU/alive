@@ -6,7 +6,7 @@ popup pause load
 
 [[key:Escape]] Pause and save the game.
 
-Pausing saves the current game in this browser. Use Continue in the main menu to load it.
+In single-player games, pausing saves the current game in this browser. Use Continue in the main menu to load it.
 
 | Action | Result |
 | --- | --- |
@@ -37,3 +37,7 @@ Older saves upgrade automatically when the save list loads. Your saved world and
 To delete a selected save, choose [[button:ERASE]], then [[button:YES]]. [[button:BACK]] cancels. Erased saves cannot be restored.
 
 Saves stay in this browser on this device. Clearing site data deletes them. The [Play](play.md) page loads preset starting positions and equipment. Pausing saves those games too.
+
+## Server characters
+
+[Multiplayer](multiplayer.md) characters and shared worlds are saved on the server. Pausing stops only your input. Reconnect through [[button:SERVERS]] using the same browser profile and address to resume your character.

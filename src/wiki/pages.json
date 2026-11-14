@@ -13,6 +13,7 @@
   {"source": "wiki/dungeon.md", "title": "Dungeon", "route": "game-design/world/dungeon.html", "aliases": ["dungeon.html"], "chapter": "Gameplay", "group": "World", "navigation": true},
   {"source": "wiki/island.md", "title": "Island", "route": "game-design/world/island.html", "aliases": ["island.html"], "chapter": "Gameplay", "group": "World", "navigation": true},
   {"source": "wiki/map.md", "title": "Minimap", "route": "game-design/world/minimap.html", "aliases": ["map.html", "game-design/world/map.html", "minimap.html", "world.html"], "chapter": "Gameplay", "group": "World", "navigation": true},
+  {"source": "wiki/multiplayer.md", "title": "Co-op", "route": "game-design/world/multiplayer.html", "aliases": ["multiplayer.html"], "chapter": "Gameplay", "group": "World", "navigation": true},
   {"source": "wiki/savegames.md", "title": "Savegames", "route": "game-design/world/savegames.html", "aliases": ["savegames.html"], "chapter": "Gameplay", "group": "World", "navigation": true},
   {"source": "wiki/timers.md", "title": "Tick Timers", "route": "game-design/world/timers.html", "aliases": ["timers.html"], "chapter": "Gameplay", "group": "World", "navigation": true},
   {"source": "wiki/sounds.md", "title": "Sounds", "route": "game-design/world/sounds.html", "aliases": ["sounds.html"], "chapter": "Gameplay", "group": "World", "navigation": true},

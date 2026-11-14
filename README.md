@@ -21,6 +21,21 @@ npm run terminal
 
 The terminal renderer also runs over SSH. Use UTF-8 and true color, with at least 33 columns and 24 rows. Ctrl-C saves and exits. See [terminal controls and saves](src/renderers/terminal/index.md).
 
+## Local-network multiplayer
+
+Run the dedicated authoritative host and browser app in separate terminals:
+
+```sh
+npm run server
+npm start
+```
+
+The server prints its LAN WebSocket address and listens on port 3001 by default. Open the game on port 3000, pause, choose **Servers**, and connect to the printed address. New players create a character through the shared menu's portal. Use separate browser profiles for separate players.
+
+`HOST` and `PORT` configure the server listener; `ALIVE_SERVER_SAVE` selects its save file (default `~/.alive/server.save`). The server stores all characters and worlds. Each browser stores its own reconnect key per server address. Use a local HTTP game address with plain LAN WebSockets; HTTPS pages require a WSS server.
+
+This initial co-op version shares world and quest progress, grants the same quest rewards to every character, and keeps each player's controls and dialogs private. Clients render confirmed state without gameplay prediction. See [multiplayer](wiki/multiplayer.md), [host implementation](src/engine/network/host.md), and [networking research](src/engine/network/input.md).
+
 ## Read and preview the wiki
 
 Player wiki lives in [wiki/](wiki/index.md). Technical notes live beside the source files they explain. Both appear as separate chapters in the generated site.
@@ -41,6 +56,7 @@ Read [AGENTS.md](AGENTS.md) before editing. Reuse the local style and game helpe
 ```sh
 npm run check:fast
 npm run test:slow
+npm run test:server
 npm run build
 npx playwright install chromium
 npm run wiki:test
