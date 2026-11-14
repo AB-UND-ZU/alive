@@ -1,10 +1,13 @@
+export type AudioChannels = 1 | 2;
+
 export type AudioOutput = {
   now: () => number;
   play: (
     samples: ArrayLike<number>,
     sampleRate: number,
     time: number,
-    volume: number
+    volume: number,
+    channels?: AudioChannels
   ) => void;
   stop: () => void;
 };
@@ -80,21 +83,33 @@ export const getAudioTime = (delay = 0) =>
 
 export const createSoundBuffer = (
   samples: ArrayLike<number>,
-  sampleRate: number
+  sampleRate: number,
+  channels: AudioChannels = 1
 ): SoundBuffer => {
   if (output)
     return {
       play: (time, volume = 1) => {
-        if (isPlaying()) output?.play(samples, sampleRate, time, volume);
+        if (isPlaying())
+          output?.play(samples, sampleRate, time, volume, channels);
       },
     };
   if (!audioContext || !masterGain) return { play: () => {} };
   const buffer = audioContext.createBuffer(
-    1,
-    Math.max(samples.length, 1),
+    channels,
+    Math.max(Math.floor(samples.length / channels), 1),
     sampleRate
   );
-  buffer.getChannelData(0).set(samples);
+  if (channels === 1) buffer.getChannelData(0).set(samples);
+  else
+    for (let channel = 0; channel < channels; channel++) {
+      const data = buffer.getChannelData(channel);
+      for (
+        let frame = 0;
+        frame < Math.floor(samples.length / channels);
+        frame++
+      )
+        data[frame] = samples[frame * channels + channel];
+    }
 
   return {
     play: (time, volume = 1) => {

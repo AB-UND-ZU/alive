@@ -1,12 +1,20 @@
 import { spawn, spawnSync } from "child_process";
-import { AudioOutput, setAudioOutput } from "../../game/sound/resumable";
+import {
+  AudioChannels,
+  AudioOutput,
+  setAudioOutput,
+} from "../../game/sound/resumable";
 
-export const createAudioMixer = (sampleRate = 44100) => {
+export const createAudioMixer = (
+  sampleRate = 44100,
+  channels: AudioChannels = 1
+) => {
   let cursor = 0;
   let voices: {
     samples: ArrayLike<number>;
     start: number;
     volume: number;
+    channels: AudioChannels;
   }[] = [];
   return {
     now: () => cursor / sampleRate,
@@ -14,41 +22,54 @@ export const createAudioMixer = (sampleRate = 44100) => {
       samples: ArrayLike<number>,
       rate: number,
       time: number,
-      volume: number
+      volume: number,
+      sourceChannels: AudioChannels = 1
     ) => {
       if (rate !== sampleRate) return;
       voices.push({
         samples,
         start: Math.max(cursor, Math.round(time * rate)),
         volume,
+        channels: sourceChannels,
       });
     },
     stop: () => {
       voices = [];
     },
     read: (length: number) => {
-      const samples = new Float32Array(length);
+      const samples = new Float32Array(length * channels);
       for (const voice of voices) {
         const start = Math.max(cursor, voice.start);
         const end = Math.min(
           cursor + length,
-          voice.start + voice.samples.length
+          voice.start + Math.floor(voice.samples.length / voice.channels)
         );
         for (let i = start; i < end; i++)
-          samples[i - cursor] += voice.samples[i - voice.start] * voice.volume;
+          for (let channel = 0; channel < channels; channel++) {
+            const offset = (i - voice.start) * voice.channels;
+            const value =
+              voice.channels === 1
+                ? voice.samples[offset]
+                : channels === 1
+                ? (voice.samples[offset] + voice.samples[offset + 1]) / 2
+                : voice.samples[offset + channel];
+            samples[(i - cursor) * channels + channel] += value * voice.volume;
+          }
       }
       cursor += length;
       voices = voices.filter(
-        (voice) => voice.start + voice.samples.length > cursor
+        (voice) =>
+          voice.start + Math.floor(voice.samples.length / voice.channels) >
+          cursor
       );
-      for (let i = 0; i < length; i++)
+      for (let i = 0; i < samples.length; i++)
         samples[i] = Math.max(-1, Math.min(1, samples[i]));
       return samples;
     },
   } satisfies AudioOutput & { read: (length: number) => Float32Array };
 };
 
-export const startTerminalAudio = () => {
+export const startTerminalAudio = (channels: AudioChannels = 1) => {
   const player = [
     {
       command: "ffplay",
@@ -63,7 +84,7 @@ export const startTerminalAudio = () => {
         "-ar",
         "44100",
         "-ch_layout",
-        "mono",
+        channels === 2 ? "stereo" : "mono",
         "-i",
         "pipe:0",
       ],
@@ -71,7 +92,17 @@ export const startTerminalAudio = () => {
     {
       command: "aplay",
       probe: "--version",
-      args: ["-q", "-t", "raw", "-f", "FLOAT_LE", "-r", "44100", "-c", "1"],
+      args: [
+        "-q",
+        "-t",
+        "raw",
+        "-f",
+        "FLOAT_LE",
+        "-r",
+        "44100",
+        "-c",
+        String(channels),
+      ],
     },
   ].find(
     ({ command, probe }) =>
@@ -81,12 +112,24 @@ export const startTerminalAudio = () => {
   const child = spawn(player.command, player.args, {
     stdio: ["pipe", "ignore", "ignore"],
   });
-  const mixer = createAudioMixer();
+  const sampleRate = 44100;
+  const mixer = createAudioMixer(sampleRate, channels);
+  const started = performance.now();
+  let frames = 0;
   setAudioOutput(mixer);
   const timer = setInterval(() => {
-    if (child.stdin.writableLength > 4096 * 4) return;
-    const samples = mixer.read(1024);
-    child.stdin.write(Buffer.from(samples.buffer));
+    // Keep a small lead and catch up after a delayed game frame.
+    const target =
+      Math.floor(((performance.now() - started) * sampleRate) / 1000) + 2048;
+    while (
+      frames < target &&
+      child.stdin.writableLength <= 4096 * 4 * channels
+    ) {
+      const length = Math.min(1024, target - frames);
+      const samples = mixer.read(length);
+      frames += length;
+      if (!child.stdin.write(Buffer.from(samples.buffer))) break;
+    }
   }, 1024 / 44.1);
   const close = () => {
     clearInterval(timer);

@@ -37,7 +37,7 @@ beforeEach(() => {
   child = Object.assign(new EventEmitter(), {
     stdin: Object.assign(new EventEmitter(), {
       writableLength: 0,
-      write: jest.fn(),
+      write: jest.fn().mockReturnValue(true),
       destroy: jest.fn(),
     }),
     kill: jest.fn(),
@@ -67,7 +67,7 @@ it("streams overlapping game sounds to one mono PCM player", () => {
     expect.arrayContaining(["f32le", "44100", "-ch_layout", "mono", "pipe:0"]),
     { stdio: ["pipe", "ignore", "ignore"] }
   );
-  expect(child.stdin.write).toHaveBeenCalledTimes(1);
+  expect(child.stdin.write.mock.calls.length).toBeGreaterThan(1);
   expect(samples()).toHaveLength(1024);
   expect(samples()[0]).toBeCloseTo(0.4);
   expect(samples()[1]).toBeCloseTo(0.3);
@@ -81,13 +81,15 @@ it("clears playing and scheduled sounds on pause without starting another player
   sound.play(getAudioTime(1000));
   setAudioActive(false);
   jest.advanceTimersByTime(48);
-  expect([...samples()]).toEqual(Array(1024).fill(0));
-  expect([...samples(1)]).toEqual(Array(1024).fill(0));
+  expect(child.stdin.write.mock.calls.length).toBeGreaterThan(1);
+  for (let index = 0; index < child.stdin.write.mock.calls.length; index++)
+    expect([...samples(index)].every((value) => value === 0)).toBe(true);
+  const written = child.stdin.write.mock.calls.length;
 
   setAudioActive(true);
   createSoundBuffer([0.25], 44100).play(getAudioTime());
   jest.advanceTimersByTime(24);
-  expect(samples(2)[0]).toBe(0.25);
+  expect(samples(written)[0]).toBe(0.25);
   expect(mockSpawn).toHaveBeenCalledTimes(1);
 });
 
@@ -143,4 +145,58 @@ it("runs silently without starting a timer when no system player is installed", 
   expect(mockSpawn).not.toHaveBeenCalled();
   expect(jest.getTimerCount()).toBe(0);
   expect(isPlaying()).toBe(false);
+});
+
+it("catches up after delayed callbacks instead of slowing its PCM clock", () => {
+  close = startTerminalAudio();
+  const now = jest.spyOn(performance, "now").mockReturnValue(1000);
+  try {
+    jest.advanceTimersByTime(24);
+    const frames = child.stdin.write.mock.calls.reduce(
+      (sum, [chunk]) => sum + chunk.length / 4,
+      0
+    );
+    expect(frames).toBe(44100 + 2048);
+    expect(getAudioTime()).toBe(frames / 44100);
+    const written = child.stdin.write.mock.calls.length;
+    createSoundBuffer([0.75], 44100).play(getAudioTime());
+    now.mockReturnValue(1024);
+    jest.advanceTimersByTime(24);
+    expect(samples(written)[0]).toBe(0.75);
+    expect(
+      child.stdin.write.mock.calls.reduce(
+        (sum, [chunk]) => sum + chunk.length / 4,
+        0
+      )
+    ).toBe(Math.floor(1.024 * 44100) + 2048);
+  } finally {
+    now.mockRestore();
+  }
+});
+
+it("respects pipe backpressure and resumes without losing subsequent sounds", () => {
+  close = startTerminalAudio();
+  child.stdin.writableLength = 4096 * 4 + 1;
+  jest.advanceTimersByTime(1000);
+  expect(child.stdin.write).not.toHaveBeenCalled();
+  child.stdin.writableLength = 0;
+  child.stdin.write.mockReturnValueOnce(false);
+  createSoundBuffer([0.5], 44100).play(getAudioTime());
+  jest.advanceTimersByTime(23);
+  expect(child.stdin.write).toHaveBeenCalledTimes(1);
+  expect(samples()[0]).toBe(0.5);
+  jest.advanceTimersByTime(23);
+  expect(child.stdin.write.mock.calls.length).toBeGreaterThan(1);
+});
+
+it("streams stereo PCM with separate left and right channels", () => {
+  close = startTerminalAudio(2);
+  createSoundBuffer([0.25, 0.75, 0.5, -0.5], 44100, 2).play(getAudioTime());
+  jest.advanceTimersByTime(24);
+  expect(mockSpawn).toHaveBeenCalledWith(
+    "ffplay",
+    expect.arrayContaining(["-ch_layout", "stereo"]),
+    expect.anything()
+  );
+  expect([...samples().slice(0, 4)]).toEqual([0.25, 0.75, 0.5, -0.5]);
 });

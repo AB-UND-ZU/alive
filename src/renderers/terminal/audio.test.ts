@@ -29,3 +29,24 @@ it("clips summed samples and starts late notes at the current audio time", () =>
   mixer.play([0.75, -0.75], 10, 0, 1);
   expect([...mixer.read(2)]).toEqual([1, -1]);
 });
+
+it("mixes mono sounds into both stereo channels without changing note timing", () => {
+  const mixer = createAudioMixer(10, 2);
+  mixer.play([0.2, 0.4], 10, 0.1, 1);
+  mixer.play([0.6, -0.2, 0.2, -0.4], 10, 0.1, 0.5, 2);
+  const samples = mixer.read(3);
+  [0, 0, 0.5, 0.1, 0.5, 0.2].forEach((value, index) =>
+    expect(samples[index]).toBeCloseTo(value)
+  );
+  expect(mixer.now()).toBe(0.3);
+  expect([...mixer.read(1)]).toEqual([0, 0]);
+});
+
+it("downmixes stereo sources for a mono player", () => {
+  const mixer = createAudioMixer(10);
+  mixer.play([0.2, 0.6, 0.5, -0.5], 10, 0, 1, 2);
+  const samples = mixer.read(2);
+  expect(samples[0]).toBeCloseTo(0.4);
+  expect(samples[1]).toBe(0);
+  expect([...mixer.read(1)]).toEqual([0]);
+});

@@ -156,7 +156,7 @@ it("uses an installed terminal audio output without a browser audio context", ()
     expect(audio!.isPlaying()).toBe(true);
     expect(audio!.getAudioTime(250)).toBe(2.25);
     sound.play(2.25, 0.5);
-    expect(play).toHaveBeenCalledWith(samples, 44100, 2.25, 0.5);
+    expect(play).toHaveBeenCalledWith(samples, 44100, 2.25, 0.5, 1);
     audio!.muteAudio();
     sound.play(3);
     audio!.unmuteAudio();
@@ -169,6 +169,31 @@ it("uses an installed terminal audio output without a browser audio context", ()
     audio!.setAudioOutput();
     expect(stop).toHaveBeenCalledTimes(3);
     expect(audio!.isPlaying()).toBe(false);
+  } finally {
+    window.AudioContext = original;
+  }
+});
+
+it("deinterleaves stereo PCM into browser audio channels", () => {
+  const original = window.AudioContext;
+  const channels = [new Float32Array(2), new Float32Array(2)];
+  const createBuffer = jest.fn(() => ({
+    getChannelData: (channel: number) => channels[channel],
+  }));
+  (window as any).AudioContext = class {
+    destination = {};
+    createGain = () => ({ gain: { value: 1 }, connect() {} });
+    createBuffer = createBuffer;
+  };
+  try {
+    jest.isolateModules(() => {
+      const audio =
+        jest.requireActual<typeof import("./resumable")>("./resumable");
+      audio.createSoundBuffer([0.25, 0.75, 0.5, -0.5], 44100, 2);
+    });
+    expect(createBuffer).toHaveBeenCalledWith(2, 2, 44100);
+    expect([...channels[0]]).toEqual([0.25, 0.5]);
+    expect([...channels[1]]).toEqual([0.75, -0.5]);
   } finally {
     window.AudioContext = original;
   }
