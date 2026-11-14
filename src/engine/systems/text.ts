@@ -1,3 +1,4 @@
+import { soundSource } from "../../game/sound/events";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { LEVEL } from "../components/level";
@@ -251,13 +252,17 @@ export default function setupText(world: World) {
 
         // play sound
         if (!isIdle && !!dialog) {
-          play("talk", {
-            variant: tooltipEntity[TOOLTIP].enemy
-              ? 2
-              : tooltipEntity[BELONGABLE]?.faction === "animal"
-              ? 0.5
-              : 1,
-          });
+          play(
+            "talk",
+            {
+              variant: tooltipEntity[TOOLTIP].enemy
+                ? 2
+                : tooltipEntity[BELONGABLE]?.faction === "animal"
+                ? 0.5
+                : 1,
+            },
+            soundSource(world, tooltipEntity)
+          );
         }
 
         pendingTooltip = tooltipEntity;

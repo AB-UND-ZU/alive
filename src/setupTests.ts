@@ -81,7 +81,8 @@ jest.mock("./game/sound", () => {
     ...actual,
     loadSounds: jest.fn(() => Promise.resolve()),
     play: (...args: unknown[]) => {
-      env.playedSounds.push(args[0]);
+      const events = jest.requireActual("./game/sound/events");
+      if (!events.captureSound(...args)) env.playedSounds.push(args[0]);
     },
   };
 });

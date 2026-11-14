@@ -1,3 +1,4 @@
+import { soundSource } from "../../game/sound/events";
 import { World } from "../ecs";
 import { entities } from "..";
 import { Position, POSITION } from "../components/position";
@@ -159,9 +160,9 @@ export const attemptBubbleAbsorb = (world: World, entity: Entity) => {
 
     if (entity[CONDITIONABLE].block.amount <= 0) {
       delete entity[CONDITIONABLE].block;
-      play("block", { variant: 3 });
+      play("block", { variant: 3 }, soundSource(world, entity));
     } else {
-      play("block", { variant: 2 });
+      play("block", { variant: 2 }, soundSource(world, entity));
     }
     return true;
   }
@@ -224,7 +225,7 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
     { facing: "right", tick, rotate: true }
   );
 
-  play("slash");
+  play("slash", {}, soundSource(world, entity));
 };
 
 const totemUnits = {
@@ -319,7 +320,7 @@ export const summonTotem = (world: World, entity: Entity, totem: Entity) => {
       element: totem[ITEM].element,
     }
   );
-  play("totem");
+  play("totem", {}, soundSource(world, entity));
 };
 
 export const hasTriggered = (
@@ -548,7 +549,7 @@ export default function setupMagic(world: World) {
             if (healing > 0) {
               targetEntity[STATS].hp = hp;
               createAmountMarker(world, fragmentEntity, healing, "up", "heal");
-              play("pickup", pickupOptions.hp);
+              play("pickup", pickupOptions.hp, soundSource(world, entity));
               hasAffected = true;
             }
           }
@@ -588,7 +589,11 @@ export default function setupMagic(world: World) {
               ? 1 /
                 (getDistance(entity[POSITION], heroEntity[POSITION], size) + 1)
               : 0.5;
-            play("magic", { intensity: damage, proximity });
+            play(
+              "magic",
+              { intensity: damage, proximity },
+              soundSource(world, entity)
+            );
 
             // add hit marker
             createAmountMarker(
@@ -751,10 +756,14 @@ export default function setupMagic(world: World) {
           previousStats += 1;
         } else continue;
 
-        play("pickup", {
-          delay,
-          ...pickupOptions[statName as "hp" | "maxHp" | "mp" | "maxMp"],
-        });
+        play(
+          "pickup",
+          {
+            delay,
+            ...pickupOptions[statName as "hp" | "maxHp" | "mp" | "maxMp"],
+          },
+          soundSource(world, entity)
+        );
       }
     }
 
@@ -798,7 +807,11 @@ export default function setupMagic(world: World) {
       const proximity = heroEntity
         ? 1 / (getDistance(entity[POSITION], heroEntity[POSITION], size) + 1)
         : 0.5;
-      play("magic", { intensity: damage, proximity });
+      play(
+        "magic",
+        { intensity: damage, proximity },
+        soundSource(world, entity)
+      );
 
       // add hit marker
       createAmountMarker(world, entity, -damage, "up", "true");

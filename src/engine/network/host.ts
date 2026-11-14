@@ -1,3 +1,9 @@
+import {
+  captureSounds,
+  withSoundSource,
+  soundSource,
+  SoundEvent,
+} from "../../game/sound/events";
 import { getIdentifier } from "../utils";
 import { captureMotions } from "../motion";
 import { createWorld } from "..";
@@ -51,6 +57,21 @@ export const createHost = (saved?: HostedWorld) => {
   let sequence = 0;
   const realms = new Map<LevelName, Realm>();
   const transfers = new Map<string, Transfer>();
+  let soundId = 0;
+  const sounds = new WeakMap<
+    World,
+    (SoundEvent & { id: number; time: number })[]
+  >();
+  const capture = <T>(world: World, run: () => T) =>
+    captureSounds((event) => {
+      let events = sounds.get(world);
+      if (!events) {
+        events = [];
+        sounds.set(world, events);
+      }
+      events.push({ ...event, id: ++soundId, time: elapsed });
+      if (events.length > 512) events.shift();
+    }, run);
   const inputs = new Map<
     string,
     { world: World; id: number; input: ReturnType<typeof createPlayerInput> }
@@ -280,8 +301,18 @@ export const createHost = (saved?: HostedWorld) => {
     getInput(transfer.accountId);
   };
   const step = () => {
-    for (const accountId of inputs.keys()) getInput(accountId)?.onUpdate();
-    for (const { world } of [...realms.values()]) world.update(1000 / 30);
+    for (const accountId of inputs.keys()) {
+      const current = actor(accountId);
+      if (current)
+        capture(current.world, () =>
+          withSoundSource(
+            soundSource(current.world, current.player, true),
+            () => getInput(accountId)?.onUpdate()
+          )
+        );
+    }
+    for (const { world } of [...realms.values()])
+      capture(world, () => world.update(1000 / 30));
     elapsed += 1000 / 30;
     for (const transfer of transfers.values()) transferPlayer(transfer);
     transfers.clear();
@@ -325,6 +356,9 @@ export const createHost = (saved?: HostedWorld) => {
         realm: world.metadata.gameEntity[LEVEL].name,
         snapshot: createSnapshot(world),
         motions: captureMotions(world),
+        sounds: (sounds.get(world) || []).filter(
+          (event) => event.time >= elapsed - 1000
+        ),
       };
     },
     save: (): HostedWorld => ({

@@ -1,3 +1,4 @@
+import { soundSource } from "../../game/sound/events";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { POSITION } from "../components/position";
@@ -134,7 +135,12 @@ export const shootHoming = (
   const distance = heroEntity
     ? getDistance(caster[POSITION], heroEntity[POSITION], size)
     : 0;
-  if (distance < 10) play("disc", { proximity: 2 / (distance + 2) });
+  if (distance < 10)
+    play(
+      "disc",
+      { proximity: 2 / (distance + 2) },
+      soundSource(world, heroEntity)
+    );
 
   return discEntity;
 };

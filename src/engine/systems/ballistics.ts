@@ -1,3 +1,4 @@
+import { soundSource } from "../../game/sound/events";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -116,18 +117,22 @@ export const shootArrow = (
 
   // scale sounds by distance to hero
   const heroEntity = world.getEntity([PLAYER, POSITION]);
-  play("arrow", {
-    variant: 1,
-    proximity: heroEntity
-      ? 1 /
-        (getDistance(
-          entity[POSITION],
-          heroEntity[POSITION],
-          world.metadata.gameEntity[LEVEL].size
-        ) +
-          1)
-      : 0.5,
-  });
+  play(
+    "arrow",
+    {
+      variant: 1,
+      proximity: heroEntity
+        ? 1 /
+          (getDistance(
+            entity[POSITION],
+            heroEntity[POSITION],
+            world.metadata.gameEntity[LEVEL].size
+          ) +
+            1)
+        : 0.5,
+    },
+    soundSource(world, entity)
+  );
 
   const tick =
     world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[
@@ -290,7 +295,11 @@ export default function setupBallistics(world: World) {
             fragmentEntity[SHOOTABLE].shots += 1;
           }
           hit = true;
-          play("arrow", { variant: 3, proximity: arrowProximity });
+          play(
+            "arrow",
+            { variant: 3, proximity: arrowProximity },
+            soundSource(world, entity)
+          );
           disposeEntity(world, entity, false);
 
           // add hit marker
@@ -334,8 +343,16 @@ export default function setupBallistics(world: World) {
           getSequence(world, entity, "arrow")?.args.caster !==
             world.getEntityId(shootable))
       ) {
-        play("arrow", { variant: 2, proximity: arrowProximity });
-        play("arrow", { variant: 4, delay: 160, proximity: arrowProximity });
+        play(
+          "arrow",
+          { variant: 2, proximity: arrowProximity },
+          soundSource(world, entity)
+        );
+        play(
+          "arrow",
+          { variant: 4, delay: 160, proximity: arrowProximity },
+          soundSource(world, entity)
+        );
         const targetPosition = add(
           entity[POSITION],
           orientationPoints[oppositeOrientation]

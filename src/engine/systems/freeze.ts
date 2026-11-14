@@ -1,3 +1,4 @@
+import { soundSource } from "../../game/sound/events";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -349,7 +350,8 @@ export default function setupFreeze(world: World) {
         const distance = hero
           ? getDistance(hero[POSITION], entity[POSITION], size) + 1
           : 1;
-        if (distance < 7) play("snow", { proximity: 1 / distance });
+        if (distance < 7)
+          play("snow", { proximity: 1 / distance }, soundSource(world, entity));
         disposeEntity(world, entity);
       }
     }

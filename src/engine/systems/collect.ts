@@ -1,3 +1,4 @@
+import { soundSource } from "../../game/sound/events";
 import { TRACKABLE } from "../components/trackable";
 import { bumpEntity } from "../motion";
 import { Entity } from "ecs";
@@ -173,7 +174,7 @@ export const collectItem = (
     // play sound
     if (!(stat && !material)) {
       const options = pickupOptions[(stackable || consume)!];
-      play("pickup", options);
+      play("pickup", options, soundSource(world, entity));
     }
 
     // update walkable
@@ -311,7 +312,11 @@ export const equipItem = (
       });
       return;
     } else {
-      play("equip", { notes: 4, spacing: 45, delay });
+      play(
+        "equip",
+        { notes: 4, spacing: 45, delay },
+        soundSource(world, entity)
+      );
       queueMessage(world, entity, {
         line: addBackground(
           [

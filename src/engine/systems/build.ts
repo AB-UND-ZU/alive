@@ -1,3 +1,4 @@
+import { soundSource } from "../../game/sound/events";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -149,7 +150,11 @@ export default function setupBuild(world: World) {
       if (entity[STATS].hp < entity[STATS].maxHp) continue;
 
       // replace plot with cell
-      play("build", { intensity: 2, notes: 3, spacing: 45 });
+      play(
+        "build",
+        { intensity: 2, notes: 3, spacing: 45 },
+        soundSource(world, entity)
+      );
       createCell(world, entity[POSITION], entity[BUILDABLE].cell, "hidden");
       disposeEntity(world, entity);
 

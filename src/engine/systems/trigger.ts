@@ -1,3 +1,4 @@
+import { soundSource } from "../../game/sound/events";
 import { synchronizeRewards, shareQuestRewards } from "./cooperation";
 import { grantInventoryItem } from "./collect";
 import {
@@ -443,7 +444,7 @@ export const unlockDoor = (world: World, entity: Entity, lockable: Entity) => {
   // open doors without locks
   if (lockable[LOCKABLE].material === "wood") {
     openDoor(world, lockable);
-    play("door");
+    play("door", {}, soundSource(world, entity));
     return;
   }
 
@@ -604,7 +605,11 @@ export const performTrade = (
       fast: false,
       delay: 0,
     });
-    play("pickup", pickupOptions[(deal.item.stackable || deal.item.consume)!]);
+    play(
+      "pickup",
+      pickupOptions[(deal.item.stackable || deal.item.consume)!],
+      soundSource(world, entity)
+    );
   }
 
   rerenderEntity(world, shop);
@@ -678,7 +683,7 @@ export const performPlot = (
   registerEntity(world, plotEntity);
 
   populateInventory(world, plotEntity, construction.parts);
-  play("build", { notes: 4, spacing: 70 });
+  play("build", { notes: 4, spacing: 70 }, soundSource(world, entity));
 };
 
 export const getSelectedConstruction = (world: World, entity: Entity) => {
@@ -776,16 +781,16 @@ export const castConditionable = (
   const hookCondition = (entity[CONDITIONABLE] as Conditionable).hook;
   if (condition === "axe" && entity[CONDITIONABLE].axe) {
     delete entity[CONDITIONABLE].axe;
-    play("tool", { variant: 2 });
+    play("tool", { variant: 2 }, soundSource(world, entity));
     return;
   } else if (condition === "pickaxe" && entity[CONDITIONABLE].pickaxe) {
     delete entity[CONDITIONABLE].pickaxe;
-    play("tool", { variant: 2 });
+    play("tool", { variant: 2 }, soundSource(world, entity));
     return;
   } else if (condition === "hammer") {
     if (entity[CONDITIONABLE].hammer) {
       delete entity[CONDITIONABLE].hammer;
-      play("tool", { variant: 2 });
+      play("tool", { variant: 2 }, soundSource(world, entity));
       return;
     } else if (entity[CONDITIONABLE].build) {
       delete entity[CONDITIONABLE].build;
@@ -804,7 +809,7 @@ export const castConditionable = (
         1
       );
       delete entity[CONDITIONABLE].hook;
-      play("tool", { variant: 2 });
+      play("tool", { variant: 2 }, soundSource(world, entity));
     } else if (
       hookSequence &&
       hookCondition.amount === hookCondition.modifier &&
@@ -838,12 +843,12 @@ export const castConditionable = (
         hookable[HOOKABLE].hooked = undefined;
         hookable[HOOKABLE].catching = entityId;
         hookable[HOOKABLE].escaping = false;
-        play("fish", { variant: 6 });
+        play("fish", { variant: 6 }, soundSource(world, entity));
       }
     } else {
       // stow hook
       delete entity[CONDITIONABLE].hook;
-      play("tool", { variant: 2 });
+      play("tool", { variant: 2 }, soundSource(world, entity));
     }
 
     return;
@@ -871,11 +876,11 @@ export const castConditionable = (
   );
 
   if (condition === "zap") {
-    play("zap", { variant: 1 });
+    play("zap", { variant: 1 }, soundSource(world, entity));
   } else if (condition === "block") {
-    play("block", { variant: 1 });
+    play("block", { variant: 1 }, soundSource(world, entity));
   } else {
-    play("tool", { variant: 1 });
+    play("tool", { variant: 1 }, soundSource(world, entity));
   }
 };
 
@@ -924,7 +929,11 @@ export const completeQuest = (world: World, entity: Entity, target: Entity) => {
       fast: false,
       delay: 0,
     });
-    play("pickup", pickupOptions[(choice.stackable || choice.consume)!]);
+    play(
+      "pickup",
+      pickupOptions[(choice.stackable || choice.consume)!],
+      soundSource(world, entity)
+    );
   }
 
   popup.deals.forEach((_, index) => {
@@ -1031,7 +1040,7 @@ export const castSpell = (
         element: item[ITEM].element,
       }
     );
-    play("beam", { variant: 3 });
+    play("beam", { variant: 3 }, soundSource(world, entity));
   } else if (item[ITEM].spell === "bolt" || item[ITEM].skill === "wand") {
     // ensure wand proccing only once like melee weapons
     if (item[ITEM].skill === "wand") {
@@ -1052,7 +1061,7 @@ export const castSpell = (
         element: item[ITEM].element,
       }
     );
-    play("bolt", { proximity });
+    play("bolt", { proximity }, soundSource(world, entity));
   } else if (item[ITEM].spell === "blast") {
     createSequence<"spell", SpellSequence>(
       world,
@@ -1069,7 +1078,7 @@ export const castSpell = (
         element: item[ITEM].element,
       }
     );
-    play("blast", { proximity });
+    play("blast", { proximity }, soundSource(world, entity));
   } else if (item[ITEM].spell === "trap") {
     createSequence<"aura", AuraSequence>(
       world,
@@ -1085,7 +1094,11 @@ export const castSpell = (
         element: item[ITEM].element,
       }
     );
-    play("trap", { notes: 8, spacing: 70, proximity });
+    play(
+      "trap",
+      { notes: 8, spacing: 70, proximity },
+      soundSource(world, entity)
+    );
   } else if (item[ITEM].spell === "dash") {
     createSequence<"spell", SpellSequence>(
       world,
@@ -1123,12 +1136,16 @@ export const castSpell = (
         element: item[ITEM].element,
       }
     );
-    play("wave", {
-      intensity:
-        castableEntity[NPC]?.type === "wormBoss"
-          ? Math.min(spellStats.duration / 7, 1.25)
-          : spellStats.duration / 7,
-    });
+    play(
+      "wave",
+      {
+        intensity:
+          castableEntity[NPC]?.type === "wormBoss"
+            ? Math.min(spellStats.duration / 7, 1.25)
+            : spellStats.duration / 7,
+      },
+      soundSource(world, entity)
+    );
   }
 
   if (
@@ -1376,7 +1393,8 @@ export default function setupTrigger(world: World) {
         // skip trying to open missing map
         if (targetTab === "map" && !entity[EQUIPPABLE]?.map) {
           if (currentPopup === useEntity && isInTab(world, entity, "use")) {
-            if (entity[PLAYER]) play("deny");
+            if (entity[PLAYER])
+              play("deny", {}, soundSource(world, entity, true));
             queueMessage(world, entity, {
               line: addBackground(
                 [
@@ -1412,10 +1430,10 @@ export default function setupTrigger(world: World) {
               // clear previous selection
               delete entity[PLAYER].quickItems[hotKey];
               rerenderEntity(world, useEntity);
-              play("back");
+              play("back", {}, soundSource(world, entity, true));
             } else {
               pushTabSelection(world, useEntity, hotKey);
-              play("confirm");
+              play("confirm", {}, soundSource(world, entity, true));
             }
             continue;
           }
@@ -1471,9 +1489,9 @@ export default function setupTrigger(world: World) {
         const shouldOpen = currentPopup !== useEntity;
 
         if (currentPopup && !shouldOpen && shouldClose) {
-          play("close");
+          play("close", {}, soundSource(world, entity, true));
         } else if (currentPopup && !shouldOpen) {
-          play("tab");
+          play("tab", {}, soundSource(world, entity, true));
         }
 
         useEntity[POPUP].horizontalIndex = targetIndex;
@@ -1543,7 +1561,8 @@ export default function setupTrigger(world: World) {
             getBuildingDeal(construction)
           )[0];
           if (missingItem) {
-            if (entity[PLAYER]) play("deny");
+            if (entity[PLAYER])
+              play("deny", {}, soundSource(world, entity, true));
             queueMessage(world, entity, {
               line: addBackground(
                 [
@@ -1587,7 +1606,8 @@ export default function setupTrigger(world: World) {
                 world.getEntityId(unlockEntity);
             }
           } else {
-            if (entity[PLAYER]) play("deny");
+            if (entity[PLAYER])
+              play("deny", {}, soundSource(world, entity, true));
             queueMessage(world, entity, {
               line: addBackground(
                 [
@@ -1646,7 +1666,8 @@ export default function setupTrigger(world: World) {
                 world.getEntityId(plantEntity);
             }
           } else {
-            if (entity[PLAYER]) play("deny");
+            if (entity[PLAYER])
+              play("deny", {}, soundSource(world, entity, true));
             queueMessage(world, entity, {
               line: addBackground(
                 [
@@ -1697,7 +1718,8 @@ export default function setupTrigger(world: World) {
           ) {
             castSpell(world, entity, spellEntity);
           } else if (!isInPopup(world, entity)) {
-            if (entity[PLAYER]) play("deny");
+            if (entity[PLAYER])
+              play("deny", {}, soundSource(world, entity, true));
             queueMessage(world, entity, {
               line: addBackground(
                 castReady
@@ -1750,7 +1772,8 @@ export default function setupTrigger(world: World) {
                 getPendingTotem(world, entity)
               )
             ) {
-              if (entity[PLAYER]) play("deny");
+              if (entity[PLAYER])
+                play("deny", {}, soundSource(world, entity, true));
               queueMessage(world, entity, {
                 line: addBackground(
                   [
@@ -1800,7 +1823,8 @@ export default function setupTrigger(world: World) {
               toolEntity[ITEM].tool === "hook" &&
               !entity[CONDITIONABLE]?.hook
             ) {
-              if (entity[PLAYER]) play("deny");
+              if (entity[PLAYER])
+                play("deny", {}, soundSource(world, entity, true));
               queueMessage(world, entity, {
                 line: addBackground(
                   [

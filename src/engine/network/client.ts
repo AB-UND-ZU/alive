@@ -1,3 +1,4 @@
+import { createSoundPlayer } from "./sound";
 import { createReplica } from "./replica";
 import { decodeState } from "./codec";
 import { InputAction } from "./input";
@@ -35,6 +36,7 @@ export const connectServer = (
     key = `alive.server:${url}`;
   const storage = options.storage || localStorage;
   const replica = createReplica();
+  const sounds = createSoundPlayer();
   let claim: { id: string; token: string } | undefined;
   const saved = storage.getItem(key);
   if (saved) {
@@ -78,6 +80,7 @@ export const connectServer = (
         const message = JSON.parse(event.data);
         if (message.type === "welcome") {
           replica.resetOrdering();
+          sounds.reset();
           if (message.token) {
             const credential = { id: message.id, token: message.token };
             claim = credential;
@@ -101,6 +104,7 @@ export const connectServer = (
             typeof replica.receive
           >[0];
           if (replica.receive(frame)) {
+            sounds.receive(replica.world, frame, paused);
             lastState = Date.now();
             notify("connected");
             if (!ready) {

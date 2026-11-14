@@ -1,3 +1,4 @@
+import { soundSource } from "../../game/sound/events";
 import { getPopupPlayer } from "../players";
 import addRestorable, { RESTORABLE } from "../components/restorable";
 import { updateSpriteBuilder } from "../../game/assets/spriteBuilder";
@@ -234,10 +235,18 @@ export const typeChat = (
     const indices = Array.isArray(keyIndex) ? keyIndex : [keyIndex];
     getTabSelections(world, popup).push(...indices);
     rerenderEntity(world, popup);
-    play("type", { notes: 2, spacing: 16 });
+    play(
+      "type",
+      { notes: 2, spacing: 16 },
+      soundSource(world, heroEntity, true)
+    );
   } else {
     popTabSelection(world, popup);
-    play("type", { notes: 2, spacing: 20, intensity: 2 });
+    play(
+      "type",
+      { notes: 2, spacing: 20, intensity: 2 },
+      soundSource(world, heroEntity, true)
+    );
   }
 };
 
@@ -264,7 +273,11 @@ export const navigateChat = (
       popup[POPUP].chatSuggestion =
         (popup[POPUP].chatSuggestion || 0) + direction;
       rerenderEntity(world, popup);
-      play("select", { variant: direction === -1 ? 2 : 1 });
+      play(
+        "select",
+        { variant: direction === -1 ? 2 : 1 },
+        soundSource(world, heroEntity, true)
+      );
     }
     return;
   }
@@ -277,7 +290,11 @@ export const navigateChat = (
     : [];
   popup[POPUP].chatSuggestion = 0;
   if (next !== historyIndex)
-    play("select", { variant: direction === -1 ? 2 : 1 });
+    play(
+      "select",
+      { variant: direction === -1 ? 2 : 1 },
+      soundSource(world, heroEntity, true)
+    );
 };
 
 export const completeChat = (world: World, heroEntity: Entity) => {
@@ -341,7 +358,7 @@ export const submitChat = (
   );
   heroEntity[PLAYER].chatHistory.unshift(selections);
   saveChatHistory(heroEntity[PLAYER].chatHistory);
-  play("confirm");
+  play("confirm", {}, soundSource(world, heroEntity, true));
 
   const command = parseCommand(keys.join(""));
   const error = command
@@ -830,9 +847,13 @@ export const openPopup = (
   }
 
   // hum while window unrolls, short if shown instantly
-  play("open", {
-    intensity: instant ? 120 : (frameHeight - 1) * popupDelay,
-  });
+  play(
+    "open",
+    {
+      intensity: instant ? 120 : (frameHeight - 1) * popupDelay,
+    },
+    soundSource(world, heroEntity, true)
+  );
 
   replaceSequence<"popup", PopupSequence>(
     world,
@@ -1149,7 +1170,8 @@ export default function setupPopup(world: World) {
         const index = Math.round(
           clamp(heroEntity[PLAYER].contentTriggered ?? 0, 0, 1) * maximum
         );
-        if (index !== getVerticalIndex(world, popupEntity)) play("select");
+        if (index !== getVerticalIndex(world, popupEntity))
+          play("select", {}, soundSource(world, heroEntity, true));
         setVerticalIndex(world, popupEntity, index);
         if (popupEntity[POPUP].sprite && getTab(world, popupEntity) === "pack")
           popupEntity[POPUP].sprite!.selected = index;
@@ -1242,7 +1264,11 @@ export default function setupPopup(world: World) {
       setVerticalIndex(world, popupEntity, newIndex);
 
       if (clamp(newIndex, 0, lines > 0 ? lines - 1 : 0) !== previousIndex) {
-        play("select", { variant: targetScroll === "up" ? 2 : 1 });
+        play(
+          "select",
+          { variant: targetScroll === "up" ? 2 : 1 },
+          soundSource(world, heroEntity, true)
+        );
       }
 
       if (
@@ -1276,7 +1302,7 @@ export default function setupPopup(world: World) {
           setVerticalIndex(world, popupEntity, newIndex);
 
           if (clamp(newIndex, 0, lines > 0 ? lines - 1 : 0) !== previousIndex) {
-            play("select");
+            play("select", {}, soundSource(world, heroEntity, true));
           }
         }
       }
@@ -1296,7 +1322,7 @@ export default function setupPopup(world: World) {
       heroEntity[PLAYER].actionTriggered = undefined;
       if (popupSequence) {
         closePopup(world, heroEntity, popupEntity);
-        play("close");
+        play("close", {}, soundSource(world, heroEntity, true));
       }
     } else if (
       heroEntity[PLAYER].actionTriggered === "tab" ||
@@ -1321,7 +1347,11 @@ export default function setupPopup(world: World) {
         popupSequence.elapsed = popupSequence.args.windowHeight * popupDelay;
         popupSequence.args.contentIndex = 0;
         rerenderEntity(world, popupEntity);
-        play("tab", { variant: backtab ? 2 : 1 });
+        play(
+          "tab",
+          { variant: backtab ? 2 : 1 },
+          soundSource(world, heroEntity, true)
+        );
       }
     } else if (heroEntity[PLAYER].actionTriggered === "type") {
       const { tabTriggered, offsetTriggered, contentTriggered } =
@@ -1352,7 +1382,7 @@ export default function setupPopup(world: World) {
         if (tradeEntity && isQuestCompleted(world, heroEntity, tradeEntity)) {
           pushTabSelection(world, tradeEntity);
           completeQuest(world, heroEntity, tradeEntity);
-          play("confirm");
+          play("confirm", {}, soundSource(world, heroEntity, true));
 
           // advance to completed screen
           if (selections.length === 1) pushTabSelection(world, tradeEntity);
@@ -1371,15 +1401,15 @@ export default function setupPopup(world: World) {
             });
 
             closePopup(world, heroEntity, addEntity);
-            play("confirm");
+            play("confirm", {}, soundSource(world, heroEntity, true));
           } else {
             // proceed to choices screen
             pushTabSelection(world, addEntity);
             setVerticalIndex(world, addEntity, 0);
-            play("confirm");
+            play("confirm", {}, soundSource(world, heroEntity, true));
           }
         } else if (!isQuestCompleted(world, heroEntity, popupEntity)) {
-          play("deny");
+          play("deny", {}, soundSource(world, heroEntity, true));
           queueMessage(world, heroEntity, {
             line: createText("Not completed!", colors.silver, colors.black),
             orientation: "up",
@@ -1395,7 +1425,7 @@ export default function setupPopup(world: World) {
           if (canShop(world, heroEntity, deal)) {
             performTrade(world, heroEntity, tradeEntity);
           } else if (deal.stock === 0) {
-            play("deny");
+            play("deny", {}, soundSource(world, heroEntity, true));
             queueMessage(world, heroEntity, {
               line: createText("Sold out!", colors.silver, colors.black),
               orientation: "up",
@@ -1403,7 +1433,7 @@ export default function setupPopup(world: World) {
               delay: 0,
             });
           } else if (missingItem) {
-            play("deny");
+            play("deny", {}, soundSource(world, heroEntity, true));
             queueMessage(world, heroEntity, {
               line: addBackground(
                 [
@@ -1427,7 +1457,7 @@ export default function setupPopup(world: World) {
             rerenderEntity(world, heroEntity);
             rerenderEntity(world, popupEntity);
           } else {
-            play("deny");
+            play("deny", {}, soundSource(world, heroEntity, true));
             queueMessage(world, heroEntity, {
               line: addBackground(
                 [
@@ -1469,7 +1499,7 @@ export default function setupPopup(world: World) {
 
           if (forgeable && selections.length < 2) {
             pushTabSelection(world, addEntity);
-            play("confirm");
+            play("confirm", {}, soundSource(world, heroEntity, true));
 
             // scroll up for preview
             if (selections.length === 2) {
@@ -1490,9 +1520,9 @@ export default function setupPopup(world: World) {
             addEntity[FORGABLE].lastElapsed = popupSequence.elapsed;
             addEntity[FORGABLE].lastAction = "swing";
             pushTabSelection(world, addEntity);
-            play("confirm");
+            play("confirm", {}, soundSource(world, heroEntity, true));
           } else {
-            play("deny");
+            play("deny", {}, soundSource(world, heroEntity, true));
             queueMessage(world, heroEntity, {
               line: nextItem
                 ? addBackground(
@@ -1536,7 +1566,7 @@ export default function setupPopup(world: World) {
           if (canShop(world, heroEntity, deal)) {
             performTrade(world, heroEntity, tradeEntity);
           } else if (missingItem) {
-            play("deny");
+            play("deny", {}, soundSource(world, heroEntity, true));
             queueMessage(world, heroEntity, {
               line: addBackground(
                 [
@@ -1560,9 +1590,9 @@ export default function setupPopup(world: World) {
             const recipeIndex = selections[1];
             const recipe = popupEntity[POPUP].recipes[recipeIndex];
             queueBrew(world, heroEntity, tradeEntity, recipe, verticalIndex);
-            play("confirm");
+            play("confirm", {}, soundSource(world, heroEntity, true));
           } else if (missingItem) {
-            play("deny");
+            play("deny", {}, soundSource(world, heroEntity, true));
             queueMessage(world, heroEntity, {
               line: addBackground(
                 [
@@ -1580,7 +1610,7 @@ export default function setupPopup(world: World) {
         } else if (addEntity) {
           pushTabSelection(world, addEntity);
           setVerticalIndex(world, addEntity, 0);
-          play("confirm");
+          play("confirm", {}, soundSource(world, heroEntity, true));
         }
       } else if (tab === "plant") {
         const plantedItem = plantItems[verticalIndex];
@@ -1589,9 +1619,9 @@ export default function setupPopup(world: World) {
           if (isPlantable(world, plantedItem[ITEM])) {
             closePopup(world, heroEntity, popupEntity);
             plantSeed(world, heroEntity, plantedItem);
-            play("confirm");
+            play("confirm", {}, soundSource(world, heroEntity, true));
           } else {
-            play("deny");
+            play("deny", {}, soundSource(world, heroEntity, true));
             queueMessage(world, heroEntity, {
               line: addBackground(
                 [
@@ -1630,7 +1660,7 @@ export default function setupPopup(world: World) {
             !canConstruct(world, heroEntity, buildingConstruction)
           ) {
             const buildingSprite = buildingConstruction.sprite;
-            play("deny");
+            play("deny", {}, soundSource(world, heroEntity, true));
             queueMessage(world, heroEntity, {
               line: addBackground(
                 [
@@ -1651,7 +1681,7 @@ export default function setupPopup(world: World) {
               heroEntity,
               getBuildingDeal(buildingConstruction)
             )[0];
-            play("deny");
+            play("deny", {}, soundSource(world, heroEntity, true));
             queueMessage(world, heroEntity, {
               line: addBackground(
                 [
@@ -1680,7 +1710,7 @@ export default function setupPopup(world: World) {
         } else if (useEntity) {
           const useItem =
             inspectItems[getVerticalIndex(world, useEntity)]?.[ITEM];
-          play("deny");
+          play("deny", {}, soundSource(world, heroEntity, true));
           queueMessage(world, heroEntity, {
             line: useItem
               ? [
@@ -1726,9 +1756,9 @@ export default function setupPopup(world: World) {
           // proceed to next tab
           addEntity[POPUP].horizontalIndex += 1;
           rerenderEntity(world, addEntity);
-          play("confirm");
+          play("confirm", {}, soundSource(world, heroEntity, true));
         } else {
-          play("deny");
+          play("deny", {}, soundSource(world, heroEntity, true));
           queueMessage(world, heroEntity, {
             line: createText("Not unlocked!", colors.silver, colors.black),
             orientation: "up",
@@ -1753,13 +1783,13 @@ export default function setupPopup(world: World) {
           if (save) {
             removeSaveSummary(save.id);
             world.metadata.eraseGame(save.id);
-            play("die", { variant: 2 });
+            play("die", { variant: 2 }, soundSource(world, heroEntity, true));
           }
         } else if (save && isLoadable(save)) {
           initiateLoad(world, popupEntity, heroEntity, save.id);
-          play("confirm");
+          play("confirm", {}, soundSource(world, heroEntity, true));
         } else {
-          play("deny");
+          play("deny", {}, soundSource(world, heroEntity, true));
           queueMessage(world, heroEntity, {
             line: createText(
               save ? "Newer version!" : "No saves yet!",
@@ -1777,9 +1807,9 @@ export default function setupPopup(world: World) {
           // ignore
         } else if (canWarp(world, heroEntity, warpEntity)) {
           initiateWarp(world, warpEntity, heroEntity);
-          play("confirm");
+          play("confirm", {}, soundSource(world, heroEntity, true));
         } else if (selectedLevel) {
-          play("deny");
+          play("deny", {}, soundSource(world, heroEntity, true));
           queueMessage(world, heroEntity, {
             line: createText(
               getSelectedLevel(world, warpEntity) ===
@@ -1801,7 +1831,7 @@ export default function setupPopup(world: World) {
       } else if (tab === "use") {
         if (addEntity && selections.length === 0) {
           pushTabSelection(world, addEntity);
-          play("confirm");
+          play("confirm", {}, soundSource(world, heroEntity, true));
         } else if (
           addEntity &&
           selections.length === 2 &&
@@ -1814,7 +1844,7 @@ export default function setupPopup(world: World) {
           popTabSelection(world, addEntity);
           popTabSelection(world, addEntity);
           setVerticalIndex(world, addEntity, 0);
-          play("confirm");
+          play("confirm", {}, soundSource(world, heroEntity, true));
         }
       }
     } else if (heroEntity[PLAYER].actionTriggered === "left") {
@@ -1828,7 +1858,7 @@ export default function setupPopup(world: World) {
       if (tab === "chat") {
         // clear chat
         popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] = [];
-        play("back");
+        play("back", {}, soundSource(world, heroEntity, true));
       } else if (tab === "load" && selections.length === 0) {
         // ask before erasing a saved game
         if (getSaveSummaries()[getVerticalIndex(world, popupEntity)]) {
@@ -1837,7 +1867,7 @@ export default function setupPopup(world: World) {
             getSaveSummaries()[getVerticalIndex(world, popupEntity)].id;
           pushTabSelection(world, popupEntity);
           setVerticalIndex(world, popupEntity, 0);
-          play("confirm");
+          play("confirm", {}, soundSource(world, heroEntity, true));
         }
       } else if (
         selections.length > 0 &&
@@ -1854,11 +1884,11 @@ export default function setupPopup(world: World) {
         const previousIndex =
           verticalIndex === undefined || tab === "use" ? 0 : verticalIndex;
         setVerticalIndex(world, popupEntity, previousIndex);
-        play("back");
+        play("back", {}, soundSource(world, heroEntity, true));
       } else if (questCompleted || forgeCompleted) {
         // close final screens on escape
         closePopup(world, heroEntity, popupEntity);
-        play("close");
+        play("close", {}, soundSource(world, heroEntity, true));
       }
     }
 

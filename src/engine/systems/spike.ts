@@ -1,3 +1,4 @@
+import { soundSource } from "../../game/sound/events";
 import { bumpEntity } from "../motion";
 import { Entity } from "ecs";
 import { World } from "../ecs";
@@ -74,7 +75,11 @@ export const stingEntity = (world: World, entity: Entity, target: Entity) => {
       rerenderEntity(world, rootEntity);
     }
 
-    play("magic", { intensity: damage, proximity: 0.5 });
+    play(
+      "magic",
+      { intensity: damage, proximity: 0.5 },
+      soundSource(world, entity)
+    );
     displayedDamage = damage;
   }
 

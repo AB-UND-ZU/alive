@@ -1,4 +1,5 @@
 import { spawnerPulse } from "../../game/assets/sprites";
+import { soundSource } from "../../game/sound/events";
 import { getClosestPlayer } from "../players";
 import { bumpEntity, syncMovementSpring } from "../motion";
 import { Position, POSITION } from "../components/position";
@@ -278,11 +279,15 @@ export default function setupAi(world: World) {
               textSequence.args.text = [rage];
             }
             if (rageProximity)
-              play("danger", {
-                variant: rageVariant,
-                intensity: rageIntensity,
-                proximity: rageProximity,
-              });
+              play(
+                "danger",
+                {
+                  variant: rageVariant,
+                  intensity: rageIntensity,
+                  proximity: rageProximity,
+                },
+                soundSource(world, entity)
+              );
 
             patterns.splice(
               patterns.indexOf(pattern),
@@ -788,11 +793,15 @@ export default function setupAi(world: World) {
           }
           if (inWalkableRange && entity[TOOLTIP] && !entity[TOOLTIP]?.idle) {
             if (rageProximity)
-              play("danger", {
-                variant: rageVariant,
-                intensity: rageIntensity,
-                proximity: rageProximity,
-              });
+              play(
+                "danger",
+                {
+                  variant: rageVariant,
+                  intensity: rageIntensity,
+                  proximity: rageProximity,
+                },
+                soundSource(world, entity)
+              );
             entity[TOOLTIP].idle = rage;
             entity[TOOLTIP].changed = true;
           } else if (!inWalkableRange && entity[TOOLTIP]?.idle) {
@@ -848,11 +857,15 @@ export default function setupAi(world: World) {
             entity[TOOLTIP].changed = true;
           } else if (!isMoving) {
             if (rageProximity) {
-              play("danger", {
-                variant: rageVariant,
-                intensity: rageIntensity,
-                proximity: rageProximity,
-              });
+              play(
+                "danger",
+                {
+                  variant: rageVariant,
+                  intensity: rageIntensity,
+                  proximity: rageProximity,
+                },
+                soundSource(world, entity)
+              );
             }
             entity[TOOLTIP].idle = rage;
             entity[TOOLTIP].changed = true;
@@ -1088,11 +1101,15 @@ export default function setupAi(world: World) {
             ) {
               entity[ORIENTABLE].facing = shootingOrientation;
               if (entity[TOOLTIP].idle !== rage && rageProximity) {
-                play("danger", {
-                  variant: rageVariant,
-                  intensity: rageIntensity,
-                  proximity: rageProximity,
-                });
+                play(
+                  "danger",
+                  {
+                    variant: rageVariant,
+                    intensity: rageIntensity,
+                    proximity: rageProximity,
+                  },
+                  soundSource(world, entity)
+                );
               }
               entity[TOOLTIP].idle = rage;
               entity[TOOLTIP].changed = true;
@@ -1282,11 +1299,15 @@ export default function setupAi(world: World) {
             entity[TOOLTIP].idle !== memory.idle &&
             rageProximity
           ) {
-            play("danger", {
-              variant: rageVariant,
-              intensity: memory.idle === rage2 ? 2 : rageIntensity,
-              proximity: rageProximity,
-            });
+            play(
+              "danger",
+              {
+                variant: rageVariant,
+                intensity: memory.idle === rage2 ? 2 : rageIntensity,
+                proximity: rageProximity,
+              },
+              soundSource(world, entity)
+            );
           }
 
           for (const [key, value] of Object.entries(memory)) {
@@ -1311,11 +1332,15 @@ export default function setupAi(world: World) {
           entity[BELONGABLE].faction = "hostile";
           entity[TOOLTIP].changed = true;
           if (rageProximity)
-            play("danger", {
-              variant: rageVariant,
-              intensity: rageIntensity,
-              proximity: rageProximity,
-            });
+            play(
+              "danger",
+              {
+                variant: rageVariant,
+                intensity: rageIntensity,
+                proximity: rageProximity,
+              },
+              soundSource(world, entity)
+            );
           entity[TOOLTIP].idle = rage;
           entity[TOOLTIP].enemy = true;
           entity[TOOLTIP].override = memory.shout ? "visible" : undefined;
@@ -1426,11 +1451,15 @@ export default function setupAi(world: World) {
 
               if (entity[TOOLTIP]) {
                 if (entity[TOOLTIP].idle !== rage && rageProximity) {
-                  play("danger", {
-                    variant: rageVariant,
-                    intensity: rageIntensity,
-                    proximity: rageProximity,
-                  });
+                  play(
+                    "danger",
+                    {
+                      variant: rageVariant,
+                      intensity: rageIntensity,
+                      proximity: rageProximity,
+                    },
+                    soundSource(world, entity)
+                  );
                 }
                 entity[TOOLTIP].idle = rage;
                 entity[TOOLTIP].changed = true;
@@ -1735,7 +1764,7 @@ export default function setupAi(world: World) {
               entity[STATS].hp = hp;
               createAmountMarker(world, entity, healing, "up", "heal");
               if (healing > 0) {
-                play("pickup", pickupOptions.hp);
+                play("pickup", pickupOptions.hp, soundSource(world, entity));
               }
             }
 
@@ -1745,11 +1774,15 @@ export default function setupAi(world: World) {
               if (restart) pattern.memory.generation = 0;
             } else if (((wait && !healing) || done) && !entity[TOOLTIP].idle) {
               if (rageProximity)
-                play("danger", {
-                  variant: rageVariant,
-                  intensity: rageIntensity,
-                  proximity: rageProximity,
-                });
+                play(
+                  "danger",
+                  {
+                    variant: rageVariant,
+                    intensity: rageIntensity,
+                    proximity: rageProximity,
+                  },
+                  soundSource(world, entity)
+                );
               entity[TOOLTIP].idle = rage;
               entity[TOOLTIP].changed = true;
             }
@@ -2070,7 +2103,7 @@ export default function setupAi(world: World) {
             entity[STATS].hp = hp;
             if (healing > 0) {
               createAmountMarker(world, entity, healing, "up", "heal");
-              play("pickup", pickupOptions.hp);
+              play("pickup", pickupOptions.hp, soundSource(world, entity));
             }
           } else if (pattern.memory.heal) {
             delete pattern.memory.heal;
@@ -4362,11 +4395,15 @@ export default function setupAi(world: World) {
               detached: [],
             });
             entity[ORIENTABLE].facing = "up";
-            play("talk", {
-              variant: 1,
-              intensity: 3,
-              proximity: rageProximity,
-            });
+            play(
+              "talk",
+              {
+                variant: 1,
+                intensity: 3,
+                proximity: rageProximity,
+              },
+              soundSource(world, entity)
+            );
           }
           const center: Position = memory.center;
           const clampPosition = (position: Position) =>
@@ -4547,10 +4584,14 @@ export default function setupAi(world: World) {
             tooltip.idle = sprite;
             tooltip.changed = true;
             if (sprite)
-              play("danger", {
-                intensity: sprite === rage2 ? 2 : 1,
-                proximity: rageProximity,
-              });
+              play(
+                "danger",
+                {
+                  intensity: sprite === rage2 ? 2 : 1,
+                  proximity: rageProximity,
+                },
+                soundSource(world, entity)
+              );
           };
           const clearArtillery = () => {
             const marker = world.getEntityById(memory.marker);
@@ -4877,11 +4918,15 @@ export default function setupAi(world: World) {
               warn(undefined);
               nextPhase(memory.surfacePhase);
               if (memory.surfacePhase === "rage") {
-                play("talk", {
-                  variant: 1,
-                  intensity: 3,
-                  proximity: rageProximity,
-                });
+                play(
+                  "talk",
+                  {
+                    variant: 1,
+                    intensity: 3,
+                    proximity: rageProximity,
+                  },
+                  soundSource(world, entity)
+                );
               }
             }
           } else if (memory.phase === "retreat") {
@@ -5120,7 +5165,7 @@ export default function setupAi(world: World) {
                     exertables: [],
                   }
                 );
-                play("slash");
+                play("slash", {}, soundSource(world, entity));
                 memory.slashes -= 1;
                 if (memory.slashes === 0) {
                   memory.ticks = 0;
@@ -5642,7 +5687,7 @@ export default function setupAi(world: World) {
                   exertables: [],
                 }
               );
-              play("slash");
+              play("slash", {}, soundSource(world, entity));
               memory.nextAttack = memory.ticks + 2;
             }
             delete memory.queuedAttack;

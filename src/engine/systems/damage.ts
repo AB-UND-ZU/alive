@@ -1,3 +1,4 @@
+import { soundSource } from "../../game/sound/events";
 import { bumpEntity } from "../motion";
 import { Entity } from "ecs";
 import { World } from "../ecs";
@@ -177,17 +178,21 @@ export const triggerSpear = (
 
   // scale sound by distance to hero
   const heroEntity = world.getEntity([PLAYER, POSITION]);
-  play("spear", {
-    proximity: heroEntity
-      ? 1 /
-        (getDistance(
-          entity[POSITION],
-          heroEntity[POSITION],
-          world.metadata.gameEntity[LEVEL].size
-        ) +
-          1)
-      : 0.5,
-  });
+  play(
+    "spear",
+    {
+      proximity: heroEntity
+        ? 1 /
+          (getDistance(
+            entity[POSITION],
+            heroEntity[POSITION],
+            world.metadata.gameEntity[LEVEL].size
+          ) +
+            1)
+        : 0.5,
+    },
+    soundSource(world, entity)
+  );
 
   // create spear slash
   createSequence<"slash", SlashSequence>(
@@ -541,11 +546,15 @@ export const triggerZap = (
     "lightningFlash",
     { targets: zapPositions }
   );
-  play("zap", { variant: 2 });
+  play("zap", { variant: 2 }, soundSource(world, attackerEntity));
 
   // electric spark on each hit target in quick succession
   if (zapPositions.length > 0) {
-    play("spark", { notes: zapPositions.length, spacing: 35 });
+    play(
+      "spark",
+      { notes: zapPositions.length, spacing: 35 },
+      soundSource(world, attackerEntity)
+    );
   }
 
   delete attackerEntity[CONDITIONABLE]?.zap;
@@ -654,7 +663,7 @@ export const applyProcs = (
       attackerEntity[STATS].hp = hp;
       hasAffected = true;
       createAmountMarker(world, attackerEntity, drain, "up", "heal");
-      play("pickup", pickupOptions.hp);
+      play("pickup", pickupOptions.hp, soundSource(world, attackerEntity));
     }
   }
 
@@ -954,11 +963,15 @@ export default function setupDamage(world: World) {
             );
 
             // play sound
-            play("hit", {
-              intensity: damage,
-              proximity: targetEntity[PLAYER] ? 1 : 0.5,
-              variant: targetEntity[PLAYER] ? 1 : 2,
-            });
+            play(
+              "hit",
+              {
+                intensity: damage,
+                proximity: targetEntity[PLAYER] ? 1 : 0.5,
+                variant: targetEntity[PLAYER] ? 1 : 2,
+              },
+              soundSource(world, entity)
+            );
 
             // set rechargable if applicable
             const shouldRecharge = canRecharge(world, entity);

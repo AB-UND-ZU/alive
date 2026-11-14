@@ -1,3 +1,5 @@
+import { soundSource, withSoundSource } from "../../game/sound/events";
+import { PLAYER } from "../components/player";
 import { FOCUSABLE } from "../components/focusable";
 import { POPUP } from "../components/popup";
 import { RENDERABLE } from "../components/renderable";
@@ -143,7 +145,6 @@ export default function setupSequence(world: World) {
         );
         sequenceState.elapsed += delta;
         const sequence = sequences[sequenceState.name];
-        const result = sequence(world, entity, sequenceState as any); // trust me TypeScript i'm an engineer
         const owner =
           sequenceType === "popup"
             ? entity[POPUP]?.owner
@@ -152,6 +153,15 @@ export default function setupSequence(world: World) {
             : sequenceType === "focus"
             ? entity[FOCUSABLE]?.owner
             : undefined;
+        const source = soundSource(world, entity);
+        source.owner =
+          owner ??
+          (sequenceType === "quest" && entity[PLAYER]
+            ? world.getEntityId(entity)
+            : undefined);
+        const result = withSoundSource(source, () =>
+          sequence(world, entity, sequenceState as any)
+        );
         if (owner !== undefined) {
           for (const id of Object.values(sequenceState.particles)) {
             const particle = world.getEntityByIdAndComponents(id, [PARTICLE]);

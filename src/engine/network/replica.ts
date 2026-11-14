@@ -1,3 +1,4 @@
+import type { SoundEvent } from "../../game/sound/events";
 import { LEVEL, LevelName } from "../components/level";
 import {
   releaseCameraMotion,
@@ -20,6 +21,7 @@ export type StateFrame = {
   snapshot: WorldSnapshot;
   realm?: LevelName;
   motions?: ReturnType<typeof captureMotions>;
+  sounds?: (SoundEvent & { id: number; time: number })[];
 };
 
 /** No gameplay systems are installed in this authoritative-state view. */

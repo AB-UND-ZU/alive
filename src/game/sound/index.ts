@@ -1,3 +1,4 @@
+import { captureSound, SoundSource } from "./events";
 import { Consumable, Stackable } from "../../engine/components/item";
 import { NpcType } from "../../engine/components/npc";
 import { UnitStats } from "../../engine/components/stats";
@@ -68,7 +69,7 @@ type Seed = (typeof seeds)[number];
 let rng = createRng(0);
 const frnd = (range: number) => rng() * range;
 
-type SoundOptions = {
+export type SoundOptions = {
   delay?: number;
   intensity?: number;
   proximity?: number;
@@ -1466,8 +1467,19 @@ export const loadSounds = (
 
 export const play = <P extends SoundPreset>(
   preset: P,
-  { delay = 0, notes = 1, spacing = 0, pattern, ...options }: SfxOptions<P> = {}
+  {
+    delay = 0,
+    notes = 1,
+    spacing = 0,
+    pattern,
+    ...options
+  }: SfxOptions<P> = {},
+  source?: SoundSource
 ) => {
+  if (
+    captureSound(preset, { delay, notes, spacing, pattern, ...options }, source)
+  )
+    return;
   if (!isPlaying()) return;
 
   for (let note = 1; note <= notes; note += 1) {

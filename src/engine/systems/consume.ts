@@ -1,3 +1,4 @@
+import { soundSource } from "../../game/sound/events";
 import { World } from "../ecs";
 import { RENDERABLE } from "../components/renderable";
 import { Entity } from "ecs";
@@ -203,7 +204,11 @@ export const consumeItem = (
   // hurt like true damage to shake screen, gains play existing pickup sounds
   if (entity[PLAYER] && amount < 0) {
     entity[PLAYER].receivedStats.true -= amount;
-    play("hit", { intensity: -amount, proximity: 1, variant: 1 });
+    play(
+      "hit",
+      { intensity: -amount, proximity: 1, variant: 1 },
+      soundSource(world, entity)
+    );
   }
 
   if (consumption.countable === "xp") {

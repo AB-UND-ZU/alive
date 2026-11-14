@@ -1,3 +1,4 @@
+import { soundSource } from "../../game/sound/events";
 import { recordDefeat } from "./cooperation";
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
@@ -447,10 +448,14 @@ export default function setupDrop(world: World) {
       POSITION,
     ])) {
       if (isDecaying(world, entity)) {
-        play("die", {
-          variant: entity[NPC] ? 1 : 2,
-          intensity: entity[STATS]?.maxHp,
-        });
+        play(
+          "die",
+          {
+            variant: entity[NPC] ? 1 : 2,
+            intensity: entity[STATS]?.maxHp,
+          },
+          soundSource(world, entity)
+        );
         createSequence<"decay", DecaySequence>(
           world,
           entity,
@@ -480,10 +485,14 @@ export default function setupDrop(world: World) {
       const rootEntity = getRoot(world, entity);
 
       if (isDecaying(world, entity)) {
-        play("die", {
-          variant: entity[NPC] ? 1 : 2,
-          intensity: entity[STATS]?.maxHp,
-        });
+        play(
+          "die",
+          {
+            variant: entity[NPC] ? 1 : 2,
+            intensity: entity[STATS]?.maxHp,
+          },
+          soundSource(world, entity)
+        );
         createSequence<"vanish", VanishSequence>(
           world,
           entity,
@@ -538,7 +547,7 @@ export default function setupDrop(world: World) {
             disposeEntity(world, limb, undefined, false);
           });
         } else {
-          play("harvest", { variant: 4 });
+          play("harvest", { variant: 4 }, soundSource(world, entity));
           const limbs = getLimbs(world, entity);
           limbs.forEach((limb) => {
             createSequence<"decay", DecaySequence>(

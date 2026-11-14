@@ -1,3 +1,4 @@
+import { soundSource } from "../../game/sound/events";
 import { bumpEntity } from "../motion";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -397,7 +398,7 @@ export default function setupMovement(world: World) {
       }
 
       if (movedOrientation) {
-        if (pushSound) play("push");
+        if (pushSound) play("push", {}, soundSource(world, entity));
         const delta = orientationPoints[movedOrientation];
         const rootPosition = combine(size, entity[POSITION], delta);
         // play sound
@@ -414,7 +415,11 @@ export default function setupMovement(world: World) {
             ? getDistance(hero[POSITION], entity[POSITION], size)
             : Infinity;
           if (distance < 10 && entityReference >= (nextSail[entityId] ?? 0)) {
-            play("sail", { proximity: 1 / (distance + 1) });
+            play(
+              "sail",
+              { proximity: 1 / (distance + 1) },
+              soundSource(world, entity)
+            );
             nextSail[entityId] = entityReference + 5;
           }
         }
@@ -425,20 +430,28 @@ export default function setupMovement(world: World) {
             : getTempo(world, rootPosition) < 0
             ? 2
             : 1;
-          play("move", {
-            intensity: movableReference[REFERENCE].tick,
-            variant,
-            proximity,
-          });
+          play(
+            "move",
+            {
+              intensity: movableReference[REFERENCE].tick,
+              variant,
+              proximity,
+            },
+            soundSource(world, entity)
+          );
         } else if (entity[NPC] && entity[FOG]?.visibility === "visible") {
-          play("slide", {
-            intensity: movableReference[REFERENCE].tick,
-            proximity: hero
-              ? 1 / (getDistance(hero[POSITION], entity[POSITION], size) + 1)
-              : 0.5,
-            variant: npcVariants[entity[NPC].type],
-            delay: random(0, 50),
-          });
+          play(
+            "slide",
+            {
+              intensity: movableReference[REFERENCE].tick,
+              proximity: hero
+                ? 1 / (getDistance(hero[POSITION], entity[POSITION], size) + 1)
+                : 0.5,
+              variant: npcVariants[entity[NPC].type],
+              delay: random(0, 50),
+            },
+            soundSource(world, entity)
+          );
         }
 
         const passenger = world.getEntityByIdAndComponents(

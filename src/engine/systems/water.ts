@@ -1,3 +1,4 @@
+import { getClosestPlayer } from "../players";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -71,19 +72,25 @@ export const bubbleSound = (
   position: Position,
   type: Liquid["type"]
 ) => {
-  const hero = world.getEntity([PLAYER, POSITION, LAYER]);
+  const hero = world.metadata.warpPlayer
+    ? getClosestPlayer(world, position, [LAYER])
+    : world.getEntity([PLAYER, POSITION, LAYER]);
   const size = world.metadata.gameEntity[LEVEL].size;
   const distance = hero
     ? getDistance(hero[POSITION], position, size, 0.45)
     : Infinity;
 
   if (hero && distance < 10 && (type !== "drop" || random(0, 4) === 0)) {
-    play(type === "drop" ? "rain" : "bubble", {
-      proximity: 1 / (distance + 1),
-      variant: type === "bubble" ? 1 : 2,
-      delay: random(0, 100),
-      intensity: hero[LAYER].structure ? 0.5 : 1,
-    });
+    play(
+      type === "drop" ? "rain" : "bubble",
+      {
+        proximity: 1 / (distance + 1),
+        variant: type === "bubble" ? 1 : 2,
+        delay: random(0, 100),
+        intensity: hero[LAYER].structure ? 0.5 : 1,
+      },
+      { position: { ...position } }
+    );
   }
 };
 

@@ -1,3 +1,4 @@
+import { soundSource } from "../../game/sound/events";
 import { bumpEntity } from "../motion";
 import { Entity } from "ecs";
 import { World } from "../ecs";
@@ -136,7 +137,7 @@ export default function setupFishing(world: World) {
         hookable[HOOKABLE].hooked = entityId;
         hookable[HOOKABLE].casting = undefined;
         entity[BAITABLE].caught = hookableId;
-        play("fish", { variant: 3 });
+        play("fish", { variant: 3 }, soundSource(world, entity));
         bumpEntity(world, entity, "down");
         rerenderEntity(world, entity);
       }
@@ -191,7 +192,12 @@ export default function setupFishing(world: World) {
         (!entity[HOOKABLE].catching && entity[HOOKABLE].escaping)
       ) {
         // escape
-        if (entity[HOOKABLE].hooked) play("escape", { notes: 4, spacing: 110 });
+        if (entity[HOOKABLE].hooked)
+          play(
+            "escape",
+            { notes: 4, spacing: 110 },
+            soundSource(world, entity)
+          );
         entity[HOOKABLE].hooked = undefined;
         entity[HOOKABLE].catching = undefined;
         entity[HOOKABLE].escaping = false;
@@ -199,7 +205,7 @@ export default function setupFishing(world: World) {
       } else if (!entity[HOOKABLE].escaping && baitEntity) {
         // escape on next movement
         entity[HOOKABLE].escaping = true;
-        play("fish", { variant: 4 });
+        play("fish", { variant: 4 }, soundSource(world, entity));
         bumpEntity(world, baitEntity, "down");
         rerenderEntity(world, baitEntity);
 
