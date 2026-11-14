@@ -6,6 +6,10 @@ import { systemsFrame } from "../interface/clock";
 import { createAreaWorld, assertHero } from "../../testing/harness";
 import { colors } from "../../game/assets/colors";
 import { PLAYER } from "../../engine/components/player";
+import { VIEWABLE } from "../../engine/components/viewable";
+import { POSITION } from "../../engine/components/position";
+import { RENDERABLE } from "../../engine/components/renderable";
+import { STATS } from "../../engine/components/stats";
 import { WorldProvider } from "../interface/hooks";
 import { createWorldContext } from "../../testing/context";
 import { Sprite } from "../../engine/components/sprite";
@@ -244,4 +248,76 @@ it("shakes after new damage and returns to the normal camera position", () => {
   world.metadata.renderTime += 50;
   rerender(<HtmlRenderer world={world} {...dimensions} paused />);
   expect(camera).toHaveStyle({ transform: "translate(-36px, -32px)" });
+});
+
+it("repeats a viewpoint earthquake without damage and settles when it ends", () => {
+  const world = createWorld();
+  const hero = world.assertComponents(assertHero(world), [VIEWABLE, PLAYER]);
+  for (const entity of world.getEntities([VIEWABLE, POSITION]))
+    entity[VIEWABLE].active = entity === hero;
+  const cameraMotion = motion.createMotion(0, 0, 0, { duration: 0 });
+  jest.spyOn(motion, "getCameraMotion").mockReturnValue(cameraMotion);
+  jest.spyOn(Math, "random").mockReturnValue(0.25);
+  const { rerender } = render(
+    <HtmlRenderer world={world} {...dimensions} paused={false} />
+  );
+  // eslint-disable-next-line testing-library/no-node-access
+  const camera = screen.getByLabelText("Game world").firstElementChild!;
+  const props = { world, ...dimensions, paused: false };
+  const idle = camera.getAttribute("style");
+  hero[VIEWABLE].quake = world.metadata.gameEntity[RENDERABLE].generation + 8;
+  rerender(<HtmlRenderer {...props} />);
+  world.metadata.renderTime += 50;
+  rerender(<HtmlRenderer {...props} />);
+  expect(camera.getAttribute("style")).not.toBe(idle);
+  world.metadata.renderTime += 50;
+  rerender(<HtmlRenderer {...props} />);
+  expect(camera.getAttribute("style")).toBe(idle);
+  world.metadata.renderTime += 50;
+  rerender(<HtmlRenderer {...props} />);
+  expect(camera.getAttribute("style")).not.toBe(idle);
+  hero[VIEWABLE].quake = world.metadata.gameEntity[RENDERABLE].generation;
+  world.metadata.renderTime += 50;
+  rerender(<HtmlRenderer {...props} />);
+  expect(camera.getAttribute("style")).toBe(idle);
+  world.metadata.renderTime += 50;
+  rerender(<HtmlRenderer {...props} />);
+  expect(camera.getAttribute("style")).toBe(idle);
+  expect(hero[PLAYER].receivedStats.melee).toBe(0);
+});
+
+it("updates the health fill from the shared unit stats", () => {
+  const world = createWorld();
+  const hero = world.assertComponents(assertHero(world), [STATS]);
+  hero[STATS].maxHp = 25;
+  hero[STATS].hp = 20;
+  const { container, rerender } = render(
+    <HtmlRenderer world={world} {...dimensions} paused />
+  );
+  // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+  const fill = container.querySelector(".HtmlRendererHealth > span")!;
+  expect(fill).toHaveStyle({ width: "80%" });
+  hero[STATS].hp = 5;
+  rerender(<HtmlRenderer world={world} {...dimensions} paused />);
+  expect(fill).toHaveStyle({ width: "20%" });
+});
+
+it("does not shake for an inactive viewpoint's earthquake", () => {
+  const world = createWorld();
+  const hero = world.assertComponents(assertHero(world), [VIEWABLE]);
+  for (const entity of world.getEntities([VIEWABLE, POSITION]))
+    entity[VIEWABLE].active = false;
+  hero[VIEWABLE].quake = world.metadata.gameEntity[RENDERABLE].generation + 8;
+  jest
+    .spyOn(motion, "getCameraMotion")
+    .mockReturnValue(motion.createMotion(0, 0, 0, { duration: 0 }));
+  const { rerender } = render(
+    <HtmlRenderer world={world} {...dimensions} paused={false} />
+  );
+  // eslint-disable-next-line testing-library/no-node-access
+  const camera = screen.getByLabelText("Game world").firstElementChild!;
+  const idle = camera.getAttribute("style");
+  world.metadata.renderTime += 50;
+  rerender(<HtmlRenderer world={world} {...dimensions} paused={false} />);
+  expect(camera.getAttribute("style")).toBe(idle);
 });

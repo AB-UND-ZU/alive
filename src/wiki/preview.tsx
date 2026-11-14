@@ -383,7 +383,11 @@ function Preview() {
             <Terminal
               shadows={shadows}
               renderer={
-                name === "clients" && option === "html" ? "html" : "three-js"
+                name === "clients"
+                  ? option === "html"
+                    ? "html"
+                    : "three-js"
+                  : undefined
               }
             >
               {name !== "game" && name !== "interface" && <DemoFrame />}

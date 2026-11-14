@@ -46,6 +46,7 @@ import { colors } from "../../game/assets/colors";
 import {
   getSegments,
   fogHeight,
+  dotsHeight,
   lootHeight,
   oreHeight,
   particleHeight,
@@ -311,8 +312,16 @@ export const getSceneFrame = (
           if (
             entity[BREWABLE] ||
             (amount > 1 && !(amount <= 3 && entry.sprite.amounts?.multiple))
-          )
-            entry.dots = Math.min(10, amount);
+          ) {
+            const dots = add(
+              { name: "stack dots", layers: [] },
+              `loot${world.getEntityId(item)}:dots`,
+              dotsHeight
+            );
+            dots.dots = Math.min(10, amount);
+            dots.loot = true;
+            dots.hidden = !lootVisible || (!entity[BREWABLE] && !visible);
+          }
         }
       });
     }

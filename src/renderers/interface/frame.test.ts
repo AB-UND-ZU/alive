@@ -20,6 +20,7 @@ import {
   bumpEntity,
 } from "../../engine/motion";
 import { getSceneFrame } from "./frame";
+import { decayHeight, dotsHeight, immersibleHeight } from "./segments";
 import { ORIENTABLE } from "../../engine/components/orientable";
 import { INVENTORY } from "../../engine/components/inventory";
 import { POSITION } from "../../engine/components/position";
@@ -505,4 +506,34 @@ it("reports fog across the whole requested grid, including empty cells", () => {
       (entry) => entry.sprite.name === "visibility"
     )
   ).toBe(false);
+});
+
+it("draws a dropped stack's dots above remains and swimming independently of its loot", () => {
+  const world = createAreaWorld(area, { size: 48 });
+  const hero = world.assertComponents(getHero(world)!, [INVENTORY, POSITION]);
+  const [item] = giveItems(world, hero, [{ stackable: "apple", amount: 4 }]);
+  dropEntity(
+    world,
+    { [INVENTORY]: { items: [world.getEntityId(item)] } },
+    { x: 5, y: 2 },
+    true
+  );
+  const carrier = world.assertByIdAndComponents(item[ITEM].carrier, [FOG]);
+  carrier[FOG].visibility = "visible";
+  const frame = getSceneFrame(world, 15, 11);
+  const loot = frame.find((entry) => entry.sprite === item[SPRITE])!;
+  const dots = frame.find((entry) => entry.entity === carrier && entry.dots)!;
+  expect(dots).toBeDefined();
+  expect(dots.dots).toBe(4);
+  expect(dots.z).toBe(dotsHeight);
+  expect(dots.z).toBeGreaterThan(decayHeight);
+  expect(dots.z).toBeGreaterThan(immersibleHeight);
+  expect(dots).toMatchObject({ x: loot.x, y: loot.y, hidden: false });
+  expect(loot.dots).toBeUndefined();
+  carrier[FOG].visibility = "fog";
+  expect(
+    getSceneFrame(world, 15, 11, undefined, { includeHidden: true }).find(
+      (entry) => entry.entity === carrier && entry.dots
+    )?.hidden
+  ).toBe(true);
 });

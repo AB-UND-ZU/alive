@@ -10,8 +10,11 @@ import {
   getCameraMotion,
   sampleMotion,
 } from "../../engine/motion";
-import { useWorld } from "../interface/hooks";
+import { getActiveViewable, useWorld } from "../interface/hooks";
 import { PLAYER } from "../../engine/components/player";
+import { POSITION } from "../../engine/components/position";
+import { RENDERABLE } from "../../engine/components/renderable";
+import { VIEWABLE } from "../../engine/components/viewable";
 import { random } from "../../game/math/std";
 import { colors } from "../../game/assets/colors";
 import { fogOfWar } from "../../game/assets/sprites";
@@ -72,11 +75,26 @@ export default function HtmlRenderer({
       world,
       received: undefined as number | undefined,
       started: -Infinity,
+      delay: 50,
       x: 0,
       y: 0,
     }),
     [world]
   );
+  const viewpoint = getActiveViewable(world.getEntities([VIEWABLE, POSITION]));
+  const quake = viewpoint?.[VIEWABLE].quake;
+  if (
+    !paused &&
+    !suspended &&
+    quake !== undefined &&
+    quake > world.metadata.gameEntity[RENDERABLE].generation &&
+    world.metadata.renderTime - shake.started >= shake.delay + 100
+  ) {
+    shake.started = world.metadata.renderTime;
+    shake.delay = 0;
+    shake.x = random(-3, 3) * 0.1;
+    shake.y = -random(-3, 3) * 0.1;
+  }
   const hero = world.getEntities([PLAYER])[0];
   if (hero) {
     const received =
@@ -87,6 +105,7 @@ export default function HtmlRenderer({
       const distance = (Math.sqrt(received - shake.received) + 1) * 0.1;
       const angle = (random(0, 359) / 360) * Math.PI * 2;
       shake.started = world.metadata.renderTime;
+      shake.delay = 50;
       shake.x = Math.sin(angle) * distance;
       shake.y = -Math.cos(angle) * distance;
     }
@@ -96,7 +115,7 @@ export default function HtmlRenderer({
   const camera = cameraMotion
     ? sampleMotion(cameraMotion, world.metadata.renderTime)
     : { x: 0, y: 0 };
-  const phase = (world.metadata.renderTime - shake.started - 50) / 50;
+  const phase = (world.metadata.renderTime - shake.started - shake.delay) / 50;
   const factor = phase < 0 || phase >= 2 ? 0 : phase < 1 ? phase : 2 - phase;
   const pixel = (value: number) => {
     const ratio = window.devicePixelRatio || 1;
