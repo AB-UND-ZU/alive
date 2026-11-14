@@ -987,11 +987,17 @@ describe("touch controls", () => {
   );
 
   const pointerEvent = (
-    type: "pointerdown" | "pointermove" | "click",
+    type:
+      | "pointerdown"
+      | "pointermove"
+      | "pointerup"
+      | "pointercancel"
+      | "click",
     target: Element,
     id: number,
     clientX = 175,
-    clientY = 45
+    clientY = 45,
+    pointerType: "touch" | "mouse" = "touch"
   ) => {
     const event = new MouseEvent(type, {
       bubbles: true,
@@ -1004,7 +1010,7 @@ describe("touch controls", () => {
       clientX: { value: clientX },
       clientY: { value: clientY },
       pointerId: { value: id },
-      pointerType: { value: "touch" },
+      pointerType: { value: pointerType },
       isPrimary: { value: true },
     });
     fireEvent(target, event);
@@ -1371,6 +1377,142 @@ describe("touch controls", () => {
       runUntil(world, () => getVerticalIndex(world, trader) === firstRow);
     }
   );
+
+  it.each([
+    ["mouse", "up", -1],
+    ["mouse", "down", 1],
+    ["touch", "up", -1],
+    ["touch", "down", 1],
+  ] as const)(
+    "a quick %s click on the %s triangle moves exactly one row",
+    (input, direction, delta) => {
+      const { world, hero, container, trader } = setupShop();
+      press("Enter");
+      runUntil(world, () => !!isInPopup(world, hero));
+      runUntil(world, () => !hero[PLAYER].actionTriggered);
+      act(() => setVerticalIndex(world, trader, 4));
+      tick(world, 2);
+      const bar = scrollbar(container);
+      const y = direction === "up" ? 5 : bar.getBoundingClientRect().height - 5;
+      pointerEvent("pointerdown", bar, 1, 175, y, input);
+      if (input === "touch") touch("touchStart", [[175, y]], bar);
+      expect(hero[MOVABLE].orientations).toEqual([direction]);
+      pointerEvent("pointerup", bar, 1, 175, y, input);
+      if (input === "touch") touch("touchEnd", [], bar);
+      pointerEvent(
+        "click",
+        getTouchArea(container, "content"),
+        1,
+        160,
+        y,
+        input
+      );
+      runUntil(world, () => getVerticalIndex(world, trader) === 4 + delta);
+      tick(world, 15);
+      expect(getVerticalIndex(world, trader)).toBe(4 + delta);
+      expect(getTabSelections(world, trader)).toEqual([]);
+      expect(hero[MOVABLE].orientations).toEqual([]);
+    }
+  );
+
+  it.each([
+    ["mouse", "up", -1],
+    ["mouse", "down", 1],
+    ["touch", "up", -1],
+    ["touch", "down", 1],
+  ] as const)(
+    "holding the %s %s triangle uses dialog movement repeats until release",
+    (input, direction, delta) => {
+      const { world, hero, container, trader } = setupShop();
+      press("Enter");
+      runUntil(world, () => !!isInPopup(world, hero));
+      runUntil(world, () => !hero[PLAYER].actionTriggered);
+      act(() => setVerticalIndex(world, trader, 4));
+      tick(world, 2);
+      const bar = scrollbar(container);
+      const y = direction === "up" ? 5 : bar.getBoundingClientRect().height - 5;
+      pointerEvent("pointerdown", bar, 1, 175, y, input);
+      if (input === "touch") {
+        fireEvent.keyUp(window, { key: "ArrowDown" });
+        touch("touchStart", [[175, y]], bar);
+      }
+      runUntil(world, () => getVerticalIndex(world, trader) === 4 + delta);
+      tick(world, 3);
+      expect(getVerticalIndex(world, trader)).toBe(4 + delta);
+      runUntil(world, () => getVerticalIndex(world, trader) === 4 + delta * 2);
+      pointerEvent(
+        "pointermove",
+        document.body,
+        1,
+        50,
+        direction === "up" ? 200 : -100,
+        input
+      );
+      expect(hero[MOVABLE].orientations).toEqual([direction]);
+      expect(hero[PLAYER].actionTriggered).not.toBe("scroll");
+      pointerEvent("pointerup", document.body, 1, 50, y, input);
+      if (input === "touch") touch("touchEnd", [], bar);
+      tick(world, 10);
+      const stopped = getVerticalIndex(world, trader);
+      tick(world, 10);
+      expect(getVerticalIndex(world, trader)).toBe(stopped);
+      expect(hero[MOVABLE].orientations).toEqual([]);
+    }
+  );
+
+  it.each(["pointercancel", "close"] as const)(
+    "%s stops a held scrollbar triangle",
+    (ending) => {
+      const { world, hero, container, trader } = setupShop();
+      press("Enter");
+      runUntil(world, () => !!isInPopup(world, hero));
+      runUntil(world, () => !hero[PLAYER].actionTriggered);
+      const bar = scrollbar(container);
+      pointerEvent(
+        "pointerdown",
+        bar,
+        1,
+        175,
+        bar.getBoundingClientRect().height - 5,
+        "mouse"
+      );
+      runUntil(world, () => getVerticalIndex(world, trader) === 1);
+      if (ending === "close") {
+        act(() => closePopup(world, hero, trader));
+      } else {
+        pointerEvent("pointercancel", bar, 1, 175, 85, "mouse");
+      }
+      tick(world, 10);
+      expect(hero[MOVABLE].orientations).toEqual([]);
+      const stopped = getVerticalIndex(world, trader);
+      tick(world, 10);
+      expect(getVerticalIndex(world, trader)).toBe(stopped);
+    }
+  );
+
+  it("releasing a closed triangle hold cannot cancel later keyboard movement", () => {
+    const { world, hero, container, trader } = setupShop();
+    press("Enter");
+    runUntil(world, () => !!isInPopup(world, hero));
+    runUntil(world, () => !hero[PLAYER].actionTriggered);
+    const bar = scrollbar(container);
+    pointerEvent(
+      "pointerdown",
+      bar,
+      1,
+      175,
+      bar.getBoundingClientRect().height - 5,
+      "mouse"
+    );
+    runUntil(world, () => getVerticalIndex(world, trader) === 1);
+    act(() => closePopup(world, hero, trader));
+    tick(world, 10);
+    const x = hero[POSITION].x;
+    press("ArrowLeft");
+    pointerEvent("pointerup", document.body, 1, 175, 85, "mouse");
+    runUntil(world, () => hero[POSITION].x === x - 1);
+    release("ArrowLeft");
+  });
 
   it.each([0, 0.25, 0.5, 1])(
     "scrolls to %s of the content on the next popup tick",

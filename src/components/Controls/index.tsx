@@ -287,6 +287,7 @@ export default function Controls({
     id: number;
     consumed: boolean;
     scrollbar?: Element;
+    scrollDirection?: "up" | "down";
   }>();
   const touchOrigin = useRef<[number, number]>();
   const [joystickOrientations, setJoystickOrientations] = useState<
@@ -1124,6 +1125,10 @@ export default function Controls({
   }, []);
 
   const releaseTouch = useCallback(() => {
+    if (pointer.current?.scrollDirection) {
+      pointer.current.scrollbar = undefined;
+      pointer.current.scrollDirection = undefined;
+    }
     touchOrigin.current = undefined;
     pressedOrientations.current = [];
     setJoystickOrientations([]);
@@ -1154,8 +1159,12 @@ export default function Controls({
       }
 
       const touch = event.touches[0];
+      if ((touch.target as HTMLElement).closest(".PopupScroll")) {
+        if (event.type === "touchstart" && pointer.current?.scrollDirection)
+          handleMove([pointer.current.scrollDirection]);
+        return;
+      }
       if (event.type === "touchstart") releaseTouch();
-      if ((touch.target as HTMLElement).closest(".PopupScroll")) return;
 
       const onKeyboard = [...event.changedTouches].some((touch) =>
         (touch.target as HTMLElement).closest("#keyboard")
@@ -1242,17 +1251,31 @@ export default function Controls({
         if (!event.isPrimary || event.button !== 0) return;
         const scrollbar =
           (event.target as Element).closest(".PopupScroll") ?? undefined;
+        let scrollDirection: "up" | "down" | undefined;
+        if (scrollbar) {
+          releaseTouch();
+          const rect = scrollbar.getBoundingClientRect();
+          const cellHeight =
+            rect.height / Number(scrollbar.getAttribute("data-rows"));
+          if (event.clientY < rect.top + cellHeight) scrollDirection = "up";
+          else if (event.clientY >= rect.top + rect.height - cellHeight)
+            scrollDirection = "down";
+        }
         pointer.current = {
           id: event.pointerId,
           consumed: !!scrollbar,
           scrollbar,
+          scrollDirection,
         };
+        if (scrollDirection && event.pointerType !== "touch")
+          handleMove([scrollDirection]);
         scrollbar?.setPointerCapture(event.pointerId);
       } else if (event.type === "pointermove") {
         if (pointer.current?.id !== event.pointerId) return;
       } else {
         // Keep click consumption until click; release only the drag target.
         if (pointer.current && pointer.current.id === event.pointerId) {
+          if (pointer.current.scrollDirection) releaseTouch();
           if (event.type === "pointercancel") pointer.current = undefined;
           else pointer.current.scrollbar = undefined;
         }
@@ -1261,7 +1284,8 @@ export default function Controls({
         return;
       }
       const scrollbar = pointer.current?.scrollbar;
-      if (scrollbar?.isConnected) handleScroll(scrollbar, event.clientY);
+      if (scrollbar?.isConnected && !pointer.current?.scrollDirection)
+        handleScroll(scrollbar, event.clientY);
     };
     const handleClick = (event: MouseEvent) => {
       const activePointer = pointer.current;
@@ -1313,7 +1337,14 @@ export default function Controls({
 
       window.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [handleKey, handleMouseMove, handleTouchMove, handleScroll, releaseTouch]);
+  }, [
+    handleKey,
+    handleMouseMove,
+    handleTouchMove,
+    handleScroll,
+    handleMove,
+    releaseTouch,
+  ]);
 
   const emptySpell = createButton(
     isTouch ? "SPELL" : "SPACE",

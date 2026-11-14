@@ -312,6 +312,67 @@ for (const viewport of [
       ).toBe("scroll");
     });
 
+    for (const [direction, delta] of [
+      ["up", -1],
+      ["down", 1],
+    ]) {
+      test(`holding the ${direction} triangle steps through rows and stops on release`, async ({
+        page,
+      }, testInfo) => {
+        await openList(page);
+        const track = await page.locator("#scroll").boundingBox();
+        const center = {
+          x: track.x + track.width / 2,
+          y: track.y + track.height / 2,
+        };
+        const maximum = (await popupState(page)).maximum;
+        const start = Math.round(maximum / 2);
+        if (viewport.touch) await page.touchscreen.tap(center.x, center.y);
+        else await page.mouse.click(center.x, center.y);
+        await expect.poll(async () => (await popupState(page)).row).toBe(start);
+        const rows = Number(
+          await page.locator("#scroll").getAttribute("data-rows")
+        );
+        const point = await nativePoint(
+          page,
+          "popup",
+          `popup-right-${direction === "up" ? 0 : rows - 1}`
+        );
+        let client;
+        if (viewport.touch) {
+          client = await page.context().newCDPSession(page);
+          await client.send("Input.dispatchTouchEvent", {
+            type: "touchStart",
+            touchPoints: [{ x: point.x, y: point.y, id: 1 }],
+          });
+        } else {
+          await page.mouse.move(point.x, point.y);
+          await page.mouse.down();
+        }
+        await expect
+          .poll(async () => delta * ((await popupState(page)).row - start))
+          .toBeGreaterThanOrEqual(2);
+        if (viewport.touch)
+          await client.send("Input.dispatchTouchEvent", {
+            type: "touchEnd",
+            touchPoints: [],
+          });
+        else await page.mouse.up();
+        await page.waitForTimeout(250);
+        const stopped = await popupState(page);
+        expect(stopped.row).toBeGreaterThan(0);
+        expect(stopped.row).toBeLessThan(maximum);
+        await page.waitForTimeout(350);
+        expect(await popupState(page)).toMatchObject({
+          row: stopped.row,
+          tab: "pack",
+        });
+        await page.screenshot({
+          path: testInfo.outputPath(`scrollbar-${direction}-released.png`),
+        });
+      });
+    }
+
     test("scrollbar taps and captured drags follow the content percentage", async ({
       page,
     }, testInfo) => {
