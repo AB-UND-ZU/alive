@@ -14,7 +14,7 @@ It waits until the level has initialized cells and a revealable entity exists. R
 
 Each revealable keeps its last traced sight. It is reused while the position, radius and map size stay the same and every cell in it reports the same [obstruction](../../game/math/tracing.md), because tracing reads nothing else. Mining a mountain, opening or locking a door and a changing torch radius therefore trace again, while standing still among animations does not. A sight holds only plain values, so it never keeps a previous level in memory.
 
-An update then checks each cell around a revealable, with one extra cell, and each cell in sight once. Entities in sight or within the hero's layer become visible, visible entities elsewhere in that area become fog, and hidden ones stay hidden until they are seen. Only these changes are applied, in column, row and entity order.
+An update then checks each cell around a revealable, with one extra cell, and each cell in sight once. Entities in sight or within the hero's layer become visible, visible entities elsewhere in that area become fog, and hidden ones stay hidden until they are seen. Only these changes are applied, in column, row and entity order. `metadata.visibleCells` retains the current normalized `x * size + y` cells for renderers, including empty ground. It is replaced on each sight update and cleared when creating another level.
 <!-- source-types -->
 
 ## Change

@@ -14,7 +14,6 @@ import { PROJECTILE } from "../../engine/components/projectile";
 import { INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
 import { Orientation, ORIENTABLE } from "../../engine/components/orientable";
-import { CASTABLE } from "../../engine/components/castable";
 import { HOMING } from "../../engine/components/homing";
 import { POPUP } from "../../engine/components/popup";
 import { PARTICLE } from "../../engine/components/particle";
@@ -27,7 +26,11 @@ import { ATTACKABLE } from "../../engine/components/attackable";
 import { BUILDABLE } from "../../engine/components/buildable";
 import { BREWABLE } from "../../engine/components/brewable";
 import { isOutside } from "../../engine/systems/enter";
-import { getParticles, getSequence } from "../../engine/systems/sequence";
+import {
+  getParticles,
+  getSequence,
+  getSequences,
+} from "../../engine/systems/sequence";
 import { isCollecting, isLootable } from "../../engine/systems/collect";
 import { isEnemy, isNeutral } from "../../engine/systems/damage";
 import {
@@ -36,7 +39,7 @@ import {
   getBumpMotion,
   sampleMotion,
 } from "../../engine/motion";
-import { getDistance, signedDistance } from "../../game/math/std";
+import { getDistance, normalize, signedDistance } from "../../game/math/std";
 import { getFacingLayers } from "../../game/assets/ui";
 import { fogOfWar } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
@@ -47,6 +50,7 @@ import {
   oreHeight,
   particleHeight,
   immersibleHeight,
+  transientHeight,
 } from "./segments";
 
 export type SceneSprite = {
@@ -59,6 +63,7 @@ export type SceneSprite = {
   amount?: number;
   entity: Entity;
   particle?: Entity;
+  particleName?: string;
   hidden?: boolean;
   fog?: boolean;
   loot?: boolean;
@@ -84,7 +89,8 @@ export const getSceneFrame = (
   {
     includeHidden = false,
     instant = false,
-  }: { includeHidden?: boolean; instant?: boolean } = {}
+    fogCells = false,
+  }: { includeHidden?: boolean; instant?: boolean; fogCells?: boolean } = {}
 ): SceneSprite[] => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const hero = world.getEntities([PLAYER, POSITION])[0];
@@ -113,6 +119,26 @@ export const getSceneFrame = (
   const camera = !instant && cameraMotion ? sampledCamera : targetCamera;
   const structure = hero?.[LAYER]?.structure;
   const scene: SceneSprite[] = [];
+  if (fogCells) {
+    for (let y = 0; y < rows; y++)
+      for (let x = 0; x < columns; x++) {
+        const mapX = normalize(
+          Math.round(x + camera.x - (columns - 1) / 2),
+          size
+        );
+        const mapY = normalize(Math.round(y + camera.y - (rows - 1) / 2), size);
+        scene.push({
+          key: `fog-cell:${x}:${y}`,
+          x,
+          y,
+          z: -Infinity,
+          layers: [],
+          sprite: { name: "visibility", layers: [] },
+          entity: world.metadata.gameEntity,
+          fog: !world.metadata.visibleCells.has(mapX * size + mapY),
+        });
+      }
+  }
   const position = {
     x: Math.round(
       camera.x + signedDistance(camera.x, viewable?.[POSITION].x || 0, size)
@@ -290,16 +316,40 @@ export const getSceneFrame = (
         : undefined;
     const closingParticles =
       closingPopup && new Set(Object.values(closingPopup.particles));
+    const particleNames = instant
+      ? new Map(
+          getSequences(world, entity).flatMap((sequence) =>
+            Object.entries(sequence.particles).map(
+              ([name, id]) => [id, name] as const
+            )
+          )
+        )
+      : undefined;
+    const message = instant && getSequence(world, entity, "message");
+    const messageRows = message
+      ? [
+          ...new Set(
+            Object.keys(message.particles).map((key) => key.split("-")[1])
+          ),
+        ]
+          .map(Number)
+          .sort((a, b) => b - a)
+      : [];
+    const messageParticles = new Map(
+      message
+        ? Object.entries(message.particles).map(([key, id]) => [
+            id,
+            messageRows.indexOf(Number(key.split("-")[1])),
+          ])
+        : []
+    );
     for (const [index, particle] of getParticles(world, entity).entries()) {
       if (
         !particle?.[SPRITE] ||
         closingParticles?.has(world.getEntityId(particle))
       )
         continue;
-      const motion =
-        (!instant || entity[CASTABLE]) &&
-        particle[PARTICLE].animatedOrigin &&
-        getMotion(particle);
+      const motion = particle[PARTICLE].animatedOrigin && getMotion(particle);
       const point = motion
         ? sampleMotion(motion, world.metadata.renderTime)
         : particle[PARTICLE];
@@ -313,6 +363,10 @@ export const getSceneFrame = (
         particle[ORIENTABLE]?.facing
       );
       entry.particle = particle;
+      entry.particleName = particleNames?.get(world.getEntityId(particle));
+      const messageRow = messageParticles.get(world.getEntityId(particle));
+      if (messageRow !== undefined && entry.z === transientHeight)
+        entry.y = py - 1 - messageRow;
     }
     const needsFog =
       visibility === "fog" &&

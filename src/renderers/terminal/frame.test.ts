@@ -1,5 +1,5 @@
 import { AFFECTABLE } from "../../engine/components/affectable";
-import { magicHit } from "../../game/assets/sprites";
+import { magicHit, wall, path, sand } from "../../game/assets/sprites";
 import {
   advance,
   assertHero,
@@ -22,6 +22,7 @@ import { addBackground, createButton, createText } from "../../game/assets/ui";
 import { createTerminalRoot, TerminalScreen } from "./react";
 import React from "react";
 import { getSceneFrame } from "../interface/frame";
+import { queueMessage } from "../../game/assets/utils";
 
 const sprite = (char: string, x: number, y: number, z = 0): TerminalSprite => ({
   x,
@@ -63,7 +64,7 @@ describe("terminal frame", () => {
     ]);
     const frame = createTerminalFrame(combined, 33, 16);
     expect(frame[Math.ceil(lower.y)][Math.ceil(lower.x)]).toEqual({
-      char: "▀",
+      char: "█",
       foreground: colors.maroon,
       background: colors.maroon,
     });
@@ -308,7 +309,7 @@ it("shows freeze and burn as hero backgrounds rather than replacing the hero", (
   hero[AFFECTABLE]!.freeze = 2;
   expect(render()).toMatchObject({
     char: "♀",
-    foreground: colors.black,
+    foreground: colors.white,
     background: colors.aqua,
   });
   hero[AFFECTABLE]!.freeze = 0;
@@ -317,3 +318,150 @@ it("shows freeze and burn as hero backgrounds rather than replacing the hero", (
   hero[AFFECTABLE]!.burn = 0;
   expect(render().background).not.toBe(colors.maroon);
 });
+
+it("keeps fog backgrounds under spell particles and makes gray spells readable", () => {
+  const frame = createTerminalFrame(
+    [
+      { ...sprite(" ", 0, 0), fog: true },
+      {
+        ...sprite("O", 0, 0, 9.2),
+        overlay: true,
+        layers: createText("O", colors.grey, colors.black)[0].layers,
+      },
+      { ...sprite(" ", 1, 0), fog: true },
+      {
+        ...sprite("O", 1, 0, 10),
+        overlay: true,
+        layers: createText("O", colors.grey, colors.black)[0].layers,
+      },
+    ],
+    2,
+    1
+  );
+  expect(frame[0][0]).toEqual({
+    char: "O",
+    foreground: colors.white,
+    background: colors.grey,
+  });
+  expect(frame[0][1]).toEqual({
+    char: "O",
+    foreground: colors.grey,
+    background: colors.black,
+  });
+});
+
+it("keeps yellow sand and blue water recognizable in fog", () => {
+  const frame = createTerminalFrame(
+    [
+      {
+        ...sprite("░", 0, 0),
+        fog: true,
+        layers: [{ char: "░", color: colors.yellow }],
+      },
+      {
+        x: 1,
+        y: 0,
+        z: 0,
+        sprite: { name: "water_deep" },
+        layers: [],
+        fog: true,
+      },
+    ],
+    2,
+    1
+  );
+  expect(frame[0][0]).toMatchObject({
+    foreground: colors.yellow,
+    background: colors.grey,
+  });
+  expect(frame[0][1]).toEqual({
+    char: "░",
+    foreground: colors.blue,
+    background: colors.grey,
+  });
+});
+
+it("puts new transient messages above the hero and pushes earlier messages up without extending their life", () => {
+  const world = createAreaWorld("| ♀ |", { size: 48 });
+  const hero = assertHero(world);
+  advance(world, 2000);
+  const message = (text: string) =>
+    queueMessage(world, hero, {
+      line: createText(text),
+      fast: true,
+      delay: 0,
+      orientation: "up",
+    });
+  const rows = () =>
+    getSceneFrame(world, 15, 11, undefined, { instant: true })
+      .filter(
+        (entry) =>
+          entry.particleName?.startsWith("char-") && entry.entity === hero
+      )
+      .map((entry) => [entry.layers[0].char, entry.y]);
+  message("A");
+  advance(world, 100);
+  expect(rows()).toEqual([["A", 4]]);
+  message("B");
+  advance(world, 100);
+  expect(rows()).toEqual([
+    ["A", 3],
+    ["B", 4],
+  ]);
+  advance(world, 420);
+  expect(rows()).toEqual([["B", 4]]);
+  advance(world, 100);
+  expect(rows()).toEqual([]);
+});
+
+it("keeps remembered mountains and paths silver against gray fog, and sand yellow", () => {
+  const frame = createTerminalFrame(
+    [wall, path, sand].map((terrain, x) => ({
+      x,
+      y: 0,
+      z: 0,
+      sprite: terrain,
+      layers: terrain.layers,
+      fog: true,
+    })),
+    3,
+    1
+  );
+  expect(frame[0][0]).toEqual({
+    char: "█",
+    foreground: colors.silver,
+    background: colors.grey,
+  });
+  expect(frame[0][1]).toEqual({
+    char: "░",
+    foreground: colors.silver,
+    background: colors.grey,
+  });
+  expect(frame[0][2]).toEqual({
+    char: "░",
+    foreground: colors.yellow,
+    background: colors.grey,
+  });
+});
+
+it.each(["red", "lime"])(
+  "shows disabled %s buttons as gray without dim active colors",
+  (palette) => {
+    const cells = createButton("USE", 7, true, false, false, palette);
+    const frame = createTerminalFrame(
+      cells.map((button, x) => ({
+        x,
+        y: 0,
+        z: 10,
+        sprite: button,
+        layers: button.layers,
+      })),
+      7,
+      1
+    );
+    expect(frame[0].every((cell) => cell.background === colors.grey)).toBe(
+      true
+    );
+    expect(frame[0].map((cell) => cell.char).join("")).toContain("USE");
+  }
+);

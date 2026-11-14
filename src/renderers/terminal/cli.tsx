@@ -1,5 +1,5 @@
 import React from "react";
-import { emitKeypressEvents, Key } from "readline";
+import { emitKeypressEvents, Interface, Key } from "readline";
 import { mkdirSync, readFileSync, writeFileSync, rmSync } from "fs";
 import { dirname, join } from "path";
 import { homedir } from "os";
@@ -29,6 +29,8 @@ import {
 } from ".";
 import { createTerminalInput } from "./input";
 import { frameToAnsi, frameToText } from "./frame";
+import { startTerminalAudio } from "./audio";
+import { setAudioActive } from "../../game/sound/resumable";
 
 const savePath = () =>
   join(
@@ -46,6 +48,12 @@ export const createTerminalWorld = (level: LevelName = "LEVEL_MENU") => {
   preloadLevel(world);
   return world;
 };
+
+export const emitTerminalKeys = (stream: NodeJS.ReadableStream) =>
+  // Avoid readline's half-second delay for a bare Escape.
+  emitKeypressEvents(stream, { escapeCodeTimeout: 50 } as Interface & {
+    escapeCodeTimeout: number;
+  });
 
 export const runTerminal = () => {
   const args = process.argv.slice(2);
@@ -150,6 +158,7 @@ export const runTerminal = () => {
     throw new Error(
       "Use an interactive terminal, or --frames 1 to print a frame"
     );
+  const closeAudio = startTerminalAudio();
   const root = createTerminalRoot((output) => process.stdout.write(output));
   const render = () => {
     const { columns, rows } = dimensions();
@@ -182,6 +191,7 @@ export const runTerminal = () => {
     if (stopped) return;
     stopped = true;
     clearInterval(timer);
+    closeAudio?.();
     input.stop();
     save();
     root.unmount();
@@ -236,7 +246,7 @@ export const runTerminal = () => {
     input.press(key);
   };
   process.stdout.write("\x1b[?1049h\x1b[?25l\x1b[2J");
-  emitKeypressEvents(process.stdin);
+  emitTerminalKeys(process.stdin);
   process.stdin.setRawMode(true);
   process.stdin.resume();
   process.stdin.on("keypress", keypress);
@@ -246,6 +256,7 @@ export const runTerminal = () => {
   let previous = performance.now();
   const timer = setInterval(() => {
     const now = performance.now();
+    setAudioActive(!paused && !suspended);
     clock.advance(
       now - previous,
       paused ||

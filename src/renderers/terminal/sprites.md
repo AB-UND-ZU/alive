@@ -11,9 +11,9 @@ fills use the background color; text and half-block artwork keep their glyphs.
 Results are cached by sprite name and layers.
 
 A few composites need a recognizable single-cell form: people use `♀`, eyes
-use `ô`, keys use `╒`, and shots keep their arrow direction. Terrain retains
+use `o` asleep and `ô` awake, keys use `╒`, and shots keep their arrow direction. Terrain retains
 patterns from the level legends, including sand, paths and water. Building
-edges keep their original box-drawing direction and color. Beam endpoints retain their box-drawing shape; moving bolts use a visible dot
+walls use silver single lines and roofs use silver double lines. Doors show their key over the door color; opened doors leave the ground visible. Trees have a maroon background, berry fruit stays visible, and deep water uses a plain navy background. Beam endpoints retain their box-drawing shape; moving bolts use a visible dot
 in the source center color. Dash marks use `^`, `>`, `v` and `<`; dormant traps use `x`. Warning lines and the
 activated trap frame retain their directional source characters and spell colors.
 Dialog selections invert their existing character against the selection background.

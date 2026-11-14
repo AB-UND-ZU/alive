@@ -1,3 +1,23 @@
+export type AudioOutput = {
+  now: () => number;
+  play: (
+    samples: ArrayLike<number>,
+    sampleRate: number,
+    time: number,
+    volume: number
+  ) => void;
+  stop: () => void;
+};
+
+let output: AudioOutput | undefined;
+let active = true;
+let muted = false;
+
+export const setAudioOutput = (next?: AudioOutput) => {
+  output?.stop();
+  output = next;
+};
+
 const AudioContext =
   typeof window !== "undefined"
     ? window.AudioContext || window.webkitAudioContext
@@ -12,15 +32,20 @@ if (audioContext && masterGain && activityGain) {
   activityGain.connect(audioContext.destination);
 }
 
-export const setAudioActive = (active: boolean) => {
-  if (activityGain) activityGain.gain.value = active ? 1 : 0;
+export const setAudioActive = (enabled: boolean) => {
+  active = enabled;
+  if (!enabled) output?.stop();
+  if (activityGain) activityGain.gain.value = enabled ? 1 : 0;
 };
 
 export const muteAudio = () => {
+  muted = true;
+  output?.stop();
   if (masterGain) masterGain.gain.value = 0;
 };
 
 export const unmuteAudio = () => {
+  muted = false;
   if (masterGain) masterGain.gain.value = 1;
 };
 
@@ -38,10 +63,12 @@ export const ensureAudio = () => {
 };
 
 export const isPlaying = () =>
-  !!audioContext &&
-  audioContext.state === "running" &&
-  (masterGain?.gain.value || 0) > 0 &&
-  (activityGain?.gain.value || 0) > 0;
+  output
+    ? active && !muted
+    : !!audioContext &&
+      audioContext.state === "running" &&
+      (masterGain?.gain.value || 0) > 0 &&
+      (activityGain?.gain.value || 0) > 0;
 
 export type SoundBuffer = {
   play: (time: number, volume?: number) => void;
@@ -49,12 +76,18 @@ export type SoundBuffer = {
 
 // audio clock time after a delay in milliseconds
 export const getAudioTime = (delay = 0) =>
-  (audioContext?.currentTime || 0) + delay / 1000;
+  (output?.now() ?? audioContext?.currentTime ?? 0) + delay / 1000;
 
 export const createSoundBuffer = (
   samples: ArrayLike<number>,
   sampleRate: number
 ): SoundBuffer => {
+  if (output)
+    return {
+      play: (time, volume = 1) => {
+        if (isPlaying()) output?.play(samples, sampleRate, time, volume);
+      },
+    };
   if (!audioContext || !masterGain) return { play: () => {} };
   const buffer = audioContext.createBuffer(
     1,

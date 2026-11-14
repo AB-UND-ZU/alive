@@ -54,9 +54,11 @@ it("shows matching source sprites beside native terminal characters", () => {
   expect(screen.getByLabelText("ThreeJS sprite example")).toBeInTheDocument();
   expect(screen.getByLabelText("HTML sprite example")).toBeInTheDocument();
   const terminal = screen.getByLabelText("Terminal sprite example");
-  // Native water uses a wave character over its navy background.
+  // Deep water uses only its navy background.
   // eslint-disable-next-line testing-library/no-node-access
-  expect(terminal.querySelector('[data-glyph="≈"]')).toBeInTheDocument();
+  expect(terminal.querySelector('[data-glyph="≈"]')).not.toBeInTheDocument();
+  // eslint-disable-next-line testing-library/no-node-access
+  expect(terminal.querySelector('rect[fill="#000080"]')).toBeInTheDocument();
   // Human actors keep the female symbol in the game's font encoding.
   // eslint-disable-next-line testing-library/no-node-access
   expect(terminal.querySelector('[data-glyph="ċ"]')).toBeInTheDocument();

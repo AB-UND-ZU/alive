@@ -229,9 +229,11 @@ export default function setupVisibility(world: World) {
       visibleCells.push(...sight.cells, ...getLayerCells(world, revealable));
     }
 
+    world.metadata.visibleCells.clear();
     for (const cell of visibleCells) {
-      marks[normalize(cell.x, size) * size + normalize(cell.y, size)] =
-        visibleMark;
+      const index = normalize(cell.x, size) * size + normalize(cell.y, size);
+      marks[index] = visibleMark;
+      world.metadata.visibleCells.add(index);
     }
 
     // compare each cell once and only keep actual changes

@@ -22,6 +22,7 @@ export type TerminalSprite = {
   layers: Layer[];
   sprite: { name: string };
   fog?: boolean;
+  overlay?: boolean;
   hero?: { hit: boolean; background?: string };
 };
 export type TerminalFrame = TerminalCell[][];
@@ -33,6 +34,7 @@ export const collectTerminalSprites = (
   const result: TerminalSprite[] = [];
   const bodies = new Map<string, TerminalSprite>();
   for (const entry of scene) {
+    if (/^scratch(?:-|$)/.test(entry.particleName || "")) continue;
     const titleBlock = /^block_(up|down)$/.test(entry.sprite.name);
     if (!titleBlock && !/body\d+$/.test(entry.key)) {
       if (
@@ -43,7 +45,7 @@ export const collectTerminalSprites = (
         const body = bodies.get(entry.key.replace(/particle\d+$/, "body"));
         if (body?.hero) body.hero.hit = true;
       }
-      result.push(entry);
+      result.push({ ...entry, overlay: !!entry.particle });
       continue;
     }
     const key = titleBlock
@@ -118,7 +120,26 @@ export const createTerminalFrame = (
   const applyFog = () => {
     for (const index of fogCells) {
       const cell = frame[Math.floor(index / columns)][index % columns];
-      cell.foreground = fogColor(cell.foreground);
+      if (cell.background === colors.navy && cell.char === " ") {
+        cell.char = "░";
+        cell.foreground = colors.blue;
+      } else if (
+        [colors.olive, colors.yellow].includes(cell.background || "")
+      ) {
+        cell.foreground = colors.yellow;
+      } else {
+        if (
+          cell.char === " " &&
+          cell.background &&
+          cell.background !== colors.black
+        ) {
+          cell.char = "█";
+          cell.foreground = cell.background;
+        }
+        if (cell.foreground !== colors.yellow)
+          cell.foreground = fogColor(cell.foreground);
+        if (cell.foreground === colors.grey) cell.foreground = colors.silver;
+      }
       cell.background = colors.grey;
     }
     fogApplied = true;
@@ -135,11 +156,16 @@ export const createTerminalFrame = (
       sprite.sprite.name === "button_left" ||
       sprite.sprite.name === "button_right"
     ) {
-      const background =
-        [...sprite.layers].reverse().find((layer) => "▌▐".includes(layer.char))
-          ?.color ||
-        sprite.layers[0]?.color ||
-        colors.white;
+      const disabled = sprite.layers.some(
+        (layer) => layer.char === "░" && layer.color === colors.black
+      );
+      const background = disabled
+        ? colors.grey
+        : [...sprite.layers]
+            .reverse()
+            .find((layer) => "▌▐".includes(layer.char))?.color ||
+          sprite.layers[0]?.color ||
+          colors.white;
       const foreground = [
         colors.green,
         colors.maroon,
@@ -159,15 +185,24 @@ export const createTerminalFrame = (
     if (sprite.hero) {
       projected = {
         ...projected,
-        foreground: sprite.hero.hit
-          ? colors.red
-          : sprite.hero.background === colors.aqua
-          ? colors.black
-          : projected.foreground,
+        foreground: sprite.hero.hit ? colors.red : colors.white,
         background: sprite.hero.background ?? projected.background,
       };
     }
     if (projected.char === " " && projected.background === undefined) continue;
+    if (
+      sprite.overlay &&
+      sprite.z < popupHeight &&
+      fogCells.has(y * columns + x)
+    ) {
+      projected = {
+        ...projected,
+        background: colors.grey,
+        foreground: [colors.grey, colors.silver].includes(projected.foreground)
+          ? colors.white
+          : projected.foreground,
+      };
+    }
     frame[y][x] = {
       ...projected,
       background: projected.background ?? frame[y][x].background,

@@ -12,9 +12,9 @@ backgrounds retain the cell below. Empty transparent sprites do
 not erase the scene. Health bars and item-count dots are not projected.
 
 Fog uses a dark gray background, including unexplored air. Foreground intensity
-is inverted before UI is drawn. Buttons and tabs use brackets. The hero remains
+is inverted before UI is drawn; sand remains yellow and deep water stays blue. World particles retain the fog background, with gray spell characters made white. Buttons and tabs use brackets. The hero remains
 above world particles; hits color the character red, freeze uses aqua behind
-a black character, and burn uses a dark red background. Dialogs remain on top.
+the white character, and burn uses a dark red background. Dialogs remain on top.
 `shakeTerminalFrame` shifts the complete frame one cell for 100 ms after new damage,
 then restores it. Existing damage on loading does not shake the screen.
 
@@ -33,6 +33,7 @@ export type TerminalSprite = {
   layers: Layer[];
   sprite: { name: string };
   fog?: boolean;
+  overlay?: boolean;
   hero?: { hit: boolean; background?: string };
 };
 ```

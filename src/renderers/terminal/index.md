@@ -18,16 +18,18 @@ its place. Directional input releases after 100 ms without another key event.
 interactive session. It uses colors on a TTY; add `--color` for redirected
 ANSI output, or `--plain` for plain text.
 
-The game viewport is centered and capped at 65 columns by 26 rows. The normal
+The game viewport is centered and capped at 33 columns by 13 rows. The normal
 HP, MP and XP progress rows, pause button, equipped actions and compass sit
 outside it. Their labels, colors, supply and mana rows use the same sprite
 helpers as browser controls. The outer chrome spans the terminal width.
 At least 33 columns by 24 rows are required. Smaller windows pause the game
 and show a resize message.
 
+Sounds use the existing synthesized samples through `ffplay` or `aplay` when installed. One audio process mixes simultaneous effects; Pause and mute clear queued sounds. Audio plays on the host running the game, including over SSH.
+
 The renderer uses the normal ECS, sequences, popup sprites, fog and fixed-step
 clock. It has no lights, shadows, entity health bars or stack dots. Movement
-snaps to terminal cells. `Terminal` is a React component; its custom host
+snaps to terminal cells; sequence particles keep their animated paths. `Terminal` is a React component; its custom host
 writes a cell frame to stdout without a DOM. `TerminalSession` supplies the
 pause selection, loading state, saved-game name and save failure state.
 

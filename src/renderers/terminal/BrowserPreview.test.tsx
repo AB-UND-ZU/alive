@@ -47,8 +47,8 @@ it("renders the native chrome and restores the hero's DOS font character", () =>
   expect(edge).toHaveStyle({ color: "#00ff00" });
   fireEvent.blur(window);
   expect(edge).toHaveStyle({ color: "#c0c0c0" });
-  expect(world.metadata.dimensions.renderedColumns).toBe(46);
-  expect(world.metadata.dimensions.renderedRows).toBe(22);
+  expect(world.metadata.dimensions.renderedColumns).toBe(33);
+  expect(world.metadata.dimensions.renderedRows).toBe(13);
 });
 
 it("uses native terminal keys even when the preview bridge prevents browser defaults", () => {

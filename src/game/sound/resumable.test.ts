@@ -139,3 +139,37 @@ describe("audio recovery", () => {
     expect(context.suspend).not.toHaveBeenCalled();
   });
 });
+
+it("uses an installed terminal audio output without a browser audio context", () => {
+  const original = window.AudioContext;
+  (window as any).AudioContext = undefined;
+  try {
+    let audio: typeof import("./resumable");
+    jest.isolateModules(() => {
+      audio = jest.requireActual("./resumable");
+    });
+    const play = jest.fn(),
+      stop = jest.fn();
+    audio!.setAudioOutput({ now: () => 2, play, stop });
+    const samples = [0.5, -0.5];
+    const sound = audio!.createSoundBuffer(samples, 44100);
+    expect(audio!.isPlaying()).toBe(true);
+    expect(audio!.getAudioTime(250)).toBe(2.25);
+    sound.play(2.25, 0.5);
+    expect(play).toHaveBeenCalledWith(samples, 44100, 2.25, 0.5);
+    audio!.muteAudio();
+    sound.play(3);
+    audio!.unmuteAudio();
+    audio!.setAudioActive(false);
+    sound.play(3);
+    expect(play).toHaveBeenCalledTimes(1);
+    audio!.setAudioActive(true);
+    sound.play(3);
+    expect(play).toHaveBeenCalledTimes(2);
+    audio!.setAudioOutput();
+    expect(stop).toHaveBeenCalledTimes(3);
+    expect(audio!.isPlaying()).toBe(false);
+  } finally {
+    window.AudioContext = original;
+  }
+});

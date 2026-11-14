@@ -225,6 +225,7 @@ export default function createWorld() {
       elapsed: 0,
       renderTime: 0,
       occlusionGeneration: 0,
+      visibleCells: new Set<number>(),
       // stored game this world was loaded from or saved to
       saveId: undefined as string | undefined,
       loadGame: (saveId: string) => {},
@@ -250,6 +251,7 @@ export default function createWorld() {
 }
 
 export const createLevel = (world: World, name: LevelName, size: number) => {
+  world.metadata.visibleCells.clear();
   // create global render counter and reference frame
   world.metadata.gameEntity = entities.createGame(world, {
     [LEVEL]: {

@@ -7,9 +7,9 @@
 Fog, interior visibility, equipment, unit backdrops, loot and sequence particles use the game's existing data and helpers. Movement and camera positions are sampled from engine motion at `metadata.renderTime`.
 
 `SceneState` retains spell quadrants across frames so a spell stays in its chosen wrapped copy of the world. Create a new state when switching worlds.
-The optional fifth argument `{ includeHidden: true }` retains hidden body, fog and health entries for opacity transitions. Their `hidden` flag controls visibility. Keys distinguish wrapped copies while remaining stable during movement. `{ instant: true }` uses current engine positions and the current viewpoint without actor movement interpolation or bumps. Spell particles still sample their motion so traveling effects span their path; interface particles use their current offsets. Inactive dialog particles are omitted immediately. `fog` marks cells whose world colors should be dimmed or inverted, including empty unexplored cells.
+The optional fifth argument `{ includeHidden: true }` retains hidden body, fog and health entries for opacity transitions. Their `hidden` flag controls visibility. Keys distinguish wrapped copies while remaining stable during movement. `{ instant: true }` uses current engine positions and the current viewpoint without actor movement interpolation or bumps. All animated particles still sample their motion, including spawn, level-up and popup effects. Transient messages stack above their owner in creation order without changing their lifetime. Inactive dialog particles are omitted immediately. `fog` marks cells whose world colors should be dimmed or inverted. `{ fogCells: true }` also supplies a visibility marker for every viewport cell, using the sight already computed by the engine.
 
-`loot` marks item sprites; hidden loot remains available with `includeHidden`, and its key uses the item identity. `particle` identifies the source particle without replacing its parent entity. Homing body sprites follow their sampled travel direction until they reach a corner.
+`loot` marks item sprites; hidden loot remains available with `includeHidden`, and its key uses the item identity. `particle` identifies the source particle without replacing its parent entity. Instant frames also expose its sequence `particleName`, so the terminal can omit scratches without hiding other punctuation. Homing body sprites follow their sampled travel direction until they reach a corner.
 
 `swimming` marks the lower water overlay; renderers can omit it.
 <!-- source-types -->
@@ -27,6 +27,7 @@ export type SceneSprite = {
   amount?: number;
   entity: Entity;
   particle?: Entity;
+  particleName?: string;
   hidden?: boolean;
   fog?: boolean;
   loot?: boolean;

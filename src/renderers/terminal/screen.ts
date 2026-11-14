@@ -1,4 +1,5 @@
 import { World } from "../../engine";
+import { TEST_MODE } from "../../engine/utils";
 import { TypedEntity } from "../../engine/entities";
 import { POPUP } from "../../engine/components/popup";
 import { getSequence } from "../../engine/systems/sequence";
@@ -17,6 +18,7 @@ import { castableSpell, castableSkill } from "../../engine/systems/action";
 import { canCast } from "../../engine/systems/magic";
 import { isInteractable } from "../../engine/systems/freeze";
 import { canSave } from "../../game/saves";
+import { frameWidth } from "../../game/assets/utils";
 import {
   createTab,
   createButton,
@@ -29,7 +31,6 @@ import {
 } from "../../game/assets/ui";
 import { centerSprites } from "../../game/assets/pixels";
 import {
-  backdrop,
   none,
   pauseInvert,
   pauseInvertPressed,
@@ -65,8 +66,8 @@ export type TerminalSession = {
 };
 
 export const getTerminalLayout = (columns: number, rows: number) => {
-  const width = Math.min(columns, 65);
-  const height = Math.min(26, Math.max(1, rows - 8));
+  const width = Math.min(columns, 33);
+  const height = Math.min(13, Math.max(1, rows - 8));
   return {
     width,
     height,
@@ -94,7 +95,10 @@ export const getTerminalFrame = (
 ) => {
   const { width, height, left, top } = getTerminalLayout(columns, rows);
   const hero = world.getEntities([PLAYER])[0];
-  let scene = getSceneFrame(world, width, height, state, { instant: true });
+  let scene = getSceneFrame(world, width, height, state, {
+    instant: true,
+    fogCells: true,
+  });
   const popup = world.getEntityByIdAndComponents(hero?.[PLAYER].popup, [POPUP]);
   const sequence = popup && getSequence(world, popup, "popup");
   if (popup && sequence) {
@@ -117,30 +121,36 @@ export const getTerminalFrame = (
         ? [popup[POPUP].tabs[index]]
         : popup[POPUP].tabs;
       const cells = tabs.flatMap((tab, tabIndex) => {
-        const title = `[${popupTitles[tab]}]`;
-        return [
-          ...(tabIndex ? createText(" ", colors.white, colors.black) : []),
-          ...createTab(
-            title,
-            title.length,
-            sequence.args.instant || tabIndex === index,
-            sequence.args.instant
-          ),
-        ];
+        const title = `[${
+          tabs.length > 1 ? popupTitles[tab].slice(0, 3) : popupTitles[tab]
+        }]`;
+        return createTab(
+          title,
+          title.length,
+          sequence.args.instant || tabIndex === index,
+          sequence.args.instant
+        );
       });
-      const start = Math.max(
-        1,
-        Math.min(anchor.x - 1, width - cells.length - closeParticles.size - 1)
-      );
+      const start = Math.ceil(anchor.x);
       const close = scene.filter(
         (entry) => entry.particle && closeParticles.has(entry.particle)
       );
       const closeLeft = Math.min(...close.map((entry) => entry.x));
-      const shift = Math.max(0, start + cells.length - closeLeft);
+      const shift = start + frameWidth - closeParticles.size - closeLeft;
       scene = scene.filter(
         (entry) => !entry.particle || !tabParticles.has(entry.particle)
       );
-      for (const entry of close) entry.x += shift;
+      for (const entry of close) {
+        entry.x += shift;
+        if (
+          entry.particle ===
+          world.getEntityById(sequence.particles["popup-close-1"])
+        ) {
+          const sprite = createText("X", colors.black, colors.red)[0];
+          entry.sprite = sprite;
+          entry.layers = sprite.layers;
+        }
+      }
       scene.push(
         ...cells.map((sprite, offset) => ({
           ...anchor,
@@ -175,84 +185,94 @@ export const getTerminalFrame = (
     );
   };
   if (hero) {
-    const stats = getEntityStats(world, hero);
-    line(createProgress(stats, "hp", 13, false), 0);
-    line(createProgress(stats, "mp", 13), 1);
-    line(
-      [
-        ...createSpriteButton(
-          [session.paused ? pauseInvertPressed : pauseInvert],
-          3,
-          false,
-          !!session.paused
-        ),
-        ...createProgress(stats, "xp", 13),
-        ...createButton("USE", 5, !!session.paused, false, false, "yellow"),
-      ],
-      2
+    const pauseButton = createSpriteButton(
+      [session.paused ? pauseInvertPressed : pauseInvert],
+      3,
+      false,
+      !!session.paused
     );
-    const action = (slot: "spell" | "skill" | "tool", fallback: string) => {
-      const entity = world.getEntityByIdAndComponents(
-        hero[ACTIONABLE]?.[slot],
-        [ITEM, SPRITE]
+    if (!TEST_MODE && world.metadata.gameEntity[LEVEL].name === "LEVEL_MENU") {
+      line(pauseButton, 2, Math.floor((columns - 21) / 2));
+    } else {
+      const stats = getEntityStats(world, hero);
+      const progressLeft = Math.floor((columns - 21) / 2) + 3;
+      line(createProgress(stats, "hp", 13, false), 0, progressLeft);
+      line(createProgress(stats, "mp", 13), 1, progressLeft);
+      line(
+        [
+          ...pauseButton,
+          ...createProgress(stats, "xp", 13),
+          ...createButton("USE", 5, !!session.paused, false, false, "yellow"),
+        ],
+        2
       );
-      const available =
-        !!entity &&
-        !!hero[INVENTORY] &&
-        !!hero[POSITION] &&
-        isInteractable(world, hero) &&
-        (slot === "spell"
-          ? canCast(world, hero, entity) &&
-            castableSpell(world, hero as TypedEntity<"INVENTORY">, entity)
-          : castableSkill(
-              world,
-              hero as TypedEntity<"INVENTORY" | "POSITION">,
-              entity
-            ));
-      return {
-        button: createButton(
-          entity?.[SPRITE].name.toUpperCase() || fallback,
-          7,
-          !available || !!session.paused,
-          false,
-          false,
-          entity ? "silver" : "white"
-        ),
-        activation: centerSprites(
-          entity
-            ? getActionActivations(
+      const action = (slot: "spell" | "skill" | "tool", fallback: string) => {
+        const entity = world.getEntityByIdAndComponents(
+          hero[ACTIONABLE]?.[slot],
+          [ITEM, SPRITE]
+        );
+        const available =
+          !!entity &&
+          !!hero[INVENTORY] &&
+          !!hero[POSITION] &&
+          isInteractable(world, hero) &&
+          (slot === "spell"
+            ? canCast(world, hero, entity) &&
+              castableSpell(world, hero as TypedEntity<"INVENTORY">, entity)
+            : castableSkill(
                 world,
-                hero as TypedEntity,
-                entity[ITEM],
-                slot !== "spell"
-              )
-            : [],
-          7
-        ),
+                hero as TypedEntity<"INVENTORY" | "POSITION">,
+                entity
+              ));
+        return {
+          button: createButton(
+            entity?.[SPRITE].name.toUpperCase() || fallback,
+            7,
+            !available || !!session.paused,
+            false,
+            false,
+            entity ? "silver" : "white"
+          ),
+          activation: centerSprites(
+            entity
+              ? getActionActivations(
+                  world,
+                  hero as TypedEntity,
+                  entity[ITEM],
+                  slot !== "spell"
+                )
+              : [],
+            7
+          ),
+        };
       };
-    };
-    const skill = action(
-      hero[ACTIONABLE]?.toolEquipped || !hero[EQUIPPABLE]?.skill
-        ? "tool"
-        : "skill",
-      "^S"
-    );
-    const spell = action("spell", "SPACE");
-    const compass = world.getEntityByIdAndComponents(
-      hero[EQUIPPABLE]?.compass,
-      [ITEM]
-    );
-    const equipment = compass
-      ? [
-          getItemSprite(compass[ITEM], "display", compass[ORIENTABLE]?.facing),
-          ...createText("Compass", colors.grey),
-        ]
-      : repeat(none, 8);
-    line([...skill.button, ...spell.button, none, ...equipment], rows - 3);
-    line(
-      [...skill.activation, ...spell.activation, ...repeat(none, 9)],
-      rows - 2
-    );
+      const skill = action(
+        hero[ACTIONABLE]?.toolEquipped || !hero[EQUIPPABLE]?.skill
+          ? "tool"
+          : "skill",
+        "^S"
+      );
+      const spell = action("spell", "SPACE");
+      const compass = world.getEntityByIdAndComponents(
+        hero[EQUIPPABLE]?.compass,
+        [ITEM]
+      );
+      const equipment = compass
+        ? [
+            getItemSprite(
+              compass[ITEM],
+              "display",
+              compass[ORIENTABLE]?.facing
+            ),
+            ...createText("Compass", colors.grey),
+          ]
+        : repeat(none, 8);
+      line([...skill.button, ...spell.button, none, ...equipment], rows - 3);
+      line(
+        [...skill.activation, ...spell.activation, ...repeat(none, 9)],
+        rows - 2
+      );
+    }
   }
   line(createText("─".repeat(columns), colors.silver), 3, 0);
   line(createText("─".repeat(columns), colors.silver), rows - 4, 0);
@@ -274,8 +294,24 @@ export const getTerminalFrame = (
     );
   }
   if (session.paused || session.suspended) {
+    const background = createTerminalFrame(sprites, columns, rows);
     for (let y = top; y < top + height; y++)
-      line(repeat(backdrop, width - 2), y, left + 1, 2000);
+      line(
+        background[y]
+          .slice(left + 1, left + width - 1)
+          .flatMap((cell) =>
+            createText(
+              "▓",
+              cell.background && cell.background !== colors.black
+                ? cell.background
+                : cell.foreground,
+              colors.black
+            )
+          ),
+        y,
+        left + 1,
+        2000
+      );
     let overlay: Sprite[][];
     if (session.suspended) overlay = [createDialog("Loading map...")];
     else {

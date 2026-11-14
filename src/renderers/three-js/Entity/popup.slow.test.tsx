@@ -1,18 +1,18 @@
 import Systems from "../Systems";
 import { InstanceRoot } from "./Instances";
-import { DimensionsContext } from "../Dimensions/sizing";
-import { createAreaWorld, assertHero, advance } from "../../testing/harness";
-import { renderScene } from "../../testing/render";
-import { createSign } from "../../bindings/creation";
-import { registerEntity } from "../../engine/systems/map";
-import { openPopup, setVerticalIndex } from "../../engine/systems/popup";
-import { frameWidth } from "../../game/assets/utils";
-import { createText } from "../../game/assets/ui";
+import { DimensionsContext } from "../../../components/Dimensions/sizing";
+import { createAreaWorld, assertHero, advance } from "../../../testing/harness";
+import { renderScene } from "../../../testing/render";
+import { createSign } from "../../../bindings/creation";
+import { registerEntity } from "../../../engine/systems/map";
+import { openPopup, setVerticalIndex } from "../../../engine/systems/popup";
+import { frameWidth } from "../../../game/assets/utils";
+import { createText } from "../../../game/assets/ui";
 
 jest.mock("@react-three/drei/core/useFont", () => {
   const { Font } = require("three-stdlib");
   const font = new Font(
-    require("../../../public/fonts/MostPerfectDOSVGA.json")
+    require("../../../../public/fonts/MostPerfectDOSVGA.json")
   );
   return { useFont: () => font };
 });

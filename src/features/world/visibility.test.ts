@@ -27,6 +27,7 @@ import { EQUIPPABLE } from "../../engine/components/equippable";
 import { equipItem, unequipItem } from "../../engine/systems/collect";
 import { getSequence } from "../../engine/systems/sequence";
 import { saveAndLoad } from "../../testing/saves";
+import { createLevel } from "../../engine/ecs";
 
 // island has the smallest vision, █ mountain, ~ water
 const area = `
@@ -281,4 +282,15 @@ describe("torch vision transitions", () => {
       expect(getSequence(current, player, "vision")).toBeUndefined();
     }
   );
+});
+
+it("records sight on empty cells and clears it when creating another level", () => {
+  const world = createIsland();
+  const size = world.metadata.gameEntity.LEVEL.size;
+  expect(world.metadata.visibleCells.has(7 * size + 5)).toBe(true);
+  expect(world.metadata.visibleCells.has(14 * size + 5)).toBe(false);
+  walk(world, "left", 1);
+  expect(world.metadata.visibleCells.has(6 * size + 5)).toBe(true);
+  createLevel(world, "LEVEL_MENU", 42);
+  expect(world.metadata.visibleCells.size).toBe(0);
 });

@@ -320,7 +320,7 @@ it("ignores bumps in an instant frame while keeping normal body interpolation", 
   expect(body(true).y).toBe(5);
 });
 
-it("uses the current dialog particle position immediately in an instant frame", () => {
+it("animates sequence particles while keeping actors instant", () => {
   const world = createAreaWorld(area, { size: 48 });
   const hero = getHero(world)!;
   const particle = entities.createFibre(world, {
@@ -345,8 +345,10 @@ it("uses the current dialog particle position immediately in an instant frame", 
       (entry) => entry.sprite === questPointer
     )!;
   expect(pointer(false).x).toBe(9);
-  expect(pointer(true).x).toBe(11);
+  expect(pointer(true).x).toBe(9);
   particle[PARTICLE].offsetX = 0;
+  updateParticleMotion(world, particle);
+  world.metadata.renderTime = world.metadata.elapsed + 300;
   expect(pointer(true).x).toBe(7);
 });
 
@@ -482,4 +484,25 @@ it("keeps hidden loot available for fading and keys items by identity", () => {
   carrier[INVENTORY].items.shift();
   expect(entries()).toHaveLength(1);
   expect(entries()[0].key).toBe(original[1].key);
+});
+
+it("reports fog across the whole requested grid, including empty cells", () => {
+  const world = createAreaWorld(area, { size: 48 });
+  const hero = getHero(world)!;
+  const { x, y } = hero[POSITION];
+  expect(world.metadata.visibleCells.has(x * 48 + y)).toBe(true);
+  const grid = getSceneFrame(world, 31, 21, undefined, {
+    instant: true,
+    fogCells: true,
+  }).filter((entry) => entry.sprite.name === "visibility");
+  expect(grid).toHaveLength(31 * 21);
+  expect(grid.find((entry) => entry.x === 15 && entry.y === 10)?.fog).toBe(
+    false
+  );
+  expect(grid[0].fog).toBe(true);
+  expect(
+    getSceneFrame(world, 31, 21).some(
+      (entry) => entry.sprite.name === "visibility"
+    )
+  ).toBe(false);
 });

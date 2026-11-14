@@ -1,8 +1,20 @@
 import * as sprites from "../../game/assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
+import {
+  advance,
+  assertHero,
+  createAreaWorld,
+  createTestWorld,
+} from "../../testing/harness";
+import { createPopup, openPopup } from "../../engine/systems/popup";
+import { getSceneFrame } from "../interface/frame";
+import { POPUP } from "../../engine/components/popup";
+import { rerenderEntity } from "../../engine/systems/renderer";
+import { collectTerminalSprites, createTerminalFrame } from "./frame";
 import { colors } from "../../game/assets/colors";
 import { eye, prism } from "../../game/assets/templates/creatures";
 import { key } from "../../game/assets/templates/items";
+import { doorClosed, doorOpen } from "../../game/assets/templates/units";
 import {
   shot,
   dash,
@@ -13,7 +25,12 @@ import {
   edge,
   bolt,
 } from "../../game/assets/templates/particles";
-import { createText, createProgress, shaded } from "../../game/assets/ui";
+import {
+  createButton,
+  createText,
+  createProgress,
+  shaded,
+} from "../../game/assets/ui";
 import { projectLayers, projectSprite, terminalCharacter } from "./sprites";
 
 describe("terminal sprite projection", () => {
@@ -55,6 +72,126 @@ describe("terminal sprite projection", () => {
       background: colors.white,
     });
   });
+
+  it("retains popup objective text and frame lines beneath empty overlay cells", () => {
+    const backing = { char: "█", color: colors.black };
+    for (const char of "Defeat 0/3") {
+      const cell = projectLayers(
+        [
+          backing,
+          { char: " ", color: colors.red },
+          { char, color: colors.red },
+          { char: " ", color: colors.black },
+        ],
+        "text_generic"
+      );
+      expect(cell.char).toBe(char);
+      expect(cell.foreground).toBe(char === " " ? colors.black : colors.red);
+    }
+    for (const char of "┌─┐│└┘") {
+      expect(
+        projectLayers(
+          [
+            backing,
+            { char, color: colors.red },
+            { char: "▌", color: colors.black },
+          ],
+          "text_generic"
+        )
+      ).toEqual({ char, foreground: colors.red, background: colors.black });
+    }
+  });
+
+  it("keeps the Chick objective visible inside a real quest frame", () => {
+    const world = createAreaWorld("| ♀ |", {
+      size: 64,
+      level: "LEVEL_TUTORIAL",
+    });
+    const hero = assertHero(world);
+    createPopup(world, hero, {
+      tabs: ["quest"],
+      lines: [[]],
+      targets: [{ unit: "chick", amount: 3 }],
+      deals: [
+        {
+          item: { stackable: "coin", amount: 5 },
+          stock: 1,
+          prices: [{ stackable: "stick", amount: 2 }],
+        },
+      ],
+    });
+    openPopup(world, hero, hero);
+    advance(world, 2000);
+    const objective = getSceneFrame(world, 33, 13, undefined, {
+      instant: true,
+    }).find(
+      (entry) =>
+        entry.sprite.name === "text_generic" &&
+        entry.layers.some((_, index) =>
+          sprites.chick.layers.every(
+            (layer, offset) =>
+              entry.layers[index + offset]?.char === layer.char &&
+              entry.layers[index + offset]?.color === layer.color
+          )
+        )
+    );
+    expect(objective).toBeDefined();
+    expect(projectLayers(objective!.layers, objective!.sprite.name)).toEqual({
+      char: "♦",
+      foreground: colors.yellow,
+      background: colors.black,
+    });
+  });
+
+  it("renders class portraits entirely with block pixels, including the right ear", () => {
+    const world = createAreaWorld("| ♀ |", { size: 64, level: "LEVEL_MENU" });
+    const hero = assertHero(world);
+    createPopup(world, hero, { tabs: ["class"] });
+    openPopup(world, hero, hero);
+    for (const index of [0, 1, 2, 3]) {
+      hero[POPUP]!.verticalIndezes[0] = index;
+      rerenderEntity(world, hero);
+      advance(world, 2000);
+      const pixels = getSceneFrame(world, 33, 16, undefined, {
+        instant: true,
+      }).filter(
+        (entry) =>
+          entry.particle &&
+          (entry.sprite.name === "" ||
+            entry.sprite.name === "text_generic" ||
+            entry.sprite.name === "popup_background") &&
+          entry.layers.every((layer) =>
+            " █▀▄\u0106\u0107░".includes(layer.char)
+          ) &&
+          entry.layers.some((layer) => "▀▄\u0106\u0107".includes(layer.char))
+      );
+      expect(pixels.length).toBeGreaterThan(0);
+      for (const pixel of pixels)
+        expect(" █▀▄").toContain(
+          projectLayers(pixel.layers, pixel.sprite.name).char
+        );
+    }
+  });
+
+  it.each(["lime", "red"] as const)(
+    "shows disabled %s buttons in gray without dimming active buttons",
+    (palette) => {
+      const disabled = createButton("USE", 7, true, false, false, palette);
+      for (const sprite of disabled) {
+        expect(projectSprite(sprite).background).toBe(colors.grey);
+        expect(projectSprite(sprite).foreground).toBe(colors.black);
+      }
+      expect(
+        disabled.map((sprite) => projectSprite(sprite).char).join("")
+      ).toContain("USE");
+      const active = createButton("USE", 7, false, false, false, palette);
+      expect(
+        projectSprite(
+          active.find((sprite) => sprite.name === "button_generic")!
+        ).background
+      ).toBe(colors[palette]);
+    }
+  );
 
   it("keeps dialog borders visible above black half-cell masks", () => {
     expect(projectSprite(createText("│", colors.silver)[0])).toEqual({
@@ -106,7 +243,7 @@ describe("terminal sprite projection", () => {
       });
     }
     expect(projectSprite(eye.gold.default)).toMatchObject({
-      char: "ô",
+      char: "o",
       foreground: colors.yellow,
     });
     expect(projectSprite(key.iron.default)).toMatchObject({
@@ -121,7 +258,7 @@ describe("terminal sprite projection", () => {
         { up: "↑", right: "→", down: "↓", left: "←" }[facing]
       );
     }
-    expect(projectSprite(sprites.fence).char).toBe("+");
+    expect(projectSprite(sprites.fence).char).toBe("±");
   });
 
   it("draws directional dash marks and small trap crosses in their spell colors", () => {
@@ -209,9 +346,9 @@ describe("terminal sprite projection", () => {
         "title"
       )
     ).toEqual({
-      char: "▀",
-      foreground: colors.black,
-      background: colors.maroon,
+      char: "▄",
+      foreground: colors.maroon,
+      background: colors.black,
     });
   });
 
@@ -238,10 +375,52 @@ describe("terminal sprite projection", () => {
         "sprite_pixel_pair"
       )
     ).toEqual({
-      char: "▀",
-      foreground: colors.black,
-      background: colors.maroon,
+      char: "▄",
+      foreground: colors.maroon,
+      background: colors.black,
     });
+  });
+
+  it("keeps the settled ALIVE title's solid cells filled through fog", () => {
+    const world = createTestWorld({ level: "LEVEL_MENU" });
+    advance(world, 10000);
+    const scene = getSceneFrame(world, 33, 16, undefined, { instant: true });
+    const title = collectTerminalSprites(
+      scene.filter((entry) => /^block_(up|down)$/.test(entry.sprite.name))
+    );
+    const solids = title.filter(
+      (entry) =>
+        entry.layers.some((layer) => layer.char === "▀") &&
+        entry.layers.some((layer) => layer.char === "▄")
+    );
+    expect(solids.length).toBeGreaterThan(0);
+    for (const entry of solids) {
+      expect(projectLayers(entry.layers, entry.sprite.name).char).toBe("█");
+      const frame = createTerminalFrame([{ ...entry, fog: true }], 33, 16);
+      expect(frame[Math.ceil(entry.y)][Math.ceil(entry.x)].char).toBe("█");
+    }
+    expect(
+      title.some(
+        (entry) => projectLayers(entry.layers, entry.sprite.name).char === "▄"
+      )
+    ).toBe(true);
+    expect(
+      title.some(
+        (entry) => projectLayers(entry.layers, entry.sprite.name).char === "▀"
+      )
+    ).toBe(true);
+  });
+
+  it("keeps text-art block directions and XP labels in the native screen", () => {
+    expect(
+      createText("█▀▄", colors.white)
+        .map((sprite) => projectSprite(sprite).char)
+        .join("")
+    ).toBe("█▀▄");
+    const bar = createProgress({ xp: 0, maxXp: 10 }, "xp", 13);
+    expect(bar.map((sprite) => projectSprite(sprite).char).join("")).toContain(
+      "xXP"
+    );
   });
 
   it("keeps warning flashes and the inverted pause button recognizable", () => {
@@ -269,19 +448,120 @@ describe("terminal sprite projection", () => {
       background: colors.olive,
     });
     expect(projectSprite(sprites.path)).toMatchObject({
-      char: "·",
-      foreground: colors.black,
-      background: colors.grey,
+      char: "░",
+      foreground: colors.silver,
     });
     expect(projectSprite(sprites.waterDeep)).toMatchObject({
-      char: "≈",
+      char: " ",
       foreground: colors.blue,
       background: colors.navy,
     });
     expect(projectSprite(sprites.wall)).toMatchObject({
       char: " ",
-      background: colors.grey,
+      background: colors.silver,
     });
+  });
+
+  it("distinguishes terrain, fruit and wildlife in one cell", () => {
+    expect(projectSprite(sprites.tree1)).toEqual({
+      char: "#",
+      foreground: colors.green,
+      background: colors.maroon,
+    });
+    expect(projectSprite(sprites.leaves)).toEqual({
+      char: "▄",
+      foreground: colors.green,
+    });
+    expect(projectSprite(sprites.berry)).toEqual({
+      char: "'",
+      foreground: colors.fuchsia,
+    });
+    expect(projectSprite(sprites.box)).toEqual({
+      char: "■",
+      foreground: colors.maroon,
+    });
+    expect(projectSprite(sprites.chick)).toEqual({
+      char: "♦",
+      foreground: colors.yellow,
+    });
+    for (const facing of ["up", "right", "down", "left"] as const) {
+      expect(projectSprite(sprites.worm, facing)).toEqual({
+        char: "~",
+        foreground: colors.red,
+      });
+      expect(projectSprite(eye.gold.default, facing)).toEqual({
+        char: "ô",
+        foreground: colors.yellow,
+      });
+    }
+    expect(projectSprite(sprites.bubble, undefined, 1).char).toBe("•");
+    expect(projectSprite(sprites.bubble, undefined, 2).char).toBe("o");
+    expect(projectSprite(sprites.bubble, undefined, 3).char).toBe("O");
+  });
+
+  it("draws useful terminal symbols for doors, tools, switches and experience", () => {
+    expect(projectSprite(doorOpen.wood.default)).toEqual({
+      char: " ",
+      foreground: colors.black,
+    });
+    expect(projectSprite(doorClosed.wood.default)).toEqual({
+      char: "╒",
+      foreground: colors.black,
+      background: colors.maroon,
+    });
+    expect(projectSprite(doorClosed.gold.default)).toEqual({
+      char: "╒",
+      foreground: colors.yellow,
+      background: colors.maroon,
+    });
+    expect(projectSprite(sprites.fishing).char).toBe("⌠");
+    expect(projectSprite(sprites.leverOff)).toEqual({
+      char: "≤",
+      foreground: colors.red,
+    });
+    expect(projectSprite(sprites.leverOn)).toEqual({
+      char: "≥",
+      foreground: colors.lime,
+    });
+    expect(projectSprite(sprites.close)).toEqual({
+      char: "X",
+      foreground: colors.red,
+    });
+    for (const amount of [1, 2, 3])
+      expect(projectSprite(sprites.xp, undefined, amount)).toEqual({
+        char: amount === 1 ? "x" : "X",
+        foreground: colors.lime,
+      });
+  });
+
+  it("uses blue fountain cells and connected silver roof and wall outlines", () => {
+    for (const sprite of [
+      sprites.fountain,
+      sprites.fountainSide,
+      sprites.fountainCorner,
+    ])
+      expect(projectSprite(sprite)).toEqual({
+        char: " ",
+        foreground: colors.blue,
+        background: colors.blue,
+      });
+    const outline = [
+      sprites.roofLeftUp,
+      sprites.roofUp,
+      sprites.roofUpRight,
+      sprites.roofDownLeft,
+      sprites.roofDown,
+      sprites.roofRightDown,
+      sprites.houseLeft,
+      sprites.houseRight,
+    ];
+    expect(outline.map((sprite) => projectSprite(sprite).char).join("")).toBe(
+      "╔═╗╠═╣││"
+    );
+    for (const sprite of outline)
+      expect(projectSprite(sprite).foreground).toBe(colors.silver);
+    expect(projectSprite(sprites.house).background).toBe(colors.silver);
+    expect(projectSprite(sprites.rogue).foreground).toBe(colors.silver);
   });
 
   it("preserves progress labels and inverts selected dialog text", () => {
