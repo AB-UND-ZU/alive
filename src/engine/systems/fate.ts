@@ -174,11 +174,12 @@ export const createHero = (world: World, halo: Entity) => {
     [ORIENTABLE]: {},
     [PLAYER]: {
       accountId: halo[PLAYER]?.accountId,
+      rewardOffsets: { ...halo[PLAYER]?.rewardOffsets },
       connected: halo[PLAYER]?.connected,
       interface: halo[PLAYER]?.interface,
       ghost: false,
       receivedStats: { ...emptyReceivedStats },
-      defeatedUnits: halo[PLAYER]?.defeatedUnits || {},
+      defeatedUnits: { ...halo[PLAYER]?.defeatedUnits },
       kills: halo[PLAYER]?.kills || 0,
       deaths: halo[PLAYER]?.deaths || 0,
       quickItems: halo[PLAYER]?.quickItems || {},
@@ -334,6 +335,7 @@ export default function setupFate(world: World) {
           },
           [PLAYER]: {
             accountId: entity[PLAYER].accountId,
+            rewardOffsets: entity[PLAYER].rewardOffsets,
             connected: entity[PLAYER].connected,
             interface: entity[PLAYER].interface,
             ghost: true,

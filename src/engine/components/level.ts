@@ -1,3 +1,5 @@
+import { Item } from "./item";
+import { UnitKey } from "../../game/balancing/units";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Matrix } from "../../game/math/matrix";
@@ -10,6 +12,8 @@ export type BiomeName = "jungle" | "desert" | "ocean" | "glacier";
 
 export type Level = {
   name: LevelName;
+  cooperativeRewards?: Omit<Item, "carrier" | "bound">[][];
+  cooperativeDefeated?: Partial<Record<UnitKey, number>>;
   // map[x][y][entityId] = entity
   map: Record<number, Record<number, Record<string, Entity>>>;
   walkable: Matrix<0 | 1>;

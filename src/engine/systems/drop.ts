@@ -1,3 +1,4 @@
+import { recordDefeat } from "./cooperation";
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
 import { REFERENCE } from "../components/reference";
@@ -41,7 +42,6 @@ import { RECHARGABLE } from "../components/rechargable";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { setIdentifier } from "../utils";
 import { getBurning } from "./burn";
-import { PLAYER } from "../components/player";
 import { NPC } from "../components/npc";
 import { play } from "../../game/sound";
 import { STATS } from "../components/stats";
@@ -434,7 +434,6 @@ export default function setupDrop(world: World) {
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
       .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
-    const heroEntity = world.getEntity([PLAYER]);
 
     if (referencesGeneration === generation) return;
 
@@ -502,11 +501,7 @@ export default function setupDrop(world: World) {
         disposeEntity(world, entity, true, false);
 
         const unitKey = entity[NPC]?.type;
-        if (heroEntity && unitKey) {
-          heroEntity[PLAYER].defeatedUnits[unitKey] =
-            (heroEntity[PLAYER].defeatedUnits[unitKey] || 0) + 1;
-          heroEntity[PLAYER].kills += 1;
-        }
+        if (unitKey) recordDefeat(world, unitKey);
 
         // create spawns and remains for vanished units
         const size = world.metadata.gameEntity[LEVEL].size;
@@ -623,11 +618,7 @@ export default function setupDrop(world: World) {
         animateEvaporate(world, entity);
 
         const unitKey = entity[NPC]?.type;
-        if (heroEntity && unitKey && entity === rootEntity) {
-          heroEntity[PLAYER].defeatedUnits[unitKey] =
-            (heroEntity[PLAYER].defeatedUnits[unitKey] || 0) + 1;
-          heroEntity[PLAYER].kills += 1;
-        }
+        if (unitKey && entity === rootEntity) recordDefeat(world, unitKey);
       }
     }
 

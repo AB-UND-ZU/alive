@@ -1,3 +1,4 @@
+import { getIdentifier } from "../utils";
 import { captureMotions } from "../motion";
 import { createWorld } from "..";
 import { createLevel, createSystems, preloadLevel, World } from "../ecs";
@@ -153,13 +154,17 @@ export const createHost = (saved?: HostedWorld) => {
     transfer?: Transfer
   ) => {
     const { world, spawn } = realm;
+    const position = {
+      ...(getIdentifier(world, "spawn")?.POSITION || spawn[POSITION]),
+    };
     const player = createHero(world, {
       ...spawn,
+      POSITION: position,
       SPAWNABLE: {
         ...spawn[SPAWNABLE],
         classKey: transfer?.classKey || spawn[SPAWNABLE].classKey,
         hairColor: transfer?.hairColor || spawn[SPAWNABLE].hairColor,
-        position: { ...spawn[POSITION] },
+        position: { ...position },
         viewable: { ...spawn[SPAWNABLE].viewable },
       },
     });
@@ -178,6 +183,9 @@ export const createHost = (saved?: HostedWorld) => {
       player[PLAYER] = { ...persistent };
       if (!transfer?.resetClass) player[STATS] = { ...donor[STATS] };
     }
+    player[PLAYER].defeatedUnits = {
+      ...world.metadata.gameEntity[LEVEL].cooperativeDefeated,
+    };
     player[PLAYER].accountId = accountId;
     player[PLAYER].connected = true;
     player[VIEWABLE].active = true;

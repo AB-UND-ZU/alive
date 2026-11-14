@@ -324,6 +324,7 @@ export const createSystems = (world: World) => {
   world.addSystem(systems.setupInitialize);
   world.addSystem(systems.setupTick);
   world.addSystem(systems.setupFreeze);
+  world.addSystem(systems.setupCooperation);
   world.addSystem(systems.setupAi);
   world.addSystem(systems.setupTrigger);
   world.addSystem(systems.setupPopup);

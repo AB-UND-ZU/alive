@@ -1,3 +1,4 @@
+import { TRACKABLE } from "../components/trackable";
 import { bumpEntity } from "../motion";
 import { Entity } from "ecs";
 import { World } from "../ecs";
@@ -461,6 +462,36 @@ export const addToInventory = (
   ) {
     disposeEntity(world, itemEntity);
   }
+};
+
+export const grantInventoryItem = (
+  world: World,
+  player: Entity,
+  item: Omit<Item, "carrier" | "bound">
+) => {
+  const data = {
+    ITEM: { ...item, bound: false, carrier: world.getEntityId(player) },
+    RENDERABLE: { generation: 1 },
+    SPRITE: getItemSprite(item),
+  };
+  const created = item.weapon
+    ? entities.createSword(world, {
+        ...data,
+        SEQUENCABLE: { states: {} },
+        ORIENTABLE: {},
+      })
+    : item.accessory === "compass"
+    ? entities.createCompass(world, {
+        ...data,
+        ORIENTABLE: {},
+        SEQUENCABLE: { states: {} },
+        [TRACKABLE]: {},
+      })
+    : entities.createItem(world, data);
+  addToInventory(world, player, created, item.amount);
+  if (!player[INVENTORY].items.includes(world.getEntityId(created)))
+    disposeEntity(world, created);
+  rerenderEntity(world, player);
 };
 
 export default function setupCollect(world: World) {

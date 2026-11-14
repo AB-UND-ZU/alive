@@ -1,3 +1,4 @@
+import { getIdentifier } from "../utils";
 import { INVENTORY } from "../components/inventory";
 import { SPAWNABLE } from "../components/spawnable";
 import { createHost } from "./host";
@@ -146,4 +147,19 @@ it("replaces colliding replica IDs when changing realms while keeping increasing
   expect(replica.world.metadata.gameEntity[LEVEL].name).toBe("LEVEL_TUTORIAL");
   expect(replica.world.getEntityById(host.actorId("first"))).not.toBe(original);
   expect(replica.world.getEntities([PLAYER])).toHaveLength(1);
+});
+
+it("brings a late teammate to the shared checkpoint with current quest kill progress", () => {
+  const host = createHost();
+  host.join("first");
+  host.join("second");
+  warp(host, "first", "LEVEL_TUTORIAL");
+  const world = host.worldFor("first")!;
+  const spawn = getIdentifier(world, "spawn")!;
+  spawn.POSITION = { x: 0, y: 71 };
+  world.metadata.gameEntity[LEVEL].cooperativeDefeated = { banditKnight: 4 };
+  warp(host, "second", "LEVEL_TUTORIAL");
+  const arriving = player(host, "second");
+  expect(arriving[POSITION]).toEqual({ x: 0, y: 71 });
+  expect(arriving[PLAYER].defeatedUnits.banditKnight).toBe(4);
 });

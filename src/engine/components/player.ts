@@ -4,6 +4,7 @@ import { UnitKey } from "../../game/balancing/units";
 import { Countable } from "./stats";
 import { Castable } from "./castable";
 import { Position } from "./position";
+import { LevelName } from "./level";
 import { Item } from "./item";
 
 export type Interaction = {
@@ -16,6 +17,7 @@ export type Interaction = {
 
 export type Player = {
   accountId?: string;
+  rewardOffsets?: Partial<Record<LevelName, number>>;
   connected?: boolean;
   interface?: {
     use: number;

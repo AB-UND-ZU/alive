@@ -1,3 +1,5 @@
+import { synchronizeRewards, shareQuestRewards } from "./cooperation";
+import { grantInventoryItem } from "./collect";
 import {
   assertPlayerInterface,
   getInteraction,
@@ -133,7 +135,6 @@ import { getClassData } from "../../game/balancing/classes";
 import { FRAGMENT } from "../components/fragment";
 import { createItemAsDrop } from "./drop";
 import { populateInventory, populateItems } from "../../bindings/creation";
-import { TRACKABLE } from "../components/trackable";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { consumeItem, getItemConsumption } from "./consume";
 import { getHookable } from "./fishing";
@@ -567,35 +568,17 @@ export const performTrade = (
     spendItem(world, entity, priceItem);
   }
 
-  // collect item
-  const itemData = {
-    [ITEM]: { ...deal.item, bound: false, carrier: world.getEntityId(entity) },
-    [RENDERABLE]: { generation: 1 },
-    [SPRITE]: getItemSprite(deal.item),
-  };
-  const itemEntity = deal.item.weapon
-    ? entities.createSword(world, {
-        ...itemData,
-        [SEQUENCABLE]: { states: {} },
-        [ORIENTABLE]: {},
-      })
-    : deal.item.accessory === "compass"
-    ? entities.createCompass(world, {
-        ...itemData,
-        [ORIENTABLE]: {},
-        [SEQUENCABLE]: { states: {} },
-        [TRACKABLE]: {},
-      })
-    : entities.createItem(world, itemData);
-
-  // drop XP instead of collecting
-  if (itemEntity[ITEM].stat === "xp" && !itemEntity[ITEM].material) {
+  if (
+    deal.item.stat === "xp" &&
+    !deal.item.material &&
+    !world.metadata.warpPlayer
+  ) {
     createItemAsDrop(world, copy(shop[POSITION]), entities.createItem, {
-      ...itemData,
-      [SPRITE]: none,
+      ITEM: { ...deal.item, bound: false },
+      SPRITE: none,
     });
   } else {
-    addToInventory(world, entity, itemEntity, itemData[ITEM].amount);
+    grantInventoryItem(world, entity, deal.item);
   }
 
   // reduce stock
@@ -918,14 +901,19 @@ export const canSeed = (world: World, entity: Entity, plant: Entity) =>
 
 export const completeQuest = (world: World, entity: Entity, target: Entity) => {
   const popup = target[POPUP] as Popup;
+  synchronizeRewards(world);
   const choiceIndex = getTabSelections(world, target)[1];
+  const rewards = [...popup.deals.map((deal) => ({ ...deal.item }))];
 
   // apply selected choice
   const choice = popup.choices[choiceIndex];
   if (choice) {
-    populateItems(world, entity as TypedEntity<"INVENTORY" | "POSITION">, [
-      { ...choice, bound: false },
-    ]);
+    rewards.unshift({ ...choice });
+    if (world.metadata.warpPlayer) grantInventoryItem(world, entity, choice);
+    else
+      populateItems(world, entity as TypedEntity<"INVENTORY" | "POSITION">, [
+        { ...choice, bound: false },
+      ]);
     queueMessage(world, entity, {
       line: createText(
         `${choice.amount}x ${getItemSprite(choice).name}`,
@@ -977,6 +965,7 @@ export const completeQuest = (world: World, entity: Entity, target: Entity) => {
       frameWidth - 2
     ),
   ];
+  shareQuestRewards(world, entity, rewards);
   popup.deals = [];
   popup.choices = [];
   popup.targets = [];
