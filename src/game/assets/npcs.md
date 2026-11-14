@@ -24,6 +24,8 @@ Defines staged NPC and encounter behavior. Each exported function is a Sequence 
 | wanderingTornadoNpc | Moving tornado effects                |
 
 Start them with `npcSequence` from [sequence helpers](utils.md). The shared `step` helper runs entry work once and advances when the step condition completes. Store progress in `state.args.memory` so it remains part of [saved snapshots](../../engine/snapshot.md).
+Oak's room dims every living participant separately and restores their current visibility radius when they leave or disconnect. The sequence remembers only the affected entity IDs, so another teammate remaining in the room cannot prevent restoration.
+
 <!-- source-types -->
 
 ## ContactCircle

@@ -3364,9 +3364,32 @@ export const oakRoom: Sequence<NpcSequence> = (world, entity, state) => {
   ]);
 
   roomEntity[VIEWABLE].radius = 5.43;
+  const dimmedPlayers: number[] = state.args.memory.dimmedPlayers || [];
+  const insidePlayers: number[] = [];
+  for (const player of world.getEntities([PLAYER, POSITION, LIGHT, STATS])) {
+    const id = world.getEntityId(player);
+    const inside =
+      player[PLAYER].connected !== false &&
+      !isDead(world, player) &&
+      !player[PLAYER].ghost &&
+      getDistance(entity[POSITION], player[POSITION], size) < 5.43;
+    if (inside) insidePlayers.push(id);
+    if (!inside && !dimmedPlayers.includes(id)) continue;
+    const brightness = inside ? 0 : player[LIGHT].visibility;
+    if (player[LIGHT].brightness !== brightness) {
+      player[LIGHT].brightness = brightness;
+      rerenderEntity(world, player);
+    }
+  }
+  state.args.memory.dimmedPlayers = insidePlayers;
   if (!heroEntity) {
     if (world.metadata.warpPlayer) {
-      roomEntity[VIEWABLE].active = false;
+      if (roomEntity[VIEWABLE].active || roomEntity[LIGHT].visibility > 0) {
+        roomEntity[VIEWABLE].active = false;
+        roomEntity[LIGHT].brightness = 0;
+        roomEntity[LIGHT].visibility = 0;
+        rerenderEntity(world, roomEntity);
+      }
       for (const barrier of world.getEntities([IDENTIFIABLE]))
         if (barrier[IDENTIFIABLE].name === "oak:barrier")
           disposeEntity(world, barrier);
@@ -3418,9 +3441,6 @@ export const oakRoom: Sequence<NpcSequence> = (world, entity, state) => {
     forceEnter: () => state.args.step !== "wait" && !inRoom,
     isCompleted: () => true,
     onLeave: () => {
-      heroEntity[LIGHT].brightness = heroEntity[LIGHT].visibility;
-      rerenderEntity(world, heroEntity);
-
       roomEntity[LIGHT].brightness = 0;
       roomEntity[LIGHT].visibility = 0;
       roomEntity[VIEWABLE].active = false;
@@ -3434,9 +3454,6 @@ export const oakRoom: Sequence<NpcSequence> = (world, entity, state) => {
     stage,
     name: "enter",
     onEnter: () => {
-      heroEntity[LIGHT].brightness = 0;
-      rerenderEntity(world, heroEntity);
-
       roomEntity[LIGHT].brightness = 7.2;
       roomEntity[LIGHT].visibility = 7;
       roomEntity[VIEWABLE].active = true;

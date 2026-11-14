@@ -1,3 +1,6 @@
+import { createHero } from "../../engine/systems/fate";
+import { registerEntity } from "../../engine/systems/map";
+import { advance } from "../../testing/harness";
 import { World } from "../../engine";
 import { BELONGABLE } from "../../engine/components/belongable";
 import { IDENTIFIABLE } from "../../engine/components/identifiable";
@@ -105,4 +108,45 @@ describe("oak room", () => {
     hero[STATS].hp = 0;
     advanceUntil(world, () => barriers(world).length === 0, 5000);
   });
+});
+
+it.each([2, 3])(
+  "restores each of %i teammates' light when they leave Oak's room",
+  (count) => {
+    const { world, hero, room } = setupOak();
+    world.metadata.warpPlayer = () => {};
+    const players = [hero];
+    for (let index = 1; index < count; index++) {
+      const teammate = createHero(world, hero);
+      registerEntity(world, teammate);
+      teleport(world, teammate, { x: 10 + index, y: 9 });
+      players.push(teammate);
+    }
+    advanceUntil(world, () => getStep(world, room) === "enter", 2000);
+    advance(world, 2500);
+    for (const player of players) expect(player[LIGHT].brightness).toBe(0);
+    teleport(world, hero, { x: 10, y: 30 });
+    advance(world, 500);
+    expect(hero[LIGHT].brightness).toBe(hero[LIGHT].visibility);
+    expect(room[VIEWABLE].active).toBe(true);
+    for (const teammate of players.slice(1)) {
+      teleport(world, teammate, { x: 10, y: 30 });
+      advance(world, 500);
+      expect(teammate[LIGHT].brightness).toBe(teammate[LIGHT].visibility);
+    }
+    expect(room[VIEWABLE].active).toBe(false);
+  }
+);
+
+it("turns off Oak's room light and restores the last disconnected participant", () => {
+  const { world, hero, room } = setupOak();
+  world.metadata.warpPlayer = () => {};
+  advance(world, 3000);
+  expect(room[LIGHT].visibility).toBe(7);
+  expect(hero[LIGHT].brightness).toBe(0);
+  hero.PLAYER!.connected = false;
+  advance(world, 500);
+  expect(room[LIGHT].visibility).toBe(0);
+  expect(room[VIEWABLE].active).toBe(false);
+  expect(hero[LIGHT].brightness).toBe(hero[LIGHT].visibility);
 });
