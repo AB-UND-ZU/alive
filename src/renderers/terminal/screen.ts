@@ -1,3 +1,4 @@
+import { projectLayers } from "./sprites";
 import { World } from "../../engine";
 import { TEST_MODE } from "../../engine/utils";
 import { TypedEntity } from "../../engine/entities";
@@ -29,14 +30,22 @@ import {
 import { centerSprites } from "../../game/assets/pixels";
 import {
   none,
+  sand,
+  beach,
+  waterDeep,
+  waterShallow,
+  ice,
+  mapZoom1,
+  mapZoom2,
+  mapZoom3,
+  mapZoom4,
   pauseInvert,
-  popupActive,
   pauseInvertPressed,
 } from "../../game/assets/sprites";
 import { getItemSprite } from "../../game/assets/utils";
 import { colors } from "../../game/assets/colors";
 import { repeat, padCenter } from "../../game/math/std";
-import { getActionActivations } from "../interface/actions";
+import { getActionActivations, getActionName } from "../interface/actions";
 import { RendererCapabilities } from "../interface/types";
 import { getSceneFrame } from "../interface/frame";
 import {
@@ -93,25 +102,13 @@ export const getTerminalFrame = (
   session: TerminalSession = {}
 ) => {
   const { width, height, left, top } = getTerminalLayout(columns, rows);
-  if (session.suspended) {
-    const loading = createText("Loading map...", colors.white);
-    return createTerminalFrame(
-      loading.map((sprite, index) => ({
-        sprite,
-        layers: sprite.layers,
-        x: Math.floor((columns - loading.length) / 2) + index,
-        y: Math.floor(rows / 2),
-        z: 0,
-      })),
-      columns,
-      rows
-    );
-  }
   const hero = world.getEntities([PLAYER])[0];
-  let scene = getSceneFrame(world, width, height, state, {
-    instant: true,
-    fogCells: true,
-  });
+  let scene = session.suspended
+    ? []
+    : getSceneFrame(world, width, height, state, {
+        instant: true,
+        fogCells: true,
+      });
   const popup = world.getEntityByIdAndComponents(hero?.[PLAYER].popup, [POPUP]);
   const sequence = popup && getSequence(world, popup, "popup");
   if (popup && sequence) {
@@ -121,7 +118,40 @@ export const getTerminalFrame = (
       : popup[POPUP].tabs;
     const selected = sequence.args.instant ? 0 : index;
     const tabCount = tabs.length;
+    const mapFog = [mapZoom1, mapZoom2, mapZoom3, mapZoom4][
+      popup[POPUP].verticalIndezes[index] || 0
+    ];
     for (const entry of scene) {
+      if (
+        ["buy", "sell"].includes(tabs[selected]) &&
+        entry.sprite.name === "Coin"
+      ) {
+        entry.terminalLayers = getItemSprite({
+          stackable: "coin",
+          amount: 1,
+        }).terminal?.layers;
+      }
+      if (
+        entry.particleName?.startsWith("popup-content-") &&
+        ((tabs[selected] === "map" &&
+          entry.layers.every(
+            (layer) =>
+              " █▀▄▌▐░▒▓".includes(layer.char) ||
+              mapFog?.layers.some(
+                (fog) => fog.char === layer.char && fog.color === layer.color
+              )
+          )) ||
+          (tabs[selected] === "warp" &&
+            [sand, beach, waterDeep, waterShallow, ice].some(
+              (terrain) => terrain.name === entry.sprite.name
+            )))
+      ) {
+        const pixel = projectLayers(entry.layers, "map_pixel");
+        entry.terminalLayers = [
+          { char: "█", color: pixel.background! },
+          { char: pixel.char, color: pixel.foreground },
+        ];
+      }
       if (
         entry.particle ===
         world.getEntityById(sequence.particles["popup-close-1"])
@@ -197,6 +227,19 @@ export const getTerminalFrame = (
       })
     );
   };
+  const progress = (
+    stats: Parameters<typeof createProgress>[0],
+    stat: "hp" | "mp" | "xp",
+    depletable = true
+  ) =>
+    createProgress(stats, stat, 13, depletable).map((sprite) => ({
+      ...sprite,
+      terminal: {
+        layers: sprite.terminal!.layers.map((layer) =>
+          layer.char === "░" ? { char: "█", color: colors.black } : layer
+        ),
+      },
+    }));
   if (hero) {
     const pauseButton = createSpriteButton(
       [session.paused ? pauseInvertPressed : pauseInvert],
@@ -209,12 +252,12 @@ export const getTerminalFrame = (
     } else {
       const stats = getEntityStats(world, hero);
       const progressLeft = Math.floor((columns - 21) / 2) + 3;
-      line(createProgress(stats, "hp", 13, false), 0, progressLeft);
-      line(createProgress(stats, "mp", 13), 1, progressLeft);
+      line(progress(stats, "hp", false), 0, progressLeft);
+      line(progress(stats, "mp"), 1, progressLeft);
       line(
         [
           ...pauseButton,
-          ...createProgress(stats, "xp", 13),
+          ...progress(stats, "xp"),
           ...createButton("USE", 5, !!session.paused, false, false, "yellow"),
         ],
         2
@@ -239,7 +282,7 @@ export const getTerminalFrame = (
               ));
         return {
           button: createButton(
-            entity?.[SPRITE].name.toUpperCase() || fallback,
+            entity ? getActionName(world, hero, entity) : fallback,
             7,
             !available || !!session.paused,
             false,
@@ -313,7 +356,12 @@ export const getTerminalFrame = (
       left
     );
   }
-  if (session.paused) {
+  if (session.suspended) {
+    line(
+      createText("Loading map...", colors.white),
+      top + Math.floor(height / 2)
+    );
+  } else if (session.paused) {
     const background = createTerminalFrame(sprites, columns, rows);
     for (let y = top; y < top + height; y++)
       line(
@@ -347,7 +395,7 @@ export const getTerminalFrame = (
         if (index) overlay.push([]);
         const selected = (session.selection || 0) === index && !action.disabled;
         overlay.push([
-          ...(selected ? [popupActive] : createText(" ")),
+          ...createText(selected ? ">" : " "),
           ...(selected && action.palette === "white"
             ? createText("[ SAVE ]", colors.black, colors.white)
             : createSpriteButton(

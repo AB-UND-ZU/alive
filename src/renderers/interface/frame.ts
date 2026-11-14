@@ -378,6 +378,18 @@ export const getSceneFrame = (
       const particleInfo = particleNames?.get(world.getEntityId(particle));
       entry.particleName = particleInfo?.name;
       entry.particleSequence = particleInfo?.sequence;
+      if (
+        instant &&
+        entry.particleSequence === "discoveryIdle" &&
+        entry.layers.length
+      ) {
+        const idle = getSequence(world, entity, "discovery")!.args.idle;
+        entry.y = py - 1;
+        entry.terminalLayers =
+          visible && !hidden
+            ? getFacingLayers(idle.terminal || idle)
+            : [{ char: "°", color: colors.white }];
+      }
       const messageRow = messageParticles.get(world.getEntityId(particle));
       if (messageRow !== undefined && entry.z === transientHeight)
         entry.y = py - 1 - messageRow;

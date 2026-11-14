@@ -1,7 +1,12 @@
 import { createPopup, openPopup } from "../../engine/systems/popup";
 import { POPUP } from "../../engine/components/popup";
 import { rerenderEntity } from "../../engine/systems/renderer";
-import { advance, assertHero, createAreaWorld } from "../../testing/harness";
+import {
+  advance,
+  assertHero,
+  createAreaWorld,
+  giveItems,
+} from "../../testing/harness";
 import { STATS } from "../../engine/components/stats";
 import { FOG } from "../../engine/components/fog";
 import { colors } from "../../game/assets/colors";
@@ -257,8 +262,8 @@ it("renders the portal's world-map terrain and selected level", () => {
       .flat()
       .some(
         (cell) =>
-          cell.char === "░" &&
-          [colors.navy, colors.blue].includes(cell.foreground)
+          [colors.navy, colors.blue].includes(cell.foreground) ||
+          [colors.navy, colors.blue].includes(cell.background || "")
       )
   ).toBe(true);
 });
@@ -389,19 +394,21 @@ it("does not add a bright pause shade to empty black ground", () => {
 });
 
 it.each([33, 80])(
-  "clears the old world and chrome while loading at %i columns",
+  "keeps the HUD while clearing old-world content during loading at %i columns",
   (columns) => {
     const { world } = setup();
-    const frame = getTerminalFrame(world, columns, 30, undefined, {
+    const rows = 30;
+    const frame = getTerminalFrame(world, columns, rows, undefined, {
       suspended: true,
     });
-    expect(frameToText(frame).replace(/\s/g, "")).toBe("Loadingmap...");
-    expect(
-      frame
-        .flat()
-        .filter((cell) => cell.char !== " ")
-        .every((cell) => cell.foreground === colors.white)
-    ).toBe(true);
+    const layout = getTerminalLayout(columns, rows);
+    const content = frame
+      .slice(layout.top, layout.top + layout.height)
+      .map((row) => row.slice(layout.left + 1, layout.left + layout.width - 1));
+    expect(frameToText(content).replace(/\s/g, "")).toBe("Loadingmap...");
+    expect(frameToText(frame)).toContain("HP");
+    expect(frameToText(frame)).toContain("SPACE");
+    expect(frame[3].every((cell) => cell.char === "─")).toBe(true);
   }
 );
 
@@ -508,3 +515,80 @@ it("keeps the separator instead of drawing the content's cropped half row", () =
       { char: "─", color: colors.silver },
     ]);
 });
+
+it("keeps the empty portion of stats bars black without dotted shading", () => {
+  const { world, hero } = setup();
+  Object.assign(hero.STATS!, {
+    hp: 1,
+    maxHp: 25,
+    mp: 0,
+    maxMp: 10,
+    xp: 0,
+    maxXp: 10,
+  });
+  const frame = getTerminalFrame(world, 80, 30);
+  expect(
+    frame
+      .slice(0, 3)
+      .flat()
+      .some((cell) => cell.char === "░")
+  ).toBe(false);
+});
+
+it("uses only gray pixels with black masks for a disabled class portrait", () => {
+  const world = createAreaWorld("| ♀ |", { level: "LEVEL_MENU", size: 64 });
+  const hero = assertHero(world);
+  createPopup(world, hero, { tabs: ["class", "style", "warp"] });
+  openPopup(world, hero, hero);
+  hero.POPUP!.verticalIndezes[0] = 1;
+  rerenderEntity(world, hero);
+  advance(world, 2000);
+  const portrait = getSceneFrame(world, 33, 13, undefined, {
+    instant: true,
+  }).filter(
+    (entry) =>
+      /^popup-content-\d+-1[2-8]$/.test(entry.particleName || "") &&
+      entry.terminalLayers?.some((layer) => layer.color === colors.grey)
+  );
+  expect(portrait.length).toBeGreaterThan(0);
+  for (const entry of portrait) {
+    expect(
+      entry.terminalLayers!.every(
+        (layer) => layer.color === colors.black || layer.color === colors.grey
+      )
+    ).toBe(true);
+    expect(entry.terminalLayers!.some((layer) => layer.char === "░")).toBe(
+      false
+    );
+  }
+});
+
+it.each([0, 1, 2, 3])(
+  "renders undiscovered minimap cells as pixels at zoom %i",
+  (zoom) => {
+    const { world } = setup();
+    const hero = world.assertComponents(assertHero(world), [
+      "INVENTORY",
+      "EQUIPPABLE",
+      "POSITION",
+    ]);
+    const [map] = giveItems(world, hero, [
+      { accessory: "map", material: "gold", amount: 1 },
+    ]);
+    hero.EQUIPPABLE.map = world.getEntityId(map);
+    createPopup(world, hero, { tabs: ["map"] });
+    openPopup(world, hero, hero);
+    hero.POPUP!.verticalIndezes[0] = zoom;
+    rerenderEntity(world, hero);
+    advance(world, 2000);
+    const frame = getTerminalFrame(world, 80, 30);
+    expect(
+      frame
+        .flat()
+        .some(
+          (cell) => "▀▄█".includes(cell.char) && cell.foreground === colors.grey
+        )
+    ).toBe(true);
+    expect(frameToText(frame)).not.toMatch(/[∙≡☺]/);
+  }
+);

@@ -6,15 +6,17 @@ import { ENTERABLE } from "../../engine/components/enterable";
 import { World } from "../../engine";
 import { PLAYER } from "../../engine/components/player";
 import { BUMPABLE } from "../../engine/components/bumpable";
-import { orientationPoints } from "../../engine/components/orientable";
+import { PARTICLE } from "../../engine/components/particle";
+import { SEQUENCABLE } from "../../engine/components/sequencable";
+import { Orientation, orientationPoints } from "../../engine/components/orientable";
 import {
   popupHeight,
-  particleHeight,
   fogHeight,
   objectHeight,
 } from "../interface/segments";
 import { FOG } from "../../engine/components/fog";
 import { LIGHT } from "../../engine/components/light";
+import { LOCKABLE } from "../../engine/components/lockable";
 import { HARVESTABLE } from "../../engine/components/harvestable";
 import { tombstone1, tombstone2 } from "../../game/assets/sprites";
 import { AFFECTABLE } from "../../engine/components/affectable";
@@ -48,7 +50,11 @@ export const collectTerminalSprites = (
   for (const entry of scene) {
     if (/^scratch(?:-|$)/.test(entry.particleName || "")) continue;
     const bodyEntry = /body\d+$/.test(entry.key);
-    if (bodyEntry && [tombstone1, tombstone2].includes(entry.entity[SPRITE]))
+    if (
+      bodyEntry &&
+      ([tombstone1, tombstone2].includes(entry.entity[SPRITE]) ||
+        entry.entity[LOCKABLE]?.locked === false)
+    )
       continue;
     const titleBlock = /^block_(up|down)$/.test(entry.sprite.name);
     if (!titleBlock && !bodyEntry) {
@@ -62,9 +68,21 @@ export const collectTerminalSprites = (
       }
       const bodyKey = entry.key.replace(/particle\d+$/, "body");
       const anchor = bodies.get(bodyKey);
-      const ring = ["castWave1", "trapAura"].includes(
-        entry.particleSequence || ""
-      );
+      const wave = entry.particleSequence === "castWave1";
+      const centered = [
+        "castWave1",
+        "trapAura",
+        "levelUp",
+        "fountainSplash",
+      ].includes(entry.particleSequence || "");
+      const waveState = wave && entry.entity[SEQUENCABLE]?.states.spell;
+      const waveStep =
+        waveState &&
+        waveState.args.progress > waveState.args.memory?.innerRadius
+          ? orientationPoints[
+              entry.particleName!.split("-").pop() as Orientation
+            ]
+          : { x: 0, y: 0 };
       const beam = entry.particleSequence === "castBeam1";
       const sprite = {
         ...entry,
@@ -75,13 +93,21 @@ export const collectTerminalSprites = (
             ? Math.max(entry.z, objectHeight + 0.01)
             : entry.z,
         x:
-          ring && anchor
+          wave && anchor
+            ? Math.ceil(anchor.x) +
+              entry.particle![PARTICLE].offsetX -
+              waveStep.x
+            : centered && anchor
             ? Math.ceil(anchor.x) + ceilOffset(entry.x - anchor.x)
             : beam
             ? Math.ceil(entry.x - 1e-6)
             : entry.x,
         y:
-          ring && anchor
+          wave && anchor
+            ? Math.ceil(anchor.y) +
+              entry.particle![PARTICLE].offsetY -
+              waveStep.y
+            : centered && anchor
             ? Math.ceil(anchor.y) + ceilOffset(entry.y - anchor.y)
             : beam
             ? Math.ceil(entry.y - 1e-6)
@@ -166,7 +192,7 @@ export const collectTerminalSprites = (
     }
   }
   for (const sprite of result) {
-    if (sprite.unit) sprite.z = particleHeight + 0.001;
+    if (sprite.unit) sprite.z = popupHeight - 0.00175;
     if (sprite.hero) sprite.z = popupHeight - 0.0015;
     if (
       sprite.ui &&

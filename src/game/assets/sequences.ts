@@ -5540,7 +5540,20 @@ export const displayClass = displayPopupView((world, entity, state) => {
   );
   const heroPixels = selectedAvailable
     ? lines
-    : lines.map((row) => row.map((cell) => recolorSprite(cell, colors.grey)));
+    : lines.map((row) =>
+        row.map((cell) => ({
+          ...recolorSprite(cell, colors.grey),
+          terminal: {
+            layers: cell.layers
+              .filter((layer) => layer.char !== "░")
+              .map((layer) => ({
+                ...layer,
+                color:
+                  layer.color === colors.black ? colors.black : colors.grey,
+              })),
+          },
+        }))
+      );
 
   const content: Sprite[][] = Array.from({
     length: Math.max(displayedClasses.length, 6),

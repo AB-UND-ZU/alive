@@ -376,7 +376,7 @@ export const nugget: Sprite = {
 
 export const ingot: Sprite = {
   name: "Ingot",
-  terminal: { layers: [{ char: "■", color: colors.yellow }] },
+  terminal: { layers: [{ char: "▬", color: colors.yellow }] },
   layers: [
     { char: "■", color: colors.olive },
     { char: "+", color: colors.yellow },
@@ -1040,6 +1040,7 @@ export const toast: Sprite = {
 
 export const golemHead: Sprite = {
   name: "Head",
+  terminal: { layers: [{ char: "\u0101", color: colors.grey }] },
   layers: [
     { char: "■", color: colors.grey },
     { char: "≡", color: colors.black },
@@ -1052,6 +1053,7 @@ export const golemHead: Sprite = {
 
 export const sandBlock: Sprite = {
   name: "Sand",
+  terminal: { layers: [{ char: "÷", color: colors.yellow }] },
   layers: [
     { char: "■", color: colors.yellow },
     { char: "▓", color: colors.black },
@@ -1060,6 +1062,7 @@ export const sandBlock: Sprite = {
 
 export const gravelBlock: Sprite = {
   name: "Gravel",
+  terminal: { layers: [{ char: "÷", color: colors.silver }] },
   layers: [
     { char: "■", color: colors.silver },
     { char: "▒", color: colors.black },

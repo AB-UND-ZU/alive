@@ -4,6 +4,8 @@ import { colors } from "../../game/assets/colors";
 import { getFacingLayers } from "../../game/assets/ui";
 import {
   characterMask,
+  characterWidth,
+  characterHeight,
   composeCharacterPixels,
 } from "../../components/Row/characters";
 
@@ -37,6 +39,29 @@ export const projectLayers = (layers: Layer[], name = ""): TerminalCell => {
       char: " ",
       foreground: layers[layers.length - 1].color,
       background: layers[layers.length - 2].color,
+    };
+    cache.set(key, cell);
+    return cell;
+  }
+  if (name === "map_pixel") {
+    const pixels = composeCharacterPixels(layers);
+    const half = (characterWidth * characterHeight) / 2;
+    const dominant = (start: number) => {
+      const counts = new Map<string, number>();
+      for (const pixel of pixels.slice(start, start + half)) {
+        const color = pixel || colors.black;
+        counts.set(color, (counts.get(color) || 0) + 1);
+      }
+      return (
+        [...counts]
+          .filter(([color]) => color !== colors.black)
+          .sort((a, b) => b[1] - a[1])[0]?.[0] || colors.black
+      );
+    };
+    const cell = {
+      char: "▀",
+      foreground: dominant(0),
+      background: dominant(half),
     };
     cache.set(key, cell);
     return cell;

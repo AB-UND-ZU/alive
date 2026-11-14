@@ -75,7 +75,7 @@ export const meleeHit: Sprite = {
   terminal: {
     layers: [{ char: "o", color: colors.white }],
     amounts: {
-      single: [{ char: "o", color: colors.red }],
+      single: [{ char: "x", color: colors.red }],
       double: [{ char: "x", color: colors.red }],
       multiple: [{ char: "X", color: colors.red }],
     },
@@ -97,7 +97,7 @@ export const magicHit: Sprite = {
   terminal: {
     layers: [{ char: "o", color: colors.white }],
     amounts: {
-      single: [{ char: "o", color: colors.fuchsia }],
+      single: [{ char: "x", color: colors.fuchsia }],
       double: [{ char: "x", color: colors.fuchsia }],
       multiple: [{ char: "X", color: colors.fuchsia }],
     },
@@ -215,7 +215,7 @@ export const trueHit: Sprite = {
   terminal: {
     layers: [{ char: "o", color: colors.white }],
     amounts: {
-      single: [{ char: "o", color: colors.white }],
+      single: [{ char: "x", color: colors.white }],
       double: [{ char: "x", color: colors.white }],
       multiple: [{ char: "X", color: colors.white }],
     },

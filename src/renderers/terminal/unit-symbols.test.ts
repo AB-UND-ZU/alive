@@ -1,15 +1,19 @@
+import { createWorld } from "../../engine";
+import { getParticleAmount } from "../../engine/systems/magic";
 import { colors } from "../../game/assets/colors";
 import * as sprites from "../../game/assets/sprites";
 import { eye } from "../../game/assets/templates/creatures";
-import { banner } from "../../game/assets/templates/particles";
+import { rage2 } from "../../game/assets/ui";
+import { trigger, banner } from "../../game/assets/templates/particles";
 import { projectSprite } from "./sprites";
 
 it("keeps furniture, terrain and small units recognizable using authored terminal characters", () => {
   for (const [sprite, char, foreground] of [
     [sprites.egg, "•", colors.white],
     [sprites.dummy, "Ω", colors.grey],
+    [sprites.pot, "&", colors.maroon],
     [sprites.anvil, "▬", colors.silver],
-    [sprites.kettle, "U", colors.blue],
+    [sprites.kettle, "U", colors.silver],
     [sprites.table, "╥", colors.maroon],
     [sprites.chairLeft, "└", colors.maroon],
     [sprites.chairRight, "┘", colors.maroon],
@@ -21,19 +25,21 @@ it("keeps furniture, terrain and small units recognizable using authored termina
     expect(projectSprite(sprite)).toMatchObject({ char, foreground });
 });
 
-it("uses a filled face for the golem head and keeps the sleeping rock formation solid", () => {
+it("keeps the catalog golem icon separate from the original world head layers", () => {
   expect(projectSprite(sprites.golemUnit)).toMatchObject({
     char: "☻",
     foreground: colors.silver,
   });
   expect(projectSprite(sprites.golem)).toMatchObject({
-    char: "█",
-    foreground: colors.silver,
+    char: " ",
+    foreground: colors.grey,
+    background: colors.grey,
   });
   for (const direction of ["up", "right", "down", "left"] as const)
     expect(projectSprite(sprites.golem, direction)).toMatchObject({
-      char: "☻",
-      foreground: colors.silver,
+      char: "○",
+      foreground: colors.olive,
+      background: colors.grey,
     });
 });
 
@@ -59,4 +65,31 @@ it("keeps the eye and placed totem variants consistent in every material and dir
       foreground,
     });
   }
+});
+
+it("uses a backslash for placed traps and keeps the rage symbol on a red background", () => {
+  expect(projectSprite(trigger.iron.default)).toMatchObject({ char: "\\" });
+  expect(projectSprite(trigger.iron.fire)).toMatchObject({ char: "\\" });
+  expect(projectSprite(rage2)).toMatchObject({
+    char: "‼",
+    foreground: colors.black,
+    background: colors.red,
+  });
+});
+
+it("uses circles only for zero damage and crosses for positive damage", () => {
+  const world = createWorld();
+  for (const sprite of [sprites.meleeHit, sprites.magicHit, sprites.trueHit])
+    for (const [damage, char] of [
+      [0, "o"],
+      [1, "x"],
+      [2, "x"],
+      [3, "x"],
+      [4, "x"],
+      [5, "X"],
+      [10, "X"],
+    ] as const)
+      expect(
+        projectSprite(sprite, undefined, getParticleAmount(world, damage)).char
+      ).toBe(char);
 });

@@ -20,7 +20,7 @@ it("keeps source-defined resource shapes and material colors through item lookup
     ["mineral", "•", colors.lime],
     ["crystal", "•", colors.aqua],
     ["nugget", "•", colors.yellow],
-    ["ingot", "■", colors.yellow],
+    ["ingot", "▬", colors.yellow],
   ] as const) {
     const cell = projectSprite(sprites[name]);
     expect(cell.char).toBe(char);
@@ -63,7 +63,7 @@ it("uses material-colored tool and accessory symbols for all material and elemen
     ["hook", "⌠"],
     ["torch", "î"],
     ["ring", "ô"],
-    ["boots", "ⁿ"],
+    ["boots", '"'],
   ] as const)
     for (const material of materials)
       for (const element of ["default", ...elements] as const)
@@ -123,4 +123,13 @@ it("preserves sigma flasks, water buckets and static compass directions", () => 
         projectSprite(equipment.compass[material].default, direction).char
       ).toBe(char);
   }
+});
+
+it("distinguishes carried terrain and the golem head from their world sprites", () => {
+  for (const [sprite, char, foreground] of [
+    [sprites.sandBlock, "÷", colors.yellow],
+    [sprites.gravelBlock, "÷", colors.silver],
+    [sprites.golemHead, "☻", colors.grey],
+  ] as const)
+    expect(projectSprite(sprite)).toMatchObject({ char, foreground });
 });

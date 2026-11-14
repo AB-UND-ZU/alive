@@ -26,10 +26,10 @@ import {
   selectRow,
 } from "../../features/workstations/helpers";
 import { getForgeOptions } from "../../game/balancing/forging";
-import { projectSprite } from "./sprites";
+import { projectSprite, projectLayers } from "./sprites";
 import { createPreviewWorld } from "../../wiki/scenes";
 
-it("keeps the active selection black on lime in popups and pause", () => {
+it("keeps popup selections inverted but uses a plain caret in Pause", () => {
   expect(projectSprite(popupActive)).toMatchObject({
     char: ">",
     foreground: colors.black,
@@ -45,15 +45,18 @@ it("keeps the active selection black on lime in popups and pause", () => {
   createPopup(world, hero, { tabs: ["sell"] });
   openPopup(world, hero, hero);
   advance(world, 2100);
-  for (const frame of [
-    getTerminalFrame(world, 80, 30),
-    getTerminalFrame(world, 80, 30, undefined, { paused: true }),
-  ])
-    expect(frame.flat()).toContainEqual({
-      char: ">",
-      foreground: colors.black,
-      background: colors.lime,
-    });
+  expect(getTerminalFrame(world, 80, 30).flat()).toContainEqual({
+    char: ">",
+    foreground: colors.black,
+    background: colors.lime,
+  });
+  expect(
+    getTerminalFrame(world, 80, 30, undefined, { paused: true }).flat()
+  ).toContainEqual({
+    char: ">",
+    foreground: colors.white,
+    background: colors.black,
+  });
 });
 
 it("keeps the times sign when selected and shows a clock corner for brewing", () => {
@@ -107,8 +110,8 @@ it("renders real sell prices with their coin variants and selected multiplicatio
   advance(world, 2100);
   const text = frameToText(getTerminalFrame(world, 80, 30));
   expect(text).toContain("1°");
-  expect(text).toContain("2○");
-  expect(text).toContain("4o");
+  expect(text).toContain("2°");
+  expect(text).toContain("4°");
   expect(text).toContain("1*");
   expect(text).toContain("2*");
   expect(text).toContain("3*");
@@ -171,4 +174,20 @@ it("keeps the moving forge head opaque over the step item throughout its swing",
       frame[layout.top + Math.ceil(head.y)][layout.left + Math.ceil(head.x)]
     ).toEqual({ char: "█", foreground: colors.grey, background: colors.grey });
   }
+});
+
+it("reduces minimap terrain to an upper pixel and a background pixel", () => {
+  const projected = projectLayers(
+    [
+      { char: "█", color: colors.navy },
+      { char: "▐", color: colors.green },
+      { char: "▄", color: colors.yellow },
+    ],
+    "map_pixel"
+  );
+  expect(projected).toEqual({
+    char: "▀",
+    foreground: colors.green,
+    background: colors.yellow,
+  });
 });

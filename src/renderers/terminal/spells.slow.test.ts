@@ -90,7 +90,7 @@ it.each(orientations)(
     );
     cast(world, direction);
     let frames = 0;
-    for (let tick = 0; tick < 35; tick++) {
+    for (let tick = 0; tick < 100; tick++) {
       step(world);
       const scene = getSceneFrame(world, 33, 21, undefined, { instant: true });
       const center = scene.find(
@@ -100,6 +100,8 @@ it.each(orientations)(
         /^wave_(side|corner)/.test(entry.sprite.name)
       );
       if (!center || !ring.length) continue;
+      const state = center.entity.SEQUENCABLE.states.spell;
+      if (state.args.progress >= state.args.range - 1) continue;
       frames++;
       const xs = ring.map((entry) => entry.x),
         ys = ring.map((entry) => entry.y);
@@ -110,6 +112,25 @@ it.each(orientations)(
           (entry) => Number.isInteger(entry.x) && Number.isInteger(entry.y)
         )
       ).toBe(true);
+      const frame = createTerminalFrame(ring, 33, 21);
+      const cells = new Set<string>();
+      frame.forEach((row, y) =>
+        row.forEach((cell, x) => {
+          if (cell.char !== " ") cells.add(`${x},${y}`);
+        })
+      );
+      const connections = [...cells].map((cell) => {
+        const [x, y] = cell.split(",").map(Number);
+        return [
+          [x - 1, y],
+          [x + 1, y],
+          [x, y - 1],
+          [x, y + 1],
+        ].filter(([nx, ny]) => cells.has(`${nx},${ny}`)).length;
+      });
+      expect(Math.min(...connections)).toBeGreaterThanOrEqual(
+        cells.size === 1 ? 0 : 2
+      );
     }
     expect(frames).toBeGreaterThan(20);
   }

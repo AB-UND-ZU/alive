@@ -268,7 +268,7 @@ export const anvil: Sprite = {
 
 export const kettle: Sprite = {
   name: "Kettle",
-  terminal: { layers: [{ char: "U", color: colors.blue }] },
+  terminal: { layers: [{ char: "U", color: colors.silver }] },
   layers: [
     { char: "■", color: colors.blue },
     { char: "≡", color: colors.black },

@@ -948,10 +948,18 @@ export const forge = createText("ƒ", colors.lime)[0];
 export const brew = createText("Σ", colors.lime)[0];
 export const class_ = createText("\u010b")[0];
 export const rage = createAggro("\u0112")[0];
-export const rage2 = mergeSprites(
-  recolorSprite(emptySlot, colors.red),
-  parseSprite("\x00\u0112")
-);
+export const rage2: Sprite = {
+  ...mergeSprites(
+    recolorSprite(emptySlot, colors.red),
+    parseSprite("\x00\u0112")
+  ),
+  terminal: {
+    layers: [
+      { char: "█", color: colors.red },
+      { char: "\u0112", color: colors.black },
+    ],
+  },
+};
 export const sleep1 = createText("z", colors.white)[0];
 export const sleep2 = createText("Z", colors.white)[0];
 export const whistle1 = createText("\u010c", colors.white)[0];

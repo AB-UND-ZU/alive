@@ -442,7 +442,7 @@ hook.iron.default = ironHook;
 
 const bootsTemplate: Sprite = {
   name: "Boots",
-  terminal: { layers: [{ char: "ⁿ", color: TEMPLATE_COLORS.materialPrimary }] },
+  terminal: { layers: [{ char: '"', color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "\u0116", color: TEMPLATE_COLORS.materialPrimary },
     { char: "\u0111", color: TEMPLATE_COLORS.transparent },

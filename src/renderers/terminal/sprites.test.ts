@@ -277,7 +277,7 @@ describe("terminal sprite projection", () => {
       }
     }
     expect(projectSprite(trigger.iron.default)).toEqual({
-      char: "%",
+      char: "\\",
       foreground: colors.grey,
     });
     expect(projectSprite(triggerSide.iron.fire, "up")).toMatchObject({
@@ -761,7 +761,7 @@ it("keeps native chat, damage and fire symbols legible at each amount", () => {
   for (const hit of [sprites.meleeHit, sprites.magicHit, sprites.trueHit])
     expect(
       [1, 2, 3].map((amount) => projectSprite(hit, undefined, amount).char)
-    ).toEqual(["o", "x", "X"]);
+    ).toEqual(["x", "x", "X"]);
   expect(
     [1, 2, 3].map(
       (amount) => projectSprite(sprites.fire, undefined, amount).char

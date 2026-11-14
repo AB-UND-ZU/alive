@@ -1,3 +1,4 @@
+import { Entity } from "ecs";
 import { World } from "../../engine";
 import { TypedEntity } from "../../engine/entities";
 import { ITEM, Item, rechargables } from "../../engine/components/item";
@@ -18,6 +19,39 @@ import {
   ninePlusMana,
   none,
 } from "../../game/assets/sprites";
+
+export const getActionName = (
+  world: World,
+  hero: Entity,
+  actionEntity: Entity
+) => {
+  if (!actionEntity[ITEM].tool) return actionEntity[SPRITE].name.toUpperCase();
+  const weaponEntity = world.getEntityByIdAndComponents(
+    hero[EQUIPPABLE]?.weapon,
+    [SPRITE]
+  );
+  const hookCondition = hero[CONDITIONABLE]?.hook;
+  if (hookCondition && hookCondition.amount === hookCondition.modifier) {
+    return "CATCH";
+  }
+  if (
+    hero[CONDITIONABLE]?.axe ||
+    hero[CONDITIONABLE]?.pickaxe ||
+    hero[CONDITIONABLE]?.hammer ||
+    hookCondition
+  ) {
+    return (weaponEntity?.[SPRITE].name || "Stow").toUpperCase();
+  }
+  if (actionEntity[ITEM].tool === "pickaxe") {
+    return "MINE";
+  } else if (actionEntity[ITEM].tool === "shovel") {
+    return "DIG";
+  } else if (actionEntity[ITEM].tool === "hammer") {
+    return "BUILD";
+  }
+
+  return actionEntity[SPRITE].name.toUpperCase();
+};
 
 export const getActionActivations = (
   world: World,

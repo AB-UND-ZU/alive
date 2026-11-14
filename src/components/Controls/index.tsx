@@ -28,7 +28,7 @@ import {
   repeat,
   signedDistance,
 } from "../../game/math/std";
-import { SPRITE, Sprite } from "../../engine/components/sprite";
+import { Sprite } from "../../engine/components/sprite";
 import { ITEM } from "../../engine/components/item";
 import { castableSpell, castableSkill } from "../../engine/systems/action";
 import { Entity } from "ecs";
@@ -61,10 +61,6 @@ import {
 } from "../../game/assets/utils";
 import { LEVEL } from "../../engine/components/level";
 import { menuName } from "../../game/levels/menu";
-import {
-  Conditionable,
-  CONDITIONABLE,
-} from "../../engine/components/conditionable";
 import { IDENTIFIABLE } from "../../engine/components/identifiable";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
 import { getSequence } from "../../engine/systems/sequence";
@@ -81,7 +77,10 @@ import {
   getButtonSeparator,
 } from "../../game/assets/ui";
 import { frameColor } from "../Terminal";
-import { getActionActivations } from "../../renderers/interface/actions";
+import {
+  getActionActivations,
+  getActionName,
+} from "../../renderers/interface/actions";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -230,7 +229,7 @@ export default function Controls({
         hero as TypedEntity<"INVENTORY">,
         spellEntity as TypedEntity<"ITEM">
       ),
-    (_, __, spellEntity) => spellEntity[SPRITE].name.toUpperCase(),
+    getActionName,
     (world, _, spellEntity) =>
       hero
         ? getActionActivations(world, hero, spellEntity[ITEM], false)
@@ -248,7 +247,7 @@ export default function Controls({
         skillEntity as TypedEntity<"ITEM">
       ),
 
-    (_, __, skillEntity) => skillEntity[SPRITE].name.toUpperCase(),
+    getActionName,
     (world, _, skillEntity) =>
       hero
         ? getActionActivations(world, hero, skillEntity[ITEM], true)
@@ -266,33 +265,7 @@ export default function Controls({
         toolEntity as TypedEntity<"ITEM">
       ),
 
-    (world, hero, toolEntity) => {
-      const weaponEntity = world.getEntityByIdAndComponents(
-        hero[EQUIPPABLE]?.weapon,
-        [SPRITE]
-      );
-      const hookCondition = (hero[CONDITIONABLE] as Conditionable)?.hook;
-      if (hookCondition && hookCondition.amount === hookCondition.modifier) {
-        return "CATCH";
-      }
-      if (
-        hero[CONDITIONABLE]?.axe ||
-        hero[CONDITIONABLE]?.pickaxe ||
-        hero[CONDITIONABLE]?.hammer ||
-        hookCondition
-      ) {
-        return (weaponEntity?.[SPRITE].name || "Stow").toUpperCase();
-      }
-      if (toolEntity[ITEM].tool === "pickaxe") {
-        return "MINE";
-      } else if (toolEntity[ITEM].tool === "shovel") {
-        return "DIG";
-      } else if (toolEntity[ITEM].tool === "hammer") {
-        return "BUILD";
-      }
-
-      return toolEntity[SPRITE].name.toUpperCase();
-    },
+    getActionName,
     (world, _, toolEntity) =>
       hero
         ? getActionActivations(world, hero, toolEntity[ITEM], true)

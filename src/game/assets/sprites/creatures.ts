@@ -422,15 +422,6 @@ export const golemUnit: Sprite = {
 
 export const golem: Sprite = {
   name: "Golem",
-  terminal: {
-    layers: [{ char: "█", color: colors.silver }],
-    facing: {
-      up: [{ char: "\u0101", color: colors.silver }],
-      right: [{ char: "\u0101", color: colors.silver }],
-      down: [{ char: "\u0101", color: colors.silver }],
-      left: [{ char: "\u0101", color: colors.silver }],
-    },
-  },
   layers: [
     { char: "█", color: colors.grey },
     { char: "¿", color: colors.black },

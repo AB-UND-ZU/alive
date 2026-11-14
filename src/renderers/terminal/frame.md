@@ -7,7 +7,7 @@ height, snaps each position up to a whole cell and composites them into a
 `collectTerminalSprites` combines each entity's body, backdrop, shadow and
 equipment segments before projection. Weapons therefore do not replace the
 actor's character. Upper and lower title blocks at the same position and depth
-are composed together so neither half overwrites the other. Loot and particles remain independent. Wave and trap edges snap outward from their shared center, so mirrored edges advance together. Trap outlines stay a complete native-cell frame during their short active effect. Beam endpoints render above interior bolts and keep their edge characters. Transparent
+are composed together so neither half overwrites the other. Loot and particles remain independent. Wave cells advance with the engine’s corner-reveal phase, so their outline stays joined between steps. Trap, fountain and level-up particles snap symmetrically around their shared center. Trap outlines stay a complete native-cell frame during their short active effect. Beam endpoints render above interior bolts and keep their edge characters. Transparent
 backgrounds retain the cell below. Empty transparent sprites do
 not erase the scene. Health bars and item-count dots are not projected.
 
@@ -15,9 +15,9 @@ Fog uses a dark gray background, including empty unexplored air. Bright terrain
 colors darken without brightening already dark characters; squiggly fog is black.
 Floating and opaque bodies keep their sprite colors above fog. World particles
 inherit the ground background when their own background is black. Tooltips and
-interaction text keep their original colors, using black text on light backgrounds when needed for contrast. Discovery markers and text remain above focus outlines. Spell trails remain above ground objects.
+interaction text keep their original colors, using black text on light backgrounds when needed for contrast. Discovery markers remain one cell above their owner: an interaction icon in sight, or a degree sign outside sight. Markers and text remain above focus outlines. Spell trails remain above ground objects.
 
-The hero stays above interaction bars; other units stay above world effects. Hit markers can cover either.
+Units stay above interaction bars and discovery icons. The hero stays above other units; hit markers can cover either.
 Hits color the hero red, freeze uses an aqua background and burn uses maroon.
 Dialogs remain on top. Explicit terminal layers are selected by the shared frame
 from each sprite's facing and amount; equipment does not replace a unit's glyph.

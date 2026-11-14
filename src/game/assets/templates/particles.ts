@@ -282,7 +282,7 @@ export const waveCornerDouble = createTemplate({
 
 const triggerTemplate: Sprite = {
   name: "spell_trigger",
-  terminal: { layers: [{ char: "%", color: TEMPLATE_COLORS.materialPrimary }] },
+  terminal: { layers: [{ char: "\\", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "\\", color: TEMPLATE_COLORS.materialPrimary },
     { char: "/", color: TEMPLATE_COLORS.materialPrimary },
@@ -291,7 +291,7 @@ const triggerTemplate: Sprite = {
 };
 const triggerElementTemplate: Sprite = {
   name: "spell_trigger_element",
-  terminal: { layers: [{ char: "%", color: TEMPLATE_COLORS.elementPrimary }] },
+  terminal: { layers: [{ char: "\\", color: TEMPLATE_COLORS.elementPrimary }] },
   layers: [
     { char: "\\", color: TEMPLATE_COLORS.elementPrimary },
     { char: "/", color: TEMPLATE_COLORS.materialPrimary },
