@@ -145,3 +145,14 @@ it("stops reconnecting when a claim is rejected and stops sending actions while 
   expect(onStatus).toHaveBeenLastCalledWith("rejected");
   connection.close();
 });
+
+it("acknowledges a full state only after applying its confirmed actor", () => {
+  const { connection, sockets, state, actorId } = setup();
+  const socket = sockets[0];
+  socket.open();
+  socket.receive({ type: "welcome", id: "account", token: "secret" });
+  state(socket, 7);
+  expect(connection.world.getEntityById(actorId)).toBeDefined();
+  expect(socket.messages).toContainEqual({ type: "stateAck", sequence: 7 });
+  connection.close();
+});

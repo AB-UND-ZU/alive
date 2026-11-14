@@ -26,7 +26,7 @@ after(async () => {
   await rm(directory, { recursive: true, force: true });
 });
 
-const connect = (url, claim = {}) => {
+const connect = (url, claim = {}, acknowledge = true) => {
   const socket = new WebSocket(url);
   const messages = [],
     waiting = [];
@@ -39,6 +39,12 @@ const connect = (url, claim = {}) => {
   );
   socket.on("message", (bytes) => {
     const message = JSON.parse(bytes.toString());
+    if (message.type === "state" && acknowledge) {
+      const frame = engine.decodeState(message.state);
+      socket.send(
+        JSON.stringify({ type: "stateAck", sequence: frame.sequence })
+      );
+    }
     const index = waiting.findIndex((waiter) => waiter.type === message.type);
     if (index < 0) messages.push(message);
     else {
@@ -120,7 +126,7 @@ test("real sockets enqueue bounded intents; only server ticks cast and ownership
   }
 });
 
-test("another account cannot claim an active or persisted player", async () => {
+test("only the authenticated owner can replace an active connection", async () => {
   const server = await start(path.join(directory, "claims.bin"));
   try {
     const first = connect(url(server));
@@ -134,8 +140,15 @@ test("another account cannot claim an active or persisted player", async () => {
       id: claim.id,
       token: claim.token,
     });
-    assert.equal(await duplicate.closed, 1008);
-    assert.equal(first.socket.readyState, WebSocket.OPEN);
+    const resumed = await duplicate.next("welcome");
+    assert.equal(resumed.actorId, claim.actorId);
+    assert.equal(await first.closed, 1008);
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(duplicate.socket.readyState, WebSocket.OPEN);
+    assert.equal(
+      server.simulation.world.getEntityById(claim.actorId).PLAYER.connected,
+      true
+    );
     assert.equal(server.simulation.actorId(claim.id), claim.actorId);
   } finally {
     await server.close();
@@ -205,6 +218,60 @@ test("a reloaded authenticated client can restart input numbering at zero", asyn
     await next.next("welcome");
     next.send({ type: "input", input: { sequence: 0, move: ["left"] } });
     assert.equal((await next.next("ack")).sequence, 0);
+  } finally {
+    await server.close();
+  }
+});
+
+test("an owner reconnects at capacity without allowing a ninth active player", async () => {
+  const server = await start(path.join(directory, "capacity.bin"));
+  try {
+    const players = [];
+    for (let index = 0; index < 8; index++) {
+      const client = connect(url(server));
+      players.push({ client, claim: await client.next("welcome") });
+    }
+    const excess = connect(url(server));
+    assert.equal(await excess.closed, 1013);
+    const { client, claim } = players[0];
+    const resumed = connect(url(server), { id: claim.id, token: claim.token });
+    assert.equal((await resumed.next("welcome")).actorId, claim.actorId);
+    assert.equal(await client.closed, 1008);
+    assert.equal(server.simulation.world.getEntities(["PLAYER"]).length, 8);
+  } finally {
+    await server.close();
+  }
+});
+
+test("a stalled client receives one full state and catches up directly after acknowledging it", async () => {
+  const server = await start(path.join(directory, "flow-control.bin"));
+  try {
+    const slow = connect(url(server), {}, false);
+    let states = 0;
+    slow.socket.on("message", (bytes) => {
+      if (JSON.parse(bytes.toString()).type === "state") states++;
+    });
+    await slow.next("welcome");
+    const first = engine.decodeState((await slow.next("state")).state);
+    for (let step = 0; step < 30; step++) server.simulation.step();
+    for (let publish = 0; publish < 50; publish++) server.publish();
+    slow.send({ type: "heartbeat" });
+    await slow.next("pong");
+    assert.equal(states, 1);
+    slow.send({ type: "stateAck", sequence: first.sequence + 1000 });
+    slow.send({ type: "heartbeat" });
+    await slow.next("pong");
+    server.publish();
+    slow.send({ type: "heartbeat" });
+    await slow.next("pong");
+    assert.equal(states, 1);
+    slow.send({ type: "stateAck", sequence: first.sequence });
+    slow.send({ type: "heartbeat" });
+    await slow.next("pong");
+    server.publish();
+    const current = engine.decodeState((await slow.next("state")).state);
+    assert.equal(current.serverTime, server.simulation.serverTime);
+    assert.equal(states, 2);
   } finally {
     await server.close();
   }

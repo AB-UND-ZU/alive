@@ -320,6 +320,9 @@ export const createHost = (saved?: HostedWorld) => {
   };
   return {
     world: menu.world,
+    get serverTime() {
+      return elapsed;
+    },
     join,
     forget(accountId: string) {
       release(accountId);

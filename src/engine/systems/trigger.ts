@@ -1344,8 +1344,8 @@ export default function setupTrigger(world: World) {
 
           entity[PLAYER].actionTriggered = "use";
           entity[PLAYER].contentTriggered = hotkey;
-        } else if (TEST_MODE) {
-          // trigger chat in test mode only
+        } else if (TEST_MODE || world.metadata.warpPlayer) {
+          // open player chat
           entity[PLAYER].actionTriggered = "chat";
         } else continue;
 

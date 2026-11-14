@@ -5,7 +5,6 @@ const {
   createPersistence,
 } = require("./persistence.cjs");
 
-// Engine integration API; the gameplay menu/realm transition flow is not wired yet.
 exports.createGameServer = async ({
   engine,
   file,
@@ -51,21 +50,25 @@ exports.createGameServer = async ({
     for (const [socket, client] of clients) {
       if (
         client.account &&
+        client.pendingState === undefined &&
         socket.readyState === WebSocket.OPEN &&
         socket.bufferedAmount < 2 * 1024 * 1024 &&
         !client.paused &&
         Date.now() - client.applicationTime < 3000
       ) {
         const world = simulation.worldFor(client.account.id);
-        if (!states.has(world))
-          states.set(
-            world,
-            engine.encodeState(simulation.frame(client.account.id))
-          );
+        if (!states.has(world)) {
+          const frame = simulation.frame(client.account.id);
+          states.set(world, {
+            sequence: frame.sequence,
+            state: engine.encodeState(frame),
+          });
+        }
+        client.pendingState = states.get(world).sequence;
         send(socket, {
           type: "state",
           actorId: simulation.actorId(client.account.id),
-          state: states.get(world),
+          state: states.get(world).state,
         });
       }
     }
@@ -73,13 +76,15 @@ exports.createGameServer = async ({
   const reject = (socket) =>
     socket.close(1008, "Invalid or unavailable session");
   server.on("connection", (socket) => {
-    if (clients.size >= 8) {
+    if (clients.size >= 16) {
       socket.close(1013, "Server full");
       return;
     }
     const client = {
+      connectedAt: Date.now(),
       account: undefined,
       joining: false,
+      pendingState: undefined,
       paused: false,
       received: -1,
       messages: 0,
@@ -140,19 +145,31 @@ exports.createGameServer = async ({
               return;
             }
             account = accounts.get(message.id);
-            if (
-              !account ||
-              !verifyCredential(account.hash, message.token) ||
-              [...clients.values()].some(
-                (other) => other !== client && other.account?.id === account.id
-              )
-            ) {
+            if (!account || !verifyCredential(account.hash, message.token)) {
               reject(socket);
               return;
             }
             if (simulation.actorId(account.id) === undefined)
               throw new Error("Saved player actor is unavailable");
-          } else {
+            for (const [previousSocket, previous] of clients) {
+              if (previous !== client && previous.account?.id === account.id) {
+                previous.account = undefined;
+                previousSocket.close(
+                  1008,
+                  "Session resumed in another connection"
+                );
+              }
+            }
+          }
+          if (
+            [...clients.values()].filter(
+              (other) => other !== client && (other.account || other.joining)
+            ).length >= 8
+          ) {
+            socket.close(1013, "Server full");
+            return;
+          }
+          if (!account) {
             if (accounts.size >= 64) {
               reject(socket);
               return;
@@ -191,6 +208,19 @@ exports.createGameServer = async ({
             client.received = message.input.sequence;
             send(socket, { type: "ack", sequence: client.received });
           }
+        } else if (message.type === "stateAck") {
+          if (
+            !client.account ||
+            !Number.isSafeInteger(message.sequence) ||
+            Object.keys(message).some(
+              (key) => !["type", "sequence"].includes(key)
+            )
+          ) {
+            reject(socket);
+            return;
+          }
+          if (message.sequence === client.pendingState)
+            client.pendingState = undefined;
         } else if (message.type === "heartbeat") {
           if (
             !client.account ||
@@ -201,7 +231,7 @@ exports.createGameServer = async ({
           }
           send(socket, {
             type: "pong",
-            serverTime: simulation.frame().serverTime,
+            serverTime: simulation.serverTime,
           });
         } else if (message.type === "pause") {
           if (
@@ -267,7 +297,11 @@ exports.createGameServer = async ({
   timers.push(
     setInterval(() => {
       for (const [socket, client] of clients) {
-        if (Date.now() - client.alive > 15000) socket.terminate();
+        if (
+          (!client.account && Date.now() - client.connectedAt > 5000) ||
+          Date.now() - client.alive > 15000
+        )
+          socket.terminate();
         else if (socket.readyState === WebSocket.OPEN) socket.ping();
       }
     }, 5000)

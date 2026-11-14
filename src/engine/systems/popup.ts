@@ -281,7 +281,9 @@ export const navigateChat = (
     }
     return;
   }
-  const history = loadChatHistory(heroEntity[PLAYER].chatHistory);
+  const history = world.metadata.warpPlayer
+    ? heroEntity[PLAYER].chatHistory
+    : loadChatHistory(heroEntity[PLAYER].chatHistory);
   heroEntity[PLAYER].chatHistory = history;
   const next = clamp(historyIndex - direction, 0, history.length);
   setVerticalIndex(world, popup, next);
@@ -353,14 +355,23 @@ export const submitChat = (
         ]
       : [];
   });
-  heroEntity[PLAYER].chatHistory = loadChatHistory(
-    heroEntity[PLAYER].chatHistory
-  );
+  if (!world.metadata.warpPlayer)
+    heroEntity[PLAYER].chatHistory = loadChatHistory(
+      heroEntity[PLAYER].chatHistory
+    );
   heroEntity[PLAYER].chatHistory.unshift(selections);
-  saveChatHistory(heroEntity[PLAYER].chatHistory);
+  if (world.metadata.warpPlayer)
+    heroEntity[PLAYER].chatHistory.length = Math.min(
+      32,
+      heroEntity[PLAYER].chatHistory.length
+    );
+  if (!world.metadata.warpPlayer)
+    saveChatHistory(heroEntity[PLAYER].chatHistory);
   play("confirm", {}, soundSource(world, heroEntity, true));
 
-  const command = parseCommand(keys.join(""));
+  const command = world.metadata.warpPlayer
+    ? undefined
+    : parseCommand(keys.join(""));
   const error = command
     ? executeCommand(world, heroEntity, command)
     : undefined;
@@ -1825,7 +1836,7 @@ export default function setupPopup(world: World) {
           });
         }
       } else if (tab === "chat") {
-        if (TEST_MODE) {
+        if (TEST_MODE || world.metadata.warpPlayer) {
           submitChat(world, heroEntity, selections.map(getKeyFromIndex));
         }
       } else if (tab === "use") {

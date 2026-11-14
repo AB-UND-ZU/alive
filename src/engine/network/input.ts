@@ -137,6 +137,28 @@ export const createPlayerInput = (world: World, playerId: number) => {
     pending = undefined;
     text.length = 0;
     lastMessageTime = -Infinity;
+    const player = world.getEntityById(playerId);
+    if (player?.[ACTIONABLE]) {
+      player[ACTIONABLE].spellTriggered = false;
+      player[ACTIONABLE].skillTriggered = false;
+      player[ACTIONABLE].interactTriggered = false;
+    }
+    if (player?.[PLAYER]) {
+      player[PLAYER].actionTriggered = undefined;
+      player[PLAYER].tabTriggered = undefined;
+      player[PLAYER].contentTriggered = undefined;
+      player[PLAYER].offsetTriggered = undefined;
+    }
+    if (player?.[MOVABLE]) {
+      player[MOVABLE].orientations = [];
+      player[MOVABLE].pendingOrientation = undefined;
+      const frame = world.getEntityByIdAndComponents(
+        player[MOVABLE].reference,
+        [REFERENCE]
+      );
+      if (frame && !player[MOVABLE].momentum)
+        frame[REFERENCE].suspensionCounter = 0;
+    }
   };
   const onUpdate = () => {
     const player = world.getEntityByIdAndComponents(playerId, [
@@ -184,6 +206,17 @@ export const createPlayerInput = (world: World, playerId: number) => {
       player[PLAYER].actionTriggered = undefined;
     }
     if (
+      pending ||
+      player[PLAYER].actionTriggered ||
+      player[ACTIONABLE].spellTriggered ||
+      player[ACTIONABLE].skillTriggered ||
+      player[ACTIONABLE].interactTriggered
+    ) {
+      if (frame[REFERENCE].suspensionCounter === 0)
+        frame[REFERENCE].suspensionCounter = 1;
+      frame[REFERENCE].suspended = false;
+    }
+    if (
       !pending ||
       lastActionGeneration === frame[RENDERABLE].generation ||
       player[ACTIONABLE].spellTriggered ||
@@ -197,6 +230,22 @@ export const createPlayerInput = (world: World, playerId: number) => {
     const popup = world.getEntityByIdAndComponents(player[PLAYER].popup, [
       POPUP,
     ]);
+    if (
+      !popup &&
+      [
+        "close",
+        "left",
+        "right",
+        "up",
+        "down",
+        "content",
+        "scroll",
+        "tab",
+        "backtab",
+        "type",
+      ].includes(action.kind)
+    )
+      return;
     if (
       action.kind === "tab" &&
       action.tab !== undefined &&

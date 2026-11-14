@@ -1,6 +1,12 @@
+import {
+  getIndexFromKey,
+  keyboardSize,
+  keyboardColumns,
+} from "../../components/Keyboard";
 import { moveEntity } from "../systems/map";
 import { isWalkable } from "../systems/movement";
 import { getClosestPlayer } from "../players";
+import { submitChat } from "../systems/popup";
 import { openPopup } from "../systems/popup";
 import { POPUP } from "../components/popup";
 import { createHost } from "./host";
@@ -121,4 +127,124 @@ it("releases an NPC dialog on disconnect and restores saved characters offline u
   expect(
     restored.world.assertByIdAndComponents(second, [PLAYER])[PLAYER].connected
   ).toBe(true);
+});
+
+it("treats slash commands as ordinary chat instead of allowing clients to grant equipment", () => {
+  const host = createHost();
+  const id = host.join("first");
+  const hero = host.world.assertByIdAndComponents(id, [
+    "INVENTORY",
+    PLAYER,
+    "TOOLTIP",
+  ]);
+  const before = [...hero.INVENTORY.items];
+  submitChat(host.world, hero, "/give sword 10 gold");
+  expect(hero.INVENTORY.items).toEqual(before);
+  expect(hero.TOOLTIP.enemy).toBe(false);
+  expect(hero.TOOLTIP.dialogs).toHaveLength(1);
+});
+
+it("keeps bounded server chat history separate from browser history and other characters", () => {
+  localStorage.setItem("alive.chatHistory", JSON.stringify([[1, 2, 3]]));
+  const host = createHost();
+  const first = host.world.assertByIdAndComponents(host.join("first"), [
+    PLAYER,
+  ]);
+  const second = host.world.assertByIdAndComponents(host.join("second"), [
+    PLAYER,
+  ]);
+  for (let line = 0; line < 40; line++)
+    submitChat(host.world, first, `Hello ${line}`);
+  expect(first[PLAYER].chatHistory).toHaveLength(32);
+  submitChat(host.world, second, "Hi");
+  expect(second[PLAYER].chatHistory).toHaveLength(1);
+  expect(JSON.parse(localStorage.getItem("alive.chatHistory")!)).toEqual([
+    [1, 2, 3],
+  ]);
+  localStorage.removeItem("alive.chatHistory");
+});
+
+it("opens and submits private chat through authoritative intents in normal play", () => {
+  const host = createHost();
+  const id = host.join("first");
+  host.join("second");
+  let sequence = 0;
+  const advance = () => {
+    for (let frame = 0; frame < 20; frame++) host.step();
+  };
+  host.receive("first", { sequence: sequence++, action: { kind: "chat" } });
+  advance();
+  const hero = host.world.assertByIdAndComponents(id, [PLAYER, "TOOLTIP"]);
+  const popup = host.world.assertByIdAndComponents(hero[PLAYER].popup, [POPUP]);
+  expect(popup[POPUP].tabs[popup[POPUP].horizontalIndex]).toBe("chat");
+  for (const character of "hello") {
+    const key = getIndexFromKey(character)!;
+    host.receive("first", {
+      sequence: sequence++,
+      action: {
+        kind: "text",
+        index:
+          key.tab * keyboardSize + key.offset * keyboardColumns + key.content,
+      },
+    });
+  }
+  advance();
+  host.receive("first", { sequence: sequence++, action: { kind: "right" } });
+  advance();
+  expect(hero[PLAYER].popup).toBeUndefined();
+  expect(hero[PLAYER].chatHistory).toHaveLength(1);
+  expect(
+    host.world.assertByIdAndComponents(host.actorId("second"), [PLAYER])[PLAYER]
+      .chatHistory
+  ).toHaveLength(0);
+  expect(hero.TOOLTIP.dialogs).toHaveLength(1);
+});
+
+it("closes a personal dialog while idle movement heartbeats continue", () => {
+  const host = createHost();
+  const id = host.join("first");
+  host.join("second");
+  let sequence = 0;
+  const step = () => {
+    for (let frame = 0; frame < 30; frame++) {
+      if (frame % 7 === 0)
+        host.receive("first", { sequence: sequence++, move: [] });
+      host.step();
+    }
+  };
+  step();
+  host.receive("first", {
+    sequence: sequence++,
+    move: [],
+    action: { kind: "stats" },
+  });
+  step();
+  const hero = host.world.assertByIdAndComponents(id, [PLAYER]);
+  expect(hero[PLAYER].popup).toBeDefined();
+  host.receive("first", {
+    sequence: sequence++,
+    move: [],
+    action: { kind: "close" },
+  });
+  step();
+  expect(hero[PLAYER].popup).toBeUndefined();
+});
+
+it("ignores a second close arriving after the dialog is gone instead of blocking later actions", () => {
+  const host = createHost();
+  const id = host.join("first");
+  const hero = host.world.assertByIdAndComponents(id, [PLAYER]);
+  let sequence = 0;
+  const action = (kind: "stats" | "close" | "chat") => {
+    host.receive("first", { sequence: sequence++, action: { kind } });
+    for (let frame = 0; frame < 20; frame++) host.step();
+  };
+  action("stats");
+  expect(hero[PLAYER].popup).toBeDefined();
+  action("close");
+  action("close");
+  expect(hero[PLAYER].actionTriggered).toBeUndefined();
+  action("chat");
+  const popup = host.world.assertByIdAndComponents(hero[PLAYER].popup, [POPUP]);
+  expect(popup[POPUP].tabs[popup[POPUP].horizontalIndex]).toBe("chat");
 });

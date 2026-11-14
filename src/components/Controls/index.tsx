@@ -558,7 +558,13 @@ export default function Controls({
     ) => {
       const hero = heroRef.current;
       event.preventDefault();
-      if (inMenu || !ecs || !hero || !isActionable(ecs, hero) || !TEST_MODE)
+      if (
+        (inMenu && !ecs?.metadata.network) ||
+        !ecs ||
+        !hero ||
+        !isActionable(ecs, hero) ||
+        !(TEST_MODE || ecs?.metadata.network)
+      )
         return;
 
       if (command) {
@@ -583,7 +589,7 @@ export default function Controls({
       const hero = heroRef.current;
       event.preventDefault();
       if (
-        inMenu ||
+        (inMenu && !ecs?.metadata.network) ||
         !ecs ||
         !hero ||
         pausedRef.current ||
@@ -821,7 +827,7 @@ export default function Controls({
           event.metaKey ||
           (event.repeat &&
             !(
-              TEST_MODE &&
+              (TEST_MODE || ecs?.metadata.network) &&
               popupTab === "chat" &&
               (getIndexFromKey(event.key) || backspaceKeys.includes(event.key))
             )))
@@ -829,7 +835,7 @@ export default function Controls({
         return;
 
       if (
-        TEST_MODE &&
+        (TEST_MODE || ecs?.metadata.network) &&
         popupTab === "chat" &&
         !interactKeys.includes(event.key) &&
         !closeKeys.includes(event.key) &&
@@ -869,13 +875,13 @@ export default function Controls({
         handleStats(event);
         return;
       } else if (
-        TEST_MODE &&
+        (TEST_MODE || ecs?.metadata.network) &&
         (chatKeys.includes(event.key) ||
           commandKeys.includes(event.key) ||
           (!interactable && !popup && interactKeys.includes(event.key))) &&
         event.type === "keydown"
       ) {
-        // allow opening chat in test mode
+        // open chat for test mode and connected players
         handleChat(event, commandKeys.includes(event.key));
         return;
       } else if (
@@ -1011,7 +1017,11 @@ export default function Controls({
       const onKeyboard = [...event.changedTouches].some((touch) =>
         (touch.target as HTMLElement).closest("#keyboard")
       );
-      if (onKeyboard && !(TEST_MODE && popupTab === "chat")) return;
+      if (
+        onKeyboard &&
+        !((TEST_MODE || ecs?.metadata.network) && popupTab === "chat")
+      )
+        return;
 
       const [x, y] = [touch.clientX, touch.clientY];
       if (!touchOrigin.current) touchOrigin.current = [x, y];
@@ -1032,7 +1042,7 @@ export default function Controls({
       if (nextOrientations.length > 0) {
         // handle history in single steps
         const primaryOrientation = nextOrientations[0];
-        if (TEST_MODE && popupTab === "chat") {
+        if ((TEST_MODE || ecs?.metadata.network) && popupTab === "chat") {
           if (
             primaryOrientation === "right" &&
             pressedOrientations.current[0] !== "right"

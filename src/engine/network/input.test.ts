@@ -193,3 +193,18 @@ it("accepts normalized scrollbar positions and ignores coordinates outside the o
   advance(world, 500);
   expect(getVerticalIndex(world, use)).toBeGreaterThan(0);
 });
+
+it("wakes an idle actor clock before accepting its next dialog action", () => {
+  const { world, hero, input } = setup();
+  input.receive({ sequence: 0, action: { kind: "history", index: 0 } });
+  input.onUpdate();
+  const frame = world.assertByIdAndComponents(hero.MOVABLE!.reference, [
+    "REFERENCE",
+  ]);
+  frame.REFERENCE.suspensionCounter = 0;
+  frame.REFERENCE.suspended = true;
+  frame.REFERENCE.delta = frame.REFERENCE.tick;
+  input.receive({ sequence: 1, action: { kind: "gear" } });
+  advance(world, 800);
+  expect(hero[PLAYER]!.popup).toBeDefined();
+});

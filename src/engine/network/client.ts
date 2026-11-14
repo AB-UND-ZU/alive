@@ -112,8 +112,10 @@ export const connectServer = (
               options.onReady?.(replica.world);
             }
           }
+          send({ type: "stateAck", sequence: frame.sequence });
         } else if (message.type === "error") current.close();
       } catch (error) {
+        console.error("Server state could not be applied:", error);
         current.close(1002, "Invalid server response");
       }
     };
@@ -151,6 +153,7 @@ export const connectServer = (
       input(action);
     },
     pause(next: boolean) {
+      if (next !== paused) sounds.reset();
       paused = next;
       move = [];
       send({ type: "pause", paused });
