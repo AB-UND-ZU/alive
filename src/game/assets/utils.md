@@ -24,6 +24,7 @@ Composes game dialog content and resolves item or unit visuals. These helpers ke
 
 `getItemSprite` returns the missing sprite for an unresolved configuration. A zero-amount weapon returns no sprite, preserving the hidden-claw convention. [Descriptions](descriptions.md) and [unit definitions](../balancing/units.md) supply the underlying data. Popup frame dimensions and timing constants stay here so dialogs share one layout.
 `displayPopupView` accepts a pure builder returning a named [PopupView](popupView.md). `renderPopup` caches that view against mutable dialog inputs, while continuing to advance text reveal, selection, scrolling and hints each update. Background inventory, equipment and stat changes refresh rows and buttons. Details overwrite their complete rectangle, including blank cells. A change in detail padding also refreshes the separator and scrollbar even when the content keeps the same number of rows. Button particles are updated in place and remain owned by the popup sequence for cleanup.
+Terminal item displays use the explicit amount override, or the item amount when none is passed. Browser layers keep the existing explicit-override behavior.
 <!-- source-types -->
 
 ## StepAnimations

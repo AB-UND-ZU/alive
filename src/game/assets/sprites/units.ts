@@ -113,6 +113,7 @@ export const tulip: Sprite = {
 
 export const dummy: Sprite = {
   name: "Dummy",
+  terminal: { layers: [{ char: "Ω", color: colors.white }] },
   layers: [
     { char: "│", color: colors.maroon },
     { char: "└", color: colors.black },
@@ -657,6 +658,7 @@ export const portalEntered: Sprite = {
 
 export const egg: Sprite = {
   name: "Egg",
+  terminal: { layers: [{ char: "•", color: colors.white }] },
   layers: [
     { char: "!", color: colors.white },
     { char: "0", color: colors.black },

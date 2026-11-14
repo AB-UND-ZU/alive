@@ -21,6 +21,15 @@ export const orb = createTemplate({ sprite: orbTemplate });
 
 const eyeTemplate: Sprite = {
   name: "Eye",
+  terminal: {
+    layers: [{ char: "O", color: TEMPLATE_COLORS.materialPrimary }],
+    facing: {
+      up: [{ char: "Ö", color: TEMPLATE_COLORS.materialPrimary }],
+      right: [{ char: "Ö", color: TEMPLATE_COLORS.materialPrimary }],
+      down: [{ char: "Ö", color: TEMPLATE_COLORS.materialPrimary }],
+      left: [{ char: "Ö", color: TEMPLATE_COLORS.materialPrimary }],
+    },
+  },
   layers: [
     { char: "\u0108", color: TEMPLATE_COLORS.materialPrimary },
     { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },

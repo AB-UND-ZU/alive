@@ -1,4 +1,4 @@
-import { createTemplate, TEMPLATE_COLORS } from ".";
+import { createTemplate, TEMPLATE_COLORS, colorPalettes } from ".";
 import { Sprite } from "../../../engine/components/sprite";
 import { colors } from "../colors";
 
@@ -79,6 +79,7 @@ export const spear = createTemplate({
 
 const wandTemplate: Sprite = {
   name: "Wand",
+  terminal: { layers: [{ char: ";", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
     { char: "∙", color: TEMPLATE_COLORS.materialSecondary },
@@ -87,6 +88,7 @@ const wandTemplate: Sprite = {
 };
 const wandIron: Sprite = {
   name: "Wand",
+  terminal: { layers: [{ char: ";", color: colors.grey }] },
   layers: [
     { char: "\u0106", color: colors.white },
     { char: "∙", color: colors.grey },
@@ -95,6 +97,7 @@ const wandIron: Sprite = {
 };
 const wandElementTemplate: Sprite = {
   name: "Wand",
+  terminal: { layers: [{ char: ";", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
     { char: "∙", color: TEMPLATE_COLORS.materialSecondary },
@@ -142,6 +145,9 @@ export const shield = createTemplate({
 
 const hammerTemplate: Sprite = {
   name: "Hammer",
+  terminal: {
+    layers: [{ char: "\u0117", color: TEMPLATE_COLORS.materialPrimary }],
+  },
   layers: [
     { char: "|", color: TEMPLATE_COLORS.materialPrimary },
     { char: '"', color: TEMPLATE_COLORS.materialSecondary },
@@ -153,6 +159,9 @@ export const hammer = createTemplate({ sprite: hammerTemplate });
 
 const shovelTemplate: Sprite = {
   name: "Shovel",
+  terminal: {
+    layers: [{ char: "\u0118", color: TEMPLATE_COLORS.materialPrimary }],
+  },
   layers: [
     { char: "I", color: TEMPLATE_COLORS.materialSecondary },
     { char: "i", color: TEMPLATE_COLORS.transparent },
@@ -168,6 +177,7 @@ export const shovel = createTemplate({
 
 const axeTemplate: Sprite = {
   name: "Axe",
+  terminal: { layers: [{ char: "Γ", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "'", color: TEMPLATE_COLORS.materialPrimary },
     { char: "º", color: TEMPLATE_COLORS.materialPrimary },
@@ -203,6 +213,7 @@ const axeTemplate: Sprite = {
 };
 const ironAxe: Sprite = {
   name: "Axe",
+  terminal: { layers: [{ char: "Γ", color: colors.grey }] },
   layers: [
     { char: "'", color: colors.white },
     { char: "º", color: colors.white },
@@ -244,6 +255,9 @@ axe.iron.default = ironAxe;
 
 const pickaxeTemplate: Sprite = {
   name: "Pickaxe",
+  terminal: {
+    layers: [{ char: "\u0119", color: TEMPLATE_COLORS.materialPrimary }],
+  },
   layers: [
     { char: "\u0119", color: TEMPLATE_COLORS.materialPrimary },
     { char: "-", color: TEMPLATE_COLORS.materialSecondary },
@@ -269,6 +283,7 @@ const pickaxeTemplate: Sprite = {
 };
 const woodPickaxe: Sprite = {
   name: "Pickaxe",
+  terminal: { layers: [{ char: "\u0119", color: colors.maroon }] },
   layers: [
     { char: "\u0119", color: colors.grey },
     { char: "-", color: colors.maroon },
@@ -294,6 +309,7 @@ const woodPickaxe: Sprite = {
 };
 const ironPickaxe: Sprite = {
   name: "Pickaxe",
+  terminal: { layers: [{ char: "\u0119", color: colors.grey }] },
   layers: [
     { char: "\u0119", color: colors.white },
     { char: "-", color: colors.grey },
@@ -326,6 +342,7 @@ pickaxe.iron.default = ironPickaxe;
 
 const hookTemplate: Sprite = {
   name: "Hook",
+  terminal: { layers: [{ char: "⌠", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "│", color: TEMPLATE_COLORS.materialSecondary },
     { char: "┐", color: TEMPLATE_COLORS.transparent },
@@ -371,6 +388,7 @@ const hookTemplate: Sprite = {
 };
 const ironHook: Sprite = {
   name: "Hook",
+  terminal: { layers: [{ char: "⌠", color: colors.grey }] },
   layers: [
     { char: "│", color: colors.grey },
     { char: "┐", color: colors.black },
@@ -424,6 +442,7 @@ hook.iron.default = ironHook;
 
 const bootsTemplate: Sprite = {
   name: "Boots",
+  terminal: { layers: [{ char: "ⁿ", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "\u0116", color: TEMPLATE_COLORS.materialPrimary },
     { char: "\u0111", color: TEMPLATE_COLORS.transparent },
@@ -460,6 +479,7 @@ export const amulet = createTemplate({
 
 const ringTemplate: Sprite = {
   name: "Ring",
+  terminal: { layers: [{ char: "ô", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "|", color: TEMPLATE_COLORS.materialPrimary },
     { char: ".", color: TEMPLATE_COLORS.transparent },
@@ -470,6 +490,7 @@ const ringTemplate: Sprite = {
 };
 const ringElementTemplate: Sprite = {
   name: "Ring",
+  terminal: { layers: [{ char: "ô", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "|", color: TEMPLATE_COLORS.elementPrimary },
     { char: ".", color: TEMPLATE_COLORS.transparent },
@@ -487,6 +508,7 @@ export const ring = createTemplate({
 
 const beamSpellTemplate: Sprite = {
   name: "Beam",
+  terminal: { layers: [{ char: ":", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "±", color: TEMPLATE_COLORS.materialPrimary },
     { char: "■", color: TEMPLATE_COLORS.materialPrimary },
@@ -497,6 +519,7 @@ const beamSpellTemplate: Sprite = {
 };
 const beamSpellElementTemplate: Sprite = {
   name: "Beam",
+  terminal: { layers: [{ char: ":", color: TEMPLATE_COLORS.elementPrimary }] },
   layers: [
     { char: "±", color: TEMPLATE_COLORS.materialPrimary },
     { char: "■", color: TEMPLATE_COLORS.materialPrimary },
@@ -540,6 +563,7 @@ export const waveSpell = createTemplate({
 
 const trapSpellTemplate: Sprite = {
   name: "Trap",
+  terminal: { layers: [{ char: "%", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "≡", color: TEMPLATE_COLORS.materialPrimary },
     { char: "\u0103", color: TEMPLATE_COLORS.transparent },
@@ -549,6 +573,7 @@ const trapSpellTemplate: Sprite = {
 };
 const trapSpellElementTemplate: Sprite = {
   name: "Trap",
+  terminal: { layers: [{ char: "%", color: TEMPLATE_COLORS.elementPrimary }] },
   layers: [
     { char: "≡", color: TEMPLATE_COLORS.materialPrimary },
     { char: "\u0103", color: TEMPLATE_COLORS.transparent },
@@ -586,6 +611,7 @@ export const dashSpell = createTemplate({
 
 const zapTemplate: Sprite = {
   name: "Zap",
+  terminal: { layers: [{ char: "÷", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "%", color: TEMPLATE_COLORS.materialPrimary },
     { char: "/", color: TEMPLATE_COLORS.transparent },
@@ -650,6 +676,7 @@ export const block = createTemplate({ sprite: blockTemplate });
 
 const totemTemplate: Sprite = {
   name: "Totem",
+  terminal: { layers: [{ char: "T", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "x", color: TEMPLATE_COLORS.materialPrimary },
     { char: "=", color: TEMPLATE_COLORS.materialPrimary },
@@ -667,6 +694,15 @@ export const totem = createTemplate({ sprite: totemTemplate });
 
 const compassTemplate: Sprite = {
   name: "Compass",
+  terminal: {
+    layers: [{ char: "\u0111", color: TEMPLATE_COLORS.materialPrimary }],
+    facing: {
+      up: [{ char: "\u0117", color: TEMPLATE_COLORS.materialPrimary }],
+      right: [{ char: "\u0119", color: TEMPLATE_COLORS.materialPrimary }],
+      down: [{ char: "\u0118", color: TEMPLATE_COLORS.materialPrimary }],
+      left: [{ char: "\u011a", color: TEMPLATE_COLORS.materialPrimary }],
+    },
+  },
   layers: [
     { char: "\u0108", color: colors.maroon },
     { char: "\u0106", color: colors.maroon },
@@ -704,6 +740,7 @@ export const compass = createTemplate({ sprite: compassTemplate });
 
 const torchTemplate: Sprite = {
   name: "Torch",
+  terminal: { layers: [{ char: "î", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "┐", color: TEMPLATE_COLORS.materialPrimary },
     { char: "─", color: TEMPLATE_COLORS.transparent },
@@ -713,6 +750,7 @@ const torchTemplate: Sprite = {
 };
 const torchGold: Sprite = {
   name: "Torch",
+  terminal: { layers: [{ char: "î", color: colors.yellow }] },
   layers: [
     { char: "┐", color: colors.olive },
     { char: "─", color: colors.black },
@@ -737,3 +775,16 @@ export const map = createTemplate({
   sprite: mapTemplate,
   invertWoodIron: true,
 });
+
+for (const [template, char] of [
+  [wand, ";"],
+  [shovel, "\u0118"],
+  [axe, "Γ"],
+  [pickaxe, "\u0119"],
+  [hook, "⌠"],
+] as const)
+  for (const material of ["wood", "iron"] as const)
+    for (const sprite of Object.values(template[material]))
+      sprite.terminal = {
+        layers: [{ char, color: colorPalettes[material].primary }],
+      };

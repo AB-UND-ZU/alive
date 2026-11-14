@@ -30,6 +30,7 @@ import { centerSprites } from "../../game/assets/pixels";
 import {
   none,
   pauseInvert,
+  popupActive,
   pauseInvertPressed,
 } from "../../game/assets/sprites";
 import { getItemSprite } from "../../game/assets/utils";
@@ -299,7 +300,7 @@ export const getTerminalFrame = (
         if (index) overlay.push([]);
         const selected = (session.selection || 0) === index && !action.disabled;
         overlay.push([
-          ...createText(selected ? ">" : " "),
+          ...(selected ? [popupActive] : createText(" ")),
           ...createSpriteButton(
             createText(
               action.name,

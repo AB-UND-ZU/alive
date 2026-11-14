@@ -94,7 +94,7 @@ export const banana: Sprite = {
 
 export const coconutDrop: Sprite = {
   name: "Coconut",
-  terminal: { layers: [{ char: "•", color: colors.maroon }] },
+  terminal: { layers: [{ char: "\u0108", color: colors.maroon }] },
   layers: [
     { char: "\u0108", color: colors.maroon },
     { char: "\u0106", color: colors.black },
@@ -105,7 +105,7 @@ export const coconutDrop: Sprite = {
 
 export const coconut: Sprite = {
   name: "Coconut",
-  terminal: { layers: [{ char: "•", color: colors.maroon }] },
+  terminal: { layers: [{ char: "\u0108", color: colors.maroon }] },
   layers: [
     { char: "\u0108", color: colors.maroon },
     { char: "\u0106", color: colors.black },
@@ -132,6 +132,7 @@ export const coconut: Sprite = {
 
 export const mineral: Sprite = {
   name: "Mineral",
+  terminal: { layers: [{ char: "\u0108", color: colors.lime }] },
   layers: [
     { char: "+", color: colors.green },
     { char: "÷", color: colors.black },
@@ -141,6 +142,7 @@ export const mineral: Sprite = {
 
 export const crystal: Sprite = {
   name: "Crystal",
+  terminal: { layers: [{ char: "\u0108", color: colors.aqua }] },
   layers: [
     { char: "\u0106", color: colors.teal },
     { char: "÷", color: colors.black },
@@ -159,6 +161,7 @@ export const thorn: Sprite = {
 
 export const spore: Sprite = {
   name: "Spore",
+  terminal: { layers: [{ char: ":", color: colors.white }] },
   layers: [
     { char: "*", color: colors.white },
     { char: "∞", color: colors.black },
@@ -313,6 +316,7 @@ export const mining: Sprite = {
 
 export const fishing: Sprite = {
   name: "Fishing",
+  terminal: { layers: [{ char: "⌠", color: colors.green }] },
   layers: [
     { char: "│", color: colors.green },
     { char: "┐", color: colors.black },
@@ -336,10 +340,10 @@ export const build: Sprite = {
 export const coin: Sprite = {
   name: "Coin",
   terminal: {
-    layers: [{ char: "o", color: colors.yellow }],
+    layers: [{ char: "°", color: colors.yellow }],
     amounts: {
-      single: [{ char: "o", color: colors.yellow }],
-      double: [{ char: "o", color: colors.yellow }],
+      single: [{ char: "°", color: colors.yellow }],
+      double: [{ char: "\u0108", color: colors.yellow }],
       multiple: [{ char: "o", color: colors.yellow }],
     },
   },
@@ -359,6 +363,7 @@ export const coin: Sprite = {
 
 export const nugget: Sprite = {
   name: "Nugget",
+  terminal: { layers: [{ char: "\u0108", color: colors.yellow }] },
   layers: [
     { char: "\u011d", color: colors.olive },
     { char: "-", color: colors.black },
@@ -370,6 +375,7 @@ export const nugget: Sprite = {
 
 export const ingot: Sprite = {
   name: "Ingot",
+  terminal: { layers: [{ char: "■", color: colors.yellow }] },
   layers: [
     { char: "■", color: colors.olive },
     { char: "+", color: colors.yellow },
@@ -390,6 +396,7 @@ export const stick: Sprite = {
 
 export const wood: Sprite = {
   name: "Wood",
+  terminal: { layers: [{ char: "•", color: colors.maroon }] },
   layers: [
     { char: "o", color: colors.maroon },
     { char: "w", color: colors.maroon },
@@ -402,6 +409,7 @@ export const wood: Sprite = {
 
 export const plank: Sprite = {
   name: "Plank",
+  terminal: { layers: [{ char: "█", color: colors.maroon }] },
   layers: [
     { char: "M", color: colors.maroon },
     { char: "!", color: colors.black },
@@ -559,6 +567,14 @@ export const herb: Sprite = {
 
 export const oreDrop: Sprite = {
   name: "Ore",
+  terminal: {
+    layers: [{ char: ".", color: colors.silver }],
+    amounts: {
+      single: [{ char: ".", color: colors.silver }],
+      double: [{ char: ":", color: colors.silver }],
+      multiple: [{ char: "÷", color: colors.silver }],
+    },
+  },
   layers: [{ char: "∙", color: colors.silver }],
   amounts: {
     single: [{ char: "∙", color: colors.silver }],
@@ -574,6 +590,14 @@ export const oreDrop: Sprite = {
 
 export const ore: Sprite = {
   name: "Ore",
+  terminal: {
+    layers: [{ char: ".", color: colors.silver }],
+    amounts: {
+      single: [{ char: ".", color: colors.silver }],
+      double: [{ char: ":", color: colors.silver }],
+      multiple: [{ char: "÷", color: colors.silver }],
+    },
+  },
   layers: [{ char: "∙", color: colors.silver }],
   amounts: {
     single: [
@@ -596,6 +620,14 @@ export const ore: Sprite = {
 
 export const oreDisplay: Sprite = {
   name: "Ore",
+  terminal: {
+    layers: [{ char: ".", color: colors.silver }],
+    amounts: {
+      single: [{ char: ".", color: colors.silver }],
+      double: [{ char: ":", color: colors.silver }],
+      multiple: [{ char: "÷", color: colors.silver }],
+    },
+  },
   layers: [
     { char: "\u0107", color: colors.grey },
     { char: "\u0106", color: colors.grey },
@@ -605,6 +637,7 @@ export const oreDisplay: Sprite = {
 
 export const iron: Sprite = {
   name: "Iron",
+  terminal: { layers: [{ char: "■", color: colors.grey }] },
   layers: [
     { char: "■", color: colors.grey },
     { char: "÷", color: colors.silver },
@@ -614,6 +647,7 @@ export const iron: Sprite = {
 
 export const gold: Sprite = {
   name: "Gold",
+  terminal: { layers: [{ char: "■", color: colors.yellow }] },
   layers: [
     { char: "■", color: colors.grey },
     { char: "÷", color: colors.yellow },
@@ -623,6 +657,7 @@ export const gold: Sprite = {
 
 export const diamond: Sprite = {
   name: "Diamond",
+  terminal: { layers: [{ char: "■", color: colors.aqua }] },
   layers: [
     { char: "■", color: colors.grey },
     { char: "÷", color: colors.aqua },
@@ -632,6 +667,7 @@ export const diamond: Sprite = {
 
 export const diamondGem: Sprite = {
   name: "Diamond",
+  terminal: { layers: [{ char: "■", color: colors.aqua }] },
   layers: [
     { char: "\u0103", color: colors.aqua },
     { char: "°", color: colors.black },
@@ -642,6 +678,7 @@ export const diamondGem: Sprite = {
 
 export const ruby: Sprite = {
   name: "Ruby",
+  terminal: { layers: [{ char: "■", color: colors.fuchsia }] },
   layers: [
     { char: "■", color: colors.grey },
     { char: "÷", color: colors.fuchsia },
@@ -651,6 +688,7 @@ export const ruby: Sprite = {
 
 export const rubyGem: Sprite = {
   name: "Ruby",
+  terminal: { layers: [{ char: "■", color: colors.fuchsia }] },
   layers: [
     { char: "\u0103", color: colors.fuchsia },
     { char: "°", color: colors.black },
@@ -724,6 +762,7 @@ export const worm: Sprite = {
 
 export const algae: Sprite = {
   name: "Seaweed",
+  terminal: { layers: [{ char: "w", color: colors.green }] },
   layers: [
     { char: "+", color: colors.green },
     { char: "-", color: colors.black },
@@ -735,6 +774,7 @@ export const algae: Sprite = {
 
 export const pearl: Sprite = {
   name: "Pearl",
+  terminal: { layers: [{ char: "·", color: colors.white }] },
   layers: [
     { char: "\u0106", color: colors.white },
     { char: "∙", color: colors.grey },
@@ -744,6 +784,7 @@ export const pearl: Sprite = {
 
 export const tea: Sprite = {
   name: "Tea",
+  terminal: { layers: [{ char: "▬", color: colors.blue }] },
   layers: [
     { char: "∞", color: colors.maroon },
     { char: "\u011d", color: colors.aqua },
@@ -755,6 +796,7 @@ export const tea: Sprite = {
 
 export const curry: Sprite = {
   name: "Curry",
+  terminal: { layers: [{ char: "■", color: colors.blue }] },
   layers: [
     { char: "∞", color: colors.maroon },
     { char: "\u011d", color: colors.yellow },
@@ -766,6 +808,7 @@ export const curry: Sprite = {
 
 export const soup: Sprite = {
   name: "Soup",
+  terminal: { layers: [{ char: "▄", color: colors.blue }] },
   layers: [
     { char: "∞", color: colors.maroon },
     { char: "\u011d", color: colors.fuchsia },
@@ -777,6 +820,7 @@ export const soup: Sprite = {
 
 export const juice: Sprite = {
   name: "Juice",
+  terminal: { layers: [{ char: "■", color: colors.red }] },
   layers: [
     { char: "■", color: colors.maroon },
     { char: "\u0106", color: colors.green },
@@ -787,6 +831,7 @@ export const juice: Sprite = {
 
 export const granola: Sprite = {
   name: "Granola",
+  terminal: { layers: [{ char: "▬", color: colors.red }] },
   layers: [
     { char: "■", color: colors.maroon },
     { char: "\u0106", color: colors.silver },
@@ -949,7 +994,7 @@ export const lemon: Sprite = {
 
 export const grain: Sprite = {
   name: "Grain",
-  terminal: { layers: [{ char: "∙", color: colors.yellow }] },
+  terminal: { layers: [{ char: "¥", color: colors.yellow }] },
   layers: [
     { char: "∙", color: colors.olive },
     { char: "·", color: colors.yellow },
@@ -980,6 +1025,7 @@ export const bread: Sprite = {
 
 export const toast: Sprite = {
   name: "Toast",
+  terminal: { layers: [{ char: "▄", color: colors.red }] },
   layers: [
     { char: "\u0108", color: colors.olive },
     { char: "=", color: colors.olive },

@@ -7,7 +7,7 @@ height, snaps each position up to a whole cell and composites them into a
 `collectTerminalSprites` combines each entity's body, backdrop, shadow and
 equipment segments before projection. Weapons therefore do not replace the
 actor's character. Upper and lower title blocks at the same position and depth
-are composed together so neither half overwrites the other. Loot and particles remain independent. Transparent
+are composed together so neither half overwrites the other. Loot and particles remain independent. Wave and trap edges snap outward from their shared center, so mirrored edges advance together. Trap outlines stay a complete native-cell frame during their short active effect. Beam endpoints render above interior bolts and keep their edge characters. Transparent
 backgrounds retain the cell below. Empty transparent sprites do
 not erase the scene. Health bars and item-count dots are not projected.
 

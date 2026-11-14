@@ -235,6 +235,7 @@ export const ice: Sprite = {
 
 export const sand: Sprite = {
   name: "Desert",
+  terminal: { layers: [{ char: "%", color: colors.yellow }] },
   layers: [
     { char: "\u0107", color: colors.olive },
     { char: "\u0109", color: colors.olive },
@@ -244,6 +245,7 @@ export const sand: Sprite = {
 
 export const beach: Sprite = {
   name: "sand_beach",
+  terminal: { layers: [{ char: "%", color: colors.yellow }] },
   layers: [{ char: "▒", color: colors.olive }],
 };
 
@@ -260,6 +262,7 @@ export const path: Sprite = {
 
 export const gravel1: Sprite = {
   name: "gravel_one",
+  terminal: { layers: [{ char: "%", color: colors.grey }] },
   layers: [
     { char: "\u0112", color: colors.grey },
     { char: "\u0105", color: colors.black },
@@ -270,6 +273,7 @@ export const gravel1: Sprite = {
 
 export const gravel2: Sprite = {
   name: "gravel_two",
+  terminal: { layers: [{ char: "%", color: colors.grey }] },
   layers: [
     { char: "-", color: colors.grey },
     { char: ":", color: colors.grey },

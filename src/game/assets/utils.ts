@@ -1323,7 +1323,11 @@ export const getItemSprite = (
     ...(sprite.terminal && {
       terminal: {
         ...sprite.terminal,
-        layers: getFacingLayers(sprite.terminal, orientation, amount),
+        layers: getFacingLayers(
+          sprite.terminal,
+          orientation,
+          amount ?? item.amount
+        ),
       },
     }),
   };

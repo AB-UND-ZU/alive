@@ -52,7 +52,7 @@ key.default.fire = fireKey;
 
 const flaskTemplate: Sprite = {
   name: "Flask",
-  terminal: { layers: [{ char: "Σ", color: TEMPLATE_COLORS.elementPrimary }] },
+  terminal: { layers: [{ char: "σ", color: TEMPLATE_COLORS.elementPrimary }] },
   layers: [
     { char: "\u0108", color: TEMPLATE_COLORS.materialPrimary },
     { char: ":", color: TEMPLATE_COLORS.materialSecondary },
@@ -107,6 +107,7 @@ export const elixir = createTemplate({ sprite: elixirTemplate });
 
 const bucketTemplate: Sprite = {
   name: "Bucket",
+  terminal: { layers: [{ char: "u", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "U", color: TEMPLATE_COLORS.materialPrimary },
     { char: "▀", color: TEMPLATE_COLORS.transparent },
@@ -114,6 +115,7 @@ const bucketTemplate: Sprite = {
 };
 const bucketElementTemplate: Sprite = {
   name: "Bucket",
+  terminal: { layers: [{ char: "u", color: TEMPLATE_COLORS.elementPrimary }] },
   layers: [
     { char: "\u011d", color: TEMPLATE_COLORS.elementPrimary },
     { char: "-", color: TEMPLATE_COLORS.transparent },
@@ -123,6 +125,7 @@ const bucketElementTemplate: Sprite = {
 };
 const ironBucket: Sprite = {
   name: "Bucket",
+  terminal: { layers: [{ char: "u", color: colors.silver }] },
   layers: [
     { char: "U", color: colors.silver },
     { char: "▀", color: colors.black },
@@ -130,6 +133,7 @@ const ironBucket: Sprite = {
 };
 const ironWaterBucket: Sprite = {
   name: "Water",
+  terminal: { layers: [{ char: "u", color: colors.blue }] },
   layers: [
     { char: "\u011d", color: colors.blue },
     { char: "-", color: colors.black },

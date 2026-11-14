@@ -15,7 +15,7 @@ export const bombActive: Sprite = {
 
 export const emptyFlask: Sprite = {
   name: "Flask",
-  terminal: { layers: [{ char: "Σ", color: colors.maroon }] },
+  terminal: { layers: [{ char: "σ", color: colors.maroon }] },
   layers: [
     { char: "\u0108", color: colors.maroon },
     { char: ":", color: colors.grey },

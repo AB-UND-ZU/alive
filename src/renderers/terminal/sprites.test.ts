@@ -245,7 +245,7 @@ describe("terminal sprite projection", () => {
       });
     }
     expect(projectSprite(eye.gold.default)).toMatchObject({
-      char: "o",
+      char: "O",
       foreground: colors.yellow,
     });
     expect(projectSprite(key.iron.default)).toMatchObject({
@@ -277,7 +277,7 @@ describe("terminal sprite projection", () => {
       }
     }
     expect(projectSprite(trigger.iron.default)).toEqual({
-      char: "x",
+      char: "%",
       foreground: colors.grey,
     });
     expect(projectSprite(triggerSide.iron.fire, "up")).toMatchObject({
@@ -314,7 +314,7 @@ describe("terminal sprite projection", () => {
         projectSprite(bolt.iron.fire, undefined, amount).foreground
       ).not.toBe(colors.black);
       expect(projectSprite(bolt.iron.fire, undefined, amount)).toEqual({
-        char: "•",
+        char: ":",
         foreground: colors.red,
       });
     }
@@ -445,9 +445,8 @@ describe("terminal sprite projection", () => {
 
   it("keeps terrain patterns distinct without losing their colors", () => {
     expect(projectSprite(sprites.sand)).toMatchObject({
-      char: "░",
-      foreground: colors.black,
-      background: colors.olive,
+      char: "%",
+      foreground: colors.yellow,
     });
     expect(projectSprite(sprites.path)).toMatchObject({
       char: "░",
@@ -492,7 +491,7 @@ describe("terminal sprite projection", () => {
         foreground: colors.red,
       });
       expect(projectSprite(eye.gold.default, facing)).toEqual({
-        char: "ô",
+        char: "Ö",
         foreground: colors.yellow,
       });
     }
@@ -644,7 +643,7 @@ describe("terminal sprite projection", () => {
 
 it("uses source-defined terminal item displays without changing the browser layers", () => {
   const cases = [
-    [sprites.grain, "∙", colors.yellow],
+    [sprites.grain, "¥", colors.yellow],
     [sprites.cactus1, "√", colors.green],
     [sprites.cactus2, "√", colors.green],
     [sprites.palm1, "Y", colors.green],
@@ -654,7 +653,7 @@ it("uses source-defined terminal item displays without changing the browser laye
     [sprites.ghost, "♀", colors.yellow],
     [sprites.shroom, "·", colors.maroon],
     [sprites.flower, "·", colors.teal],
-    [sprites.coconut, "•", colors.maroon],
+    [sprites.coconut, "○", colors.maroon],
   ] as const;
   for (const [sprite, char, foreground] of cases) {
     expect(projectSprite(sprite)).toMatchObject({ char, foreground });
@@ -678,7 +677,7 @@ it("uses source-defined terminal item displays without changing the browser laye
 
 it("keeps material potion shapes and stat colors in filled and empty forms", () => {
   for (const [material, char, empty, color] of [
-    ["wood", "Σ", sprites.emptyFlask, colors.maroon],
+    ["wood", "σ", sprites.emptyFlask, colors.maroon],
     ["iron", "δ", sprites.emptyBottle, colors.grey],
     ["gold", "♂", sprites.emptyPotion, colors.yellow],
   ] as const) {
@@ -696,7 +695,7 @@ it("keeps material potion shapes and stat colors in filled and empty forms", () 
     projectSprite(getItemSprite({ consume: "key", material: "gold" }))
   ).toMatchObject({ char: "╒", foreground: colors.yellow });
   expect(projectSprite(getItemSprite({ stackable: "coin" }))).toMatchObject({
-    char: "o",
+    char: "°",
     foreground: colors.yellow,
   });
 });

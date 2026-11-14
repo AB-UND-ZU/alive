@@ -33,6 +33,10 @@ export type TerminalSprite = {
 };
 export type TerminalFrame = TerminalCell[][];
 
+// Ignore floating-point noise at a cell boundary before snapping mirrored edges.
+const ceilOffset = (offset: number) =>
+  Math.sign(offset) * Math.ceil(Math.abs(offset) - 1e-6);
+
 // Equipment and backdrops are layers of one actor, not replacement characters.
 export const collectTerminalSprites = (
   scene: SceneSprite[]
@@ -51,8 +55,30 @@ export const collectTerminalSprites = (
         const body = bodies.get(entry.key.replace(/particle\d+$/, "body"));
         if (body?.hero) body.hero.hit = true;
       }
-      result.push({
+      const bodyKey = entry.key.replace(/particle\d+$/, "body");
+      const anchor = bodies.get(bodyKey);
+      const ring = ["castWave1", "trapAura"].includes(
+        entry.particleSequence || ""
+      );
+      const beam = entry.particleSequence === "castBeam1";
+      const sprite = {
         ...entry,
+        z:
+          beam && ["start", "end"].includes(entry.particleName || "")
+            ? entry.z + 0.0001
+            : entry.z,
+        x:
+          ring && anchor
+            ? Math.ceil(anchor.x) + ceilOffset(entry.x - anchor.x)
+            : beam
+            ? Math.ceil(entry.x - 1e-6)
+            : entry.x,
+        y:
+          ring && anchor
+            ? Math.ceil(anchor.y) + ceilOffset(entry.y - anchor.y)
+            : beam
+            ? Math.ceil(entry.y - 1e-6)
+            : entry.y,
         overlay: !!entry.particle,
         ui: [
           "popupInteract",
@@ -60,7 +86,8 @@ export const collectTerminalSprites = (
           "discoveryIdle",
           "pointerArrow",
         ].includes(entry.particleSequence || ""),
-      });
+      };
+      result.push(sprite);
       continue;
     }
     const key = titleBlock

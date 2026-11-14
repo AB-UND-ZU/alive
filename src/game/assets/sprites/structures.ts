@@ -258,6 +258,7 @@ export const stairs: Sprite = {
 
 export const anvil: Sprite = {
   name: "Anvil",
+  terminal: { layers: [{ char: "▬", color: colors.silver }] },
   layers: [
     { char: "\u2261", color: colors.grey },
     { char: "-", color: colors.silver },
@@ -267,6 +268,7 @@ export const anvil: Sprite = {
 
 export const kettle: Sprite = {
   name: "Kettle",
+  terminal: { layers: [{ char: "U", color: colors.blue }] },
   layers: [
     { char: "■", color: colors.blue },
     { char: "≡", color: colors.black },
@@ -1013,6 +1015,7 @@ export const bedEndLeft: Sprite = {
 
 export const table: Sprite = {
   name: "Table",
+  terminal: { layers: [{ char: "╥", color: colors.maroon }] },
   layers: [
     { char: "∩", color: colors.maroon },
     { char: "▀", color: colors.black },
@@ -1022,6 +1025,7 @@ export const table: Sprite = {
 
 export const chairLeft: Sprite = {
   name: "Chair",
+  terminal: { layers: [{ char: "└", color: colors.maroon }] },
   layers: [
     { char: "\u011f", color: colors.maroon },
     { char: "\u0110", color: colors.black },
@@ -1030,6 +1034,7 @@ export const chairLeft: Sprite = {
 
 export const chairRight: Sprite = {
   name: "Chair",
+  terminal: { layers: [{ char: "┘", color: colors.maroon }] },
   layers: [
     { char: "\u011f", color: colors.maroon },
     { char: "\u010f", color: colors.black },

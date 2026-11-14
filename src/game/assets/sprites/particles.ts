@@ -100,6 +100,10 @@ export const magicHit: Sprite = {
 
 export const zapParticle: Sprite = {
   name: "Zap",
+  terminal: {
+    layers: [],
+    amounts: { single: [{ char: "÷", color: colors.yellow }] },
+  },
   layers: [],
   amounts: {
     single: [{ char: ":", color: colors.yellow }],
@@ -108,6 +112,10 @@ export const zapParticle: Sprite = {
 
 export const zapSwordParticle: Sprite = {
   name: "Zap",
+  terminal: {
+    layers: [],
+    amounts: { single: [{ char: "÷", color: colors.yellow }] },
+  },
   layers: [],
   amounts: {
     single: [{ char: "%", color: colors.yellow }],
@@ -152,6 +160,7 @@ export const aura: Sprite = {
 
 export const range: Sprite = {
   name: "Range",
+  terminal: { layers: [{ char: "\u0111", color: colors.yellow }] },
   layers: [
     { char: "\u0117", color: colors.yellow },
     { char: "\u0118", color: colors.yellow },
@@ -165,6 +174,7 @@ export const range: Sprite = {
 
 export const delay: Sprite = {
   name: "Delay",
+  terminal: { layers: [{ char: "└", color: colors.yellow }] },
   layers: [
     { char: "\u0100", color: colors.olive },
     { char: "■", color: colors.black },
@@ -175,6 +185,7 @@ export const delay: Sprite = {
 
 export const time: Sprite = {
   name: "Time",
+  terminal: { layers: [{ char: "└", color: colors.fuchsia }] },
   layers: [
     { char: "\u0101", color: colors.purple },
     { char: "\u0100", color: colors.black },
@@ -1087,6 +1098,12 @@ export const popupSegment: Sprite = {
 
 export const popupActive: Sprite = {
   name: "popup_active",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.lime },
+      { char: ">", color: colors.black },
+    ],
+  },
   layers: [
     { char: "\u0107", color: colors.lime },
     { char: "\u0109", color: colors.lime },
@@ -1664,6 +1681,7 @@ export const scrollHandle: Sprite = {
 
 export const forgeHammer: Sprite = {
   name: "forge_hammer",
+  terminal: { layers: [{ char: "█", color: colors.grey }] },
   layers: [
     { char: "∞", color: colors.maroon },
     { char: "\u0106", color: colors.maroon },
@@ -1684,6 +1702,7 @@ export const forgeHammer: Sprite = {
 
 export const forgeHandle: Sprite = {
   name: "forge_handle",
+  terminal: { layers: [{ char: "═", color: colors.maroon }] },
   layers: [
     { char: "∞", color: colors.maroon },
     { char: "\u0106", color: colors.maroon },
@@ -2096,6 +2115,7 @@ export const swirl: Sprite = {
 
 export const times: Sprite = {
   name: "Times",
+  terminal: { layers: [{ char: "*", color: colors.white }] },
   layers: [
     { char: "*", color: colors.white },
     { char: "─", color: colors.black },
