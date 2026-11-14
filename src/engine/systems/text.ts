@@ -1,3 +1,4 @@
+import { disposeSequence } from "./map";
 import { getInteraction } from "../players";
 import { soundSource } from "../../game/sound/events";
 import { World } from "../ecs";
@@ -265,6 +266,20 @@ export default function setupText(world: World) {
   };
 
   const onUpdate = (delta: number) => {
+    for (const player of world.getEntities([PLAYER, TOOLTIP])) {
+      const tooltip = player[TOOLTIP];
+      if (tooltip.chatRemaining === undefined) continue;
+      tooltip.chatRemaining -= delta;
+      if (tooltip.chatRemaining > 0) continue;
+      delete tooltip.chatRemaining;
+      tooltip.dialogs = [];
+      tooltip.override = undefined;
+      tooltip.changed = true;
+      tooltip.enemy = false;
+      if (getSequence(world, player, "dialog"))
+        disposeSequence(world, player, "dialog");
+      rerenderEntity(world, player);
+    }
     if (!world.metadata.gameEntity[LEVEL].initialized) return;
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])

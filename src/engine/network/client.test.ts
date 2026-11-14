@@ -26,12 +26,13 @@ class Socket {
     this.onclose?.({ code });
   }
 }
-const setup = () => {
+const setup = (username?: string) => {
   const sockets: Socket[] = [],
     store = new Map<string, string>();
   const onReady = jest.fn(),
     onStatus = jest.fn();
   const connection = connectServer("localhost:3001", {
+    username,
     storage: {
       getItem: (key) => store.get(key) || null,
       setItem: (key, value) => {
@@ -154,5 +155,12 @@ it("acknowledges a full state only after applying its confirmed actor", () => {
   state(socket, 7);
   expect(connection.world.getEntityById(actorId)).toBeDefined();
   expect(socket.messages).toContainEqual({ type: "stateAck", sequence: 7 });
+  connection.close();
+});
+
+it("forwards a requested username separately from reconnect credentials", () => {
+  const { connection, sockets } = setup("Alice");
+  sockets[0].open();
+  expect(sockets[0].messages[0]).toEqual({ type: "join", username: "Alice" });
   connection.close();
 });

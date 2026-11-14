@@ -171,3 +171,17 @@ it("ignores identifiers that cannot be entered with the game keyboard", () => {
   expect(() => completeChat(world, hero)).not.toThrow();
   expect(getPrompt(world)).toBe("/tp caf");
 });
+
+it("completes server actions, player names and admin modes", () => {
+  const { world } = setup();
+  world.metadata.gameEntity.LEVEL.serverPlayers = [
+    { id: "a", username: "Alice", status: "online", admin: true },
+    { id: "b", username: "Bob", status: "offline", admin: false },
+  ];
+  expect(completeCommand(world, "/server pl")).toBe("ayers ");
+  expect(completeCommand(world, "/server players of")).toBe("fline ");
+  expect(completeCommand(world, "/server kick al")).toBe("ice ");
+  expect(completeCommand(world, "/server ban B")).toBe("ob ");
+  expect(completeCommand(world, "/server admin Alice o", 0)).toBe("ff ");
+  expect(completeCommand(world, "/server admin Alice o", 1)).toBe("n ");
+});

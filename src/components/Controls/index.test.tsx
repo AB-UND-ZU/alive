@@ -791,7 +791,7 @@ describe("chat", () => {
     expect(queryTouchArea(container, "keyboard")).toBeInTheDocument();
   });
 
-  it("Backspace clears the typed chat message", () => {
+  it("Backspace erases one typed chat character", () => {
     const { world } = setup();
     openChat(world);
     const menu = getMenu(world);
@@ -801,7 +801,7 @@ describe("chat", () => {
     });
 
     press("Backspace");
-    runUntil(world, () => getTabSelections(world, menu).length === 0);
+    runUntil(world, () => getTabSelections(world, menu).length === 1);
   });
 
   it("Backspace does nothing outside the chat", () => {

@@ -240,6 +240,12 @@ export default function createWorld() {
             pause: (paused: boolean) => void;
             render: (delta: number) => void;
           },
+      serverCommand: undefined as
+        | undefined
+        | ((accountId: string, args: string[]) => string | undefined),
+      chooseUsername: undefined as
+        | undefined
+        | ((accountId: string, username: string) => string | undefined),
       warpPlayer: undefined as
         | undefined
         | ((

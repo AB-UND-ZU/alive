@@ -174,6 +174,8 @@ export const createHero = (world: World, halo: Entity) => {
     [ORIENTABLE]: {},
     [PLAYER]: {
       accountId: halo[PLAYER]?.accountId,
+      username: halo[PLAYER]?.username,
+      admin: halo[PLAYER]?.admin,
       rewardOffsets: { ...halo[PLAYER]?.rewardOffsets },
       connected: halo[PLAYER]?.connected,
       interface: halo[PLAYER]?.interface,
@@ -337,6 +339,8 @@ export default function setupFate(world: World) {
           },
           [PLAYER]: {
             accountId: entity[PLAYER].accountId,
+            username: entity[PLAYER].username,
+            admin: entity[PLAYER].admin,
             rewardOffsets: entity[PLAYER].rewardOffsets,
             connected: entity[PLAYER].connected,
             interface: entity[PLAYER].interface,

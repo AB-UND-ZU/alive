@@ -19,7 +19,7 @@ import { REFERENCE } from "../../engine/components/reference";
 import { LEVEL } from "../../engine/components/level";
 import { menuName } from "../../game/levels/menu";
 import { recolorLine } from "../../game/assets/pixels";
-import { TEST_MODE } from "../../engine/utils";
+import { isTestMode } from "../../engine/mode";
 import { isDead } from "../../engine/systems/damage";
 import {
   createProgress,
@@ -58,7 +58,7 @@ function StatsInner({
   const dimensions = useDimensions();
   const [pressed, setPressed] = useState("");
   const level = ecs?.metadata.gameEntity[LEVEL].name;
-  const menuOnly = (!TEST_MODE && level === menuName) || hidden;
+  const menuOnly = (!(ecs && isTestMode(ecs)) && level === menuName) || hidden;
 
   const handleMenu = useCallback(
     (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {

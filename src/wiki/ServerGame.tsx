@@ -9,17 +9,19 @@ import { ensureAudio, setAudioActive } from "../game/sound/resumable";
 
 function Connection({
   address,
+  username,
   started,
 }: {
   address: string;
+  username?: string;
   started: { current: boolean };
 }) {
   const { joinServer, serverStatus, loadingSounds } = useWorld();
   useEffect(() => {
     if (started.current || loadingSounds || !joinServer) return;
     started.current = true;
-    joinServer(address);
-  }, [address, joinServer, loadingSounds, started]);
+    joinServer(address, username);
+  }, [address, username, joinServer, loadingSounds, started]);
   useEffect(() => {
     window.parent.postMessage(
       { type: "server-status", status: serverStatus || "connecting" },
@@ -52,6 +54,7 @@ export function ServerGame() {
   const started = useRef(false);
   const query = new URLSearchParams(window.location.search);
   const address = query.get("server") || "";
+  const username = query.get("username") || undefined;
   const slot = query.get("client") === "2" ? "2" : "1";
   const storage = useMemo(
     () => ({
@@ -68,7 +71,7 @@ export function ServerGame() {
         <Stats />
         <Terminal />
         <Controls pauseOnBlur={false} />
-        <Connection address={address} started={started} />
+        <Connection address={address} username={username} started={started} />
       </World>
     </Dimensions>
   );

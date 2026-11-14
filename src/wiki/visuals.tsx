@@ -645,6 +645,7 @@ const nativeButtonColors: Partial<Record<string, Palette>> = {
 export function Button({
   children,
   onClick,
+  type = "button",
   active = false,
   disabled = false,
   palette,
@@ -652,6 +653,7 @@ export function Button({
   ariaLabel,
 }: {
   children: string;
+  type?: "button" | "submit";
   onClick?: () => void;
   active?: boolean;
   disabled?: boolean;
@@ -684,7 +686,7 @@ export function Button({
   );
   return (
     <button
-      type="button"
+      type={type}
       className="GameButton SpriteStates"
       aria-label={ariaLabel || children}
       aria-pressed={active}

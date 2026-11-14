@@ -376,7 +376,7 @@ import {
   popupIdles,
   visibleStats,
 } from "../../engine/systems/popup";
-import { TEST_MODE } from "../../engine/utils";
+import { isTestMode } from "../../engine/mode";
 import { play } from "../sound";
 import { extinguishEntity } from "../../engine/systems/burn";
 import {
@@ -5364,7 +5364,7 @@ export const displayUse = displayPopupView((world, entity, state) => {
     leftButton:
       isSelecting || isEditing
         ? createButton("\u011aBACK", 7, false, false, false, "red")
-        : undefined,
+        : createButton("CHAT", 7, false, false, false, "yellow"),
   };
 });
 
@@ -5527,7 +5527,9 @@ export const displayClass = displayPopupView((world, entity, state) => {
   const chosenIndex = firstIndex ?? 0;
 
   const selectedClass = displayedClasses[verticalIndex];
-  const selectedAvailable = TEST_MODE || selectedClass === "rogue";
+  const selectedAvailable =
+    isTestMode(world, getPopupPlayer(world, entity, [PLAYER])) ||
+    selectedClass === "rogue";
   const lines = overlay(
     bodyPixels,
     classPixels[displayedClasses[verticalIndex]] || [],
@@ -5563,7 +5565,9 @@ export const displayClass = displayPopupView((world, entity, state) => {
 
     const selected = verticalIndex === rowIndex;
     const chosen = chosenIndex === rowIndex;
-    const available = TEST_MODE || className === "rogue";
+    const available =
+      isTestMode(world, getPopupPlayer(world, entity, [PLAYER])) ||
+      className === "rogue";
     const classSprite = entitySprites[className].sprite;
     const classTitle = createText(
       available || selected
@@ -5650,7 +5654,7 @@ export const displayStyle = displayPopupView((world, entity, state) => {
   const selectedClass =
     classIndex === -1 && heroEntity
       ? heroEntity[SPAWNABLE].classKey
-      : TEST_MODE
+      : isTestMode(world, getPopupPlayer(world, entity, [PLAYER]))
       ? displayedClasses[entity[POPUP].verticalIndezes[classIndex]]
       : "rogue";
   const lines = overlay(
@@ -7259,6 +7263,8 @@ export const displayQuest = displayPopupView((world, entity, state) => {
 
 export const displayChat = displayPopupView((world, entity, state) => {
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
+  const player = getPopupPlayer(world, entity, [PLAYER]);
+  const naming = player?.[PLAYER].naming;
   const showCaret = generation % 2 === 0;
 
   const selections = getTabSelections(world, entity);
@@ -7270,7 +7276,7 @@ export const displayChat = displayPopupView((world, entity, state) => {
     })
   );
   const input = selections.map(getKeyFromIndex).join("");
-  const suggestion = TEST_MODE
+  const suggestion = isTestMode(world, getPopupPlayer(world, entity, [PLAYER]))
     ? createText(
         completeCommand(world, input, entity[POPUP].chatSuggestion),
         colors.grey
@@ -7281,12 +7287,21 @@ export const displayChat = displayPopupView((world, entity, state) => {
     ? mergeSprites(caret, suggestion[0] || none)
     : suggestion[0] || none;
   const width = frameWidth - 2;
-  const windowHeight = 6;
+  const windowHeight = naming ? 8 : 6;
   const firstRow = Math.max(
     0,
     Math.floor(typed.length / width) - (windowHeight - 2) + 1
   );
   const content: Sprite[][] = [
+    ...(naming
+      ? [
+          createText("Choose username:"),
+          ...chunked(
+            createText(player?.[PLAYER].nameError || "", colors.red),
+            width
+          ),
+        ]
+      : []),
     ...repeat([], verticalIndex),
     ...chunked(lines, width).slice(firstRow),
   ];
@@ -7295,7 +7310,7 @@ export const displayChat = displayPopupView((world, entity, state) => {
     icon: popupIdles[getTab(world, entity)],
     content,
     rightButton: createButton(
-      "SEND",
+      naming ? "JOIN" : "SEND",
       6,
       selections.length === 0,
       false,

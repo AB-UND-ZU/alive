@@ -20,6 +20,7 @@ export function CommandReference() {
   );
 }
 const commandExamples: Record<string, string> = {
+  server: "/server players online",
   help: "/help give",
   list: "/list item",
   give: "/give sword 1 iron fire",
@@ -32,6 +33,8 @@ const commandExamples: Record<string, string> = {
   pin: "/pin target 8,4",
 };
 const commandDescriptions: Record<string, string> = {
+  server:
+    "Manage players and permissions on a server. Requires admin permission.",
   help: "Show usage. Without a command name, show the help prompt.",
   list: "List commands, items, cells, stats or named locations.",
   give: "Drop an item nearby. Defaults to one item. Potion's last argument is a stat; other items use an element. Material default clears the material.",

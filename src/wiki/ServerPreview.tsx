@@ -5,10 +5,12 @@ import "./ServerPreview.css";
 
 export function ServerPreview({ base }: { base: string }) {
   const frames = useRef<(HTMLIFrameElement | null)[]>([]);
+  const [usernames, setUsernames] = useState(["", ""]);
   const [address, setAddress] = useState(`${window.location.hostname}:3001`);
   const [connection, setConnection] = useState<{
     url: string;
     revision: number;
+    usernames: string[];
   }>();
   const [error, setError] = useState("");
   const [statuses, setStatuses] = useState<ConnectionStatus[]>([]);
@@ -72,6 +74,7 @@ export function ServerPreview({ base }: { base: string }) {
       setStatuses(["connecting", "connecting"]);
       setConnection((previous) => ({
         url,
+        usernames: usernames.map((name) => name.trim()),
         revision: (previous?.revision || 0) + 1,
       }));
     } catch {
@@ -87,7 +90,19 @@ export function ServerPreview({ base }: { base: string }) {
         }}
       >
         <Input label="Server URL" value={address} onChange={setAddress} />
-        <Button onClick={connect} palette="lime">
+        {[0, 1].map((index) => (
+          <Input
+            key={index}
+            label={`Player ${index + 1} username`}
+            value={usernames[index]}
+            onChange={(value) =>
+              setUsernames((names) =>
+                names.map((name, slot) => (slot === index ? value : name))
+              )
+            }
+          />
+        ))}
+        <Button type="submit" palette="lime">
           Connect
         </Button>
       </form>
@@ -113,7 +128,12 @@ export function ServerPreview({ base }: { base: string }) {
                 title={`Player ${index + 1} game`}
                 src={`${base}preview.html?server=${encodeURIComponent(
                   connection.url
-                )}&client=${index + 1}#servers`}
+                )}&client=${index + 1}${
+                  connection.usernames[index]
+                    ? "&username=" +
+                      encodeURIComponent(connection.usernames[index])
+                    : ""
+                }#servers`}
               />
             )}
           </section>

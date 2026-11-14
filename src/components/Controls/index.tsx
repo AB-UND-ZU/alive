@@ -71,7 +71,7 @@ import Keyboard, {
   keyboardColumns,
   keyboardSize,
 } from "../Keyboard";
-import { TEST_MODE } from "../../engine/utils";
+import { isTestMode } from "../../engine/mode";
 import {
   createText,
   Palette,
@@ -176,7 +176,8 @@ export default function Controls({
   const level = ecs?.metadata.gameEntity[LEVEL].name;
   const size = ecs?.metadata.gameEntity[LEVEL].size || 0;
   const { position, fraction } = useViewpoint();
-  const inMenu = !TEST_MODE && level === menuName;
+  const testMode = !!ecs && isTestMode(ecs);
+  const inMenu = !testMode && level === menuName;
   const hero = useHero();
   const interaction = ecs && hero && getInteraction(ecs, hero);
   const interactable = interaction?.active && interaction;
@@ -563,8 +564,7 @@ export default function Controls({
         (inMenu && !ecs?.metadata.network) ||
         !ecs ||
         !hero ||
-        !isActionable(ecs, hero) ||
-        !(TEST_MODE || ecs?.metadata.network)
+        !isActionable(ecs, hero)
       )
         return;
 
@@ -828,7 +828,7 @@ export default function Controls({
           event.metaKey ||
           (event.repeat &&
             !(
-              (TEST_MODE || ecs?.metadata.network) &&
+              !!ecs &&
               popupTab === "chat" &&
               (getIndexFromKey(event.key) || backspaceKeys.includes(event.key))
             )))
@@ -836,7 +836,7 @@ export default function Controls({
         return;
 
       if (
-        (TEST_MODE || ecs?.metadata.network) &&
+        !!ecs &&
         popupTab === "chat" &&
         !interactKeys.includes(event.key) &&
         !closeKeys.includes(event.key) &&
@@ -876,13 +876,16 @@ export default function Controls({
         handleStats(event);
         return;
       } else if (
-        (TEST_MODE || ecs?.metadata.network) &&
+        !!ecs &&
         (chatKeys.includes(event.key) ||
           commandKeys.includes(event.key) ||
-          (!interactable && !popup && interactKeys.includes(event.key))) &&
+          (!interactable &&
+            !popup &&
+            !hero?.[PLAYER].ghost &&
+            interactKeys.includes(event.key))) &&
         event.type === "keydown"
       ) {
-        // open chat for test mode and connected players
+        // open chat when no interaction is selected
         handleChat(event, commandKeys.includes(event.key));
         return;
       } else if (
@@ -1018,11 +1021,7 @@ export default function Controls({
       const onKeyboard = [...event.changedTouches].some((touch) =>
         (touch.target as HTMLElement).closest("#keyboard")
       );
-      if (
-        onKeyboard &&
-        !((TEST_MODE || ecs?.metadata.network) && popupTab === "chat")
-      )
-        return;
+      if (onKeyboard && !(!!ecs && popupTab === "chat")) return;
 
       const [x, y] = [touch.clientX, touch.clientY];
       if (!touchOrigin.current) touchOrigin.current = [x, y];
@@ -1043,7 +1042,7 @@ export default function Controls({
       if (nextOrientations.length > 0) {
         // handle history in single steps
         const primaryOrientation = nextOrientations[0];
-        if ((TEST_MODE || ecs?.metadata.network) && popupTab === "chat") {
+        if (!!ecs && popupTab === "chat") {
           if (
             primaryOrientation === "right" &&
             pressedOrientations.current[0] !== "right"

@@ -1,3 +1,4 @@
+const { parseAdmins } = require("./administration.cjs");
 const { mkdtemp, rm } = require("node:fs/promises");
 const { tmpdir, homedir, networkInterfaces } = require("node:os");
 const path = require("node:path");
@@ -24,6 +25,9 @@ const { createGameServer } = require("./transport.cjs");
     );
     server = await createGameServer({
       engine: require(outfile),
+      adminIds: parseAdmins(process.argv.slice(2)),
+      onPlayer: ({ id, username }) =>
+        console.log(`Player: ${username} (${id})`),
       file,
       host: process.env.HOST || "0.0.0.0",
       port: Number(process.env.PORT || 3001),

@@ -54,7 +54,8 @@ describe("list command", () => {
   it("lists all commands with their short form", () => {
     const { lines } = list("/list");
 
-    expect(lines).toHaveLength(10);
+    expect(lines).toHaveLength(11);
+    expect(lines).toContain("/server│/server");
     expect(lines).toContain("/give│/g");
     expect(lines).toContain("/tp│/t");
   });

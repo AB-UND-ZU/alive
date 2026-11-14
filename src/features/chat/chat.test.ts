@@ -1,4 +1,4 @@
-import { createAreaWorld } from "../../testing/harness";
+import { advance, createAreaWorld } from "../../testing/harness";
 import { playedSounds, resetPlayedSounds } from "../../testing/env";
 import { PLAYER } from "../../engine/components/player";
 import { TOOLTIP } from "../../engine/components/tooltip";
@@ -156,13 +156,27 @@ describe("chat", () => {
     expect(hero[PLAYER].chatHistory).toEqual([]);
   });
 
-  it("clears the previous bubble when opening the chat again", () => {
+  it("keeps the previous bubble when opening chat again", () => {
     const { world, hero } = setup();
     say(world, "first");
 
     openChat(world);
 
+    expect(getDialog(hero)).toEqual(["first"]);
+  });
+
+  it("expires messages after three seconds and replaces them immediately", () => {
+    const { world, hero } = setup();
+    submitChat(world, hero, "first");
+    advance(world, 2000);
+    expect(getDialog(hero)).toEqual(["first"]);
+    submitChat(world, hero, "second");
+    expect(getDialog(hero)).toEqual(["second"]);
+    advance(world, 2000);
+    expect(getDialog(hero)).toEqual(["second"]);
+    advance(world, 1100);
     expect(getDialog(hero)).toEqual([]);
+    expect(hero[TOOLTIP].override).toBeUndefined();
   });
 
   it("discards typed text when closing the chat", () => {

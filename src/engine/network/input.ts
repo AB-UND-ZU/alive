@@ -2,7 +2,7 @@ import { isActionable } from "../systems/freeze";
 import { isDead } from "../systems/damage";
 import { POPUP } from "../components/popup";
 import { frameWidth, frameHeight } from "../../game/assets/utils";
-import { typeChat, navigateChat } from "../systems/popup";
+import { typeChat, navigateChat, completeChat } from "../systems/popup";
 import {
   keyboardSize,
   keyboardPages,
@@ -21,6 +21,7 @@ import { Orientation, orientations } from "../components/orientable";
 export const inputActions = [
   "text",
   "history",
+  "complete",
   "spell",
   "skill",
   "interact",
@@ -118,6 +119,16 @@ export const createPlayerInput = (world: World, playerId: number) => {
 
   const receive = (message: unknown) => {
     if (!isPlayerInput(message) || message.sequence <= received) return false;
+    const player = world.getEntityByIdAndComponents(playerId, [PLAYER]);
+    if (
+      player?.[PLAYER].naming &&
+      (message.move?.length ||
+        (message.action &&
+          !["text", "type", "right", "left", "history"].includes(
+            message.action.kind
+          )))
+    )
+      return false;
     received = message.sequence;
     lastMessageTime = world.metadata.elapsed;
     if (message.move) {
@@ -217,6 +228,7 @@ export const createPlayerInput = (world: World, playerId: number) => {
       frame[REFERENCE].suspended = false;
     }
     if (
+      text.length > 0 ||
       !pending ||
       lastActionGeneration === frame[RENDERABLE].generation ||
       player[ACTIONABLE].spellTriggered ||
@@ -272,7 +284,8 @@ export const createPlayerInput = (world: World, playerId: number) => {
     if (action.kind === "use" && action.index !== undefined && action.index > 9)
       return;
     lastActionGeneration = frame[RENDERABLE].generation;
-    if (action.kind === "history")
+    if (action.kind === "complete") completeChat(world, player);
+    else if (action.kind === "history")
       navigateChat(world, player, action.index === 0 ? -1 : 1);
     else if (action.kind === "text") return;
     else if (action.kind === "spell") player[ACTIONABLE].spellTriggered = true;

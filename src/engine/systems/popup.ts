@@ -1,3 +1,4 @@
+import { isTestMode } from "../mode";
 import { soundSource } from "../../game/sound/events";
 import { getPopupPlayer } from "../players";
 import addRestorable, { RESTORABLE } from "../components/restorable";
@@ -61,7 +62,6 @@ import {
   getIdentifierAndComponents,
   setHighlight,
   getPlayerFocus,
-  TEST_MODE,
 } from "../utils";
 import { FOCUSABLE } from "../components/focusable";
 import { displayedClasses, hairColors } from "../../game/assets/pixels";
@@ -216,7 +216,8 @@ export const typeChat = (
   if (
     world.metadata.warpPlayer &&
     keyIndex !== undefined &&
-    getTabSelections(world, popup).length >= 128
+    getTabSelections(world, popup).length >=
+      (heroEntity[PLAYER].naming ? 16 : 128)
   )
     return;
 
@@ -269,7 +270,7 @@ export const navigateChat = (
   const input = getTabSelections(world, popup).map(getKeyFromIndex).join("");
   const historyIndex = getVerticalIndex(world, popup);
   if (input.trim() && historyIndex === 0) {
-    if (TEST_MODE && completeCommand(world, input)) {
+    if (isTestMode(world, heroEntity) && completeCommand(world, input)) {
       popup[POPUP].chatSuggestion =
         (popup[POPUP].chatSuggestion || 0) + direction;
       rerenderEntity(world, popup);
@@ -300,7 +301,11 @@ export const navigateChat = (
 };
 
 export const completeChat = (world: World, heroEntity: Entity) => {
-  if (!TEST_MODE || world.metadata.network) return;
+  if (!isTestMode(world, heroEntity)) return;
+  if (world.metadata.network) {
+    world.metadata.network.action({ kind: "complete" });
+    return;
+  }
   const popup = world.getEntityByIdAndComponents(heroEntity[PLAYER]?.popup, [
     POPUP,
   ]);
@@ -327,6 +332,15 @@ export const submitChat = (
   heroEntity: Entity,
   line: string | string[] = ""
 ) => {
+  if (heroEntity[PLAYER]?.naming) {
+    const error = world.metadata.chooseUsername?.(
+      heroEntity[PLAYER].accountId!,
+      [...line].join("").trim()
+    );
+    heroEntity[PLAYER].nameError = error;
+    rerenderEntity(world, heroEntity);
+    return error;
+  }
   const keys = [...line];
   while (keys.length && !keys[0].trim()) keys.shift();
   while (keys.length && !keys[keys.length - 1].trim()) keys.pop();
@@ -369,9 +383,9 @@ export const submitChat = (
     saveChatHistory(heroEntity[PLAYER].chatHistory);
   play("confirm", {}, soundSource(world, heroEntity, true));
 
-  const command = world.metadata.warpPlayer
-    ? undefined
-    : parseCommand(keys.join(""));
+  const command = isTestMode(world, heroEntity)
+    ? parseCommand(keys.join(""))
+    : undefined;
   const error = command
     ? executeCommand(world, heroEntity, command)
     : undefined;
@@ -389,10 +403,16 @@ export const submitChat = (
           )
         : createText(error, colors.black, colors.red)
       : []
-    : keys.map((char) =>
+    : (world.metadata.warpPlayer && heroEntity[PLAYER].username
+        ? [...heroEntity[PLAYER].username, ":", " ", ...keys]
+        : keys
+      ).map((char) =>
         recolorSprite(parseSprite(`\x0f█\x00${char}`), colors.white)
       );
 
+  if (getSequence(world, heroEntity, "dialog"))
+    disposeSequence(world, heroEntity, "dialog");
+  heroEntity[TOOLTIP].chatRemaining = 3000;
   heroEntity[TOOLTIP].enemy = !!command;
   heroEntity[TOOLTIP].dialogs = dialog.length
     ? [
@@ -1761,7 +1781,11 @@ export default function setupPopup(world: World) {
       } else if (tab === "class" || tab === "style") {
         if (!addEntity) {
           // ignore
-        } else if (verticalIndex === 0 || TEST_MODE || tab === "style") {
+        } else if (
+          verticalIndex === 0 ||
+          isTestMode(world, heroEntity) ||
+          tab === "style"
+        ) {
           popTabSelection(world, addEntity);
           pushTabSelection(world, addEntity);
           // proceed to next tab
@@ -1836,9 +1860,7 @@ export default function setupPopup(world: World) {
           });
         }
       } else if (tab === "chat") {
-        if (TEST_MODE || world.metadata.warpPlayer) {
-          submitChat(world, heroEntity, selections.map(getKeyFromIndex));
-        }
+        submitChat(world, heroEntity, selections.map(getKeyFromIndex));
       } else if (tab === "use") {
         if (addEntity && selections.length === 0) {
           pushTabSelection(world, addEntity);
@@ -1870,6 +1892,10 @@ export default function setupPopup(world: World) {
         // clear chat
         popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] = [];
         play("back", {}, soundSource(world, heroEntity, true));
+      } else if (tab === "use" && selections.length === 0) {
+        popupEntity[POPUP].horizontalIndex =
+          popupEntity[POPUP].tabs.indexOf("chat");
+        play("open", {}, soundSource(world, heroEntity, true));
       } else if (tab === "load" && selections.length === 0) {
         // ask before erasing a saved game
         if (getSaveSummaries()[getVerticalIndex(world, popupEntity)]) {

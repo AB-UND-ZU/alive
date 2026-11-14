@@ -5,3 +5,5 @@ Run `npm run server` from the repository. It builds the same native engine into 
 `HOST` and `PORT` override the listening address. `ALIVE_SERVER_SAVE` selects the server save file; the default is `~/.alive/server.save`. The save holds all level worlds and account hashes. Reconnect bearer tokens stay in each browser's local storage, keyed by normalized server URL. SIGINT/SIGTERM finish a save and remove the temporary bundle.
 
 In the browser game, pause the local menu and choose Servers, then enter the printed LAN address. Engine and transport behavior is documented in [host.md](../../src/engine/network/host.md) and [transport.md](transport.md).
+
+`--admins <uuid,uuid>` (or `--admins=...`, repeatable) grants server Test Mode and commands to those authenticated player IDs. Joining usernames and IDs print without reconnect tokens. Invalid flags fail startup.

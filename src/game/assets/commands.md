@@ -8,7 +8,7 @@
 | `parseCommand`                 | Parse a slash command; expand aliases; unknown names fall back to help |
 | `executeCommand`               | Check argument count, then call the registered executor                |
 
-Normal text is handled by the chat dialog. `Controls` and the chat popup gate command input behind `TEST_MODE`. The wiki imports the registry rather than maintaining a separate set of names.
+Normal text is handled by the chat dialog. The chat popup parses commands only in local Test Mode or for an authoritative server admin. The wiki imports the registry rather than maintaining a separate set of names.
 
 `/mod reset` restores class/level stats. It is included in `/list mod` along with the other implemented mods.
 
@@ -41,3 +41,5 @@ export type CommandSignature = {
   short: string;
 };
 ```
+
+Hosted worlds gate execution on the acting player’s authoritative admin flag. `/server` queues administration through host metadata, with username completion from the replicated roster. Usernames match case-insensitively; completion preserves the typed prefix.

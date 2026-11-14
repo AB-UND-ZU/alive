@@ -1,3 +1,4 @@
+import { getLocalPlayer } from "../../engine/players";
 import React, { useCallback, useEffect, useState } from "react";
 import { useWorld } from "../../renderers/interface/hooks";
 import {
@@ -40,7 +41,6 @@ import Row from "../Row";
 import { colors } from "../../game/assets/colors";
 import "./index.css";
 import { MOVABLE } from "../../engine/components/movable";
-import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
 import { typeChat } from "../../engine/systems/popup";
 import { useDimensions } from "../Dimensions";
@@ -78,7 +78,7 @@ export default function Keyboard() {
     ) => {
       if (!pressOnly) event.preventDefault();
       const div = event.currentTarget as HTMLElement | undefined;
-      const hero = ecs?.getEntity([PLAYER, POSITION]);
+      const hero = ecs && getLocalPlayer(ecs, [POSITION]);
 
       if (
         !div ||

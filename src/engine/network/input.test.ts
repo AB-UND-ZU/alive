@@ -208,3 +208,16 @@ it("wakes an idle actor clock before accepting its next dialog action", () => {
   advance(world, 800);
   expect(hero[PLAYER]!.popup).toBeDefined();
 });
+
+it("submits only after preceding queued chat edits have been applied", () => {
+  const { world, hero, input } = setup();
+  const use = assertIdentifierAndComponents(world, "use", [POPUP]);
+  use[POPUP].horizontalIndex = use[POPUP].tabs.indexOf("chat");
+  openPopup(world, hero, use, true);
+  world.metadata.warpPlayer = () => {};
+  for (let sequence = 0; sequence < 12; sequence++)
+    input.receive({ sequence, action: { kind: "text", index: 0 } });
+  input.receive({ sequence: 12, action: { kind: "right" } });
+  advance(world, 900);
+  expect(hero.TOOLTIP!.dialogs[0].slice(1, -1)).toHaveLength(12);
+});

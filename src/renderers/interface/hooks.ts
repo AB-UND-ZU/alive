@@ -38,7 +38,7 @@ export type WorldContext = {
   saveStatus?: SaveStatus;
   saveGame: () => void;
   openMenu: () => void;
-  joinServer?: (address: string) => void;
+  joinServer?: (address: string, username?: string) => void;
   serverStatus?: ConnectionStatus;
 };
 

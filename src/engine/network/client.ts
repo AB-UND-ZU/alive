@@ -27,6 +27,7 @@ export const connectServer = (
   address: string,
   options: {
     storage?: Pick<Storage, "getItem" | "setItem">;
+    username?: string;
     socket?: (url: string) => WebSocket;
     onStatus?: (status: ConnectionStatus) => void;
     onReady?: (world: ReturnType<typeof createReplica>["world"]) => void;
@@ -73,7 +74,12 @@ export const connectServer = (
     notify(ready ? "reconnecting" : "connecting");
     const current = (options.socket || ((url) => new WebSocket(url)))(url);
     socket = current;
-    current.onopen = () => send({ type: "join", ...claim });
+    current.onopen = () =>
+      send({
+        type: "join",
+        ...claim,
+        ...(options.username ? { username: options.username } : {}),
+      });
     current.onmessage = (event) => {
       if (socket !== current || stopped) return;
       try {

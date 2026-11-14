@@ -1,3 +1,4 @@
+import { isTestMode } from "../mode";
 import { soundSource } from "../../game/sound/events";
 import { synchronizeRewards, shareQuestRewards } from "./cooperation";
 import { grantInventoryItem } from "./collect";
@@ -107,11 +108,7 @@ import { addToInventory, equipItem } from "./collect";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { PLAYER } from "../components/player";
 import { isActionable, isControllable, isInteractable } from "./freeze";
-import {
-  assertIdentifier,
-  assertIdentifierAndComponents,
-  TEST_MODE,
-} from "../utils";
+import { assertIdentifier, assertIdentifierAndComponents } from "../utils";
 import { colors } from "../../game/assets/colors";
 import { NPC } from "../components/npc";
 import { pickupOptions, play } from "../../game/sound";
@@ -176,7 +173,7 @@ export const canWarp = (world: World, entity: Entity, warp: Entity) => {
     return false;
 
   // allow warping everywhere else in test mode
-  if (TEST_MODE) return true;
+  if (isTestMode(world, entity)) return true;
 
   return levelConfig[currentLevel].warps.includes(selectedLevel);
 };
@@ -278,7 +275,7 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
   const styleIndex = warp[POPUP].tabs.indexOf("style");
   const styleUpdated = styleIndex !== -1;
   const selectedClass = classUpdated
-    ? TEST_MODE
+    ? isTestMode(world, entity)
       ? displayedClasses[warp[POPUP].selections[classIndex][0] ?? 0]
       : "rogue"
     : entity[SPAWNABLE].classKey;
@@ -398,7 +395,7 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
         entity[SPAWNABLE].classKey = selectedClass;
 
         // add collected stats in test mode
-        if (TEST_MODE) {
+        if (isTestMode(world, entity)) {
           const testStats = [
             "armor",
             "power",
@@ -1344,7 +1341,7 @@ export default function setupTrigger(world: World) {
 
           entity[PLAYER].actionTriggered = "use";
           entity[PLAYER].contentTriggered = hotkey;
-        } else if (TEST_MODE || world.metadata.warpPlayer) {
+        } else if (isTestMode(world, entity) || world.metadata.warpPlayer) {
           // open player chat
           entity[PLAYER].actionTriggered = "chat";
         } else continue;
@@ -1453,14 +1450,6 @@ export default function setupTrigger(world: World) {
           }
           rerenderEntity(world, useEntity);
           continue;
-        } else if (targetTab === "chat") {
-          if (entity[TOOLTIP]) {
-            // clear previous chat
-            entity[TOOLTIP].dialogs = [];
-            entity[TOOLTIP].changed = true;
-            entity[TOOLTIP].override = undefined;
-            entity[TOOLTIP].enemy = false;
-          }
         }
 
         // close any popup but preserve selections

@@ -14,7 +14,8 @@ before(async () => {
     stdin: {
       contents: `export {createHost} from "./src/engine/network/host";
     export {encodeState,decodeState} from "./src/engine/network/codec";
-    export {giveItems} from "./src/testing/harness";`,
+    export {giveItems} from "./src/testing/harness";
+    export {submitChat} from "./src/engine/systems/popup";`,
       resolveDir: process.cwd(),
       loader: "ts",
     },
@@ -26,6 +27,7 @@ after(async () => {
   await rm(directory, { recursive: true, force: true });
 });
 
+let playerNumber = 0;
 const connect = (url, claim = {}, acknowledge = true) => {
   const socket = new WebSocket(url);
   const messages = [],
@@ -35,7 +37,13 @@ const connect = (url, claim = {}, acknowledge = true) => {
   );
   socket.on("error", () => {});
   socket.on("open", () =>
-    socket.send(JSON.stringify({ type: "join", ...claim }))
+    socket.send(
+      JSON.stringify({
+        type: "join",
+        username: `Player${++playerNumber}`,
+        ...claim,
+      })
+    )
   );
   socket.on("message", (bytes) => {
     const message = JSON.parse(bytes.toString());
@@ -272,6 +280,144 @@ test("a stalled client receives one full state and catches up directly after ack
     const current = engine.decodeState((await slow.next("state")).state);
     assert.equal(current.serverTime, server.simulation.serverTime);
     assert.equal(states, 2);
+  } finally {
+    await server.close();
+  }
+});
+
+test("unnamed players must choose a unique name; returning credentials restore it", async () => {
+  const file = path.join(directory, "names.bin");
+  const server = await start(file);
+  try {
+    const first = connect(url(server), { username: undefined });
+    const claim = await first.next("welcome");
+    const world = server.simulation.worldFor(claim.id);
+    const hero = world.getEntityById(claim.actorId);
+    assert.equal(hero.PLAYER.naming, true);
+    assert.equal(
+      server.simulation.receive(claim.id, { sequence: 0, move: ["right"] }),
+      false
+    );
+    assert.equal(
+      server.simulation.receive(claim.id, {
+        sequence: 1,
+        action: { kind: "close" },
+      }),
+      false
+    );
+    assert.equal(world.metadata.chooseUsername(claim.id, "Alice"), undefined);
+    assert.equal(hero.PLAYER.naming, false);
+    assert.equal(hero.PLAYER.username, "Alice");
+    const duplicate = connect(url(server), { username: "aLiCe" });
+    const duplicateClaim = await duplicate.next("welcome");
+    const other = server.simulation
+      .worldFor(duplicateClaim.id)
+      .getEntityById(duplicateClaim.actorId);
+    assert.equal(other.PLAYER.naming, true);
+    assert.equal(other.PLAYER.nameError, "Name already used!");
+    const resumed = connect(url(server), {
+      id: claim.id,
+      token: claim.token,
+      username: "Other",
+    });
+    const welcome = await resumed.next("welcome");
+    assert.equal(welcome.username, "Alice");
+    assert.equal(welcome.actorId, claim.actorId);
+    assert.equal(await first.closed, 1008);
+    await server.save();
+    const { createPersistence } = require("./persistence.cjs");
+    const saved = await createPersistence(file).load();
+    assert.equal(
+      saved.accounts.find((account) => account.id === claim.id).username,
+      "Alice"
+    );
+  } finally {
+    await server.close();
+  }
+});
+
+test("startup admins can manage players through authoritative commands and restart with saved bans", async () => {
+  const file = path.join(directory, "admin-live.bin");
+  let server = await start(file);
+  let alice, bob;
+  try {
+    const first = connect(url(server), { username: "Alice" });
+    const second = connect(url(server), { username: "Bob" });
+    alice = await first.next("welcome");
+    bob = await second.next("welcome");
+  } finally {
+    await server.close();
+  }
+  server = await createGameServer({
+    engine,
+    file,
+    manual: true,
+    adminIds: [alice.id],
+  });
+  try {
+    const first = connect(url(server), { id: alice.id, token: alice.token });
+    const second = connect(url(server), { id: bob.id, token: bob.token });
+    await first.next("welcome");
+    await second.next("welcome");
+    const world = server.simulation.worldFor(alice.id);
+    const hero = world.getEntityById(server.simulation.actorId(alice.id));
+    const other = world.getEntityById(server.simulation.actorId(bob.id));
+    assert.equal(hero.PLAYER.admin, true);
+    assert.equal(other.PLAYER.admin, false);
+    assert.equal(
+      world.metadata.serverCommand(bob.id, ["ban", "Alice"]),
+      "Commands disabled!"
+    );
+    const command = async (...args) => {
+      engine.submitChat(world, hero, "/server " + args.join(" "));
+      server.step();
+      await new Promise((resolve) => setTimeout(resolve, 30));
+    };
+    await command("players");
+    assert.equal(hero.PLAYER.popup, hero.PLAYER.interface.server);
+    assert.notEqual(hero.PLAYER.interface.server, other.PLAYER.popup);
+    await command("admin", "Bob", "on");
+    assert.equal(other.PLAYER.admin, true);
+    await command("ban", "Bob");
+    assert.equal(await second.closed, 1008);
+    assert.equal(server.simulation.actorId(bob.id), undefined);
+    const banned = connect(url(server), { id: bob.id, token: bob.token });
+    assert.equal(await banned.closed, 1008);
+    const previous = server.simulation;
+    await command("restart");
+    assert.equal(await first.closed, 1012);
+    for (
+      let attempt = 0;
+      server.simulation === previous && attempt < 200;
+      attempt++
+    )
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    assert.notEqual(server.simulation, previous);
+    const resumed = connect(url(server), { id: alice.id, token: alice.token });
+    await resumed.next("welcome");
+    const restarted = server.simulation.worldFor(alice.id);
+    assert.equal(
+      restarted.getEntityById(server.simulation.actorId(alice.id)).PLAYER.admin,
+      true
+    );
+    assert.equal(
+      restarted.metadata.gameEntity.LEVEL.serverPlayers.find(
+        (p) => p.id === bob.id
+      ).status,
+      "banned"
+    );
+    restarted.metadata.serverCommand(alice.id, ["unban", "Bob"]);
+    server.step();
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    const fresh = connect(url(server), { id: bob.id, token: bob.token });
+    const welcome = await fresh.next("welcome");
+    assert.equal(welcome.username, "Bob");
+    assert.notEqual(welcome.actorId, bob.actorId);
+    const newHero = server.simulation
+      .worldFor(bob.id)
+      .getEntityById(welcome.actorId);
+    assert.equal(newHero.PLAYER.admin, false);
+    assert.equal(newHero.PLAYER.naming, undefined);
   } finally {
     await server.close();
   }

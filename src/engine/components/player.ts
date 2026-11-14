@@ -17,11 +17,16 @@ export type Interaction = {
 
 export type Player = {
   accountId?: string;
+  username?: string;
+  admin?: boolean;
+  naming?: boolean;
+  nameError?: string;
   rewardOffsets?: Partial<Record<LevelName, number>>;
   connected?: boolean;
   interface?: {
     use: number;
     inspect: number;
+    server?: number;
     focus?: number;
     prompts?: Record<number, number>;
   };

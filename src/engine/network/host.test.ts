@@ -262,7 +262,10 @@ it("opens independent personal windows after reconnecting to a restarted server"
   host.receive("first", { sequence: 0, action: { kind: "gear" } });
   host.receive("second", { sequence: 0, action: { kind: "stats" } });
   for (let frame = 0; frame < 30; frame++) host.step();
-  for (const [id, tab] of [[first, "gear"], [second, "stats"]] as const) {
+  for (const [id, tab] of [
+    [first, "gear"],
+    [second, "stats"],
+  ] as const) {
     const player = host.world.assertByIdAndComponents(id, [PLAYER]);
     const popup = host.world.assertByIdAndComponents(player[PLAYER].popup, [
       POPUP,
@@ -270,4 +273,24 @@ it("opens independent personal windows after reconnecting to a restarted server"
     expect(popup[POPUP].owner).toBe(id);
     expect(popup[POPUP].tabs[popup[POPUP].horizontalIndex]).toBe(tab);
   }
+});
+
+it("keeps username but derives admin permissions and roster afresh after a save", () => {
+  const host = createHost();
+  host.join("first");
+  host.identify("first", "Alice", true);
+  host.roster([
+    { id: "first", username: "Alice", admin: true, status: "online" },
+  ]);
+  const loaded = createHost(host.save());
+  const player = loaded.world.assertByIdAndComponents(loaded.actorId("first"), [
+    PLAYER,
+  ]);
+  expect(player[PLAYER].username).toBe("Alice");
+  expect(player[PLAYER].admin).toBe(false);
+  expect(loaded.world.metadata.gameEntity.LEVEL.serverPlayers).toEqual([]);
+  expect(
+    host.world.assertByIdAndComponents(host.actorId("first"), [PLAYER])[PLAYER]
+      .admin
+  ).toBe(true);
 });

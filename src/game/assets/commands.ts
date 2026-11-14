@@ -1,3 +1,4 @@
+import { isTestMode } from "../../engine/mode";
 import { Entity } from "ecs";
 import { entities, World } from "../../engine";
 import {
@@ -690,6 +691,16 @@ commandSignatures.pin = {
   usage: "/pin <name> [x,y]",
 };
 
+commandSignatures.server = {
+  short: "server",
+  executor: (world, entity, ...args) =>
+    world.metadata.serverCommand?.(entity[PLAYER]!.accountId!, args) ||
+    (world.metadata.warpPlayer ? undefined : "Not on a server!"),
+  minArgs: 0,
+  maxArgs: 3,
+  usage: "/server <action> [name|filter] [on|off]",
+};
+
 export const completeCommand = (
   world: World,
   input: string,
@@ -721,6 +732,15 @@ export const completeCommand = (
     const material =
       words[3] === "default" ? undefined : (words[3] as Material);
     const argumentsByCommand: Record<string, readonly (readonly string[])[]> = {
+      server: [
+        ["players", "kick", "kickall", "ban", "unban", "restart", "admin"],
+        words[1] === "players"
+          ? ["online", "offline", "banned"]
+          : (world.metadata.gameEntity[LEVEL].serverPlayers || []).flatMap(
+              (player) => (player.username ? [player.username] : [])
+            ),
+        words[1] === "admin" ? ["on", "off"] : [],
+      ],
       help: [Object.keys(commandSignatures)],
       give: [
         Object.keys(commandItems).filter((name) =>
@@ -770,7 +790,9 @@ export const completeCommand = (
   }
 
   const matches = sorted([...new Set(values)]).filter((value) =>
-    value.startsWith(last)
+    words[0] === "/server" && words.length === 3 && words[1] !== "players"
+      ? value.toLowerCase().startsWith(last.toLowerCase())
+      : value.startsWith(last)
   );
   if (!matches.length) return "";
   return matches[normalize(selection, matches.length)].slice(last.length) + " ";
@@ -797,6 +819,11 @@ export const executeCommand = (
   entity: Entity,
   command: CommandCall
 ) => {
+  if (
+    (world.metadata.warpPlayer || world.metadata.network) &&
+    !isTestMode(world, entity)
+  )
+    return "Commands disabled!";
   const signature = commandSignatures[command.handler];
   if (
     command.args.length < signature.minArgs ||

@@ -22,8 +22,12 @@ jest.mock("./visuals", () => ({
   Button: ({
     children,
     onClick,
-  }: React.PropsWithChildren<{ onClick: () => void }>) => (
-    <button type="button" onClick={onClick}>
+    type = "button",
+  }: React.PropsWithChildren<{
+    onClick?: () => void;
+    type?: "button" | "submit";
+  }>) => (
+    <button type={type} onClick={onClick}>
       {children}
     </button>
   ),
@@ -94,4 +98,31 @@ it("allows an established client to reconnect without discarding either view", (
   status(1, "connected");
   act(() => jest.advanceTimersByTime(20000));
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});
+
+it("sends each username to its own game and retains it on retry", () => {
+  render(<ServerPreview base="/" />);
+  for (const [slot, name] of [
+    [1, "Alice"],
+    [2, "Bob"],
+  ])
+    fireEvent.change(
+      screen.getByRole("textbox", { name: `Player ${slot} username` }),
+      { target: { value: name } }
+    );
+  fireEvent.click(screen.getByRole("button", { name: "Connect" }));
+  expect(screen.getByTitle("Player 1 game")).toHaveAttribute(
+    "src",
+    expect.stringContaining("username=Alice")
+  );
+  expect(screen.getByTitle("Player 2 game")).toHaveAttribute(
+    "src",
+    expect.stringContaining("username=Bob")
+  );
+  status(1, "rejected");
+  fireEvent.click(screen.getByRole("button", { name: "Connect" }));
+  expect(screen.getByTitle("Player 2 game")).toHaveAttribute(
+    "src",
+    expect.stringContaining("username=Bob")
+  );
 });

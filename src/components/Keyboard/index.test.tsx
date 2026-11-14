@@ -9,6 +9,7 @@ import Keyboard, {
   keyboardPages,
   keyboardSize,
 } from ".";
+import { createHost } from "../../engine/network/host";
 import { World } from "../../engine";
 import { colors } from "../../game/assets/colors";
 import { POPUP } from "../../engine/components/popup";
@@ -318,4 +319,29 @@ describe("keyboard layout", () => {
   it("doesn't map unknown keys", () => {
     expect(getIndexFromKey("€")).toBeUndefined();
   });
+});
+
+it("types into the selected multiplayer character rather than the first actor", () => {
+  const host = createHost();
+  const first = host.join("first"),
+    second = host.join("second");
+  host.requestUsername("first");
+  host.requestUsername("second");
+  host.world.metadata.localPlayerId = second;
+  const view = renderHud(host.world, <Keyboard />);
+  const keyboard = view.container.querySelector("#keyboard") as HTMLElement;
+  Object.defineProperty(keyboard, "offsetWidth", { value: width });
+  Object.defineProperty(keyboard, "offsetHeight", { value: height });
+  fireEvent.click(keyboard, { clientX: 115, clientY: 55 });
+  const text = (id: number) => {
+    const hero = host.world.assertByIdAndComponents(id, ["PLAYER"]);
+    return getTabSelections(
+      host.world,
+      host.world.assertByIdAndComponents(hero.PLAYER.popup, [POPUP])
+    )
+      .map(getKeyFromIndex)
+      .join("");
+  };
+  expect(text(first)).toBe("");
+  expect(text(second)).toBe("h");
 });

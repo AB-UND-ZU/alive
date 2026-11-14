@@ -1,3 +1,4 @@
+const { createAdministration } = require("./administration.cjs");
 const { WebSocketServer, WebSocket } = require("ws");
 const {
   createCredential,
@@ -11,12 +12,14 @@ exports.createGameServer = async ({
   host = "127.0.0.1",
   port = 0,
   manual = false,
+  adminIds = [],
+  onPlayer,
 }) => {
   const persistence = createPersistence(file);
   const saved = await persistence.load();
   if (saved && (!Array.isArray(saved.accounts) || !saved.world))
     throw new Error("Invalid server save");
-  const simulation = engine.createHost(saved?.world);
+  let simulation = engine.createHost(saved?.world);
   const accounts = new Map(
     (saved?.accounts || []).map((account) => [account.id, account])
   );
@@ -31,12 +34,47 @@ exports.createGameServer = async ({
     server.once("listening", resolve);
     server.once("error", reject);
   });
-  let closing = false;
+  let closing = false,
+    restarting = false;
   const save = () =>
     persistence.save({
       accounts: [...accounts.values()],
       world: simulation.save(),
     });
+  const administration = createAdministration({
+    accounts,
+    clients,
+    adminIds,
+    simulation: () => simulation,
+    save,
+    onPlayer,
+    restart: async () => {
+      restarting = true;
+      try {
+        for (const [socket, client] of clients) {
+          if (client.account) simulation.disconnect(client.account.id);
+          client.account = undefined;
+          socket.close(1012, "Server restarting");
+        }
+        await save();
+        const data = await persistence.load();
+        simulation = engine.createHost(data.world);
+        configure();
+        administration.reset();
+      } finally {
+        restarting = false;
+      }
+    },
+  });
+  const configure = () =>
+    simulation.configure(administration.command, administration.choose);
+  configure();
+  administration.sync();
+  const step = () => {
+    if (restarting) return;
+    simulation.step();
+    void administration.flush();
+  };
   const send = (socket, message) => {
     if (
       socket.readyState === WebSocket.OPEN &&
@@ -76,7 +114,7 @@ exports.createGameServer = async ({
   const reject = (socket) =>
     socket.close(1008, "Invalid or unavailable session");
   server.on("connection", (socket) => {
-    if (clients.size >= 16) {
+    if (restarting || clients.size >= 16) {
       socket.close(1013, "Server full");
       return;
     }
@@ -100,11 +138,17 @@ exports.createGameServer = async ({
     socket.on("close", () => {
       if (client.account) simulation.disconnect(client.account.id);
       clients.delete(socket);
+      administration.sync();
     });
     socket.on("message", async (bytes) => {
       let createdAccount;
       const discardUnclaimed = async () => {
-        if (!createdAccount || client.account) return;
+        if (
+          !createdAccount ||
+          client.account ||
+          accounts.get(createdAccount)?.banned
+        )
+          return;
         accounts.delete(createdAccount);
         simulation.forget(createdAccount);
         createdAccount = undefined;
@@ -131,7 +175,7 @@ exports.createGameServer = async ({
             client.account ||
             client.joining ||
             Object.keys(message).some(
-              (key) => !["type", "id", "token"].includes(key)
+              (key) => !["type", "id", "token", "username"].includes(key)
             )
           ) {
             reject(socket);
@@ -145,11 +189,15 @@ exports.createGameServer = async ({
               return;
             }
             account = accounts.get(message.id);
-            if (!account || !verifyCredential(account.hash, message.token)) {
+            if (
+              !account ||
+              account.banned ||
+              !verifyCredential(account.hash, message.token)
+            ) {
               reject(socket);
               return;
             }
-            if (simulation.actorId(account.id) === undefined)
+            if (simulation.actorId(account.id) === undefined && !account.reset)
               throw new Error("Saved player actor is unavailable");
             for (const [previousSocket, previous] of clients) {
               if (previous !== client && previous.account?.id === account.id) {
@@ -180,19 +228,34 @@ exports.createGameServer = async ({
             simulation.join(account.id);
             accounts.set(account.id, account);
             createdAccount = account.id;
+            client.claimingId = account.id;
             await save();
           }
-          if (socket.readyState !== WebSocket.OPEN) {
+          if (
+            socket.readyState !== WebSocket.OPEN ||
+            account.banned ||
+            restarting
+          ) {
             await discardUnclaimed();
             return;
           }
           simulation.join(account.id);
+          account.reset = false;
           client.account = account;
+          client.claimingId = undefined;
+          let nameError;
+          if (account.username) onPlayer?.(account);
+          if (!account.username && message.username !== undefined)
+            nameError = administration.choose(account.id, message.username);
+          administration.sync();
+          if (!account.username)
+            simulation.requestUsername(account.id, nameError);
           client.joining = false;
           send(socket, {
             type: "welcome",
             id: account.id,
             token,
+            username: account.username,
             actorId: simulation.actorId(account.id),
           });
           publish();
@@ -273,7 +336,7 @@ exports.createGameServer = async ({
         pending = Math.min(pending + now - previous, (5 * 1000) / 30);
         previous = now;
         while (pending >= 1000 / 30) {
-          simulation.step();
+          step();
           pending -= 1000 / 30;
         }
       }, 10)
@@ -307,12 +370,14 @@ exports.createGameServer = async ({
     }, 5000)
   );
   return {
-    simulation,
+    get simulation() {
+      return simulation;
+    },
     address: server.address(),
     save,
     publish,
     step() {
-      simulation.step();
+      step();
       publish();
     },
     async close() {

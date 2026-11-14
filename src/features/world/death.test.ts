@@ -154,17 +154,27 @@ describe("death and respawn", () => {
     expect(getTombstone(world)?.[REVIVABLE].available).toBe(false);
   });
 
-  it("preserves server account ownership through death and respawn", () => {
+  it("preserves server identity and admin permission through death and respawn", () => {
     const world = createAreaWorld(area);
     const hero = assertUnit(world);
     hero[PLAYER].accountId = "owned-player";
+    hero[PLAYER].username = "Alice";
+    hero[PLAYER].admin = true;
     hero[VIEWABLE]!.owner = world.getEntityId(hero);
     const interfaceIds = ensurePlayerInterface(world, hero);
     die(world);
     advanceUntil(world, () => !!getTombstone(world));
-    expect(assertPlayer(world)[PLAYER].accountId).toBe("owned-player");
+    expect(assertPlayer(world)[PLAYER]).toMatchObject({
+      accountId: "owned-player",
+      username: "Alice",
+      admin: true,
+    });
     const revived = respawn(world);
-    expect(revived[PLAYER].accountId).toBe("owned-player");
+    expect(revived[PLAYER]).toMatchObject({
+      accountId: "owned-player",
+      username: "Alice",
+      admin: true,
+    });
     expect(revived[PLAYER].interface).toBe(interfaceIds);
     world.metadata.localPlayerId = world.getEntityId(revived);
     expect(selectViewable(world.getEntities([VIEWABLE, POSITION]), world)).toBe(

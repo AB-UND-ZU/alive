@@ -47,6 +47,7 @@ it("transfers one character through a native portal while another remains in the
   host.join("first");
   host.join("second");
   const second = player(host, "second");
+  host.identify("first", "Alice", true);
   warp(host, "first", "LEVEL_TUTORIAL");
   expect(host.worldFor("first")!.metadata.gameEntity[LEVEL].name).toBe(
     "LEVEL_TUTORIAL"
@@ -54,7 +55,11 @@ it("transfers one character through a native portal while another remains in the
   expect(host.worldFor("second")).toBe(host.world);
   expect(player(host, "second")).toBe(second);
   expect(host.world.getEntities([PLAYER])).toEqual([second]);
-  expect(player(host, "first")[PLAYER].accountId).toBe("first");
+  expect(player(host, "first")[PLAYER]).toMatchObject({
+    accountId: "first",
+    username: "Alice",
+    admin: true,
+  });
   const third = host.join("third");
   expect(
     host.world.assertByIdAndComponents(third, [PLAYER])[PLAYER].accountId

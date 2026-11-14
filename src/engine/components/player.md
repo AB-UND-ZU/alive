@@ -10,12 +10,44 @@ Stores player input, quick items, popup state, chat history and combat counters.
 | `deaths`        | Whole-game death count used by save summaries.                 |
 | `defeatedUnits` | Per-level totals used by quests.                               |
 | `receivedStats` | Cumulative received amounts observed by effects and UI caches. |
+
+The optional `accountId` is a public server-owned account binding, not a reconnect secret. It survives ghost and hero replacement. Only authenticated server code assigns it; client input messages cannot set player identity.
+
+`username` is the saved server display name. `admin` is authoritative runtime permission; host saves omit it. `naming` and `nameError` hold the initial private chat prompt. Names and permissions survive death, revival and portal transfers. `interface.server` identifies the private administration output window.
+
 <!-- source-types -->
+
+## Interaction
+
+```ts src/engine/components/player.ts
+export type Interaction = {
+  position: Position;
+  size: Position;
+  active?: number;
+  last?: number;
+  origin: Position;
+};
+```
 
 ## Player
 
 ```ts src/engine/components/player.ts
 export type Player = {
+  accountId?: string;
+  username?: string;
+  admin?: boolean;
+  naming?: boolean;
+  nameError?: string;
+  rewardOffsets?: Partial<Record<LevelName, number>>;
+  connected?: boolean;
+  interface?: {
+    use: number;
+    inspect: number;
+    server?: number;
+    focus?: number;
+    prompts?: Record<number, number>;
+  };
+  interact?: Interaction;
   ghost: boolean;
   receivedStats: Record<
     keyof (Pick<Countable, "hp" | "maxHp" | "mp" | "maxMp" | "xp"> &
@@ -54,5 +86,3 @@ export type Player = {
   offsetTriggered?: number;
 };
 ```
-
-The optional `accountId` is a public server-owned account binding, not a reconnect secret. It survives ghost and hero replacement. Only authenticated server code assigns it; client input messages cannot set player identity.

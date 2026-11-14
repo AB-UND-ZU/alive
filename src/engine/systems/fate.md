@@ -9,3 +9,5 @@ Handles player death, ghost travel, tombstones and revival after effects and seq
 | Revival     | Restore the saved class appearance, stats and spawn view     |
 
 [Soul](../components/soul.md) holds revival data; [Spawnable](../components/spawnable.md) holds the return point and appearance. This runs before [Drop](drop.md), so the tombstone and respawn state exist before inventory cleanup.
+
+Server account ID, username and current admin permission follow both ghost creation and revival. Permission is reset only by server administration or host restore, not by character death.

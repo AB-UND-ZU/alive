@@ -552,7 +552,7 @@ test("command reference and chat preview use native game commands", async ({
     has: page.locator("thead th").filter({ hasText: /^Command$/ }),
   });
   const rows = reference.locator("tbody tr:not(.GridRule)");
-  await expect(rows).toHaveCount(10);
+  await expect(rows).toHaveCount(11);
   const examples = await rows.locator('[data-column="2"]').allTextContents();
   expect(
     examples.map((example) => example.match(/^\/(\w+)/)?.[1]).sort()
@@ -565,6 +565,7 @@ test("command reference and chat preview use native game commands", async ({
     "mod",
     "new",
     "pin",
+    "server",
     "stat",
     "tp",
   ]);

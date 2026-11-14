@@ -11,6 +11,9 @@ Stores the active level’s dimensions, cell matrices, spatial map, and generati
 | `objects`     | Object kinds stored at each [x][y] cell.              |
 | `initialized` | Whether the entities for each cell have been created. |
 | `map`         | Registered entities grouped by x, y and entity ID.    |
+
+`serverPlayers` is a derived public roster of account IDs, names, connection/ban status and admin flags. It supplies username completion across levels; host saves omit it. Reconnect secrets never enter the ECS.
+
 <!-- source-types -->
 
 ## LevelName
@@ -30,6 +33,14 @@ export type BiomeName = "jungle" | "desert" | "ocean" | "glacier";
 ```ts src/engine/components/level.ts
 export type Level = {
   name: LevelName;
+  serverPlayers?: {
+    id: string;
+    username?: string;
+    status: "online" | "offline" | "banned";
+    admin: boolean;
+  }[];
+  cooperativeRewards?: Omit<Item, "carrier" | "bound">[][];
+  cooperativeDefeated?: Partial<Record<UnitKey, number>>;
   // map[x][y][entityId] = entity
   map: Record<number, Record<number, Record<string, Entity>>>;
   walkable: Matrix<0 | 1>;

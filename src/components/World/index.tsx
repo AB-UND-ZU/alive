@@ -128,13 +128,14 @@ export default function World({
       }
     };
 
-    const joinServer = (address: string) => {
+    const joinServer = (address: string, username?: string) => {
       disconnectServer();
       const generation = ++connectionGeneration.current;
       ensureAudio();
       try {
         connectionRef.current = connectServer(address, {
           storage: serverStorage,
+          username,
           onStatus(status) {
             if (generation !== connectionGeneration.current) return;
             setServerStatus(status);

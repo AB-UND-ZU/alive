@@ -1,6 +1,8 @@
 # Chat
 
-Chat accepts messages and commands in Test Mode. Messages stay in your game; they are not sent to other players.
+Messages appear above your character for [[data:3]] seconds. A new message replaces the previous one. On servers, nearby players can read them.
+
+Commands require Test Mode in single player or server admin permission in multiplayer.
 
 ```widget
 popup chat
@@ -23,7 +25,7 @@ popup chat
 
 ## Command Reference
 
-Arguments use spaces and case-sensitive names. `<arg>` is required; `[arg]` is optional. Invalid arguments return an error or usage above the hero.
+Arguments use spaces. Item names are case-sensitive; server usernames are not. `<arg>` is required; `[arg]` is optional. Invalid arguments return an error or usage above the hero.
 
 ```widget
 command-reference

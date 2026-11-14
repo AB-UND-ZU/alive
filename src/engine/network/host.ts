@@ -1,3 +1,14 @@
+import { entities } from "..";
+import { POPUP } from "../components/popup";
+import { FOG } from "../components/fog";
+import { RENDERABLE } from "../components/renderable";
+import { SEQUENCABLE } from "../components/sequencable";
+import { SPRITE } from "../components/sprite";
+import { none } from "../../game/assets/sprites";
+import { createText } from "../../game/assets/ui";
+import { chunked } from "../../game/math/std";
+import { frameWidth, frameHeight } from "../../game/assets/utils";
+import { isTestMode } from "../mode";
 import {
   captureSounds,
   withSoundSource,
@@ -21,9 +32,14 @@ import { STATS } from "../components/stats";
 import { VIEWABLE } from "../components/viewable";
 import { LIGHT } from "../components/light";
 import { createHero } from "../systems/fate";
-import { disposeEntity, registerEntity, updateWalkable } from "../systems/map";
+import {
+  disposeEntity,
+  registerEntity,
+  updateWalkable,
+  moveEntity,
+} from "../systems/map";
 import { rerenderEntity } from "../systems/renderer";
-import { closePopup } from "../systems/popup";
+import { closePopup, createPopup, openPopup } from "../systems/popup";
 import { restorePlayerConsumption } from "../systems/consume";
 import { calculateVision } from "../systems/visibility";
 import { levelConfig } from "../../game/levels";
@@ -53,6 +69,11 @@ type Transfer = {
 
 /** Simulation owner. Transport callbacks enqueue intent; only step runs systems. */
 export const createHost = (saved?: HostedWorld) => {
+  let serverCommand: World["metadata"]["serverCommand"];
+  let chooseUsername: World["metadata"]["chooseUsername"];
+  let roster: NonNullable<
+    World["metadata"]["gameEntity"]["LEVEL"]["serverPlayers"]
+  > = [];
   let elapsed = saved?.elapsed || 0;
   let sequence = 0;
   const realms = new Map<LevelName, Realm>();
@@ -86,6 +107,9 @@ export const createHost = (saved?: HostedWorld) => {
   };
   const bindRealm = (realm: Realm) => {
     const { world } = realm;
+    world.metadata.serverCommand = (...args) => serverCommand?.(...args);
+    world.metadata.chooseUsername = (...args) => chooseUsername?.(...args);
+    world.metadata.gameEntity[LEVEL].serverPlayers = roster;
     world.metadata.warpPlayer = (
       id,
       level,
@@ -97,7 +121,10 @@ export const createHost = (saved?: HostedWorld) => {
       const accountId = player?.[PLAYER].accountId;
       if (
         accountId &&
-        levelConfig[world.metadata.gameEntity[LEVEL].name].warps.includes(level)
+        (isTestMode(world, player) ||
+          levelConfig[world.metadata.gameEntity[LEVEL].name].warps.includes(
+            level
+          ))
       )
         transfers.set(accountId, {
           accountId,
@@ -115,6 +142,7 @@ export const createHost = (saved?: HostedWorld) => {
     for (const player of world.getEntities([PLAYER]))
       if (player[PLAYER].accountId) {
         player[PLAYER].connected = false;
+        player[PLAYER].admin = false;
         const popup = world.getEntityById(player[PLAYER].popup);
         if (popup) closePopup(world, player, popup);
       }
@@ -250,6 +278,7 @@ export const createHost = (saved?: HostedWorld) => {
       for (const id of [
         ui.use,
         ui.inspect,
+        ...(ui.server ? [ui.server] : []),
         ...(ui.focus ? [ui.focus] : []),
         ...Object.values(ui.prompts || {}),
       ]) {
@@ -323,6 +352,109 @@ export const createHost = (saved?: HostedWorld) => {
     sequence += 1;
   };
   return {
+    configure(
+      command: World["metadata"]["serverCommand"],
+      name: World["metadata"]["chooseUsername"]
+    ) {
+      serverCommand = command;
+      chooseUsername = name;
+    },
+    identify(accountId: string, username: string | undefined, admin: boolean) {
+      const current = actor(accountId);
+      if (!current) return;
+      Object.assign(current.player[PLAYER], { username, admin });
+      rerenderEntity(current.world, current.player);
+    },
+    roster(players: typeof roster) {
+      roster = players;
+      for (const { world } of realms.values())
+        world.metadata.gameEntity[LEVEL].serverPlayers = roster;
+    },
+    requestUsername(accountId: string, error?: string) {
+      const current = actor(accountId);
+      if (!current) return;
+      const { world, player } = current;
+      player[PLAYER].naming = true;
+      player[PLAYER].nameError = error;
+      const ui = ensurePlayerInterface(world, player);
+      const popup = world.assertByIdAndComponents(ui.use, [POPUP]);
+      popup[POPUP].horizontalIndex = popup[POPUP].tabs.indexOf("chat");
+      moveEntity(world, popup, {
+        x: player[POSITION].x,
+        y: player[POSITION].y + (frameHeight + 1) / 2,
+      });
+      moveEntity(
+        world,
+        world.assertByIdAndComponents(ui.inspect, [POSITION]),
+        player[POSITION]
+      );
+      openPopup(world, player, popup, true);
+      rerenderEntity(world, player);
+    },
+    named(accountId: string) {
+      const current = actor(accountId);
+      if (!current) return;
+      const { world, player } = current;
+      player[PLAYER].naming = false;
+      player[PLAYER].nameError = undefined;
+      const popup = world.getEntityById(player[PLAYER].popup);
+      if (popup) closePopup(world, player, popup);
+      rerenderEntity(world, player);
+    },
+    reply(accountId: string, lines: string[]) {
+      const current = actor(accountId);
+      if (!current) return;
+      const { world, player } = current;
+      const ui = ensurePlayerInterface(world, player);
+      let output =
+        ui.server &&
+        world.getEntityByIdAndComponents(ui.server, [POPUP, POSITION]);
+      if (!output) {
+        output = entities.createUse(world, {
+          [FOG]: { visibility: "visible", type: "terrain", fixed: true },
+          [POSITION]: { ...player[POSITION] },
+          [RENDERABLE]: { generation: 0 },
+          [SEQUENCABLE]: { states: {} },
+          [SPRITE]: none,
+          [VIEWABLE]: {
+            active: false,
+            priority: 90,
+            owner: world.getEntityId(player),
+          },
+          [POPUP]: {
+            ...world.assertByIdAndComponents(ui.use, [POPUP])[POPUP],
+            viewpoint: world.getEntityId(
+              entities.createViewpoint(world, {
+                [POSITION]: { ...player[POSITION] },
+                [RENDERABLE]: { generation: 0 },
+                [VIEWABLE]: {
+                  active: false,
+                  priority: 90,
+                  owner: world.getEntityId(player),
+                },
+              })
+            ),
+          },
+        });
+        ui.server = world.getEntityId(output);
+        registerEntity(world, output);
+        registerEntity(world, world.assertById(output[POPUP].viewpoint));
+      }
+      const popup = world.getEntityById(player[PLAYER].popup);
+      if (popup) closePopup(world, player, popup);
+      moveEntity(world, output, {
+        x: player[POSITION].x,
+        y: player[POSITION].y + (frameHeight + 1) / 2,
+      });
+      createPopup(world, output, {
+        owner: world.getEntityId(player),
+        tabs: ["info"],
+        lines: [
+          lines.flatMap((line) => chunked(createText(line), frameWidth - 2)),
+        ],
+      });
+      openPopup(world, player, output, true);
+    },
     world: menu.world,
     get serverTime() {
       return elapsed;
@@ -370,10 +502,17 @@ export const createHost = (saved?: HostedWorld) => {
     },
     save: (): HostedWorld => ({
       elapsed,
-      realms: [...realms.values()].map(({ world, spawn }) => ({
-        snapshot: createSnapshot(world),
-        spawn,
-      })),
+      realms: [...realms.values()].map(({ world, spawn }) => {
+        const snapshot = createSnapshot(world);
+        for (const [, components] of snapshot.entities) {
+          if (components[PLAYER])
+            delete (components[PLAYER] as { admin?: boolean }).admin;
+          if (components[LEVEL])
+            delete (components[LEVEL] as { serverPlayers?: unknown })
+              .serverPlayers;
+        }
+        return { snapshot, spawn };
+      }),
     }),
   };
 };

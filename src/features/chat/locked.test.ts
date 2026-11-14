@@ -6,7 +6,6 @@ import {
   getDialog,
   getDrops,
   getMenu,
-  getPrompt,
   openChat,
   setupHero,
   submit,
@@ -20,7 +19,7 @@ const area = `
 `;
 
 describe("chat outside of test mode", () => {
-  it("keeps the prompt without sending a message or running a command", () => {
+  it("sends slash messages as ordinary chat without running a command", () => {
     const world = createAreaWorld(area);
     const hero = setupHero(world);
     openChat(world);
@@ -28,10 +27,9 @@ describe("chat outside of test mode", () => {
 
     submit(world);
 
-    expect(isInPopup(world, hero)).toBeTruthy();
-    expect(getPrompt(world)).toBe("/give sword");
-    expect(getDialog(hero)).toEqual([]);
-    expect(hero[PLAYER].chatHistory).toEqual([]);
+    expect(isInPopup(world, hero)).toBeFalsy();
+    expect(getDialog(hero)).toEqual(["/give sword"]);
+    expect(hero[PLAYER].chatHistory).toHaveLength(1);
     expect(getDrops(world)).toEqual([]);
   });
 

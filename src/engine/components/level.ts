@@ -12,6 +12,12 @@ export type BiomeName = "jungle" | "desert" | "ocean" | "glacier";
 
 export type Level = {
   name: LevelName;
+  serverPlayers?: {
+    id: string;
+    username?: string;
+    status: "online" | "offline" | "banned";
+    admin: boolean;
+  }[];
   cooperativeRewards?: Omit<Item, "carrier" | "bound">[][];
   cooperativeDefeated?: Partial<Record<UnitKey, number>>;
   // map[x][y][entityId] = entity
