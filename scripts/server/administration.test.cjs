@@ -69,14 +69,32 @@ const setup = (adminIds = ["a"]) => {
   };
 };
 
-test("startup IDs are repeatable UUID allowlists and reject malformed flags", () => {
-  const uuid = "12345678-abcd-1234-abcd-123456789abc";
+test("each --admin grants one UUID and repeated flags preserve distinct IDs", () => {
+  const first = "12345678-abcd-1234-abcd-123456789abc";
+  const second = "87654321-abcd-4321-abcd-cba987654321";
   assert.deepEqual(parseAdmins([]), []);
+  assert.deepEqual(parseAdmins(["--admin", first]), [first]);
   assert.deepEqual(
-    parseAdmins(["--admins", uuid.toUpperCase(), "--admins=" + uuid]),
-    [uuid]
+    parseAdmins([
+      "--admin",
+      first.toUpperCase(),
+      "--admin",
+      second,
+      "--admin",
+      first,
+    ]),
+    [first, second]
   );
-  for (const args of [["--admins"], ["--admins", "Bob"], ["--other", uuid]])
+  for (const args of [
+    ["--admin"],
+    ["--admin", "--admin", first],
+    ["--admin", "Bob"],
+    ["--admin", first + "," + second],
+    ["--admins", first],
+    ["--admin=" + first],
+    ["--other", first],
+    ["--admin", first, second],
+  ])
     assert.throws(() => parseAdmins(args));
 });
 

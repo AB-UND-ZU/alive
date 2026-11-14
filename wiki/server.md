@@ -34,7 +34,7 @@ ALIVE_SERVER_SAVE=/path/to/server.save npm run server
 Joining players print their username and player ID in the server terminal. Restart with the IDs that may use Test Mode and commands:
 
 ```sh
-npm run server -- --admins <player-id>,<player-id>
+npm run server -- --admin <player-id> --admin <player-id>
 ```
 
 Other players can chat, but cannot run commands. Tab completes usernames in server commands.

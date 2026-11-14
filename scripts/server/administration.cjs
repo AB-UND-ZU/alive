@@ -190,23 +190,16 @@ exports.parseAdmins = (args) => {
   const ids = [];
   for (let index = 0; index < args.length; index++) {
     const flag = args[index];
-    const value =
-      flag === "--admins"
-        ? args[++index]
-        : flag.startsWith("--admins=")
-        ? flag.slice(9)
-        : undefined;
-    if (!value || value.startsWith("--"))
-      throw new Error("Use --admins <player-id,player-id>");
-    for (const id of value.split(",")) {
-      if (
-        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-          id
-        )
+    const id = args[++index];
+    if (flag !== "--admin" || !id || id.startsWith("--"))
+      throw new Error("Use --admin <player-id> for each admin");
+    if (
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        id
       )
-        throw new Error("Invalid admin player ID: " + id);
-      ids.push(id.toLowerCase());
-    }
+    )
+      throw new Error("Invalid admin player ID: " + id);
+    ids.push(id.toLowerCase());
   }
   return [...new Set(ids)];
 };

@@ -6,4 +6,4 @@ Run `npm run server` from the repository. It builds the same native engine into 
 
 In the browser game, pause the local menu and choose Servers, then enter the printed LAN address. Engine and transport behavior is documented in [host.md](../../src/engine/network/host.md) and [transport.md](transport.md).
 
-`--admins <uuid,uuid>` (or `--admins=...`, repeatable) grants server Test Mode and commands to those authenticated player IDs. Joining usernames and IDs print without reconnect tokens. Invalid flags fail startup.
+`--admin <uuid>` (repeat once per player ID) grants server Test Mode and commands to those authenticated player IDs. Joining usernames and IDs print without reconnect tokens. Invalid flags fail startup.
