@@ -18,6 +18,8 @@ Each player has their own character, equipment, quick items, dialogs, camera, co
 
 Everyone receives the same completed quest rewards once. Disconnected characters receive them too; dead characters receive pending rewards after revival. Later arrivals catch up with completed quest rewards and use the current shared checkpoint.
 
+The first tutorial stick supplies a starter weapon for every teammate. Dungeon quest hints follow the room each character enters.
+
 Only one player can read a particular shared dialog at a time. Teammates can pass through each other, and dungeon fight entrances stay open for the party.
 
 [[key:C]] Open chat.
