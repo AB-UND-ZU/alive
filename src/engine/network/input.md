@@ -30,3 +30,5 @@ UI indices are checked against native window and keyboard bounds, and explicit t
 Clipboard text uses one bounded text action containing up to 128 native key indices. The server validates each index and applies its existing prompt length limit. Pasting does not enqueue one network packet per character.
 
 Scrollbar input replaces an already pending scrollbar target with its newest position. Other actions keep the single-action mailbox, so dragging cannot build a backlog or drop its final position.
+
+The mailbox exposes its last applied input sequence after `onUpdate`. Transport receipts still mean received, while authoritative frames carry the applied sequence for visual movement reconciliation. Neither acknowledgment lets a client choose gameplay results or simulation time.

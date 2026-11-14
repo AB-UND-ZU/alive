@@ -54,3 +54,5 @@ type Transfer = {
   resetClass: boolean;
 };
 ```
+
+Transport frames request a nearby view around the owned character and active camera. Named entities, points of interest, non-spatial state and referenced parents/particles remain available. Normal frames omit generation matrices; opening the native map supplies the full explored-world data. Saves always retain the complete world.

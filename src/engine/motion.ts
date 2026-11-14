@@ -4,7 +4,7 @@ import type { SpringConfig } from "@react-spring/three";
 import type { World } from "./ecs";
 import { MOVABLE } from "./components/movable";
 import { PARTICLE } from "./components/particle";
-import { POSITION } from "./components/position";
+import { Position, POSITION } from "./components/position";
 import { RENDERABLE } from "./components/renderable";
 import { BUMPABLE } from "./components/bumpable";
 import { Orientation, orientationPoints } from "./components/orientable";
@@ -23,8 +23,18 @@ export type Motion = {
 };
 
 const motions = new WeakMap<Entity, Motion>();
+const predictedPositions = new WeakMap<Entity, Position>();
+export const getRenderedPosition = (entity: Entity) =>
+  predictedPositions.get(entity) || entity[POSITION];
+export const setPredictedPosition = (entity: Entity, position?: Position) => {
+  if (position) predictedPositions.set(entity, position);
+  else predictedPositions.delete(entity);
+};
 const particles = new WeakMap<World, Set<Entity>>();
-const bumps = new WeakMap<Entity, { generation: number; motion: Motion }>();
+const bumps = new WeakMap<
+  Entity,
+  { generation: number; motion: Motion; orientation?: Orientation }
+>();
 const point = { x: 0, y: 0, velocityX: 0, velocityY: 0 };
 
 export const createMotion = (
@@ -265,6 +275,15 @@ export const bumpEntity = (
   bump.orientation = orientation;
   if (!bump?.orientation || bumps.get(entity)?.generation === bump.generation)
     return;
+  const preview = bumps.get(entity);
+  if (
+    preview?.generation === -1 &&
+    preview.orientation === bump.orientation &&
+    world.metadata.renderTime - preview.motion.startedAt < 350
+  ) {
+    preview.generation = bump.generation;
+    return;
+  }
   const direction = orientationPoints[bump.orientation as Orientation];
   const motion = createMotion(
     direction.x * 0.225,
@@ -274,6 +293,22 @@ export const bumpEntity = (
   );
   motion.x = motion.y = 0;
   bumps.set(entity, { generation: bump.generation, motion });
+};
+
+export const previewBump = (
+  world: World,
+  entity: Entity,
+  orientation: Orientation
+) => {
+  const direction = orientationPoints[orientation];
+  const motion = createMotion(
+    direction.x * 0.225,
+    direction.y * 0.225,
+    world.metadata.renderTime,
+    entity[MOVABLE]?.spring || {}
+  );
+  motion.x = motion.y = 0;
+  bumps.set(entity, { generation: -1, motion, orientation });
 };
 
 export const getBumpMotion = (entity: Entity) => bumps.get(entity)?.motion;
@@ -297,11 +332,15 @@ export const setParticleMotion = (
 export const cameraSpring = { mass: 1, friction: 30, tension: 100 };
 const cameras = new WeakMap<World, { motion: Motion; level: string }>();
 
-export const updateCameraMotion = (world: World, initialize = false) => {
+export const updateCameraMotion = (
+  world: World,
+  initialize = false,
+  time = world.metadata.elapsed
+) => {
   let camera = cameras.get(world);
   if (!camera && initialize) {
     camera = {
-      motion: createMotion(0, 0, world.metadata.elapsed, cameraSpring),
+      motion: createMotion(0, 0, time, cameraSpring),
       level: "",
     };
     cameras.set(world, camera);
@@ -312,7 +351,7 @@ export const updateCameraMotion = (world: World, initialize = false) => {
     world
   );
   if (!viewable) return camera.motion;
-  const position = viewable[POSITION];
+  const position = getRenderedPosition(viewable);
   const fraction = viewable.VIEWABLE.fraction;
   const x = position.x + (fraction?.x || 0);
   const y = position.y + (fraction?.y || 0);
@@ -320,7 +359,7 @@ export const updateCameraMotion = (world: World, initialize = false) => {
   const config = viewable.VIEWABLE.spring || cameraSpring;
   if (!camera || camera.level !== level.name) {
     camera = {
-      motion: createMotion(x, y, world.metadata.elapsed, config),
+      motion: createMotion(x, y, time, config),
       level: level.name,
     };
     cameras.set(world, camera);
@@ -330,7 +369,7 @@ export const updateCameraMotion = (world: World, initialize = false) => {
       motion,
       motion.x + signedDistance(motion.x, x, level.size),
       motion.y + signedDistance(motion.y, y, level.size),
-      world.metadata.elapsed,
+      time,
       config
     );
   }

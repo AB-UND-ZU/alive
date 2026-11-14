@@ -1,3 +1,4 @@
+import { selectNetworkView } from "./interest";
 import { entities } from "..";
 import { POPUP } from "../components/popup";
 import { FOG } from "../components/fog";
@@ -499,14 +500,23 @@ export const createHost = (saved?: HostedWorld) => {
     worldFor: (accountId: string) => actor(accountId)?.world,
     receive: (accountId: string, message: unknown) =>
       getInput(accountId)?.receive(message) || false,
-    frame: (accountId?: string) => {
-      const world = (accountId && actor(accountId)?.world) || menu.world;
-      const snapshot = createSnapshot(world, true);
+    frame: (accountId?: string, nearby = false) => {
+      const current = accountId ? actor(accountId) : undefined;
+      const world = current?.world || menu.world;
+      const view =
+        nearby && current
+          ? selectNetworkView(world, world.getEntityId(current.player))
+          : undefined;
+      const snapshot = createSnapshot(world, true, view?.entities);
       return {
         sequence,
         serverTime: elapsed,
+        inputSequence: accountId
+          ? inputs.get(accountId)?.input.applied
+          : undefined,
         realm: world.metadata.gameEntity[LEVEL].name,
         snapshot,
+        cells: view?.cells,
         sounds: (sounds.get(world) || []).filter(
           (event) => event.time >= elapsed - 1000
         ),

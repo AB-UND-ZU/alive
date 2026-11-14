@@ -1,3 +1,4 @@
+import { initializeArea } from "../systems/initialize";
 import { getMotion, sampleMotion, getCameraMotion } from "../motion";
 import { createReplica } from "./replica";
 import { createSnapshot } from "../snapshot";
@@ -184,4 +185,87 @@ it("patches changed components without replacing or deleting untouched world sta
     snapshot: { ...snapshot, entities: [] },
   });
   expect(replica.world.getEntityById(id)).toBeUndefined();
+});
+
+it("patches changed collision cells without replacing spatial grids or forgetting known empty floor", () => {
+  const server = createAreaWorld("|         |\n| ♀    █  |\n|         |", {
+    size: 32,
+  });
+  advance(server, 2500);
+  const replica = createReplica(),
+    snapshot = createSnapshot(server);
+  const cells = server.metadata.gameEntity.LEVEL.initialized.flatMap(
+    (column, x) => column.flatMap((known, y) => (known ? [x * 32 + y] : []))
+  );
+  replica.receive({
+    sequence: 1,
+    serverTime: server.metadata.elapsed,
+    snapshot,
+    cells,
+  });
+  const level = replica.world.metadata.gameEntity.LEVEL;
+  const initialized = level.initialized,
+    walkable = level.walkable,
+    map = level.map;
+  const wall = server
+    .getEntities(["POSITION", "COLLIDABLE"])
+    .find((e) => e.POSITION.x === 6 && e.POSITION.y === 1)!;
+  const id = server.getEntityId(wall);
+  replica.receive({
+    sequence: 2,
+    serverTime: server.metadata.elapsed,
+    removed: [],
+    snapshot: { ...snapshot, entities: [[id, { POSITION: { x: 3, y: 1 } }]] },
+  });
+  expect(level.map).toBe(map);
+  expect(level.initialized).toBe(initialized);
+  expect(level.walkable).toBe(walkable);
+  expect(level.initialized[2][1]).toBe(true);
+  expect(level.walkable[3][1]).toBe(0);
+  expect(level.walkable[6][1]).toBe(1);
+  replica.receive({
+    sequence: 3,
+    serverTime: server.metadata.elapsed,
+    removed: [],
+    removedComponents: [[id, ["COLLIDABLE"]]],
+    snapshot: { ...snapshot, entities: [] },
+  });
+  expect(level.walkable[3][1]).toBe(1);
+});
+
+it("refreshes neighboring water collision cells when a submerged patch opens", () => {
+  const area = Array.from(
+    { length: 12 },
+    (_, y) =>
+      "|" +
+      Array.from({ length: 12 }, (_, x) =>
+        x === 1 && y === 1
+          ? "♀"
+          : x >= 7 && x <= 9 && y >= 7 && y <= 9
+          ? "W"
+          : " "
+      ).join("") +
+      "|"
+  ).join("\n");
+  const server = createAreaWorld(area, {
+    size: 32,
+    legend: { W: "water_deep" },
+  });
+  initializeArea(server, { x: 7, y: 7 }, { x: 9, y: 9 });
+  const replica = createReplica(),
+    snapshot = createSnapshot(server);
+  replica.receive({ sequence: 1, serverTime: 0, snapshot });
+  const level = replica.world.metadata.gameEntity.LEVEL;
+  expect(level.walkable[8][8]).toBe(0);
+  const water = server
+    .getEntities(["POSITION", "IMMERSIBLE"])
+    .find((e) => e.POSITION.x === 8 && e.POSITION.y === 7)!;
+  replica.receive({
+    sequence: 2,
+    serverTime: 0,
+    removed: [],
+    removedComponents: [[server.getEntityId(water), ["IMMERSIBLE"]]],
+    snapshot: { ...snapshot, entities: [] },
+  });
+  expect(level.walkable[8][8]).toBe(1);
 });

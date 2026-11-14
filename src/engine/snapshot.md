@@ -55,3 +55,5 @@ type SpriteToken = { $sprite: string };
 ```ts src/engine/snapshot.ts
 type EntityToken = { $entity: number };
 ```
+
+Nearby network views can pass an entity selection to `createSnapshot`. Generation matrices are omitted from scoped views; full snapshots for saves and the native map keep them. Selection includes relevant parent and particle references. Compact initialized-cell coverage travels with network frames so an empty discovered floor remains known without sending its generation data.

@@ -19,6 +19,8 @@ import { fire } from "../../game/assets/sprites";
 import { particleHeight } from "../../components/Entity/utils";
 import * as sequences from "../../game/assets/sequences";
 
+const completed = new WeakSet<object>();
+
 /** Run only audited presentation callbacks; gameplay sequences never execute here. */
 export const renderPresentations = (world: World) => {
   let local = presentations.get(world);
@@ -77,6 +79,7 @@ export const renderPresentations = (world: World) => {
           0,
           world.metadata.renderTime - playing.started!
         );
+        if (completed.has(state)) continue;
         let changed = false;
         if (state.name === "bubbleSplash") {
           const amount = Math.min(
@@ -161,12 +164,16 @@ export const renderPresentations = (world: World) => {
             const particle = world.getEntityByIdAndComponents(id, [PARTICLE]);
             if (particle) particle[PARTICLE].owner = popup.owner;
           }
-        } else
-          changed = sequences[state.name](
-            world,
-            entity,
-            state as never
-          ).updated;
+        } else {
+          const result = sequences[state.name](world, entity, state as never);
+          changed = result.updated;
+          if (result.finished) {
+            completed.add(state);
+            disposeParticles(world, state);
+            state.particles = {};
+            changed = true;
+          }
+        }
         if (changed) {
           rerenderEntity(world, entity);
           updated = true;

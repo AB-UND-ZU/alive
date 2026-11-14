@@ -127,6 +127,7 @@ export const isPlayerInput = (value: unknown): value is PlayerInput => {
 /** One bounded mailbox per authenticated player, driven only by server time. */
 export const createPlayerInput = (world: World, playerId: number) => {
   let received = -1;
+  let applied = -1;
   let move: Orientation[] = [];
   let tap: Orientation | undefined;
   let pending: InputAction | undefined;
@@ -207,6 +208,7 @@ export const createPlayerInput = (world: World, playerId: number) => {
       release();
       return;
     }
+    applied = received;
     const frame = world.getEntityByIdAndComponents(player[MOVABLE].reference, [
       REFERENCE,
       RENDERABLE,
@@ -330,6 +332,9 @@ export const createPlayerInput = (world: World, playerId: number) => {
     frame[REFERENCE].suspended = false;
   };
   return {
+    get applied() {
+      return applied;
+    },
     receive,
     release,
     onUpdate,

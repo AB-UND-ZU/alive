@@ -85,7 +85,6 @@ exports.createGameServer = async ({
   };
   const publish = () => {
     if (!clients.size) return;
-    const states = new Map();
     for (const [socket, client] of clients) {
       if (
         client.account &&
@@ -95,13 +94,7 @@ exports.createGameServer = async ({
         !client.paused &&
         Date.now() - client.applicationTime < 3000
       ) {
-        const world = simulation.worldFor(client.account.id);
-        if (!states.has(world)) {
-          const frame = simulation.frame(client.account.id);
-          states.set(world, { frame });
-        }
-        const current = states.get(world);
-        const frame = current.frame;
+        const frame = simulation.frame(client.account.id, true);
         let transmitted = frame;
         if (client.previous?.realm === frame.realm) {
           const previous = new Map(client.previous.snapshot.entities);
@@ -132,6 +125,9 @@ exports.createGameServer = async ({
           });
           transmitted = {
             ...frame,
+            cells: isDeepStrictEqual(frame.cells, client.previous.cells)
+              ? undefined
+              : frame.cells,
             snapshot: { ...frame.snapshot, entities },
             removed: [...previous.keys()],
             removedComponents,
@@ -323,11 +319,17 @@ exports.createGameServer = async ({
         } else if (message.type === "heartbeat") {
           if (
             !client.account ||
-            Object.keys(message).some((key) => key !== "type")
+            !Number.isSafeInteger(message.sequence) ||
+            message.sequence < -1 ||
+            Object.keys(message).some(
+              (key) => !["type", "sequence"].includes(key)
+            )
           ) {
             reject(socket);
             return;
           }
+          if (message.sequence === client.pendingState)
+            client.pendingState = undefined;
           send(socket, {
             type: "pong",
             serverTime: simulation.serverTime,

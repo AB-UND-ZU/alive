@@ -159,3 +159,30 @@ it("reveals complete dialog content without invalidating its own authoritative i
   expect(popup.RENDERABLE.generation).toBe(generation);
   expect(state.args.contentIndex).toBeGreaterThan(20);
 });
+
+it("animates confirmed hit markers locally without transmitting their particles or modifying health", () => {
+  const host = createHost(),
+    id = host.join("hit");
+  const hero = host.world.assertByIdAndComponents(id, ["STATS"]);
+  createSequence(host.world, hero, "marker", "amountMarker", {
+    amount: -2,
+    type: "melee",
+    orientation: "right",
+  });
+  host.step();
+  const replica = createReplica();
+  replica.world.metadata.localPlayerId = id;
+  replica.receive(host.frame("hit"));
+  const actor = replica.world.assertByIdAndComponents(id, ["STATS"]);
+  const hp = actor.STATS.hp;
+  replica.render(30);
+  expect(getParticles(replica.world, actor).length).toBeGreaterThan(0);
+  expect(
+    getParticles(replica.world, actor).every(
+      (p) => replica.world.getEntityId(p) < 0
+    )
+  ).toBe(true);
+  replica.render(1000);
+  expect(actor.STATS.hp).toBe(hp);
+  expect(getParticles(replica.world, actor)).toEqual([]);
+});

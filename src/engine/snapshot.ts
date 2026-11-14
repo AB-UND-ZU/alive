@@ -78,7 +78,8 @@ const copyValue = (
 
 export const createSnapshot = (
   world: World,
-  network = false
+  network = false,
+  selected?: Set<number>
 ): WorldSnapshot => {
   const ecs = world.metadata.ecs as unknown as {
     nextId: number;
@@ -114,6 +115,7 @@ export const createSnapshot = (
   const entities: WorldSnapshot["entities"] = [];
   for (const entity of ecs.entities) {
     if (
+      (selected && !selected.has(world.getEntityId(entity as TypedEntity))) ||
       ecs.deferredRemovals.entities.has(entity) ||
       omitted.has(world.getEntityId(entity as TypedEntity))
     )
@@ -129,6 +131,9 @@ export const createSnapshot = (
             map: {},
             walkable: [],
             initialized: [],
+            ...(selected
+              ? { cells: [], objects: [], biomes: [], cellPositions: {} }
+              : {}),
           };
         if (componentName === SEQUENCABLE) {
           const states = (

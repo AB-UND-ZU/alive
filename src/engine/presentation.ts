@@ -9,6 +9,7 @@ export const presentationNames = new Set([
   "focusCircle",
   "bubbleSplash",
   "fireBurn",
+  "amountMarker",
   "displayPopup",
 ]);
 

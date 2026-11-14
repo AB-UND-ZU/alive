@@ -3035,6 +3035,7 @@ export const amountMarker: Sequence<MarkerSequence> = (
       [SPRITE]: markerType[state.args.type],
     });
     state.particles.marker = world.getEntityId(markerParticle);
+    updated = true;
   }
 
   // create scratch
@@ -3068,6 +3069,7 @@ export const amountMarker: Sequence<MarkerSequence> = (
   if (state.elapsed > markerTime && state.particles.marker) {
     disposeEntity(world, world.assertById(state.particles.marker));
     delete state.particles.marker;
+    updated = true;
   }
 
   return { finished, updated };

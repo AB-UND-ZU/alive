@@ -36,4 +36,4 @@ Pausing stops your input while the shared world continues. Your character can st
 
 The server saves automatically. Its save contains the shared worlds and every character. The browser's single-player save list does not contain server characters. See [Savegames](savegames.md) for local games.
 
-During connection loss, movement stops and old actions are discarded. Reconnecting loads current server state. Movement and spells wait for server confirmation. Decorative particles and read-only dialog animations play locally.
+During connection loss, movement stops and old actions are discarded. Reconnecting loads current server state. Movement previews one nearby step and corrects to the server’s result. Skills and spells give an immediate action cue; their effects still come from the server. Decorative particles, hit markers and read-only dialog animations play locally.

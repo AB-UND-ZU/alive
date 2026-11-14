@@ -178,7 +178,7 @@ it("gives a resumed player time to receive a fresh state after a long pause", ()
   expect(socket.readyState).toBe(1);
   state(socket, 2);
   expect(sockets).toHaveLength(1);
-  jest.advanceTimersByTime(3250);
+  jest.advanceTimersByTime(15250);
   expect(socket.readyState).toBe(3);
   connection.close();
 });
@@ -196,5 +196,19 @@ it("gives an authenticated reconnect time to receive its first state", () => {
   jest.advanceTimersByTime(250);
   expect(next.readyState).toBe(1);
   state(next);
+  connection.close();
+});
+
+it("keeps a short lag spike connected and repeats the last applied state acknowledgment", () => {
+  const { connection, sockets, state } = setup();
+  const socket = sockets[0];
+  socket.open();
+  socket.receive({ type: "welcome", id: "account", token: "secret" });
+  state(socket, 7);
+  jest.advanceTimersByTime(4000);
+  expect(socket.readyState).toBe(1);
+  expect(socket.messages).toContainEqual({ type: "heartbeat", sequence: 7 });
+  state(socket, 8);
+  expect(sockets).toHaveLength(1);
   connection.close();
 });

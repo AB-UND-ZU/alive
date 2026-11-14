@@ -171,11 +171,15 @@ export const isPassable = (
   const attackable = getAttackable(world, position);
 
   return (
-    (!collidable || collidable === exclude) &&
+    (!collidable ||
+      collidable === exclude ||
+      ((world.metadata.warpPlayer || world.metadata.network) &&
+        exclude?.[PLAYER] &&
+        collidable[PLAYER])) &&
     (!attackable ||
       attackable === exclude ||
       !!(
-        world.metadata.warpPlayer &&
+        (world.metadata.warpPlayer || world.metadata.network) &&
         exclude?.[PLAYER] &&
         attackable[PLAYER]
       )) &&

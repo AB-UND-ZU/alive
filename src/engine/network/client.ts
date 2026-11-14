@@ -55,7 +55,11 @@ export const connectServer = (
   };
   const input = (action?: InputAction) => {
     if (!welcomed || paused || stopped || status !== "connected") return;
-    send({ type: "input", input: { sequence: sequence++, move, action } });
+    if (socket?.readyState !== 1 || socket.bufferedAmount >= 4096) return;
+    const sent = sequence++;
+    send({ type: "input", input: { sequence: sent, move, action } });
+    replica.prediction.move(move, sent);
+    if (action) replica.prediction.action(action.kind);
   };
   const open = () => {
     if (stopped) return;
@@ -119,6 +123,7 @@ export const connectServer = (
     current.onclose = (event) => {
       if (socket !== current || stopped) return;
       welcomed = false;
+      replica.prediction.clear();
       move = [];
       if (event.code === 1008) {
         notify("rejected");
@@ -130,9 +135,9 @@ export const connectServer = (
   };
   const timer = setInterval(() => {
     if (welcomed) {
-      send({ type: "heartbeat" });
+      send({ type: "heartbeat", sequence: replica.sequence });
       if (!paused) input();
-      if (!paused && Date.now() - lastState > 3000) {
+      if (!paused && Date.now() - lastState > 15000) {
         move = [];
         socket?.close();
       }
@@ -153,6 +158,7 @@ export const connectServer = (
         sounds.reset();
         if (!next) lastState = Date.now();
       }
+      replica.prediction.clear();
       paused = next;
       move = [];
       send({ type: "pause", paused });
@@ -160,6 +166,7 @@ export const connectServer = (
     render: replica.render,
     close() {
       stopped = true;
+      replica.prediction.clear();
       clearInterval(timer);
       clearTimeout(retry);
       socket?.close();
