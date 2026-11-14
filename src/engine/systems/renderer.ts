@@ -1,3 +1,4 @@
+import { presentationGenerations } from "../presentation";
 import { updateParticleMotion } from "../motion";
 import { Entity } from "ecs";
 import { RENDERABLE } from "../components/renderable";
@@ -10,11 +11,17 @@ import { LEVEL } from "../components/level";
 
 export const rerenderEntity = (world: World, entity: Entity) => {
   updateParticleMotion(world, entity);
-  entity[RENDERABLE].generation += 1;
+  if (world.metadata.presentation && world.getEntityId(entity) > 0)
+    presentationGenerations.set(
+      entity,
+      (presentationGenerations.get(entity) || 0) + 1
+    );
+  else entity[RENDERABLE].generation += 1;
 };
 
 export const getEntityGeneration = (world: World, entity: Entity) => {
-  const renderableGeneration = entity[RENDERABLE].generation;
+  const renderableGeneration =
+    entity[RENDERABLE].generation + (presentationGenerations.get(entity) || 0);
   const movable = entity[MOVABLE];
   const movableGeneration = movable
     ? world.assertByIdAndComponents(movable.reference, [RENDERABLE])[RENDERABLE]

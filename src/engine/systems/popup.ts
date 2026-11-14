@@ -215,8 +215,11 @@ export const typeChat = (
   if (!popup || !["chat", "server"].includes(getTab(world, popup))) return;
 
   if (world.metadata.network) {
-    for (const index of Array.isArray(keyIndex) ? keyIndex : [keyIndex])
-      world.metadata.network.action({ kind: "text", index });
+    world.metadata.network.action(
+      Array.isArray(keyIndex)
+        ? { kind: "text", indices: keyIndex.slice(0, 128) }
+        : { kind: "text", index: keyIndex }
+    );
     return;
   }
   if (
@@ -240,7 +243,15 @@ export const typeChat = (
 
   if (keyIndex !== undefined) {
     const indices = Array.isArray(keyIndex) ? keyIndex : [keyIndex];
-    getTabSelections(world, popup).push(...indices);
+    getTabSelections(world, popup).push(
+      ...indices.slice(
+        0,
+        world.metadata.warpPlayer
+          ? (heroEntity[PLAYER].naming ? 16 : 128) -
+              getTabSelections(world, popup).length
+          : undefined
+      )
+    );
     rerenderEntity(world, popup);
     play(
       "type",
@@ -664,7 +675,7 @@ export const popupIdles = {
 };
 
 export const popupActions = {
-  server: "SERVERS",
+  server: "LIST",
   craft: "CRAFT",
   forge: "FORGE",
   brew: "BREW",
@@ -704,6 +715,31 @@ export const popupTitles = {
   use: "USE",
   credits: "TY <3",
   load: "SAVES",
+};
+
+export const getPopupAction = (world: World, entity: Entity) =>
+  getDiscoveryTab(world, entity) === "server" &&
+  (world.metadata.network || world.metadata.warpPlayer)
+    ? "INFO"
+    : popupActions[getDiscoveryTab(world, entity)];
+
+export const getPopupTitle = (
+  world: World,
+  entity: Entity,
+  tab = getTab(world, entity)
+) => {
+  if (tab === "server")
+    return world.metadata.network || world.metadata.warpPlayer
+      ? "INFO"
+      : entity[POPUP].server?.address
+      ? "NAME"
+      : "URL";
+  if (
+    tab === "chat" &&
+    getPopupPlayer(world, entity, [PLAYER])?.[PLAYER].naming
+  )
+    return "NAME";
+  return popupTitles[tab];
 };
 
 export const visibleStats: (keyof UnitStats)[] = [

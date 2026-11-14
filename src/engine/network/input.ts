@@ -46,6 +46,7 @@ export const inputActions = [
 export type InputAction = {
   kind: (typeof inputActions)[number];
   index?: number;
+  indices?: number[];
   offset?: number;
   tab?: number;
 };
@@ -84,7 +85,7 @@ export const isPlayerInput = (value: unknown): value is PlayerInput => {
   if (
     value.action !== undefined &&
     (!record(value.action) ||
-      !keys(value.action, ["kind", "index", "offset", "tab"]) ||
+      !keys(value.action, ["kind", "index", "indices", "offset", "tab"]) ||
       !inputActions.includes(value.action.kind as InputAction["kind"]) ||
       !(value.action.kind === "scroll"
         ? typeof value.action.index === "number" &&
@@ -102,6 +103,22 @@ export const isPlayerInput = (value: unknown): value is PlayerInput => {
     value.action.index !== undefined &&
     ((value.action.index as number) >= keyboardSize * keyboardPages.length ||
       !getKeyFromIndex(value.action.index as number))
+  )
+    return false;
+  if (
+    record(value.action) &&
+    value.action.indices !== undefined &&
+    (value.action.kind !== "text" ||
+      value.action.index !== undefined ||
+      !Array.isArray(value.action.indices) ||
+      value.action.indices.length > 128 ||
+      !value.action.indices.every(
+        (value) =>
+          Number.isSafeInteger(value) &&
+          value >= 0 &&
+          value < keyboardSize * keyboardPages.length &&
+          !!getKeyFromIndex(value)
+      ))
   )
     return false;
   return value.move !== undefined || value.action !== undefined;
@@ -138,7 +155,11 @@ export const createPlayerInput = (world: World, playerId: number) => {
     }
     // Never build an action backlog, including when a client floods the socket.
     if (message.action?.kind === "text") {
-      if (text.length < 16) text.push({ ...message.action });
+      if (text.length < 16)
+        text.push({
+          ...message.action,
+          indices: message.action.indices && [...message.action.indices],
+        });
     } else if (message.action && !pending) pending = { ...message.action };
     return true;
   };
@@ -188,7 +209,8 @@ export const createPlayerInput = (world: World, playerId: number) => {
     if (!frame) return;
     // A stalled connection must not keep a character walking or replay old actions.
     if (world.metadata.elapsed - lastMessageTime > 1000) release();
-    for (const edit of text.splice(0, 4)) typeChat(world, player, edit.index);
+    for (const edit of text.splice(0, 4))
+      typeChat(world, player, edit.indices || edit.index);
     const wasMoving = player[MOVABLE].orientations.length > 0;
     player[MOVABLE].orientations = [...move];
     if (

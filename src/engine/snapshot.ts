@@ -141,11 +141,9 @@ export const createSnapshot = (
                 isPresentationSequence(entity as TypedEntity, state!)
                   ? {
                       ...state,
-                      started:
-                        state!.started ??
-                        Math.round(world.metadata.elapsed - state!.elapsed),
+                      started: state!.started,
                       elapsed: 0,
-                      args: state!.initialArgs || {},
+                      args: state!.initialArgs!,
                       particles: {},
                     }
                   : state,

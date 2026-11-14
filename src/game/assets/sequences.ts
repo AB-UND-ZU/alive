@@ -7314,31 +7314,17 @@ export const displayChat = displayPopupView((world, entity, state) => {
     ? mergeSprites(caret, suggestion[0] || none)
     : suggestion[0] || none;
   const width = frameWidth - 2;
-  const windowHeight = naming || server ? 10 : 6;
+  const windowHeight = 6;
   const firstRow = Math.max(
     0,
     Math.floor(typed.length / width) - (windowHeight - 2) + 1
   );
   const content: Sprite[][] = [
-    ...(server
-      ? [
-          ...chunked(
-            createText(
-              entity[POPUP].server?.address ? "Username:" : "Server URL:"
-            ),
-            width
-          ),
-          ...chunked(createText(world.metadata.serverError, colors.red), width),
-        ]
+    ...(server && world.metadata.serverError
+      ? [createText(world.metadata.serverError, colors.red)]
       : []),
-    ...(naming
-      ? [
-          createText("Choose username:"),
-          ...chunked(
-            createText(player?.[PLAYER].nameError || "", colors.red),
-            width
-          ),
-        ]
+    ...(naming && player?.[PLAYER].nameError
+      ? [createText(player[PLAYER].nameError, colors.red)]
       : []),
     ...repeat([], verticalIndex),
     ...chunked(lines, width).slice(firstRow),

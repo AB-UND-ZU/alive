@@ -35,4 +35,4 @@ export type Motion = {
 };
 ```
 
-Network snapshots include `captureMotions` records for entity movement, particles and bumps. Clients restore the same native models and sample them against confirmed server time, so joining during an animation does not restart it. These records describe visual interpolation toward confirmed targets and do not execute movement, spells or damage. A new authenticated snapshot epoch clears old motion clocks before restoring the view. Camera motion remains local to the selected player.
+Network snapshots carry entity values, without movement or bump motion records. Clients interpolate confirmed positions locally and start bumps when their confirmed generation changes. A new authenticated snapshot epoch clears old motion clocks. Camera motion remains local to the selected player.

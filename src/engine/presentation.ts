@@ -12,6 +12,8 @@ export const presentationNames = new Set([
   "displayPopup",
 ]);
 
+export const presentationGenerations = new WeakMap<object, number>();
+
 export const presentations = new WeakMap<
   World,
   Map<number, Record<string, SequenceState<any>>>

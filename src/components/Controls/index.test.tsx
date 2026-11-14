@@ -58,7 +58,7 @@ import {
 } from "../../game/assets/ui";
 import { CONDITIONABLE } from "../../engine/components/conditionable";
 import { frameHeight, frameWidth } from "../../game/assets/utils";
-import { getIndexFromKey } from "../Keyboard";
+import { getIndexFromKey, getKeyFromIndex } from "../Keyboard";
 import { REVIVABLE } from "../../engine/components/revivable";
 import { purchasableItems } from "../../game/balancing/trading";
 import { createShop, getTraderDeal } from "../../features/workstations/helpers";
@@ -802,6 +802,18 @@ describe("chat", () => {
 
     press("Backspace");
     runUntil(world, () => getTabSelections(world, menu).length === 1);
+  });
+
+  it("pastes plain text into chat without typing the clipboard shortcut", () => {
+    const { world } = setup();
+    openChat(world);
+    press("v", { ctrlKey: true });
+    fireEvent.paste(document.body, {
+      clipboardData: { getData: () => "hello world" },
+    });
+    expect(
+      getTabSelections(world, getMenu(world)).map(getKeyFromIndex).join("")
+    ).toBe("hello world");
   });
 
   it("Backspace does nothing outside the chat", () => {

@@ -6,12 +6,11 @@ import { LEVEL, LevelName } from "../components/level";
 import {
   releaseCameraMotion,
   moveMotion,
+  bumpEntity,
   updateParticleMotion,
   initializeParticleMotion,
   updateCameraMotion,
   getMotion,
-  captureMotions,
-  restoreMotions,
   resetMotions,
 } from "../motion";
 import { normalize } from "../../game/math/std";
@@ -26,7 +25,6 @@ export type StateFrame = {
   serverTime: number;
   snapshot: WorldSnapshot;
   realm?: LevelName;
-  motions?: ReturnType<typeof captureMotions>;
   sounds?: (SoundEvent & { id: number; time: number })[];
 };
 
@@ -70,12 +68,12 @@ export const createReplica = () => {
       world.metadata.gameEntity[LEVEL]?.name &&
       frame.realm !== world.metadata.gameEntity[LEVEL].name
     ) {
-      for (const entity of world.getEntities([]))
+      for (const entity of [...world.getEntities([])])
         world.removeEntity(entity, false);
       releaseCameraMotion(world);
     }
     const size = world.metadata.gameEntity[LEVEL]?.size;
-    if (size && !frame.motions && sequence >= 0)
+    if (size && sequence >= 0)
       for (const [id, components] of frame.snapshot.entities) {
         const entity = world.getEntityByIdAndComponents(id, [POSITION]);
         const position = components[POSITION] as Position | undefined;
@@ -87,12 +85,29 @@ export const createReplica = () => {
         )
           moveMotion(world, entity, position.x, position.y, size);
       }
+    const bumps =
+      sequence < 0
+        ? []
+        : frame.snapshot.entities.flatMap(([id, components]) => {
+            const value = components.BUMPABLE as
+              | import("../components/bumpable").Bumpable
+              | undefined;
+            const previous = world.getEntityById(id)?.BUMPABLE;
+            return value?.orientation &&
+              value.generation !== previous?.generation
+              ? [[id, value] as const]
+              : [];
+          });
     restoreSnapshot(
       frame.snapshot,
       world,
       frame.removed,
       frame.removedComponents
     );
+    for (const [id, bump] of bumps) {
+      const entity = world.getEntityById(id);
+      if (entity) bumpEntity(world, entity, bump.orientation, bump.generation);
+    }
     const level = world.metadata.gameEntity[LEVEL];
     level.map = {};
     for (const entity of world.getEntities([POSITION])) {
@@ -120,7 +135,6 @@ export const createReplica = () => {
       if (!getMotion(entity)) initializeParticleMotion(world, entity);
       updateParticleMotion(world, entity);
     }
-    if (frame.motions) restoreMotions(world, frame.motions);
     updateCameraMotion(world, true);
     world.metadata.elapsed = frame.serverTime;
     world.metadata.initial = false;

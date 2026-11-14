@@ -6,4 +6,4 @@ Save is disabled while a write is running or when the hero cannot be saved. The 
 
 The startup overlay shows "Loading game..." while the sound catalog is prepared, then "Loading map..." during menu generation. The resume hit area is absent while loading.
 
-The local menu offers Servers in persistent game sessions. A hosted world shows server autosave status and a Menu button instead of local Save. Reconnecting or rejected clients cannot resume until authenticated state is available. The pause state is local; other players and the authoritative simulation continue.
+Server connections use the in-game Servers portal. Hosted pause screens retain Resume, Menu and disabled Save, with server autosave status underneath. Reconnecting or rejected clients cannot resume until authenticated state is available. The pause state is local; other players and the authoritative simulation continue.

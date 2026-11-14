@@ -1,3 +1,9 @@
+import {
+  getIndexFromKey,
+  keyboardSize,
+  keyboardColumns,
+  getKeyFromIndex,
+} from "../../components/Keyboard";
 import { createText } from "../../game/assets/ui";
 import { AFFECTABLE } from "../components/affectable";
 import { assertIdentifierAndComponents } from "../utils";
@@ -29,6 +35,7 @@ const setup = () => {
     STATS,
     INVENTORY,
     ACTIONABLE,
+    PLAYER,
     POSITION,
   ]);
   const input = createPlayerInput(world, world.getEntityId(hero));
@@ -220,4 +227,41 @@ it("submits only after preceding queued chat edits have been applied", () => {
   input.receive({ sequence: 12, action: { kind: "right" } });
   advance(world, 900);
   expect(hero.TOOLTIP!.dialogs[0].slice(1, -1)).toHaveLength(12);
+});
+
+it("accepts pasted text as one bounded action and rejects malformed batches", () => {
+  const { world, hero, input } = setup();
+  world.metadata.warpPlayer = () => {};
+  const popup = world
+    .getEntities(["POPUP"])
+    .find((entity) => entity.POPUP.tabs.includes("use"))!;
+  popup.POPUP.horizontalIndex = popup.POPUP.tabs.indexOf("chat");
+  openPopup(world, hero, popup, true);
+  const view = world.assertByIdAndComponents(hero[PLAYER].popup, [POPUP]);
+  view.POPUP.horizontalIndex = view.POPUP.tabs.indexOf("chat");
+  const indices = [..."hello world"].map((key) => {
+    const value = getIndexFromKey(key)!;
+    return (
+      value.tab * keyboardSize + value.offset * keyboardColumns + value.content
+    );
+  });
+  expect(
+    input.receive({ sequence: 0, action: { kind: "text", indices } })
+  ).toBe(true);
+  advance(world, 100);
+  expect(getTabSelections(world, view).map(getKeyFromIndex).join("")).toBe(
+    "hello world"
+  );
+  expect(
+    isPlayerInput({
+      sequence: 1,
+      action: { kind: "text", indices: Array(129).fill(0) },
+    })
+  ).toBe(false);
+  expect(
+    isPlayerInput({ sequence: 1, action: { kind: "spell", indices } })
+  ).toBe(false);
+  expect(
+    isPlayerInput({ sequence: 1, action: { kind: "text", indices: [-1] } })
+  ).toBe(false);
 });

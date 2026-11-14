@@ -1,6 +1,6 @@
 # Debug
 
-`ExtendedStats` mounts the renderer's FPS panel and an AVG panel on `document.body`. It removes the panel and animation callback when unmounted.
+`ExtendedStats` mounts the renderer's FPS panel and an AVG panel on `document.body`. It samples actual Canvas frames and removes the panel when unmounted. AVG divides the number of frames by their elapsed time, so long stalls reduce the displayed rate.
 
 | Prop | Default | Meaning |
 | --- | --- | --- |

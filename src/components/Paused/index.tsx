@@ -1,9 +1,8 @@
-import Servers from "../Servers";
 import { backdrop } from "../../game/assets/sprites";
 import { isTouch, useDimensions } from "../Dimensions";
 import Row from "../Row";
 import "./index.css";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useWorld } from "../../renderers/interface/hooks";
 import { repeat } from "../../game/math/std";
 import { colors } from "../../game/assets/colors";
@@ -60,11 +59,9 @@ export default function Paused() {
     saveStatus,
     saveGame,
     openMenu,
-    joinServer,
     serverStatus,
   } = useWorld();
   const dimensions = useDimensions();
-  const [servers, setServers] = useState(false);
   const remote = !!ecs?.metadata.network;
   const inGame = !!ecs && ecs.metadata.gameEntity[LEVEL]?.name !== "LEVEL_MENU";
   const canMenu = inGame || remote;
@@ -114,14 +111,7 @@ export default function Paused() {
       </div>
 
       <div className="Overlay">
-        {servers ? (
-          <Servers
-            onBack={() => {
-              setServers(false);
-              openMenu();
-            }}
-          />
-        ) : suspended ? (
+        {suspended ? (
           <>
             <Row
               cells={createDialog(
@@ -175,23 +165,6 @@ export default function Paused() {
                 "lime"
               )}
             />
-            {!remote && !inGame && joinServer && (
-              <>
-                <Row />
-                <PauseButton
-                  id="pause-servers"
-                  onClick={() => setServers(true)}
-                  button={createButton(
-                    "SERVERS",
-                    pauseButtonWidth,
-                    false,
-                    false,
-                    false,
-                    "yellow"
-                  )}
-                />
-              </>
-            )}
             {canMenu && (
               <>
                 <Row />
@@ -239,7 +212,7 @@ export default function Paused() {
           </>
         )}
       </div>
-      {!suspended && !servers && (
+      {!suspended && (
         <div className="Resume" id="resume" onClick={handleResume} />
       )}
     </div>

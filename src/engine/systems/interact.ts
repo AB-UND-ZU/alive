@@ -19,7 +19,12 @@ import { entities } from "..";
 import { FOG } from "../components/fog";
 import { SPRITE } from "../components/sprite";
 import { registerEntity, moveEntity } from "./map";
-import { getDiscoveryTab, isInPopup, popupActions, popupIdles } from "./popup";
+import {
+  getDiscoveryTab,
+  isInPopup,
+  getPopupAction,
+  popupIdles,
+} from "./popup";
 import { rerenderEntity } from "./renderer";
 import { isControllable } from "./freeze";
 import { IDENTIFIABLE } from "../components/identifiable";
@@ -163,7 +168,7 @@ export default function setupInteract(world: World) {
           ? "SPAWN"
           : entity[MOUNTABLE]
           ? "BOAT"
-          : popupActions[getDiscoveryTab(world, entity)];
+          : getPopupAction(world, entity);
         const targetPosition = combine(
           size,
           entity[POSITION],

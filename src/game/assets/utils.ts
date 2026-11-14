@@ -76,7 +76,7 @@ import {
   getTab,
   getVerticalIndex,
   isShowingPopup,
-  popupTitles,
+  getPopupTitle,
 } from "../../engine/systems/popup";
 import { disposeEntity } from "../../engine/systems/map";
 import { play } from "../sound";
@@ -403,7 +403,7 @@ export const renderPopup = (
   // capture this before the scrollbar updates scrollIndex for hit testing
   const scrollChanged = scrollIndex !== state.args.scrollIndex;
   let renderContent = generationChanged;
-  let renderTabs = horizontalIndex !== state.args.horizontalIndex;
+  let renderTabs = generationChanged || horizontalIndex !== state.args.horizontalIndex;
   let renderDetails = settled && (generationChanged || !cached.settled);
   let renderSeparator = details && renderTabs;
   let renderButtons = generationChanged;
@@ -653,7 +653,7 @@ export const renderPopup = (
         upEndParticle[ORIENTABLE].facing = tabIndex === 2 ? "down" : "left";
       }
       const transaction = displayedTabs[tabIndex];
-      const title = popupTitles[transaction];
+      const title = getPopupTitle(world, entity, transaction);
       const titleSprites = createTab(title, 5, selected, state.args.instant);
       titleSprites.forEach((char, index) => {
         const charParticle = world.assertByIdAndComponents(

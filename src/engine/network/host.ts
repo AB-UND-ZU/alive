@@ -16,7 +16,6 @@ import {
   SoundEvent,
 } from "../../game/sound/events";
 import { getIdentifier } from "../utils";
-import { captureMotions } from "../motion";
 import { createWorld } from "..";
 import { createLevel, createSystems, preloadLevel, World } from "../ecs";
 import { createSnapshot, restoreSnapshot, WorldSnapshot } from "../snapshot";
@@ -503,13 +502,11 @@ export const createHost = (saved?: HostedWorld) => {
     frame: (accountId?: string) => {
       const world = (accountId && actor(accountId)?.world) || menu.world;
       const snapshot = createSnapshot(world, true);
-      const transmitted = new Set(snapshot.entities.map(([id]) => id));
       return {
         sequence,
         serverTime: elapsed,
         realm: world.metadata.gameEntity[LEVEL].name,
         snapshot,
-        motions: captureMotions(world).filter(([id]) => transmitted.has(id)),
         sounds: (sounds.get(world) || []).filter(
           (event) => event.time >= elapsed - 1000
         ),

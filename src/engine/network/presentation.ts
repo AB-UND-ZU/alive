@@ -5,6 +5,7 @@ import {
   isPresentationSequence,
   presentations,
   presentationTabs,
+  presentationGenerations,
 } from "../presentation";
 import { disposeParticles } from "../systems/map";
 import { rerenderEntity } from "../systems/renderer";
@@ -66,13 +67,15 @@ export const renderPresentations = (world: World) => {
         if (!state)
           states[type] = state = {
             ...playing,
-            args: { ...(playing.initialArgs || playing.args) },
+            args: {
+              ...playing.args,
+              ...(playing.name === "weatherStorm" ? { drops: [] } : {}),
+            },
             particles: {},
           };
         state.elapsed = Math.max(
           0,
-          world.metadata.renderTime -
-            (playing.started ?? world.metadata.elapsed)
+          world.metadata.renderTime - playing.started!
         );
         let changed = false;
         if (state.name === "bubbleSplash") {
@@ -89,7 +92,8 @@ export const renderPresentations = (world: World) => {
             entity[BURNABLE]?.burning ||
             (entity[AFFECTABLE]?.burn || 0) > 0
           ) {
-            if (!state.particles.fire)
+            if (!state.particles.fire) {
+              changed = true;
               state.particles.fire = world.getEntityId(
                 entities.createParticle(world, {
                   PARTICLE: {
@@ -102,12 +106,13 @@ export const renderPresentations = (world: World) => {
                   SPRITE: fire,
                 })
               );
+            }
             const particle = world.assertByIdAndComponents(
               state.particles.fire,
               [PARTICLE]
             );
             const amount = [1, 2, 3, 2][Math.floor(state.elapsed / 175) % 4];
-            changed = particle[PARTICLE].amount !== amount;
+            changed ||= particle[PARTICLE].amount !== amount;
             particle[PARTICLE].amount = amount;
           } else if (state.particles.fire) {
             disposeParticles(world, state);
@@ -173,7 +178,11 @@ export const renderPresentations = (world: World) => {
     world.metadata.presentation = false;
   }
   if (updated) {
-    world.metadata.renderEntity[RENDERABLE].generation++;
+    const render = world.metadata.renderEntity;
+    presentationGenerations.set(
+      render,
+      (presentationGenerations.get(render) || 0) + 1
+    );
     for (const listener of Object.values(world.metadata.listeners)) listener();
   }
 };

@@ -40,6 +40,8 @@ import Joystick from "../Joystick";
 import { canCast } from "../../engine/systems/magic";
 import {
   getTab,
+  getTabSelections,
+  submitChat,
   typeChat,
   completeChat,
   navigateChat,
@@ -68,6 +70,7 @@ import { SEQUENCABLE } from "../../engine/components/sequencable";
 import { getSequence } from "../../engine/systems/sequence";
 import Keyboard, {
   getIndexFromKey,
+  getKeyFromIndex,
   keyboardColumns,
   keyboardSize,
 } from "../Keyboard";
@@ -714,6 +717,23 @@ export default function Controls({
     ) => {
       event.preventDefault();
 
+      const player = heroRef.current;
+      const currentPopup = ecs && player && getActivePopup(ecs, player);
+      if (
+        ecs &&
+        player &&
+        currentPopup &&
+        !ecs.metadata.network &&
+        getTab(ecs, currentPopup) === "server"
+      ) {
+        submitChat(
+          ecs,
+          player,
+          getTabSelections(ecs, currentPopup).map(getKeyFromIndex)
+        );
+        return;
+      }
+
       // open links within user gesture for mobile browsers
       if (ecs && popup && getTab(ecs, popup) === "credits") {
         const credit = credits[getVerticalIndex(ecs, popup)];
@@ -831,6 +851,7 @@ export default function Controls({
       if (
         event.type === "keydown" &&
         (event.altKey ||
+          event.ctrlKey ||
           event.metaKey ||
           (event.repeat &&
             !(
@@ -1107,6 +1128,40 @@ export default function Controls({
   const handleVisibility = useCallback(() => {
     if (document.hidden) handleDeactivate();
   }, [handleDeactivate]);
+
+  useEffect(() => {
+    const paste = (event: ClipboardEvent) => {
+      const target = event.target as HTMLElement;
+      if (target.closest?.("input, textarea, [contenteditable=true]")) return;
+      const player = heroRef.current;
+      const current = ecs && player && getActivePopup(ecs, player);
+      if (
+        !ecs ||
+        !player ||
+        !current ||
+        pausedRef.current ||
+        !["chat", "server"].includes(getTab(ecs, current)) ||
+        (getTab(ecs, current) === "server" && ecs.metadata.network)
+      )
+        return;
+      const text = event.clipboardData?.getData("text/plain");
+      if (!text) return;
+      event.preventDefault();
+      const indices = [...text.replace(/\r?\n/g, " ")].flatMap((key) => {
+        const index = getIndexFromKey(key);
+        return index
+          ? [
+              index.tab * keyboardSize +
+                index.offset * keyboardColumns +
+                index.content,
+            ]
+          : [];
+      });
+      typeChat(ecs, player, indices);
+    };
+    document.addEventListener("paste", paste);
+    return () => document.removeEventListener("paste", paste);
+  }, [ecs]);
 
   // Keep lifecycle listeners stable and register before preview focus policies.
   useLayoutEffect(() => {

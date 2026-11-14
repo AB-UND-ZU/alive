@@ -363,6 +363,19 @@ test("the native menu portal connects, leaves and reuses the saved identity", as
   const errors = [];
   const identities = [];
   const frames = [];
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+  const paste = async (text) => {
+    await page.evaluate(async (value) => {
+      await navigator.clipboard.writeText(value);
+      window.pasteComplete = new Promise((resolve) =>
+        document.addEventListener("paste", () => queueMicrotask(resolve), {
+          once: true,
+        })
+      );
+    }, text);
+    await page.keyboard.press("ControlOrMeta+V");
+    await page.evaluate(() => window.pasteComplete);
+  };
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("websocket", (socket) =>
     socket.on("framereceived", ({ payload }) => {
@@ -382,18 +395,20 @@ test("the native menu portal connects, leaves and reuses the saved identity", as
   await page.waitForTimeout(150);
   await page.locator("body").press("Enter");
   await expect(page.locator("#keyboard")).toBeVisible();
-  await page
-    .locator("body")
-    .pressSequentially(`127.0.0.1:${server.address.port}`, { delay: 30 });
+  await paste(`127.0.0.1:${server.address.port}`);
   await page.locator("body").press("Enter");
   await page.waitForTimeout(150);
   await page.screenshot({ path: testInfo.outputPath("native-username.png") });
-  await page.locator("body").pressSequentially("Clara", { delay: 40 });
+  await paste("Clara");
   await page.locator("body").press("Enter");
   await page.screenshot({ path: testInfo.outputPath("native-connecting.png") });
   await expect.poll(() => identities.length).toBe(1);
   await expect(page.locator("#keyboard")).toHaveCount(0, { timeout: 15000 });
-  expect(server.simulation.worldFor(identities[0]).getEntityById(server.simulation.actorId(identities[0])).PLAYER.username).toBe("Clara");
+  expect(
+    server.simulation
+      .worldFor(identities[0])
+      .getEntityById(server.simulation.actorId(identities[0])).PLAYER.username
+  ).toBe("Clara");
   await page.locator("body").press("Escape");
   await expect(page.locator("#pause-menu")).toBeVisible();
   await page.screenshot({
@@ -444,9 +459,7 @@ test("the native menu portal connects, leaves and reuses the saved identity", as
   await page.waitForTimeout(150);
   await page.locator("body").press("Enter");
   await expect(page.locator("#keyboard")).toBeVisible();
-  await page
-    .locator("body")
-    .pressSequentially(`127.0.0.1:${server.address.port}`, { delay: 30 });
+  await paste(`127.0.0.1:${server.address.port}`);
   await page.locator("body").press("Enter");
   await page.screenshot({ path: testInfo.outputPath("native-return.png") });
   await expect.poll(() => identities.length).toBe(2);

@@ -26,3 +26,5 @@ The public [Mk48.io server input](https://github.com/SoftbearStudios/mk48/blob/m
 UI indices are checked against native window and keyboard bounds, and explicit tab selection must fit the actor’s current popup. Scroll positions are finite ratios from zero to one. Invalid UI intents are discarded without occupying the actor’s action slot. Frozen, sliding or dead actors cannot retain a spell trigger to execute after recovering; ghost respawn interaction remains available.
 
 `complete` accepts the server-selected command suffix through the normal bounded action mailbox. Unnamed actors accept only chat editing/submission intents; movement, tab changes and gameplay actions are rejected.
+
+Clipboard text uses one bounded text action containing up to 128 native key indices. The server validates each index and applies its existing prompt length limit. Pasting does not enqueue one network packet per character.
