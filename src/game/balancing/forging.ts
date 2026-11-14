@@ -1,3 +1,4 @@
+import { getPopupPlayer } from "../../engine/players";
 import { Entity } from "ecs";
 import { World } from "../../engine";
 import { Accessory } from "../../engine/components/equippable";
@@ -417,7 +418,7 @@ export const performForgeHit = (world: World, entity: Entity) => {
   const popupSequence = getSequence(world, entity, "popup");
   const steps = (entity[FORGABLE] as Forgable).steps;
   const step = steps[entity[FORGABLE].progress];
-  const heroEntity = world.getEntity([PLAYER, STATS]);
+  const heroEntity = getPopupPlayer(world, entity, [PLAYER, STATS]);
   const hitIndex = entity[FORGABLE].hitIndex;
 
   if (

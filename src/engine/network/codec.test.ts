@@ -29,7 +29,7 @@ it("preserves special numbers, shared objects, undefined and cycles", () => {
   expect(Object.is(result.values[2], -0)).toBe(true);
 });
 
-it("serializes a real world that can resume movement with identical IDs and shared components", () => {
+it("serializes a real world that can resume movement with identical IDs and component data", () => {
   const world = createAreaWorld("|        |\n| ♀      |\n|        |");
   advance(world, 2500);
   const original = assertHero(world);
@@ -44,7 +44,8 @@ it("serializes a real world that can resume movement with identical IDs and shar
     POSITION,
   ]);
   expect(restored.getEntityId(hero)).toBe(world.getEntityId(original));
-  expect(hero.SPAWNABLE.viewable).toBe(hero.VIEWABLE);
+  expect(hero.SPAWNABLE.viewable).toEqual(original.SPAWNABLE!.viewable);
+  expect(hero.VIEWABLE).toEqual(original.VIEWABLE);
   expect(hero.STATS.maxXp).toBe(Infinity);
   createSystems(restored);
   preloadLevel(restored);

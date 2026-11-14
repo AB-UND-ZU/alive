@@ -9,7 +9,7 @@ import { captureMotions } from "../motion";
 import { createWorld } from "..";
 import { createLevel, createSystems, preloadLevel, World } from "../ecs";
 import { createSnapshot, restoreSnapshot, WorldSnapshot } from "../snapshot";
-import { PLAYER } from "../components/player";
+import { emptyReceivedStats, PLAYER } from "../components/player";
 import { SPAWNABLE, Spawnable } from "../components/spawnable";
 import { POSITION, Position } from "../components/position";
 import { BELONGABLE, Belongable } from "../components/belongable";
@@ -201,7 +201,10 @@ export const createHost = (saved?: HostedWorld) => {
         offsetTriggered,
         ...persistent
       } = donor[PLAYER];
-      player[PLAYER] = { ...persistent };
+      player[PLAYER] = {
+        ...persistent,
+        receivedStats: { ...emptyReceivedStats },
+      };
       if (!transfer?.resetClass) player[STATS] = { ...donor[STATS] };
     }
     player[PLAYER].defeatedUnits = {
@@ -316,6 +319,7 @@ export const createHost = (saved?: HostedWorld) => {
     elapsed += 1000 / 30;
     for (const transfer of transfers.values()) transferPlayer(transfer);
     transfers.clear();
+    for (const accountId of inputs.keys()) getInput(accountId);
     sequence += 1;
   };
   return {

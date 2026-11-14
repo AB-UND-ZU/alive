@@ -54,6 +54,7 @@ export const getProjectiles = (world: World, position: Position) =>
 export const isShootable = (world: World, entity: Entity) =>
   SHOOTABLE in entity &&
   STATS in entity &&
+  entity[PLAYER]?.connected !== false &&
   (!isDead(world, entity) || isDecaying(world, entity)) &&
   !isDecayed(world, entity);
 

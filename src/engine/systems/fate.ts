@@ -208,7 +208,7 @@ export const createHero = (world: World, halo: Entity) => {
     },
     [SWIMMABLE]: { swimming: false, sprite: swimming },
     [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
-    [VIEWABLE]: halo[SPAWNABLE].viewable,
+    [VIEWABLE]: { ...halo[SPAWNABLE].viewable },
   });
   setIdentifier(world, heroEntity, "hero");
 
@@ -227,6 +227,8 @@ export const createHero = (world: World, halo: Entity) => {
     {}
   );
 
+  if (heroEntity[PLAYER].accountId)
+    heroEntity[VIEWABLE].owner = world.getEntityId(heroEntity);
   return heroEntity;
 };
 

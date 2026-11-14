@@ -1,3 +1,4 @@
+import { createHero } from "../../engine/systems/fate";
 import {
   createAreaWorld,
   assertHero,
@@ -2705,4 +2706,16 @@ describe("fire chief worm quest", () => {
       .filter((entity) => entity[SPRITE])
       .forEach((entity) => disposeEntity(world, entity));
   });
+});
+
+it("continues attacking a teammate after the original cave visitor disconnects", () => {
+  const { world, hero } = startFight();
+  const teammate = createHero(world, hero);
+  teammate[STATS] = { ...hero[STATS] };
+  registerEntity(world, teammate);
+  world.metadata.warpPlayer = () => {};
+  hero[PLAYER]!.connected = false;
+  const hp = hero[STATS].hp;
+  advanceUntil(world, () => teammate[STATS].hp < teammate[STATS].maxHp, 15000);
+  expect(hero[STATS].hp).toBe(hp);
 });

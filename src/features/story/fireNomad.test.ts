@@ -1,3 +1,5 @@
+import { createHero } from "../../engine/systems/fate";
+import { registerEntity } from "../../engine/systems/map";
 import { BELONGABLE } from "../../engine/components/belongable";
 import { LOCKABLE } from "../../engine/components/lockable";
 import { POPUP } from "../../engine/components/popup";
@@ -213,4 +215,16 @@ describe("fire nomad", () => {
 
     expect(nomad[TOOLTIP].override).toBeUndefined();
   });
+});
+
+it("greets the teammate entering the house while the original hero remains outside", () => {
+  const { world, hero, nomad } = setupNomad();
+  const teammate = createHero(world, hero);
+  registerEntity(world, teammate);
+  teleport(world, teammate, inside);
+  world.metadata.warpPlayer = () => {};
+  refresh(world);
+  advanceUntil(world, () => getStep(world, nomad) === "farm", 10000);
+  expect(getLines(nomad)).toContain("I don't like");
+  expect(hero[POSITION]).not.toEqual(inside);
 });

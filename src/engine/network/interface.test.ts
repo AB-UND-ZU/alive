@@ -10,6 +10,7 @@ import { ensurePlayerInterface } from "../../bindings/interface";
 import { createPlayerInput } from "./input";
 import { getInteraction, assertPlayerInterface } from "../players";
 import { PLAYER } from "../components/player";
+import { VIEWABLE } from "../components/viewable";
 import { POSITION } from "../components/position";
 import { POPUP } from "../components/popup";
 import { SEQUENCABLE } from "../components/sequencable";
@@ -28,6 +29,8 @@ const setup = () => {
   ensurePlayerInterface(world, first);
   const second = createHero(world, first);
   second[PLAYER].accountId = "second";
+  expect(second[VIEWABLE]).not.toBe(first[VIEWABLE]);
+  expect(second[VIEWABLE].owner).toBe(world.getEntityId(second));
   // New joins do not inherit interface IDs; respawns do.
   second[PLAYER].interface = undefined;
   ensurePlayerInterface(world, second);

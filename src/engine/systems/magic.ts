@@ -75,7 +75,7 @@ import { NPC } from "../components/npc";
 import { createText, getStatColor, getStatSprite } from "../../game/assets/ui";
 
 export const isAffectable = (world: World, entity: Entity) =>
-  AFFECTABLE in entity;
+  AFFECTABLE in entity && entity[PLAYER]?.connected !== false;
 
 export const getAffectables = (
   world: World,

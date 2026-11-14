@@ -1,3 +1,4 @@
+import { getClosestPlayer } from "../players";
 import { soundSource } from "../../game/sound/events";
 import { bumpEntity } from "../motion";
 import { Position, POSITION } from "../components/position";
@@ -411,8 +412,11 @@ export default function setupMovement(world: World) {
 
         const boat = entity[MOUNTABLE]?.medium === "water";
         if (boat && isImmersible(world, entity[POSITION])) {
-          const distance = hero
-            ? getDistance(hero[POSITION], entity[POSITION], size)
+          const nearby = world.metadata.warpPlayer
+            ? getClosestPlayer(world, entity[POSITION], [PLAYER])
+            : hero;
+          const distance = nearby
+            ? getDistance(nearby[POSITION], entity[POSITION], size)
             : Infinity;
           if (distance < 10 && entityReference >= (nextSail[entityId] ?? 0)) {
             play(

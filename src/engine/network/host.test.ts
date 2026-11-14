@@ -248,3 +248,26 @@ it("ignores a second close arriving after the dialog is gone instead of blocking
   const popup = host.world.assertByIdAndComponents(hero[PLAYER].popup, [POPUP]);
   expect(popup[POPUP].tabs[popup[POPUP].horizontalIndex]).toBe("chat");
 });
+
+it("opens independent personal windows after reconnecting to a restarted server", () => {
+  let host = createHost();
+  const first = host.join("first");
+  const second = host.join("second");
+  for (let frame = 0; frame < 100; frame++) host.step();
+  host.disconnect("first");
+  host.disconnect("second");
+  host = createHost(host.save());
+  expect(host.join("first")).toBe(first);
+  expect(host.join("second")).toBe(second);
+  host.receive("first", { sequence: 0, action: { kind: "gear" } });
+  host.receive("second", { sequence: 0, action: { kind: "stats" } });
+  for (let frame = 0; frame < 30; frame++) host.step();
+  for (const [id, tab] of [[first, "gear"], [second, "stats"]] as const) {
+    const player = host.world.assertByIdAndComponents(id, [PLAYER]);
+    const popup = host.world.assertByIdAndComponents(player[PLAYER].popup, [
+      POPUP,
+    ]);
+    expect(popup[POPUP].owner).toBe(id);
+    expect(popup[POPUP].tabs[popup[POPUP].horizontalIndex]).toBe(tab);
+  }
+});

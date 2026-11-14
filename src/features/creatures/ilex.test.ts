@@ -1,3 +1,5 @@
+import { createHero } from "../../engine/systems/fate";
+import { registerEntity } from "../../engine/systems/map";
 import { BEHAVIOUR, Pattern } from "../../engine/components/behaviour";
 import { HOMING } from "../../engine/components/homing";
 import { STATS } from "../../engine/components/stats";
@@ -123,4 +125,17 @@ describe("ilex elite", () => {
 
     expect(world.getEntities([HOMING])).toHaveLength(0);
   });
+});
+
+it("continues the encounter against another teammate when the original hero disconnects", () => {
+  const { world, hero, names } = setup();
+  awaken(world, names);
+  const teammate = createHero(world, hero);
+  toughen(teammate);
+  registerEntity(world, teammate);
+  world.metadata.warpPlayer = () => {};
+  hero.PLAYER!.connected = false;
+  const hp = hero[STATS].hp;
+  advanceUntil(world, () => teammate[STATS].hp < teammate[STATS].maxHp, 15000);
+  expect(hero[STATS].hp).toBe(hp);
 });

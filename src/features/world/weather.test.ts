@@ -1,3 +1,6 @@
+import { createHero } from "../../engine/systems/fate";
+import { registerEntity } from "../../engine/systems/map";
+import { PLAYER } from "../../engine/components/player";
 import { entities, World } from "../../engine";
 import { BURNABLE } from "../../engine/components/burnable";
 import { COVERABLE } from "../../engine/components/coverable";
@@ -297,4 +300,47 @@ describe("weather", () => {
     expect(calculateWeatherIntensity(Infinity, 5, scale)).toBe(0.5);
     expect(calculateWeatherIntensity(Infinity, 500, scale)).toBe(scale);
   });
+});
+
+it("runs precipitation around every connected teammate with privately positioned drops", () => {
+  const world = createAreaWorld(meadow, { size: 240 });
+  advance(world, 2500);
+  const first = assertHero(world);
+  const second = createHero(world, first);
+  registerEntity(world, second);
+  moveEntity(world, second, { x: 120, y: 120 });
+  world.metadata.warpPlayer = () => {};
+  const storm = addStorm(world, "rain");
+  const weather = storm[SEQUENCABLE].states.weather!;
+  weather.args.start = -200;
+  weather.args.intensity = 1000;
+  advance(world, 800);
+  for (const player of [first, second]) {
+    const owner = world.getEntityId(player);
+    const particles = Object.values(weather.particles)
+      .map((id) => world.assertByIdAndComponents(id, [PARTICLE])[PARTICLE])
+      .filter((particle) => particle.owner === owner);
+    expect(particles.length).toBeGreaterThan(0);
+    expect(
+      particles.every((particle) => Math.abs(particle.offsetX) <= 18)
+    ).toBe(true);
+    expect(
+      weather.args.drops.some(
+        (drop) =>
+          Math.abs(signedDistance(player[POSITION].x, drop.position.x, 240)) <=
+            18 &&
+          Math.abs(signedDistance(player[POSITION].y, drop.position.y, 240)) <=
+            8
+      )
+    ).toBe(true);
+  }
+  first[PLAYER].connected = false;
+  advance(world, 1600);
+  expect(
+    Object.values(weather.particles).every(
+      (id) =>
+        world.assertByIdAndComponents(id, [PARTICLE])[PARTICLE].owner ===
+        world.getEntityId(second)
+    )
+  ).toBe(true);
 });

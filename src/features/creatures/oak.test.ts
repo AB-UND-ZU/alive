@@ -1,3 +1,5 @@
+import { createHero } from "../../engine/systems/fate";
+import { registerEntity } from "../../engine/systems/map";
 import { World } from "../../engine";
 import { ATTACKABLE } from "../../engine/components/attackable";
 import { BELONGABLE } from "../../engine/components/belongable";
@@ -164,4 +166,23 @@ describe("oak boss", () => {
     );
     advanceUntil(world, () => getHomings(world, "ironDisc").length >= 2, 10000);
   });
+});
+
+it("aims its homing attack at the remaining teammate after the original hero disconnects", () => {
+  const { world, hero } = setup();
+  awaken(world);
+  const teammate = createHero(world, hero);
+  toughen(teammate);
+  registerEntity(world, teammate);
+  world.metadata.warpPlayer = () => {};
+  hero.PLAYER!.connected = false;
+  const target = world.getEntityId(teammate);
+  advanceUntil(
+    world,
+    () => {
+      teammate[STATS].hp = teammate[STATS].maxHp;
+      return getHomings(world).some((disc) => disc[HOMING].target === target);
+    },
+    120000
+  );
 });

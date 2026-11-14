@@ -30,6 +30,7 @@ export type WeatherSequence = {
   ratio?: number;
   generation: number;
   drops: {
+    owner?: number;
     position: Position;
     fast: boolean;
     timestamp: number;

@@ -1,4 +1,5 @@
-import { getInteraction } from "../../engine/players";
+import { getInteraction, selectViewable } from "../../engine/players";
+import { VIEWABLE } from "../../engine/components/viewable";
 import { ensurePlayerInterface } from "../../bindings/interface";
 import {
   advanceUntil,
@@ -157,6 +158,7 @@ describe("death and respawn", () => {
     const world = createAreaWorld(area);
     const hero = assertUnit(world);
     hero[PLAYER].accountId = "owned-player";
+    hero[VIEWABLE]!.owner = world.getEntityId(hero);
     const interfaceIds = ensurePlayerInterface(world, hero);
     die(world);
     advanceUntil(world, () => !!getTombstone(world));
@@ -164,6 +166,10 @@ describe("death and respawn", () => {
     const revived = respawn(world);
     expect(revived[PLAYER].accountId).toBe("owned-player");
     expect(revived[PLAYER].interface).toBe(interfaceIds);
+    world.metadata.localPlayerId = world.getEntityId(revived);
+    expect(selectViewable(world.getEntities([VIEWABLE, POSITION]), world)).toBe(
+      revived
+    );
   });
 
   it("keeps defeated units but drops carried items at the grave", () => {

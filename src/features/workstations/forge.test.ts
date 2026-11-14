@@ -1,3 +1,7 @@
+import { ensurePlayerInterface } from "../../bindings/interface";
+import { createHero } from "../../engine/systems/fate";
+import { moveEntity, registerEntity } from "../../engine/systems/map";
+import { PLAYER } from "../../engine/components/player";
 import { spendItem } from "../../engine/systems/trigger";
 import { SPRITE } from "../../engine/components/sprite";
 import { composeCharacterPixels } from "../../components/Row/characters";
@@ -419,4 +423,28 @@ describe("forging selections after inventory changes", () => {
       0
     );
   });
+});
+
+it("hurts only the player using the anvil when a teammate is present", () => {
+  const { world, hero, anvil } = setup([]);
+  const smith = createHero(world, hero);
+  smith[STATS].maxHp = 10;
+  smith[STATS].hp = 10;
+  registerEntity(world, smith);
+  hero.IDENTIFIABLE!.name = "bystander";
+  hero[PLAYER].accountId = "bystander";
+  smith[PLAYER].accountId = "smith";
+  ensurePlayerInterface(world, hero);
+  ensurePlayerInterface(world, smith);
+  world.metadata.warpPlayer = () => {};
+  moveEntity(world, hero, { x: 20, y: 20 });
+  giveItems(world, smith, [ironSword, fireUpgrade.add]);
+  openStation(world);
+  selectItems(world, anvil, [0, 1]);
+  act(world, "right");
+  const hp = smith[STATS].hp;
+  const teammateHp = hero[STATS].hp;
+  hitAt(world, anvil, [0, 1]);
+  expect(smith[STATS].hp).toBe(hp - 1);
+  expect(hero[STATS].hp).toBe(teammateHp);
 });

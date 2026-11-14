@@ -1,4 +1,10 @@
-import { advance, assertHero, createAreaWorld } from "../../testing/harness";
+import { getSequence } from "./sequence";
+import {
+  advance,
+  advanceUntil,
+  assertHero,
+  createAreaWorld,
+} from "../../testing/harness";
 import { createHero, canRevive } from "./fate";
 import { moveEntity, registerEntity } from "./map";
 import { isMovable } from "./movement";
@@ -34,4 +40,27 @@ it("keeps another player's tombstone available for its owner", () => {
   const otherGrave = world.createEntity();
   world.addComponentToEntity(otherGrave, "REVIVABLE", { available: true });
   expect(canRevive(world, otherGrave, hero)).toBe(false);
+});
+
+it("shows nearby unit text for a teammate while the first player is elsewhere", () => {
+  const world = createAreaWorld(
+    "|             |\n| ♀        A  |\n|             |",
+    {
+      size: 32,
+      legend: { A: "dummy" },
+    }
+  );
+  advance(world, 2500);
+  const first = assertHero(world);
+  const second = createHero(world, first);
+  registerEntity(world, second);
+  moveEntity(world, first, { x: 20, y: 20 });
+  const target = world.getEntity(["NPC", POSITION])!;
+  moveEntity(world, second, {
+    x: target[POSITION].x - 1,
+    y: target[POSITION].y,
+  });
+  world.metadata.warpPlayer = () => {};
+  advanceUntil(world, () => !!getSequence(world, target, "dialog"), 2000);
+  expect(getSequence(world, target, "dialog")!.args.isIdle).toBe(false);
 });

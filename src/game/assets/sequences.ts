@@ -3557,7 +3557,12 @@ export const weatherStorm: Sequence<WeatherSequence> = (
   let updated = false;
 
   const size = world.metadata.gameEntity[LEVEL].size;
-  const viewable = getActiveViewable(world.getEntities([VIEWABLE, POSITION]));
+  const viewables = world.metadata.warpPlayer
+    ? world
+        .getEntities([PLAYER, POSITION])
+        .filter((player) => player[PLAYER].connected !== false)
+    : [getActiveViewable(world.getEntities([VIEWABLE, POSITION]))];
+  const viewable = viewables[0];
   if (!viewable) return { finished, updated };
   state.args.viewable = copy(viewable[POSITION]);
 
@@ -3566,56 +3571,66 @@ export const weatherStorm: Sequence<WeatherSequence> = (
 
   // create drops
   if (generation !== state.args.generation && generation < state.args.end) {
-    const { sprite } = weatherConfigs[state.args.type];
-    const position = state.args.position;
-    const proximity =
-      state.args.intensity === 0
-        ? 1
-        : 1 -
-          sigmoid(
-            getDistance(
-              viewable[POSITION],
-              position,
-              size,
-              state.args.ratio || aspectRatio
-            ),
-            state.args.intensity,
-            0.25
-          );
-    const intensity = calculateWeatherIntensity(
-      duration,
-      generation - state.args.start,
-      weatherIntensity[state.args.type]
-    );
-    const precipitation = Math.round(intensity * proximity);
+    for (const center of viewables) {
+      if (!center) continue;
+      const owner = world.metadata.warpPlayer
+        ? world.getEntityId(center)
+        : undefined;
+      const { sprite } = weatherConfigs[state.args.type];
+      const position = state.args.position;
+      const proximity =
+        state.args.intensity === 0
+          ? 1
+          : 1 -
+            sigmoid(
+              getDistance(
+                center[POSITION],
+                position,
+                size,
+                state.args.ratio || aspectRatio
+              ),
+              state.args.intensity,
+              0.25
+            );
+      const intensity = calculateWeatherIntensity(
+        duration,
+        generation - state.args.start,
+        weatherIntensity[state.args.type]
+      );
+      const precipitation = Math.round(intensity * proximity);
 
-    for (let index = 0; index < precipitation; index += 1) {
-      const offset = {
-        x: random(-weatherArea.x / 2, weatherArea.x / 2),
-        y: random(-weatherArea.y / 2, weatherArea.y / 2),
-      };
-      const fast = offset.y > 0;
-      const target = combine(size, viewable[POSITION], offset);
-      const dropName = `drop-${generation}-${index}`;
-      state.args.drops.push({
-        position: target,
-        fast,
-        timestamp: state.elapsed,
-        particle: dropName,
-      });
+      for (let index = 0; index < precipitation; index += 1) {
+        const offset = {
+          x: random(-weatherArea.x / 2, weatherArea.x / 2),
+          y: random(-weatherArea.y / 2, weatherArea.y / 2),
+        };
+        const fast = offset.y > 0;
+        const target = combine(size, center[POSITION], offset);
+        const dropName = `drop-${generation}-${
+          owner === undefined ? "" : owner + "-"
+        }${index}`;
+        state.args.drops.push({
+          owner,
+          position: target,
+          fast,
+          timestamp: state.elapsed,
+          particle: dropName,
+        });
 
-      const dropEntity = entities.createParticle(world, {
-        [PARTICLE]: {
-          offsetX: offset.x,
-          offsetY: offset.y - dropHeight,
-          offsetZ: fogHeight,
-          amount: distribution(50, 30, 20) + 1,
-        },
-        [RENDERABLE]: { generation: 1 },
-        [SPRITE]: sprite,
-      });
-      state.particles[dropName] = world.getEntityId(dropEntity);
-      updated = true;
+        const dropEntity = entities.createParticle(world, {
+          [PARTICLE]: {
+            owner,
+            offsetX: offset.x,
+            offsetY: offset.y - dropHeight,
+            offsetZ: fogHeight,
+            amount: distribution(50, 30, 20) + 1,
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: sprite,
+        });
+        state.particles[dropName] = world.getEntityId(dropEntity);
+        updated = true;
+      }
     }
 
     state.args.generation = generation;
@@ -3646,13 +3661,17 @@ export const weatherStorm: Sequence<WeatherSequence> = (
       state.particles[drop.particle],
       [PARTICLE]
     );
+    const origin =
+      (drop.owner === undefined
+        ? undefined
+        : world.getEntityByIdAndComponents(drop.owner, [POSITION])) || viewable;
     particle[PARTICLE].offsetX = signedDistance(
-      viewable[POSITION].x,
+      origin[POSITION].x,
       drop.position.x,
       size
     );
     particle[PARTICLE].offsetY =
-      signedDistance(viewable[POSITION].y, drop.position.y, size) -
+      signedDistance(origin[POSITION].y, drop.position.y, size) -
       dropHeight * (1 - age / duration);
     delete particle[PARTICLE].animatedOrigin;
     updated = true;

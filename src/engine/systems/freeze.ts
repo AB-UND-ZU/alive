@@ -1,3 +1,4 @@
+import { getClosestPlayer } from "../players";
 import { soundSource } from "../../game/sound/events";
 import { Entity } from "ecs";
 import { World } from "../ecs";
@@ -347,8 +348,11 @@ export default function setupFreeze(world: World) {
     const hero = world.getEntity([PLAYER, POSITION]);
     for (const entity of world.getEntities([CLICKABLE, COVERABLE, POSITION])) {
       if (entity[COVERABLE].type === "snow" && entity[CLICKABLE].clicked) {
-        const distance = hero
-          ? getDistance(hero[POSITION], entity[POSITION], size) + 1
+        const nearby = world.metadata.warpPlayer
+          ? getClosestPlayer(world, entity[POSITION], [PLAYER])
+          : hero;
+        const distance = nearby
+          ? getDistance(nearby[POSITION], entity[POSITION], size) + 1
           : 1;
         if (distance < 7)
           play("snow", { proximity: 1 / distance }, soundSource(world, entity));

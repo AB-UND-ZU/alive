@@ -1,3 +1,4 @@
+import { getClosestPlayer } from "../players";
 import { soundSource } from "../../game/sound/events";
 import { Entity } from "ecs";
 import { World } from "../ecs";
@@ -131,16 +132,14 @@ export const shootHoming = (
   registerEntity(world, discEntity);
 
   // soft hum on launch, quieter with distance to hero
-  const heroEntity = world.getEntity([PLAYER, POSITION]);
+  const heroEntity = world.metadata.warpPlayer
+    ? getClosestPlayer(world, caster[POSITION], [PLAYER])
+    : world.getEntity([PLAYER, POSITION]);
   const distance = heroEntity
     ? getDistance(caster[POSITION], heroEntity[POSITION], size)
     : 0;
   if (distance < 10)
-    play(
-      "disc",
-      { proximity: 2 / (distance + 2) },
-      soundSource(world, heroEntity)
-    );
+    play("disc", { proximity: 2 / (distance + 2) }, soundSource(world, caster));
 
   return discEntity;
 };

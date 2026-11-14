@@ -1,3 +1,4 @@
+import { selectViewable } from "../players";
 import { getIdentifier } from "../utils";
 import { INVENTORY } from "../components/inventory";
 import { SPAWNABLE } from "../components/spawnable";
@@ -79,6 +80,7 @@ it("carries inventory, selected equipment, stats and private quick items into an
   ]);
   for (let tick = 0; tick < 30; tick++) host.step();
   hero[STATS].xp = 23;
+  hero[PLAYER].receivedStats.mp = 4;
   hero[PLAYER].quickItems = { "1": { weapon: "sword", material: "iron" } };
   const maxHp = hero[STATS].maxHp;
   const inventory = getItems(world, hero).map(({ carrier, ...item }) => item);
@@ -108,6 +110,7 @@ it("carries inventory, selected equipment, stats and private quick items into an
   ).toBe("iron");
   for (let tick = 0; tick < 30; tick++) host.step();
   expect(next[STATS].xp).toBe(23);
+  expect(next[PLAYER].receivedStats.mp).toBe(0);
   expect(next[STATS].maxHp).toBe(maxHp);
   expect(next[PLAYER].quickItems).toEqual({
     "1": { weapon: "sword", material: "iron" },
@@ -162,4 +165,45 @@ it("brings a late teammate to the shared checkpoint with current quest kill prog
   const arriving = player(host, "second");
   expect(arriving[POSITION]).toEqual({ x: 0, y: 71 });
   expect(arriving[PLAYER].defeatedUnits.banditKnight).toBe(4);
+});
+
+it("reconnects a saved ghost and restores its owned camera and interfaces after native revival", () => {
+  let host = createHost();
+  host.join("first");
+  host.join("second");
+  warp(host, "first", "LEVEL_TUTORIAL");
+  warp(host, "second", "LEVEL_TUTORIAL");
+  player(host, "first")[STATS].hp = 0;
+  const until = (predicate: () => boolean) => {
+    for (let frame = 0; frame < 600 && !predicate(); frame++) host.step();
+    expect(predicate()).toBe(true);
+  };
+  const actor = () =>
+    host
+      .worldFor("first")!
+      .assertByIdAndComponents(host.actorId("first"), [PLAYER]);
+  until(() => actor()[PLAYER].ghost);
+  host = createHost(host.save());
+  host.join("first");
+  host.join("second");
+  const ghost = actor();
+  const world = host.worldFor("first")!;
+  until(
+    () => !!world.getEntityById(ghost.SOUL!.tombstoneId)?.REVIVABLE?.available
+  );
+  until(() => !!ghost.ACTIONABLE?.spawn);
+  host.receive("first", { sequence: 0, action: { kind: "interact" } });
+  until(() => !actor()[PLAYER].ghost);
+  const revived = actor(),
+    owner = world.getEntityId(revived);
+  expect(revived.VIEWABLE!.owner).toBe(owner);
+  expect(
+    selectViewable(world.getEntities(["VIEWABLE", POSITION]), world, owner)
+  ).toBe(revived);
+  expect(
+    world.assertByIdAndComponents(revived[PLAYER].interface!.use, [POPUP])[
+      POPUP
+    ].owner
+  ).toBe(owner);
+  expect(host.actorId("second")).not.toBe(owner);
 });

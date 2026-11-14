@@ -187,13 +187,15 @@ export default function setupAi(world: World) {
     if (lastGeneration === generation) return;
 
     lastGeneration = generation;
-    const rageHero = world.getEntity([PLAYER, POSITION]);
 
     for (const entity of world.getEntities([POSITION, MOVABLE, BEHAVIOUR])) {
       const patterns = (entity[BEHAVIOUR] as Behaviour).patterns;
       const entityId = world.getEntityId(entity);
       const size = world.metadata.gameEntity[LEVEL].size;
 
+      const rageHero = world.metadata.warpPlayer
+        ? getClosestPlayer(world, entity[POSITION], [PLAYER])
+        : world.getEntity([PLAYER, POSITION]);
       // scale danger sound on rage by distance to hero
       const heroDistance = rageHero
         ? getDistance(entity[POSITION], rageHero[POSITION], size)
@@ -954,8 +956,10 @@ export default function setupAi(world: World) {
             castableSpell(world, entity as TypedEntity<"INVENTORY">, spellItem)
           ) {
             pattern.memory.percentage -= 20;
-            const viewables = world.getEntities([VIEWABLE, POSITION]);
-            const viewable = getActiveViewable(viewables);
+            const viewable = world.metadata.warpPlayer
+              ? getClosestPlayer(world, entity[POSITION], [PLAYER])
+              : getActiveViewable(world.getEntities([VIEWABLE, POSITION]));
+            if (!viewable) continue;
             const orientations = relativeOrientations(
               world,
               entity[POSITION],

@@ -1,3 +1,4 @@
+import { getInteraction } from "../players";
 import { soundSource } from "../../game/sound/events";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -34,21 +35,11 @@ const persistentCooldown = 30;
 export default function setupText(world: World) {
   let referencesGeneration = -1;
 
-  const onUpdate = (delta: number) => {
-    const hero = world.getEntity([PLAYER, POSITION, LIGHT, SPAWNABLE]);
+  const updateTooltips = (
+    hero: TypedEntity<"PLAYER" | "POSITION" | "LIGHT" | "SPAWNABLE"> | undefined
+  ) => {
     const size = world.metadata.gameEntity[LEVEL].size;
     const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
-
-    if (!world.metadata.gameEntity[LEVEL].initialized) return;
-
-    const generation = world
-      .getEntities([RENDERABLE, REFERENCE])
-      .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
-
-    if (referencesGeneration === generation) return;
-
-    referencesGeneration = generation;
-
     let pendingTooltip: Entity | undefined = undefined;
     let activeTooltips: TypedEntity<
       "TOOLTIP" | "POSITION" | "SPRITE" | "SEQUENCABLE"
@@ -164,7 +155,8 @@ export default function setupText(world: World) {
 
       const isDone =
         interactSequence ||
-        world.metadata.interact.last === world.getEntityId(tooltipEntity) ||
+        (hero ? getInteraction(world, hero) : world.metadata.interact).last ===
+          world.getEntityId(tooltipEntity) ||
         (tooltipEntity[TOOLTIP].lastTooltip &&
           !isIdle &&
           !(
@@ -270,6 +262,26 @@ export default function setupText(world: World) {
 
       rerenderEntity(world, tooltipEntity);
     }
+  };
+
+  const onUpdate = (delta: number) => {
+    if (!world.metadata.gameEntity[LEVEL].initialized) return;
+    const generation = world
+      .getEntities([RENDERABLE, REFERENCE])
+      .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
+    if (referencesGeneration === generation) return;
+    referencesGeneration = generation;
+    const players = world.metadata.warpPlayer
+      ? world
+          .getEntities([PLAYER, POSITION, LIGHT, SPAWNABLE])
+          .filter(
+            (player) =>
+              player[PLAYER].connected !== false &&
+              !player[PLAYER].ghost &&
+              !isDead(world, player)
+          )
+      : [world.getEntity([PLAYER, POSITION, LIGHT, SPAWNABLE])];
+    for (const player of players) updateTooltips(player);
   };
 
   return { onUpdate };
