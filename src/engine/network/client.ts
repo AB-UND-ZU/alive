@@ -90,6 +90,7 @@ export const connectServer = (
             }
           }
           welcomed = true;
+          lastState = Date.now();
           attempts = 0;
           // Restored server mailboxes use a fresh connection sequence.
           send({ type: "pause", paused });
@@ -148,7 +149,10 @@ export const connectServer = (
       input(action);
     },
     pause(next: boolean) {
-      if (next !== paused) sounds.reset();
+      if (next !== paused) {
+        sounds.reset();
+        if (!next) lastState = Date.now();
+      }
       paused = next;
       move = [];
       send({ type: "pause", paused });

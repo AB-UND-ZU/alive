@@ -164,3 +164,37 @@ it("forwards a requested username separately from reconnect credentials", () => 
   expect(sockets[0].messages[0]).toEqual({ type: "join", username: "Alice" });
   connection.close();
 });
+
+it("gives a resumed player time to receive a fresh state after a long pause", () => {
+  const { connection, sockets, state } = setup();
+  const socket = sockets[0];
+  socket.open();
+  socket.receive({ type: "welcome", id: "account", token: "secret" });
+  state(socket);
+  connection.pause(true);
+  jest.advanceTimersByTime(10000);
+  connection.pause(false);
+  jest.advanceTimersByTime(250);
+  expect(socket.readyState).toBe(1);
+  state(socket, 2);
+  expect(sockets).toHaveLength(1);
+  jest.advanceTimersByTime(3250);
+  expect(socket.readyState).toBe(3);
+  connection.close();
+});
+
+it("gives an authenticated reconnect time to receive its first state", () => {
+  const { connection, sockets, state } = setup();
+  sockets[0].open();
+  sockets[0].receive({ type: "welcome", id: "account", token: "secret" });
+  state(sockets[0]);
+  sockets[0].close(1006);
+  jest.advanceTimersByTime(4000);
+  const next = sockets[1];
+  next.open();
+  next.receive({ type: "welcome", id: "account" });
+  jest.advanceTimersByTime(250);
+  expect(next.readyState).toBe(1);
+  state(next);
+  connection.close();
+});
