@@ -811,7 +811,7 @@ export const blast = createTemplate({ sprite: blastTemplate });
 
 const boltTemplate: Sprite = {
   name: "bolt",
-  terminal: { layers: [{ char: ":", color: TEMPLATE_COLORS.materialPrimary }] },
+  terminal: { layers: [{ char: "•", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [{ char: "∙", color: TEMPLATE_COLORS.materialPrimary }],
   amounts: {
     single: [{ char: "∙", color: TEMPLATE_COLORS.materialPrimary }],
@@ -827,7 +827,7 @@ const boltTemplate: Sprite = {
 };
 const boltElementTemplate: Sprite = {
   name: "bolt_element",
-  terminal: { layers: [{ char: ":", color: TEMPLATE_COLORS.elementPrimary }] },
+  terminal: { layers: [{ char: "•", color: TEMPLATE_COLORS.elementPrimary }] },
   layers: [{ char: "∙", color: TEMPLATE_COLORS.elementPrimary }],
   amounts: {
     single: [{ char: "∙", color: TEMPLATE_COLORS.elementPrimary }],
@@ -843,7 +843,7 @@ const boltElementTemplate: Sprite = {
 };
 const boltWood: Sprite = {
   name: "bolt",
-  terminal: { layers: [{ char: ":", color: colors.maroon }] },
+  terminal: { layers: [{ char: "•", color: colors.maroon }] },
   layers: [{ char: "∙", color: colors.maroon }],
   amounts: {
     single: [{ char: "∙", color: colors.maroon }],

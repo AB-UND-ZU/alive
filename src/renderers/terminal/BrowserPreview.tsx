@@ -11,6 +11,7 @@ import { codePage437 } from "../../game/assets/characters";
 import { colors } from "../../game/assets/colors";
 import { createText } from "../../game/assets/ui";
 import { createFrameClock } from "../interface/clock";
+import { useWorld } from "../interface/hooks";
 import { RendererProps } from "../interface/types";
 import { createTerminalInput } from "./input";
 import { getTerminalFrame, getTerminalLayout } from "./screen";
@@ -40,10 +41,17 @@ export default function BrowserPreview({
   cellHeight,
   paused,
 }: RendererProps) {
+  const { suspended, flipped } = useWorld();
   const [focused, setFocused] = useState(false);
   const [, render] = useReducer((value) => value + 1, 0);
   const clock = useMemo(() => createFrameClock(world), [world]);
-  const input = useMemo(() => createTerminalInput(world), [world]);
+  const input = useMemo(
+    () =>
+      createTerminalInput(world, (url) => {
+        window.open(url, "_blank");
+      }),
+    [world]
+  );
   const state = useMemo(() => ({ world, stickyCastables: {} }), [world]);
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
@@ -123,7 +131,10 @@ export default function BrowserPreview({
     };
   }, [world, input]);
 
-  const frame = getTerminalFrame(world, columns, rows, state);
+  const frame = getTerminalFrame(world, columns, rows, state, {
+    suspended,
+    flipped,
+  });
   return (
     <div
       className="TerminalBrowserPreview"

@@ -36,7 +36,7 @@ import { projectSprite } from "./sprites";
 import { getSceneFrame } from "../interface/frame";
 import { collectTerminalSprites, createTerminalFrame } from "./frame";
 
-it("draws the fountain as a connected blue frame around dark water and a center spout", () => {
+it("draws the fountain as a connected grey frame around dark water and a center spout", () => {
   const frame = [
     [
       projectSprite(fountainCorner, "left"),
@@ -60,9 +60,14 @@ it("draws the fountain as a connected blue frame around dark water and a center 
   expect(frame.flat().every((cell) => cell.background === colors.navy)).toBe(
     true
   );
-  expect(frame.flat().every((cell) => cell.foreground === colors.blue)).toBe(
-    true
-  );
+  expect(
+    frame
+      .flat()
+      .every(
+        (cell) =>
+          cell.foreground === (cell.char === "v" ? colors.silver : colors.grey)
+      )
+  ).toBe(true);
   expect(projectSprite(fountainHealing)).toMatchObject({
     char: "v",
     foreground: colors.lime,
@@ -83,7 +88,6 @@ it("uses matching key colors on closed entries and gates, with no glyph after op
     portClosed,
     entryClosed,
     entryClosedDisplay,
-    fenceDoorClosed,
     palisadeDoorClosed,
     barrierDoorClosed,
   ]) {
@@ -97,6 +101,15 @@ it("uses matching key colors on closed entries and gates, with no glyph after op
         foreground: projectSprite(key[material].default).foreground,
       });
   }
+  expect(projectSprite(fenceDoorClosed.wood.default)).toMatchObject({
+    char: "m",
+    foreground: colors.maroon,
+  });
+  for (const material of ["iron", "gold", "diamond", "ruby"] as const)
+    expect(projectSprite(fenceDoorClosed[material].default)).toMatchObject({
+      char: "m",
+      foreground: projectSprite(key[material].default).foreground,
+    });
   for (const open of [
     doorOpen,
     portOpen,

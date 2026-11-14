@@ -7,14 +7,14 @@ import { projectSprite } from "./sprites";
 it("keeps furniture, terrain and small units recognizable using authored terminal characters", () => {
   for (const [sprite, char, foreground] of [
     [sprites.egg, "•", colors.white],
-    [sprites.dummy, "Ω", colors.white],
+    [sprites.dummy, "Ω", colors.grey],
     [sprites.anvil, "▬", colors.silver],
     [sprites.kettle, "U", colors.blue],
     [sprites.table, "╥", colors.maroon],
     [sprites.chairLeft, "└", colors.maroon],
     [sprites.chairRight, "┘", colors.maroon],
-    [sprites.sand, "%", colors.yellow],
-    [sprites.beach, "%", colors.yellow],
+    [sprites.sand, "░", colors.black],
+    [sprites.beach, "▒", colors.black],
     [sprites.gravel1, "%", colors.grey],
     [sprites.gravel2, "%", colors.grey],
   ] as const)

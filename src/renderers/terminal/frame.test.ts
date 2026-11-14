@@ -10,6 +10,7 @@ import {
   knight,
   bandit,
   alien,
+  tombstone1,
 } from "../../game/assets/sprites";
 import {
   advance,
@@ -413,11 +414,11 @@ it("puts new transient messages above the hero and pushes earlier messages up wi
   message("A");
   advance(world, 100);
   expect(rows()[0][0]).toBe("A");
-  expect(rows()[0][1]).toBeLessThan(4);
+  expect(rows()[0][1]).toBe(4);
   message("B");
   advance(world, 100);
   expect(rows().map(([text]) => text)).toEqual(["A", "B"]);
-  expect(Number(rows()[0][1])).toBeLessThan(Number(rows()[1][1]) - 1);
+  expect(Number(rows()[0][1])).toBe(Number(rows()[1][1]) - 1);
   advance(world, 420);
   expect(rows()).toHaveLength(1);
   expect(rows()[0][0]).toBe("B");
@@ -557,7 +558,7 @@ it("preserves a highlight's terrain background and leaves tooltip colors above i
   ).toBe(colors.white);
 });
 
-it("lets transient messages move down as in the web frame and stack in that direction", () => {
+it("puts downward messages above their owner in terminal frames without changing web positions", () => {
   const world = createAreaWorld("| ♀ |", { size: 48 });
   const hero = assertHero(world);
   advance(world, 2000);
@@ -579,14 +580,14 @@ it("lets transient messages move down as in the web frame and stack in that dire
       .map((entry) => [entry.layers[0].char, entry.y] as const);
   message("A");
   advance(world, 100);
-  expect(rows(true)).toEqual(rows(false));
-  expect(rows(true)[0][1]).toBeGreaterThan(5);
+  expect(rows(true)[0][1]).toBe(4);
+  expect(rows(false)[0][1]).toBeGreaterThan(5);
   message("B");
   advance(world, 100);
-  const positions = rows(true);
-  expect(positions[0][0]).toBe("A");
-  expect(positions[1][0]).toBe("B");
-  expect(positions[0][1]).toBeGreaterThan(positions[1][1] + 1);
+  expect(rows(true)).toEqual([
+    ["A", 3],
+    ["B", 4],
+  ]);
 });
 
 it("does not let an invisible terminal message push visible messages away", () => {
@@ -617,10 +618,11 @@ it("does not let an invisible terminal message push visible messages away", () =
       (entry) =>
         entry.entity === hero && entry.particle && entry.layers[0]?.char === "1"
     )!.y;
-  expect(point(true)).toBe(point(false));
+  expect(point(true)).toBe(4);
+  expect(point(false)).toBeLessThan(5);
 });
 
-it("keeps non-player units above world effects except for x and X hit markers", () => {
+it("keeps non-player units above world effects except for o, x and X hit markers", () => {
   const world = createAreaWorld("| ♀ |", { size: 48 });
   const hero = assertHero(world);
   const scene = getSceneFrame(world, 11, 9, undefined, {
@@ -645,7 +647,7 @@ it("keeps non-player units above world effects except for x and X hit markers", 
       x
     ].char
   ).toBe("♀");
-  for (const char of ["x", "X"]) {
+  for (const char of ["o", "x", "X"]) {
     const hit = {
       ...effect,
       sprite: magicHit,
@@ -694,5 +696,127 @@ it("renders living heroes white and the same human sprites as silver NPCs", () =
       9
     )[y][x];
     expect(other).toMatchObject({ char: "♀", foreground: colors.silver });
+  }
+});
+
+
+it("keeps discovery above focus outlines and the hero above interaction bars, but below dialogs", () => {
+  const world = createAreaWorld("| ♀ |", { size: 48 });
+  const hero = assertHero(world);
+  const scene = getSceneFrame(world, 11, 9, undefined, {
+    instant: true,
+  }).filter((entry) => entry.entity === hero);
+  const body = scene.find((entry) => /body\d+$/.test(entry.key))!;
+  const particle = (char: string, z: number, sequence: string) => ({
+    ...body,
+    key: body.key.replace(/body\d+$/, "particle999"),
+    sprite: createText(char)[0],
+    layers: createText(char)[0].layers,
+    terminalLayers: undefined,
+    particle: hero,
+    particleSequence: sequence,
+    z,
+  });
+  const x = Math.ceil(body.x),
+    y = Math.ceil(body.y);
+  const frame = (entries: typeof scene) =>
+    createTerminalFrame(collectTerminalSprites(entries), 11, 9)[y][x];
+  expect(
+    frame([particle("┌", 8.499, "focus"), particle("?", 8, "discoveryIdle")])
+      .char
+  ).toBe("?");
+  expect(frame([...scene, particle("U", 9.1, "popupInteract")]).char).toBe("♀");
+  expect(frame([...scene, particle("D", 10, "popup")]).char).toBe("D");
+});
+
+it("uses a dark tooltip character on a light wall instead of disappearing into it", () => {
+  const frame = createTerminalFrame(
+    [
+      { ...sprite("█", 0, 0), layers: [{ char: "█", color: colors.silver }] },
+      {
+        ...sprite("?", 0, 0, 9.998),
+        overlay: true,
+        ui: true,
+        layers: createText("?", colors.white, colors.black)[0].layers,
+      },
+    ],
+    1,
+    1
+  );
+  expect(frame[0][0]).toEqual({
+    char: "?",
+    foreground: colors.black,
+    background: colors.silver,
+  });
+});
+
+it("shows banana fruit over its palm and keeps dash trails above grass", () => {
+  const world = createAreaWorld("| ( ♀ |", { size: 48 });
+  advance(world, 2000);
+  const scene = getSceneFrame(world, 15, 11, undefined, { instant: true });
+  const fruit = scene.find(
+    (entry) => entry.loot && entry.sprite.name === "Banana"
+  )!;
+  expect(fruit).toBeDefined();
+  const fruitCell = createTerminalFrame(collectTerminalSprites(scene), 15, 11)[
+    Math.ceil(fruit.y)
+  ][Math.ceil(fruit.x)];
+  expect(fruitCell.char).toBe("«");
+  const ground = scene.find((entry) => entry.sprite.name === "palm_two")!;
+  const dash = {
+    ...ground,
+    key: ground.key.replace(/body\d+$/, "particle999"),
+    particle: ground.entity,
+    particleSequence: "castDash",
+    z: 0.3,
+    layers: [{ char: "-", color: colors.white }],
+    terminalLayers: undefined,
+    sprite: createText("-")[0],
+  };
+  const grass = {
+    ...ground,
+    sprite: createText('"')[0],
+    layers: createText('"')[0].layers,
+    terminalLayers: undefined,
+    z: 0.5,
+  };
+  const trail = createTerminalFrame(
+    collectTerminalSprites([dash, grass]),
+    15,
+    11
+  )[Math.ceil(ground.y)][Math.ceil(ground.x)];
+  expect(trail.char).toBe("-");
+});
+
+it("keeps harvestable remains visible as commas without exposing world graves", () => {
+  const world = createAreaWorld("|SR♀|", {
+    size: 48,
+    legend: { S: "stump", R: "rubble" },
+  });
+  advance(world, 2000);
+  const scene = getSceneFrame(world, 15, 11, undefined, { instant: true });
+  const frame = createTerminalFrame(collectTerminalSprites(scene), 15, 11);
+  const source = scene.find(
+    (entry) => entry.entity.HARVESTABLE?.resource === "stump"
+  )!;
+  const grave = {
+    ...source,
+    sprite: tombstone1,
+    entity: { ...source.entity, SPRITE: tombstone1 },
+  };
+  expect(collectTerminalSprites([grave])).toEqual([]);
+  expect(
+    collectTerminalSprites([
+      { ...grave, key: "grave:particle0", particle: source.entity },
+    ])
+  ).toHaveLength(1);
+  for (const resource of ["stump", "rubble"]) {
+    const entry = scene.find(
+      (entry) => entry.entity.HARVESTABLE?.resource === resource
+    )!;
+    expect(frame[Math.ceil(entry.y)][Math.ceil(entry.x)]).toMatchObject({
+      char: ",",
+      foreground: resource === "rubble" ? colors.grey : colors.maroon,
+    });
   }
 });

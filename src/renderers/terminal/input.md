@@ -8,7 +8,11 @@ while chat is open. It queues normal game actions. Escape closes an active popup
 
 Terminal keyboards lack keyup events; a 100 ms timeout releases movement.
 A new key event extends that hold. `stop` releases it immediately, including
-when pausing, leaving or replacing a world.
+when pausing, leaving or replacing a world. Dialog actions release movement before
+confirming, so a recent selection move cannot swallow Enter. In test mode, Enter
+opens chat when no interaction is available. Credit links use the URL callback
+passed to `createTerminalInput`; browser previews open a new tab and the native
+client uses the operating system URL opener.
 
 <!-- source-types -->
 

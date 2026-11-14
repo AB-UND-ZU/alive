@@ -72,6 +72,14 @@ export const absorb: Sprite = {
 
 export const meleeHit: Sprite = {
   name: "Melee",
+  terminal: {
+    layers: [{ char: "o", color: colors.white }],
+    amounts: {
+      single: [{ char: "o", color: colors.red }],
+      double: [{ char: "x", color: colors.red }],
+      multiple: [{ char: "X", color: colors.red }],
+    },
+  },
   layers: [{ char: "O", color: colors.white }],
   amounts: {
     single: [
@@ -86,6 +94,14 @@ export const meleeHit: Sprite = {
 
 export const magicHit: Sprite = {
   name: "Magic",
+  terminal: {
+    layers: [{ char: "o", color: colors.white }],
+    amounts: {
+      single: [{ char: "o", color: colors.fuchsia }],
+      double: [{ char: "x", color: colors.fuchsia }],
+      multiple: [{ char: "X", color: colors.fuchsia }],
+    },
+  },
   layers: [{ char: "O", color: colors.white }],
   amounts: {
     single: [
@@ -196,6 +212,14 @@ export const time: Sprite = {
 
 export const trueHit: Sprite = {
   name: "True",
+  terminal: {
+    layers: [{ char: "o", color: colors.white }],
+    amounts: {
+      single: [{ char: "o", color: colors.white }],
+      double: [{ char: "x", color: colors.white }],
+      multiple: [{ char: "X", color: colors.white }],
+    },
+  },
   layers: [{ char: "O", color: colors.white }],
   amounts: {
     single: [
@@ -263,6 +287,14 @@ export const rain: Sprite = {
 
 export const fire: Sprite = {
   name: "Burn",
+  terminal: {
+    layers: [{ char: "\u010e", color: colors.red }],
+    amounts: {
+      single: [{ char: "+", color: colors.red }],
+      double: [{ char: "*", color: colors.yellow }],
+      multiple: [{ char: "\u010e", color: colors.red }],
+    },
+  },
   layers: [
     { char: "\u010e", color: colors.red },
     { char: "*", color: colors.yellow },
@@ -1986,6 +2018,7 @@ export const chatDiscovery: Sprite = {
 
 export const caret: Sprite = {
   name: "Caret",
+  terminal: { layers: [{ char: "▬", color: colors.white }] },
   layers: [
     { char: "\u0107", color: colors.white },
     { char: "\u0100", color: colors.black },

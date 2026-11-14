@@ -1,4 +1,5 @@
 import React from "react";
+import { spawn } from "child_process";
 import { emitKeypressEvents, Interface, Key } from "readline";
 import { mkdirSync, readFileSync, writeFileSync, rmSync } from "fs";
 import { dirname, join } from "path";
@@ -55,6 +56,13 @@ export const emitTerminalKeys = (stream: NodeJS.ReadableStream) =>
     escapeCodeTimeout: number;
   });
 
+export const openTerminalLink = (url: string) => {
+  const command = process.platform === "darwin" ? "open" : "xdg-open";
+  const child = spawn(command, [url], { stdio: "ignore", detached: true });
+  child.on("error", () => {});
+  child.unref();
+};
+
 export const runTerminal = () => {
   const args = process.argv.slice(2);
   const levelArg = args[args.indexOf("--level") + 1];
@@ -62,10 +70,11 @@ export const runTerminal = () => {
     (name) => name.toLowerCase().replace("level_", "") === levelArg
   ) as LevelName | undefined;
   let world = createTerminalWorld(level);
+  let flipped = false;
   let suspended = false,
     paused = false,
     stopped = false;
-  let input = createTerminalInput(world),
+  let input = createTerminalInput(world, openTerminalLink),
     clock = createFrameClock(world);
   let state = { stickyCastables: {} };
   let saved: SaveGame | undefined;
@@ -91,9 +100,12 @@ export const runTerminal = () => {
   const attach = (next: World) => {
     world = next;
     input.stop();
-    input = createTerminalInput(world);
+    input = createTerminalInput(world, openTerminalLink);
     clock = createFrameClock(world);
     state = { stickyCastables: {} };
+    world.metadata.setFlipped = (value) => {
+      flipped = value;
+    };
     world.metadata.suspend = () => {
       suspended = true;
     };
@@ -177,6 +189,7 @@ export const runTerminal = () => {
         session={{
           paused,
           suspended,
+          flipped,
           selection: pauseSelection,
           saveName:
             saved && saved.id === world.metadata.saveId

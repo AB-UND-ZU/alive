@@ -113,7 +113,7 @@ export const tulip: Sprite = {
 
 export const dummy: Sprite = {
   name: "Dummy",
-  terminal: { layers: [{ char: "Ω", color: colors.white }] },
+  terminal: { layers: [{ char: "Ω", color: colors.grey }] },
   layers: [
     { char: "│", color: colors.maroon },
     { char: "└", color: colors.black },
@@ -140,19 +140,19 @@ export const fountainCorner: Sprite = {
     facing: {
       up: [
         { char: "█", color: colors.navy },
-        { char: "┐", color: colors.blue },
+        { char: "┐", color: colors.grey },
       ],
       right: [
         { char: "█", color: colors.navy },
-        { char: "┘", color: colors.blue },
+        { char: "┘", color: colors.grey },
       ],
       down: [
         { char: "█", color: colors.navy },
-        { char: "└", color: colors.blue },
+        { char: "└", color: colors.grey },
       ],
       left: [
         { char: "█", color: colors.navy },
-        { char: "┌", color: colors.blue },
+        { char: "┌", color: colors.grey },
       ],
     },
   },
@@ -196,19 +196,19 @@ export const fountainSide: Sprite = {
     facing: {
       up: [
         { char: "█", color: colors.navy },
-        { char: "─", color: colors.blue },
+        { char: "─", color: colors.grey },
       ],
       right: [
         { char: "█", color: colors.navy },
-        { char: "│", color: colors.blue },
+        { char: "│", color: colors.grey },
       ],
       down: [
         { char: "█", color: colors.navy },
-        { char: "─", color: colors.blue },
+        { char: "─", color: colors.grey },
       ],
       left: [
         { char: "█", color: colors.navy },
-        { char: "│", color: colors.blue },
+        { char: "│", color: colors.grey },
       ],
     },
   },
@@ -242,7 +242,7 @@ export const fountain: Sprite = {
   terminal: {
     layers: [
       { char: "█", color: colors.navy },
-      { char: "v", color: colors.blue },
+      { char: "v", color: colors.silver },
     ],
   },
   layers: [
@@ -425,6 +425,7 @@ export const fountainHealing: Sprite = {
 
 export const pot: Sprite = {
   name: "Vase",
+  terminal: { layers: [{ char: "&", color: colors.maroon }] },
   layers: [
     { char: "I", color: colors.maroon },
     { char: "\u0106", color: colors.maroon },

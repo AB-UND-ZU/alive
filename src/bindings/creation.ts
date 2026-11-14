@@ -2137,7 +2137,10 @@ export const createCell = (
     }
     return { cell: spawnKeyEntity, all };
   } else if (cell === "menu_sign") {
-    const scoutSprite = mergeSprites(scout, parseSprite("\x0a_"));
+    const scoutSprite = {
+      ...mergeSprites(scout, parseSprite("\x0a_")),
+      terminal: scout.terminal,
+    };
     const menuSign = createSign(world, { x, y }, [
       [
         repeat(swirl, 17),
@@ -2317,7 +2320,10 @@ export const createCell = (
         [TEMPO]: { amount: -1 },
       })
     );
-    const scoutSprite = mergeSprites(scout, parseSprite("\x0a_"));
+    const scoutSprite = {
+      ...mergeSprites(scout, parseSprite("\x0a_")),
+      terminal: scout.terminal,
+    };
     const signEntity = createSign(world, { x, y }, [
       [
         [

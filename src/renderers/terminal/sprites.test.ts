@@ -314,7 +314,7 @@ describe("terminal sprite projection", () => {
         projectSprite(bolt.iron.fire, undefined, amount).foreground
       ).not.toBe(colors.black);
       expect(projectSprite(bolt.iron.fire, undefined, amount)).toEqual({
-        char: ":",
+        char: "•",
         foreground: colors.red,
       });
     }
@@ -445,8 +445,9 @@ describe("terminal sprite projection", () => {
 
   it("keeps terrain patterns distinct without losing their colors", () => {
     expect(projectSprite(sprites.sand)).toMatchObject({
-      char: "%",
-      foreground: colors.yellow,
+      char: "░",
+      foreground: colors.black,
+      background: colors.olive,
     });
     expect(projectSprite(sprites.path)).toMatchObject({
       char: "░",
@@ -538,17 +539,17 @@ describe("terminal sprite projection", () => {
   it("uses dark fountain water with visible lines and connected building outlines", () => {
     expect(projectSprite(sprites.fountain)).toEqual({
       char: "v",
-      foreground: colors.blue,
+      foreground: colors.silver,
       background: colors.navy,
     });
     expect(projectSprite(sprites.fountainSide, "up")).toEqual({
       char: "─",
-      foreground: colors.blue,
+      foreground: colors.grey,
       background: colors.navy,
     });
     expect(projectSprite(sprites.fountainCorner, "left")).toEqual({
       char: "┌",
-      foreground: colors.blue,
+      foreground: colors.grey,
       background: colors.navy,
     });
     const outline = [
@@ -643,13 +644,13 @@ describe("terminal sprite projection", () => {
 
 it("uses source-defined terminal item displays without changing the browser layers", () => {
   const cases = [
-    [sprites.grain, "¥", colors.yellow],
+    [sprites.grain, "·", colors.yellow],
     [sprites.cactus1, "√", colors.green],
     [sprites.cactus2, "√", colors.green],
     [sprites.palm1, "Y", colors.green],
     [sprites.palm2, "Y", colors.green],
     [sprites.rock1, "▬", colors.silver],
-    [sprites.rock2, "○", colors.silver],
+    [sprites.rock2, "•", colors.grey],
     [sprites.ghost, "♀", colors.yellow],
     [sprites.shroom, "·", colors.maroon],
     [sprites.flower, "·", colors.teal],
@@ -734,4 +735,56 @@ it("keeps class and equipped NPC references as silver human characters", () => {
     char: "♀",
     foreground: colors.yellow,
   });
+});
+
+it("keeps native chat, damage and fire symbols legible at each amount", () => {
+  expect(projectSprite(sprites.caret)).toMatchObject({
+    char: "▬",
+    foreground: colors.white,
+  });
+  expect(projectSprite(sprites.pot)).toMatchObject({
+    char: "&",
+    foreground: colors.maroon,
+  });
+  expect(projectSprite(sprites.dummy)).toMatchObject({
+    char: "Ω",
+    foreground: colors.grey,
+  });
+  expect(projectSprite(sprites.wheat)).toMatchObject({
+    char: "¥",
+    foreground: colors.yellow,
+  });
+  expect(projectSprite(sprites.banana, undefined, 1)).toMatchObject({
+    char: "«",
+    foreground: colors.yellow,
+  });
+  for (const hit of [sprites.meleeHit, sprites.magicHit, sprites.trueHit])
+    expect(
+      [1, 2, 3].map((amount) => projectSprite(hit, undefined, amount).char)
+    ).toEqual(["o", "x", "X"]);
+  expect(
+    [1, 2, 3].map(
+      (amount) => projectSprite(sprites.fire, undefined, amount).char
+    )
+  ).toEqual(["+", "*", "☼"]);
+});
+
+it("keeps tree reference glyphs and backgrounds through dialog composition", () => {
+  for (const [tree, char] of [
+    [sprites.tree1, "#"],
+    [sprites.tree2, "Θ"],
+  ] as const) {
+    expect(projectSprite(mergeSprites(tree, sprites.none))).toMatchObject({
+      char,
+      foreground: colors.green,
+      background: colors.maroon,
+    });
+    for (const amount of [1, 2, 3])
+      expect(
+        projectSprite(mergeSprites(tree, sprites.none), undefined, amount)
+      ).toMatchObject({
+        foreground: colors.green,
+        background: colors.maroon,
+      });
+  }
 });

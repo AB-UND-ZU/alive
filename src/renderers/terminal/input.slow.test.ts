@@ -5,17 +5,20 @@ import {
   giveItems,
   assertHero,
 } from "../../testing/harness";
+import { STATS } from "../../engine/components/stats";
 import { SPRITE } from "../../engine/components/sprite";
 import { INVENTORY } from "../../engine/components/inventory";
 import { getSceneFrame } from "../interface/frame";
 import { collectTerminalSprites, createTerminalFrame } from "./frame";
+import { POPUP } from "../../engine/components/popup";
+import { credits } from "../../game/assets/credits";
 import { PLAYER } from "../../engine/components/player";
 import { MOVABLE } from "../../engine/components/movable";
 import { ACTIONABLE } from "../../engine/components/actionable";
 import { REFERENCE } from "../../engine/components/reference";
 import { POSITION } from "../../engine/components/position";
-import { isInPopup } from "../../engine/systems/popup";
-import { openChat, getPrompt, getDialog } from "../../features/chat/helpers";
+import { getVerticalIndex, isInPopup } from "../../engine/systems/popup";
+import { openChat, getPrompt, getDialog, getMenu } from "../../features/chat/helpers";
 import { createTerminalInput } from "./input";
 
 jest.mock("../../engine/utils", () => ({
@@ -33,6 +36,7 @@ const setup = () => {
     PLAYER,
     MOVABLE,
     POSITION,
+    STATS,
   ]);
   const input = createTerminalInput(world);
   return { world, hero, input };
@@ -76,10 +80,39 @@ describe("native terminal controls", () => {
     expect(getPrompt(world)).toBe(text);
     input.press({ name: "backspace" });
     expect(getPrompt(world)).toBe(text.slice(0, -1));
-    input.press({ name: "return" });
+    input.press({ name: "return", sequence: "\r" });
     advance(world, 700);
     expect(getDialog(hero)).toEqual([text.slice(0, -1)]);
     expect(isInPopup(world, hero)).toBeFalsy();
+    input.stop();
+  });
+
+  it("opens test-mode chat with Enter and submits a command", () => {
+    const { world, hero, input } = setup();
+    input.press({ name: "return", sequence: "\r" });
+    advance(world, 700);
+    expect(isInPopup(world, hero)).toBeTruthy();
+    for (const char of "/stat hp 12") input.press({ sequence: char });
+    input.press({ name: "return", sequence: "\r" });
+    advance(world, 700);
+    expect(isInPopup(world, hero)).toBeFalsy();
+    expect(hero[STATS].hp).toBe(12);
+    input.stop();
+  });
+
+  it("confirms a dialog immediately after moving its selection", () => {
+    const { world, hero, input } = setup();
+    openChat(world);
+    const popup = getMenu(world);
+    popup[POPUP].tabs[popup[POPUP].horizontalIndex] = "credits";
+    const openLink = jest.fn();
+    const controls = createTerminalInput(world, openLink);
+    controls.press({ name: "down" });
+    advanceUntil(world, () => getVerticalIndex(world, popup) === 1);
+    controls.press({ name: "return", sequence: "\r" });
+    expect(openLink).toHaveBeenCalledWith(credits[1].link);
+    expect(hero[MOVABLE].orientations).toEqual([]);
+    controls.stop();
     input.stop();
   });
 

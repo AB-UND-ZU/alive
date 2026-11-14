@@ -7,6 +7,7 @@ import { FOG } from "../../engine/components/fog";
 import { colors } from "../../game/assets/colors";
 import { getTerminalFrame, getTerminalLayout, getPauseActions } from ".";
 import { frameToText } from "./frame";
+import { projectSprite } from "./sprites";
 import { createCell } from "../../bindings/creation";
 import { getSequence } from "../../engine/systems/sequence";
 import { getSceneFrame } from "../interface/frame";
@@ -385,4 +386,125 @@ it("does not add a bright pause shade to empty black ground", () => {
     background: colors.black,
   });
   expect([" ", "░"]).toContain(paused[y][x].char);
+});
+
+it.each([33, 80])(
+  "clears the old world and chrome while loading at %i columns",
+  (columns) => {
+    const { world } = setup();
+    const frame = getTerminalFrame(world, columns, 30, undefined, {
+      suspended: true,
+    });
+    expect(frameToText(frame).replace(/\s/g, "")).toBe("Loadingmap...");
+    expect(
+      frame
+        .flat()
+        .filter((cell) => cell.char !== " ")
+        .every((cell) => cell.foreground === colors.white)
+    ).toBe(true);
+  }
+);
+
+it("uses a single white palette for the selected Save button and its brackets", () => {
+  const { world } = setup();
+  const frame = getTerminalFrame(world, 80, 30, undefined, {
+    paused: true,
+    selection: 2,
+  });
+  const row = frame.find((line) =>
+    line
+      .map((cell) => cell.char)
+      .join("")
+
+      .includes("[ SAVE ]")
+  )!;
+  const start = row
+    .map((cell) => cell.char)
+    .join("")
+
+    .indexOf("[ SAVE ]");
+  expect(
+    row
+      .slice(start, start + 8)
+      .every(
+        (cell) =>
+          cell.foreground === colors.black && cell.background === colors.white
+      )
+  ).toBe(true);
+});
+
+it("fills the entire tab padding and keeps the outer brackets on inactive tabs", () => {
+  const { world, hero } = setup();
+  createPopup(world, hero, { tabs: ["class", "talk", "warp"] });
+  openPopup(world, hero, hero);
+  hero[POPUP]!.horizontalIndex = 1;
+  advance(world, 2000);
+  const frame = getTerminalFrame(world, 80, 30);
+  const row = frame.find((line) =>
+    line
+      .map((cell) => cell.char)
+      .join("")
+      .includes("[CLASS")
+  )!;
+  const text = row.map((cell) => cell.char).join("");
+  expect(text).toContain("[CLASS[INFO ]LEVEL[X]");
+  const start = text.indexOf("INFO") - 1;
+  expect(
+    row
+      .slice(start, start + 7)
+      .every((cell) => cell.background === colors.white)
+  ).toBe(true);
+  expect(
+    row
+      .slice(text.indexOf("[CLASS"), text.indexOf("[CLASS") + 5)
+      .every((cell) => cell.background === colors.grey)
+  ).toBe(true);
+});
+
+it.each(["menu_sign", "potion_sign"] as const)(
+  "keeps the hero visible in the %s illustration",
+  (cell) => {
+    const { world, hero } = setup();
+    const sign = createCell(world, { ...hero.POSITION! }, cell, "visible").cell;
+    const figures = sign
+      .POPUP!.lines.flat(2)
+      .filter((sprite) =>
+        sprite.layers.some((layer) => layer.char === "\u010b")
+      );
+    expect(figures.length).toBeGreaterThan(0);
+    for (const sprite of figures) expect(projectSprite(sprite).char).toBe("♀");
+  }
+);
+
+it("mirrors the equipped action controls when handedness changes", () => {
+  const { world } = setup();
+  const normal = frameToText(getTerminalFrame(world, 80, 30));
+  const flipped = frameToText(
+    getTerminalFrame(world, 80, 30, undefined, { flipped: true })
+  );
+  expect(normal.indexOf("^S")).toBeLessThan(normal.indexOf("SPACE"));
+  expect(flipped.indexOf("SPACE")).toBeLessThan(flipped.indexOf("^S"));
+});
+
+it("keeps the separator instead of drawing the content's cropped half row", () => {
+  const { world, hero } = setup();
+  createPopup(world, hero, {
+    tabs: ["buy"],
+    deals: Array.from({ length: 12 }, () => ({
+      item: { stackable: "apple", amount: 1 },
+      stock: 1,
+      prices: [{ stackable: "coin", amount: 1 }],
+    })),
+  });
+  openPopup(world, hero, hero);
+  advance(world, 2000);
+  const cropped = getSceneFrame(world, 33, 13, undefined, {
+    instant: true,
+  }).filter((entry) => entry.sprite.name === "popup_center_crop");
+  expect(cropped.length).toBeGreaterThan(0);
+  for (const entry of cropped)
+    expect(entry.terminalLayers).toEqual([
+      { char: "█", color: colors.black },
+      { char: "─", color: colors.silver },
+    ]);
 });

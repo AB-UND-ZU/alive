@@ -23,7 +23,13 @@ export const getWarpMap = (world: World, entity: Entity) => {
   const map: Sprite[][] = [
     ...(
       (entity[POPUP] as Popup).lines[entity[POPUP].horizontalIndex] || []
-    ).map((line) => [...line, ...repeat(none, frameWidth - 4 - line.length)]),
+    ).map((line) => [
+      ...line.map((sprite) => ({
+        ...sprite,
+        terminal: { layers: sprite.layers },
+      })),
+      ...repeat(none, frameWidth - 4 - line.length),
+    ]),
   ];
   const selectedLevel = getSelectedLevel(world, entity);
   const level = selectedLevel && levelConfig[selectedLevel];

@@ -332,15 +332,6 @@ export const getSceneFrame = (
         )
       : undefined;
     const message = instant && getSequence(world, entity, "message");
-    const messageDirections = new Map(
-      message
-        ? message.args.messages.flatMap((item) =>
-            item.stack === undefined
-              ? []
-              : [[item.stack, item.orientation] as const]
-          )
-        : []
-    );
     const messageRows = message
       ? [
           ...new Set(
@@ -360,19 +351,7 @@ export const getSceneFrame = (
       message
         ? Object.entries(message.particles).map(([key, id]) => [
             id,
-            {
-              row: messageRows
-                .filter(
-                  (stack) =>
-                    messageDirections.get(stack) ===
-                    messageDirections.get(Number(key.split("-")[1]))
-                )
-                .indexOf(Number(key.split("-")[1])),
-              direction:
-                messageDirections.get(Number(key.split("-")[1])) === "down"
-                  ? 1
-                  : -1,
-            },
+            messageRows.indexOf(Number(key.split("-")[1])),
           ])
         : []
     );
@@ -401,7 +380,7 @@ export const getSceneFrame = (
       entry.particleSequence = particleInfo?.sequence;
       const messageRow = messageParticles.get(world.getEntityId(particle));
       if (messageRow !== undefined && entry.z === transientHeight)
-        entry.y += messageRow.direction * messageRow.row;
+        entry.y = py - 1 - messageRow;
       if (
         instant &&
         getSequence(world, entity, "focus")?.particles[

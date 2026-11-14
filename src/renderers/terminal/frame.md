@@ -15,9 +15,9 @@ Fog uses a dark gray background, including empty unexplored air. Bright terrain
 colors darken without brightening already dark characters; squiggly fog is black.
 Floating and opaque bodies keep their sprite colors above fog. World particles
 inherit the ground background when their own background is black. Tooltips and
-interaction text keep their original colors. Focus outlines remain below them.
+interaction text keep their original colors, using black text on light backgrounds when needed for contrast. Discovery markers and text remain above focus outlines. Spell trails remain above ground objects.
 
-The hero and other units stay above world effects, except for x/X hit markers.
+The hero stays above interaction bars; other units stay above world effects. Hit markers can cover either.
 Hits color the hero red, freeze uses an aqua background and burn uses maroon.
 Dialogs remain on top. Explicit terminal layers are selected by the shared frame
 from each sprite's facing and amount; equipment does not replace a unit's glyph.

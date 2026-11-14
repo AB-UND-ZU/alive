@@ -13,13 +13,13 @@ it("keeps source-defined resource shapes and material colors through item lookup
     ["wood", "•", colors.maroon],
     ["coconut", "○", colors.maroon],
     ["plank", "█", colors.maroon],
-    ["grain", "¥", colors.yellow],
+    ["grain", "·", colors.yellow],
     ["pearl", "·", colors.white],
     ["algae", "w", colors.green],
     ["spore", ":", colors.white],
-    ["mineral", "○", colors.lime],
-    ["crystal", "○", colors.aqua],
-    ["nugget", "○", colors.yellow],
+    ["mineral", "•", colors.lime],
+    ["crystal", "•", colors.aqua],
+    ["nugget", "•", colors.yellow],
     ["ingot", "■", colors.yellow],
   ] as const) {
     const cell = projectSprite(sprites[name]);

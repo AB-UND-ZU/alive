@@ -315,12 +315,7 @@ entryClosedDisplay.default.fire = entryClosedDisplayFire;
 
 const fenceDoorClosedTemplate: Sprite = {
   name: "Gate",
-  terminal: {
-    layers: [
-      { char: "█", color: colors.maroon },
-      { char: "╒", color: TEMPLATE_COLORS.materialPrimary },
-    ],
-  },
+  terminal: { layers: [{ char: "m", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "M", color: colors.maroon },
     { char: "[", color: colors.black },
@@ -335,12 +330,7 @@ const fenceDoorClosedTemplate: Sprite = {
 };
 const woodFenceDoorClosed: Sprite = {
   name: "Gate",
-  terminal: {
-    layers: [
-      { char: "█", color: colors.maroon },
-      { char: "╒", color: colors.black },
-    ],
-  },
+  terminal: { layers: [{ char: "m", color: colors.maroon }] },
   layers: [
     { char: "M", color: colors.maroon },
     { char: "[", color: colors.black },

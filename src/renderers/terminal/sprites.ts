@@ -28,6 +28,19 @@ export const projectLayers = (layers: Layer[], name = ""): TerminalCell => {
   const key = JSON.stringify([name, layers]);
   const cached = cache.get(key);
   if (cached) return cached;
+  if (
+    layers.length >= 2 &&
+    layers[layers.length - 1].char === " " &&
+    layers.slice(0, -1).every((layer) => layer.char === "█")
+  ) {
+    const cell = {
+      char: " ",
+      foreground: layers[layers.length - 1].color,
+      background: layers[layers.length - 2].color,
+    };
+    cache.set(key, cell);
+    return cell;
+  }
   const pixelArt =
     (name === "" || name === "text_generic" || name === "popup_background") &&
     layers.every((layer) => " █▀▄\u0106\u0107░".includes(layer.char)) &&

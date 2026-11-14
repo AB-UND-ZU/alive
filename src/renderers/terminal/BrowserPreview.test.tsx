@@ -2,6 +2,9 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import BrowserPreview from "./BrowserPreview";
 import { createAreaWorld, assertHero } from "../../testing/harness";
 import { ACTIONABLE } from "../../engine/components/actionable";
+import { POPUP } from "../../engine/components/popup";
+import { openChat, getMenu } from "../../features/chat/helpers";
+import { credits } from "../../game/assets/credits";
 import { MOVABLE } from "../../engine/components/movable";
 
 const dimensions = {
@@ -87,4 +90,15 @@ it("pauses simulation and native input, then resumes the same world", () => {
   expect(hero[MOVABLE].orientations).toEqual(["right"]);
   rerender(<BrowserPreview world={world} {...dimensions} paused />);
   expect(hero[MOVABLE].orientations).toEqual([]);
+});
+
+it("opens a selected credit link in a browser tab", () => {
+  const { world } = setup();
+  openChat(world);
+  const popup = getMenu(world);
+  popup[POPUP].tabs[popup[POPUP].horizontalIndex] = "credits";
+  const open = jest.spyOn(window, "open").mockImplementation(() => null);
+  render(<BrowserPreview world={world} {...dimensions} paused={false} />);
+  fireEvent.keyDown(window, { key: "Enter" });
+  expect(open).toHaveBeenCalledWith(credits[0].link, "_blank");
 });

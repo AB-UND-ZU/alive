@@ -36,7 +36,7 @@ it("shows beam bolts moving through terminal cells before reaching their endpoin
     const frame = createTerminalFrame(bolts, 33, 21);
     for (const row of frame)
       row.forEach((cell, x) => {
-        if (cell.char === ":" && cell.foreground === colors.red) columns.add(x);
+        if (cell.char === "•" && cell.foreground === colors.red) columns.add(x);
       });
   }
   expect(columns.size).toBeGreaterThan(2);

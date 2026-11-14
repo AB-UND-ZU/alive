@@ -1,6 +1,7 @@
 import { World } from "../../engine";
 import { TEST_MODE } from "../../engine/utils";
 import { TypedEntity } from "../../engine/entities";
+import { popupTitles } from "../../engine/systems/popup";
 import { POPUP } from "../../engine/components/popup";
 import { getSequence } from "../../engine/systems/sequence";
 import { PLAYER } from "../../engine/components/player";
@@ -21,7 +22,6 @@ import {
   createButton,
   createSpriteButton,
   buttonPalettes,
-  createDialog,
   createProgress,
   createText,
   addBackground,
@@ -35,7 +35,7 @@ import {
 } from "../../game/assets/sprites";
 import { getItemSprite } from "../../game/assets/utils";
 import { colors } from "../../game/assets/colors";
-import { repeat } from "../../game/math/std";
+import { repeat, padCenter } from "../../game/math/std";
 import { getActionActivations } from "../interface/actions";
 import { RendererCapabilities } from "../interface/types";
 import { getSceneFrame } from "../interface/frame";
@@ -61,6 +61,7 @@ export type TerminalSession = {
   saveName?: string;
   selection?: number;
   failed?: boolean;
+  flipped?: boolean;
 };
 
 export const getTerminalLayout = (columns: number, rows: number) => {
@@ -92,6 +93,20 @@ export const getTerminalFrame = (
   session: TerminalSession = {}
 ) => {
   const { width, height, left, top } = getTerminalLayout(columns, rows);
+  if (session.suspended) {
+    const loading = createText("Loading map...", colors.white);
+    return createTerminalFrame(
+      loading.map((sprite, index) => ({
+        sprite,
+        layers: sprite.layers,
+        x: Math.floor((columns - loading.length) / 2) + index,
+        y: Math.floor(rows / 2),
+        z: 0,
+      })),
+      columns,
+      rows
+    );
+  }
   const hero = world.getEntities([PLAYER])[0];
   let scene = getSceneFrame(world, width, height, state, {
     instant: true,
@@ -115,17 +130,43 @@ export const getTerminalFrame = (
         entry.sprite = sprite;
         entry.layers = sprite.layers;
       }
-      const boundary = Array.from({ length: tabCount + 1 }, (_, i) => i).find(
+      const tabCell = Array.from(
+        { length: tabCount * 6 + 1 },
+        (_, i) => i
+      ).find(
         (i) =>
           entry.particle ===
-          world.getEntityById(sequence.particles[`popup-tab-${i * 6}`])
+          world.getEntityById(sequence.particles[`popup-tab-${i}`])
       );
-      if (boundary === undefined) continue;
-      const char =
-        boundary === selected ? "[" : boundary === selected + 1 ? "]" : "|";
-      const sprite = createText(char, colors.white, colors.black)[0];
+      if (tabCell === undefined) continue;
+      const boundary = tabCell % 6 === 0;
+      const tab = Math.min(Math.floor(tabCell / 6), tabCount - 1);
+      const active = boundary
+        ? tabCell === selected * 6 || tabCell === (selected + 1) * 6
+        : tab === selected;
+      const char = boundary
+        ? tabCell === 0 || tabCell === selected * 6
+          ? "["
+          : tabCell === tabCount * 6 || tabCell === (selected + 1) * 6
+          ? "]"
+          : "|"
+        : padCenter(popupTitles[tabs[tab]], 5)[(tabCell % 6) - 1];
+      const foreground = active
+        ? colors.black
+        : sequence.args.instant
+        ? colors.yellow
+        : colors.white;
+      const background = active
+        ? sequence.args.instant
+          ? colors.yellow
+          : colors.white
+        : sequence.args.instant
+        ? colors.olive
+        : colors.grey;
+      const sprite = createText(char, foreground, background)[0];
       entry.sprite = sprite;
       entry.layers = sprite.layers;
+      entry.terminalLayers = sprite.layers;
     }
   }
   const sprites: TerminalSprite[] = collectTerminalSprites(scene)
@@ -239,9 +280,16 @@ export const getTerminalFrame = (
             ...createText("Compass", colors.grey),
           ]
         : repeat(none, 8);
-      line([...skill.button, ...spell.button, none, ...equipment], rows - 3);
       line(
-        [...skill.activation, ...spell.activation, ...repeat(none, 9)],
+        session.flipped
+          ? [...equipment, none, ...spell.button, ...skill.button]
+          : [...skill.button, ...spell.button, none, ...equipment],
+        rows - 3
+      );
+      line(
+        session.flipped
+          ? [...repeat(none, 9), ...spell.activation, ...skill.activation]
+          : [...skill.activation, ...spell.activation, ...repeat(none, 9)],
         rows - 2
       );
     }
@@ -265,7 +313,7 @@ export const getTerminalFrame = (
       left
     );
   }
-  if (session.paused || session.suspended) {
+  if (session.paused) {
     const background = createTerminalFrame(sprites, columns, rows);
     for (let y = top; y < top + height; y++)
       line(
@@ -287,8 +335,7 @@ export const getTerminalFrame = (
         2000
       );
     let overlay: Sprite[][];
-    if (session.suspended) overlay = [createDialog("Loading map...")];
-    else {
+    {
       overlay = [
         createText("█▀▄ █▀▄ █ █ ▄▀▀ ▄▀▀"),
         createText("█▄█ █▄█ █ █ █▄▄ █▄▄"),
@@ -301,17 +348,21 @@ export const getTerminalFrame = (
         const selected = (session.selection || 0) === index && !action.disabled;
         overlay.push([
           ...(selected ? [popupActive] : createText(" ")),
-          ...createSpriteButton(
-            createText(
-              action.name,
-              selected ? colors.white : buttonPalettes[action.palette].text
-            ),
-            8,
-            action.disabled || !selected,
-            selected,
-            false,
-            action.palette
-          ),
+          ...(selected && action.palette === "white"
+            ? createText("[ SAVE ]", colors.black, colors.white)
+            : createSpriteButton(
+                createText(
+                  action.name,
+                  selected && action.palette !== "white"
+                    ? colors.white
+                    : buttonPalettes[action.palette].text
+                ),
+                8,
+                action.disabled || !selected,
+                selected && action.palette !== "white",
+                false,
+                action.palette
+              )),
         ]);
       });
       if (actions.length > 1)

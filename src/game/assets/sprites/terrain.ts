@@ -235,7 +235,6 @@ export const ice: Sprite = {
 
 export const sand: Sprite = {
   name: "Desert",
-  terminal: { layers: [{ char: "%", color: colors.yellow }] },
   layers: [
     { char: "\u0107", color: colors.olive },
     { char: "\u0109", color: colors.olive },
@@ -245,7 +244,6 @@ export const sand: Sprite = {
 
 export const beach: Sprite = {
   name: "sand_beach",
-  terminal: { layers: [{ char: "%", color: colors.yellow }] },
   layers: [{ char: "▒", color: colors.olive }],
 };
 
@@ -599,6 +597,26 @@ export const flowerStem: Sprite = {
 
 export const tree1: Sprite = {
   name: "tree_one",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.maroon },
+      { char: "#", color: colors.green },
+    ],
+    amounts: {
+      single: [
+        { char: "█", color: colors.maroon },
+        { char: "┐", color: colors.green },
+      ],
+      double: [
+        { char: "█", color: colors.maroon },
+        { char: "+", color: colors.green },
+      ],
+      multiple: [
+        { char: "█", color: colors.maroon },
+        { char: "#", color: colors.green },
+      ],
+    },
+  },
   layers: [
     { char: "┐", color: colors.maroon },
     { char: "#", color: colors.green },
@@ -618,6 +636,26 @@ export const tree1: Sprite = {
 
 export const tree2: Sprite = {
   name: "tree_two",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.maroon },
+      { char: "Θ", color: colors.green },
+    ],
+    amounts: {
+      single: [
+        { char: "█", color: colors.maroon },
+        { char: "┐", color: colors.green },
+      ],
+      double: [
+        { char: "█", color: colors.maroon },
+        { char: "\u0108", color: colors.green },
+      ],
+      multiple: [
+        { char: "█", color: colors.maroon },
+        { char: "Θ", color: colors.green },
+      ],
+    },
+  },
   layers: [
     { char: "┐", color: colors.maroon },
     { char: "Θ", color: colors.green },
@@ -847,7 +885,7 @@ export const rock1: Sprite = {
 
 export const rock2: Sprite = {
   name: "",
-  terminal: { layers: [{ char: "○", color: colors.silver }] },
+  terminal: { layers: [{ char: "•", color: colors.grey }] },
   layers: [
     { char: "\u0105", color: colors.grey },
     { char: "I", color: colors.black },

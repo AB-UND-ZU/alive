@@ -10,11 +10,15 @@ import { Orientation } from "../../engine/components/orientable";
 import {
   closePopup,
   getTab,
+  getVerticalIndex,
   isInPopup,
   typeChat,
   completeChat,
   navigateChat,
 } from "../../engine/systems/popup";
+import { TEST_MODE } from "../../engine/utils";
+import { credits } from "../../game/assets/credits";
+import { play } from "../../game/sound";
 import { isDead } from "../../engine/systems/damage";
 import {
   getIndexFromKey,
@@ -59,7 +63,10 @@ export type TerminalKey = {
   ctrl?: boolean;
 };
 
-export const createTerminalInput = (world: World) => {
+export const createTerminalInput = (
+  world: World,
+  openLink: (url: string) => void = () => {}
+) => {
   let release: ReturnType<typeof setTimeout> | undefined;
   const getHero = () => world.getEntities([PLAYER, MOVABLE, ACTIONABLE])[0];
   const stop = () => {
@@ -124,7 +131,11 @@ export const createTerminalInput = (world: World) => {
       key.shift && name === "tab" ? "backtab" : actions[name];
     if (name === "space") action = key.shift ? "skill" : "spell";
     if (name === "return" || name === "enter")
-      action = popup ? "right" : "interact";
+      action = popup
+        ? "right"
+        : TEST_MODE && !world.metadata.interact.active
+        ? "chat"
+        : "interact";
     if (name === "backspace") action = popup ? "left" : undefined;
     if (
       name === "escape" &&
@@ -159,7 +170,15 @@ export const createTerminalInput = (world: World) => {
       hero[PLAYER].actionTriggered
     )
       return;
-    if (popup && hero[MOVABLE].orientations.length) return;
+    if (popup) stop();
+    if (action === "right" && popup && getTab(world, popup) === "credits") {
+      const credit = credits[getVerticalIndex(world, popup)];
+      if (credit?.link) {
+        play("confirm");
+        openLink(credit.link);
+      }
+      return;
+    }
     if (action === "spell") hero[ACTIONABLE].spellTriggered = true;
     else if (action === "skill") hero[ACTIONABLE].skillTriggered = true;
     else if (action === "interact") hero[ACTIONABLE].interactTriggered = true;

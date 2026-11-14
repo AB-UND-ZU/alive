@@ -9,12 +9,14 @@ import { BUMPABLE } from "../../engine/components/bumpable";
 import { orientationPoints } from "../../engine/components/orientable";
 import {
   popupHeight,
-  tooltipHeight,
   particleHeight,
   fogHeight,
+  objectHeight,
 } from "../interface/segments";
 import { FOG } from "../../engine/components/fog";
 import { LIGHT } from "../../engine/components/light";
+import { HARVESTABLE } from "../../engine/components/harvestable";
+import { tombstone1, tombstone2 } from "../../game/assets/sprites";
 import { AFFECTABLE } from "../../engine/components/affectable";
 
 export type TerminalSprite = {
@@ -45,8 +47,11 @@ export const collectTerminalSprites = (
   const bodies = new Map<string, TerminalSprite>();
   for (const entry of scene) {
     if (/^scratch(?:-|$)/.test(entry.particleName || "")) continue;
+    const bodyEntry = /body\d+$/.test(entry.key);
+    if (bodyEntry && [tombstone1, tombstone2].includes(entry.entity[SPRITE]))
+      continue;
     const titleBlock = /^block_(up|down)$/.test(entry.sprite.name);
-    if (!titleBlock && !/body\d+$/.test(entry.key)) {
+    if (!titleBlock && !bodyEntry) {
       if (
         entry.entity[PLAYER] &&
         entry.z < popupHeight &&
@@ -66,6 +71,8 @@ export const collectTerminalSprites = (
         z:
           beam && ["start", "end"].includes(entry.particleName || "")
             ? entry.z + 0.0001
+            : entry.particleSequence?.startsWith("cast")
+            ? Math.max(entry.z, objectHeight + 0.01)
             : entry.z,
         x:
           ring && anchor
@@ -135,15 +142,34 @@ export const collectTerminalSprites = (
             ? entry.sprite
             : entry.entity[SPRITE] || entry.sprite,
       };
+      const resource = entry.entity[HARVESTABLE]?.resource;
+      if (
+        [
+          "stump",
+          "husk",
+          "desert_husk",
+          "post",
+          "root",
+          "footing",
+          "hinge",
+          "rubble",
+        ].includes(resource)
+      )
+        sprite.terminalLayers = [
+          {
+            char: ",",
+            color: resource === "rubble" ? colors.grey : colors.maroon,
+          },
+        ];
       bodies.set(key, sprite);
       result.push(sprite);
     }
   }
   for (const sprite of result) {
-    if (sprite.hero || sprite.unit) sprite.z = particleHeight + 0.001;
+    if (sprite.unit) sprite.z = particleHeight + 0.001;
+    if (sprite.hero) sprite.z = popupHeight - 0.0015;
     if (
       sprite.ui &&
-      sprite.z >= tooltipHeight &&
       sprite.z < popupHeight &&
       !["Melee", "Magic", "True", "Heal"].includes(sprite.sprite.name)
     )
@@ -151,7 +177,7 @@ export const collectTerminalSprites = (
     if (
       ["Melee", "Magic", "True"].includes(sprite.sprite.name) &&
       (sprite.terminalLayers || sprite.layers).some((layer) =>
-        "xX".includes(layer.char)
+        "oxX".includes(layer.char)
       )
     )
       sprite.z = popupHeight - 0.001;
@@ -269,6 +295,13 @@ export const createTerminalFrame = (
       projected.background === colors.black
     )
       projected = { ...projected, background: frame[y][x].background };
+    const background = projected.background ?? frame[y][x].background;
+    if (
+      sprite.ui &&
+      [colors.white, colors.silver].includes(projected.foreground) &&
+      [colors.white, colors.silver].includes(background || "")
+    )
+      projected = { ...projected, foreground: colors.black };
     frame[y][x] = {
       ...projected,
       background: projected.background ?? frame[y][x].background,

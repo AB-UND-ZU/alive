@@ -778,7 +778,10 @@ export const renderPopup = (
           row === scrollContent.length - 1 &&
           scrollContent.length > windowHeight - detailsHeight - 3;
         charParticle[SPRITE] = cropContent
-          ? mergeSprites(char, spriteConfig.centerCrop)
+          ? {
+              ...mergeSprites(char, spriteConfig.centerCrop),
+              terminal: { layers: spriteConfig.center.layers },
+            }
           : char;
         rerenderEntity(world, charParticle);
       }
