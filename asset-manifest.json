@@ -1,22 +1,22 @@
 {
   "files": {
-    "main.js": "/alive/static/js/main.11366564.js",
-    "static/css/171.68b4567f.chunk.css": "/alive/static/css/171.68b4567f.chunk.css",
-    "static/js/171.5579ee8b.chunk.js": "/alive/static/js/171.5579ee8b.chunk.js",
+    "main.js": "/alive/static/js/main.d1169dec.js",
+    "static/css/218.46833164.chunk.css": "/alive/static/css/218.46833164.chunk.css",
+    "static/js/218.ab3a9c31.chunk.js": "/alive/static/js/218.ab3a9c31.chunk.js",
     "static/js/706.89f8ff0b.chunk.js": "/alive/static/js/706.89f8ff0b.chunk.js",
     "static/js/918.93cd0557.chunk.js": "/alive/static/js/918.93cd0557.chunk.js",
     "static/js/405.18a2afdb.chunk.js": "/alive/static/js/405.18a2afdb.chunk.js",
     "static/media/MostPerfectDOSVGA.woff": "/alive/static/media/MostPerfectDOSVGA.ff65b94f203e7b207f3c.woff",
     "static/media/MostPerfectDOSVGA.woff2": "/alive/static/media/MostPerfectDOSVGA.d0760396b796111f4b25.woff2",
     "index.html": "/alive/index.html",
-    "main.11366564.js.map": "/alive/static/js/main.11366564.js.map",
-    "171.68b4567f.chunk.css.map": "/alive/static/css/171.68b4567f.chunk.css.map",
-    "171.5579ee8b.chunk.js.map": "/alive/static/js/171.5579ee8b.chunk.js.map",
+    "main.d1169dec.js.map": "/alive/static/js/main.d1169dec.js.map",
+    "218.46833164.chunk.css.map": "/alive/static/css/218.46833164.chunk.css.map",
+    "218.ab3a9c31.chunk.js.map": "/alive/static/js/218.ab3a9c31.chunk.js.map",
     "706.89f8ff0b.chunk.js.map": "/alive/static/js/706.89f8ff0b.chunk.js.map",
     "918.93cd0557.chunk.js.map": "/alive/static/js/918.93cd0557.chunk.js.map",
     "405.18a2afdb.chunk.js.map": "/alive/static/js/405.18a2afdb.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/main.11366564.js"
+    "static/js/main.d1169dec.js"
   ]
 }
