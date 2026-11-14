@@ -3,7 +3,6 @@ import { TEST_MODE } from "../../engine/utils";
 import { TypedEntity } from "../../engine/entities";
 import { POPUP } from "../../engine/components/popup";
 import { getSequence } from "../../engine/systems/sequence";
-import { popupTitles } from "../../engine/systems/popup";
 import { PLAYER } from "../../engine/components/player";
 import { LEVEL } from "../../engine/components/level";
 import { INVENTORY } from "../../engine/components/inventory";
@@ -18,9 +17,7 @@ import { castableSpell, castableSkill } from "../../engine/systems/action";
 import { canCast } from "../../engine/systems/magic";
 import { isInteractable } from "../../engine/systems/freeze";
 import { canSave } from "../../game/saves";
-import { frameWidth } from "../../game/assets/utils";
 import {
-  createTab,
   createButton,
   createSpriteButton,
   buttonPalettes,
@@ -102,65 +99,32 @@ export const getTerminalFrame = (
   const popup = world.getEntityByIdAndComponents(hero?.[PLAYER].popup, [POPUP]);
   const sequence = popup && getSequence(world, popup, "popup");
   if (popup && sequence) {
-    const tabParticle = world.getEntityById(sequence.particles["popup-tab-1"]);
-    const anchor =
-      tabParticle && scene.find((entry) => entry.particle === tabParticle);
-    if (anchor) {
-      const tabParticles = new Set(
-        Object.entries(sequence.particles)
-          .filter(([name]) => name.startsWith("popup-tab-"))
-          .map(([, id]) => world.getEntityById(id))
-      );
-      const closeParticles = new Set(
-        Object.entries(sequence.particles)
-          .filter(([name]) => name.startsWith("popup-close-"))
-          .map(([, id]) => world.getEntityById(id))
-      );
-      const index = popup[POPUP].horizontalIndex;
-      const tabs = sequence.args.instant
-        ? [popup[POPUP].tabs[index]]
-        : popup[POPUP].tabs;
-      const cells = tabs.flatMap((tab, tabIndex) => {
-        const title = `[${
-          tabs.length > 1 ? popupTitles[tab].slice(0, 3) : popupTitles[tab]
-        }]`;
-        return createTab(
-          title,
-          title.length,
-          sequence.args.instant || tabIndex === index,
-          sequence.args.instant
-        );
-      });
-      const start = Math.ceil(anchor.x);
-      const close = scene.filter(
-        (entry) => entry.particle && closeParticles.has(entry.particle)
-      );
-      const closeLeft = Math.min(...close.map((entry) => entry.x));
-      const shift = start + frameWidth - closeParticles.size - closeLeft;
-      scene = scene.filter(
-        (entry) => !entry.particle || !tabParticles.has(entry.particle)
-      );
-      for (const entry of close) {
-        entry.x += shift;
-        if (
-          entry.particle ===
-          world.getEntityById(sequence.particles["popup-close-1"])
-        ) {
-          const sprite = createText("X", colors.black, colors.red)[0];
-          entry.sprite = sprite;
-          entry.layers = sprite.layers;
-        }
+    const index = popup[POPUP].horizontalIndex;
+    const tabs = sequence.args.instant
+      ? [popup[POPUP].tabs[index]]
+      : popup[POPUP].tabs;
+    const selected = sequence.args.instant ? 0 : index;
+    const tabCount = tabs.length;
+    for (const entry of scene) {
+      if (
+        entry.particle ===
+        world.getEntityById(sequence.particles["popup-close-1"])
+      ) {
+        const sprite = createText("X", colors.black, colors.red)[0];
+        entry.sprite = sprite;
+        entry.layers = sprite.layers;
       }
-      scene.push(
-        ...cells.map((sprite, offset) => ({
-          ...anchor,
-          key: `${anchor.key}:tab${offset}`,
-          particle: undefined,
-          x: start + offset,
-          sprite,
-          layers: sprite.layers,
-        }))
+      const boundary = Array.from({ length: tabCount + 1 }, (_, i) => i).find(
+        (i) =>
+          entry.particle ===
+          world.getEntityById(sequence.particles[`popup-tab-${i * 6}`])
       );
+      if (boundary === undefined) continue;
+      const char =
+        boundary === selected ? "[" : boundary === selected + 1 ? "]" : "|";
+      const sprite = createText(char, colors.white, colors.black)[0];
+      entry.sprite = sprite;
+      entry.layers = sprite.layers;
     }
   }
   const sprites: TerminalSprite[] = collectTerminalSprites(scene)
@@ -181,7 +145,14 @@ export const getTerminalFrame = (
     z = 1000
   ) => {
     cells.forEach((sprite, index) =>
-      sprites.push({ x: x + index, y, z, sprite, layers: sprite.layers })
+      sprites.push({
+        x: x + index,
+        y,
+        z,
+        sprite,
+        layers: sprite.layers,
+        terminalLayers: sprite.terminal?.layers,
+      })
     );
   };
   if (hero) {
@@ -301,9 +272,11 @@ export const getTerminalFrame = (
           .slice(left + 1, left + width - 1)
           .flatMap((cell) =>
             createText(
-              "▓",
+              "░",
               cell.background && cell.background !== colors.black
                 ? cell.background
+                : cell.char === " "
+                ? colors.black
                 : cell.foreground,
               colors.black
             )
@@ -325,19 +298,20 @@ export const getTerminalFrame = (
       actions.forEach((action, index) => {
         if (index) overlay.push([]);
         const selected = (session.selection || 0) === index && !action.disabled;
-        overlay.push(
-          createSpriteButton(
+        overlay.push([
+          ...createText(selected ? ">" : " "),
+          ...createSpriteButton(
             createText(
               action.name,
               selected ? colors.white : buttonPalettes[action.palette].text
             ),
             8,
-            action.disabled,
+            action.disabled || !selected,
             selected,
             false,
             action.palette
-          )
-        );
+          ),
+        ]);
       });
       if (actions.length > 1)
         overlay.push(
@@ -351,9 +325,10 @@ export const getTerminalFrame = (
     const offset = top + Math.floor((height - overlay.length) / 2);
     overlay.forEach((row, y) =>
       line(
-        addBackground(centerSprites(row, overlayWidth), colors.black),
+        addBackground(row, colors.black),
         offset + y,
-        Math.floor((columns - overlayWidth) / 2),
+        Math.floor((columns - overlayWidth) / 2) +
+          Math.floor((overlayWidth - row.length) / 2),
         3000
       )
     );

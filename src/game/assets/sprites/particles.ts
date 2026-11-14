@@ -1453,6 +1453,7 @@ export const popupCenter: Sprite = {
 
 export const popupCenterCrop: Sprite = {
   name: "popup_center_crop",
+  terminal: { layers: [] },
   layers: [
     { char: "▄", color: colors.black },
     { char: "─", color: colors.silver },
@@ -1811,6 +1812,7 @@ export const enemyPointer: Sprite = {
 
 export const xpDot: Sprite = {
   name: "xp_dot",
+  terminal: { layers: [{ char: "·", color: colors.lime }] },
   layers: [{ char: "·", color: colors.lime }],
 };
 
@@ -1838,6 +1840,14 @@ export const vortexDot: Sprite = {
 
 export const fountainDrop: Sprite = {
   name: "fountain_drop",
+  terminal: {
+    layers: [{ char: "|", color: colors.blue }],
+    amounts: {
+      single: [{ char: "∙", color: colors.blue }],
+      double: [{ char: ".", color: colors.blue }],
+      multiple: [{ char: ":", color: colors.blue }],
+    },
+  },
   layers: [{ char: "|", color: colors.blue }],
   amounts: {
     single: [{ char: "∙", color: colors.blue }],
@@ -1848,6 +1858,14 @@ export const fountainDrop: Sprite = {
 
 export const fountainHeal: Sprite = {
   name: "fountain_heal",
+  terminal: {
+    layers: [{ char: "|", color: colors.lime }],
+    amounts: {
+      single: [{ char: "∙", color: colors.lime }],
+      double: [{ char: ".", color: colors.lime }],
+      multiple: [{ char: ":", color: colors.lime }],
+    },
+  },
   layers: [{ char: "|", color: colors.lime }],
   amounts: {
     single: [{ char: "∙", color: colors.lime }],
@@ -2289,4 +2307,10 @@ export const shadow: Sprite = {
     { char: "\u0100", color: colors.black },
     { char: "\u0101", color: colors.black },
   ],
+};
+
+export const spawnerPulse: Sprite = {
+  name: "spawn_pulse",
+  layers: [{ char: "∙", color: colors.maroon }],
+  terminal: { layers: [] },
 };

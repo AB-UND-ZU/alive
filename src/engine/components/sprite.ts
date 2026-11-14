@@ -13,6 +13,7 @@ export type Sprite = {
   layers: Layer[];
   facing?: Partial<Record<Orientation, Layer[]>>;
   amounts?: Partial<Record<Amount, Layer[]>>;
+  terminal?: Pick<Sprite, "layers" | "facing" | "amounts">;
 };
 
 export const SPRITE = "SPRITE";

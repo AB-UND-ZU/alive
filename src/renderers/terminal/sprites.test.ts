@@ -14,6 +14,8 @@ import { collectTerminalSprites, createTerminalFrame } from "./frame";
 import { colors } from "../../game/assets/colors";
 import { eye, prism } from "../../game/assets/templates/creatures";
 import { key } from "../../game/assets/templates/items";
+import { getItemSprite, getUnitSprite } from "../../game/assets/utils";
+import { classes, getClassData } from "../../game/balancing/classes";
 import { doorClosed, doorOpen } from "../../game/assets/templates/units";
 import {
   shot,
@@ -27,11 +29,17 @@ import {
 } from "../../game/assets/templates/particles";
 import {
   createButton,
+  mergeSprites,
   createText,
   createProgress,
   shaded,
 } from "../../game/assets/ui";
-import { projectLayers, projectSprite, terminalCharacter } from "./sprites";
+import {
+  projectLayers,
+  projectSprite,
+  projectTerminalLayers,
+  terminalCharacter,
+} from "./sprites";
 
 describe("terminal sprite projection", () => {
   it("keeps literal text and translates DOS control pictures", () => {
@@ -124,19 +132,13 @@ describe("terminal sprite projection", () => {
     advance(world, 2000);
     const objective = getSceneFrame(world, 33, 13, undefined, {
       instant: true,
-    }).find(
-      (entry) =>
-        entry.sprite.name === "text_generic" &&
-        entry.layers.some((_, index) =>
-          sprites.chick.layers.every(
-            (layer, offset) =>
-              entry.layers[index + offset]?.char === layer.char &&
-              entry.layers[index + offset]?.color === layer.color
-          )
-        )
+    }).find((entry) =>
+      entry.terminalLayers?.some(
+        (layer) => layer.char === "\u0103" && layer.color === colors.yellow
+      )
     );
     expect(objective).toBeDefined();
-    expect(projectLayers(objective!.layers, objective!.sprite.name)).toEqual({
+    expect(projectTerminalLayers(objective!.terminalLayers!)).toEqual({
       char: "♦",
       foreground: colors.yellow,
       background: colors.black,
@@ -457,7 +459,7 @@ describe("terminal sprite projection", () => {
       background: colors.navy,
     });
     expect(projectSprite(sprites.wall)).toMatchObject({
-      char: " ",
+      char: "█",
       background: colors.silver,
     });
   });
@@ -485,8 +487,8 @@ describe("terminal sprite projection", () => {
       foreground: colors.yellow,
     });
     for (const facing of ["up", "right", "down", "left"] as const) {
-      expect(projectSprite(sprites.worm, facing)).toEqual({
-        char: "~",
+      expect(projectSprite(sprites.worm, facing)).toMatchObject({
+        char: facing === "up" || facing === "down" ? "|" : "-",
         foreground: colors.red,
       });
       expect(projectSprite(eye.gold.default, facing)).toEqual({
@@ -534,17 +536,22 @@ describe("terminal sprite projection", () => {
       });
   });
 
-  it("uses blue fountain cells and connected silver roof and wall outlines", () => {
-    for (const sprite of [
-      sprites.fountain,
-      sprites.fountainSide,
-      sprites.fountainCorner,
-    ])
-      expect(projectSprite(sprite)).toEqual({
-        char: " ",
-        foreground: colors.blue,
-        background: colors.blue,
-      });
+  it("uses dark fountain water with visible lines and connected building outlines", () => {
+    expect(projectSprite(sprites.fountain)).toEqual({
+      char: "v",
+      foreground: colors.blue,
+      background: colors.navy,
+    });
+    expect(projectSprite(sprites.fountainSide, "up")).toEqual({
+      char: "─",
+      foreground: colors.blue,
+      background: colors.navy,
+    });
+    expect(projectSprite(sprites.fountainCorner, "left")).toEqual({
+      char: "┌",
+      foreground: colors.blue,
+      background: colors.navy,
+    });
     const outline = [
       sprites.roofLeftUp,
       sprites.roofUp,
@@ -559,7 +566,10 @@ describe("terminal sprite projection", () => {
       "╔═╗╠═╣││"
     );
     for (const sprite of outline)
-      expect(projectSprite(sprite).foreground).toBe(colors.silver);
+      expect(projectSprite(sprite)).toMatchObject({
+        foreground: colors.maroon,
+        background: colors.silver,
+      });
     expect(projectSprite(sprites.house).background).toBe(colors.silver);
     expect(projectSprite(sprites.rogue).foreground).toBe(colors.silver);
   });
@@ -605,6 +615,15 @@ describe("terminal sprite projection", () => {
       (sprite): sprite is Sprite =>
         !!sprite && Array.isArray((sprite as Sprite).layers)
     );
+    for (const sprite of named.filter((sprite) => sprite.terminal)) {
+      for (const facing of [undefined, "up", "right", "down", "left"] as const)
+        for (const amount of [undefined, 1, 2, 3]) {
+          const cell = projectSprite(sprite, facing, amount);
+          expect([...cell.char]).toHaveLength(1);
+          expect(cell.foreground).toMatch(/^#[0-9a-f]{6}$/i);
+          expect(cell.background || colors.black).toMatch(/^#[0-9a-f]{6}$/i);
+        }
+    }
     for (const sprite of named) {
       const variants = [
         sprite.layers,
@@ -620,5 +639,100 @@ describe("terminal sprite projection", () => {
         expect(projectLayers(layers!, sprite.name)).toBe(cell);
       }
     }
+  });
+});
+
+it("uses source-defined terminal item displays without changing the browser layers", () => {
+  const cases = [
+    [sprites.grain, "∙", colors.yellow],
+    [sprites.cactus1, "√", colors.green],
+    [sprites.cactus2, "√", colors.green],
+    [sprites.palm1, "Y", colors.green],
+    [sprites.palm2, "Y", colors.green],
+    [sprites.rock1, "▬", colors.silver],
+    [sprites.rock2, "○", colors.silver],
+    [sprites.ghost, "♀", colors.yellow],
+    [sprites.shroom, "·", colors.maroon],
+    [sprites.flower, "·", colors.teal],
+    [sprites.coconut, "•", colors.maroon],
+  ] as const;
+  for (const [sprite, char, foreground] of cases) {
+    expect(projectSprite(sprite)).toMatchObject({ char, foreground });
+    expect(sprite.layers).not.toEqual(sprite.terminal!.layers);
+  }
+  for (const stackable of ["berry", "worm"] as const) {
+    const cell = projectSprite(getItemSprite({ stackable }));
+    expect(cell.char.trim()).not.toBe("");
+    expect(cell.background).toBeUndefined();
+  }
+  expect(
+    [1, 2, 3].map(
+      (amount) => projectSprite(sprites.leaf, undefined, amount).char
+    )
+  ).toEqual(["-", "=", "≡"]);
+  expect(projectSprite(sprites.xpDot)).toMatchObject({
+    char: "·",
+    foreground: colors.lime,
+  });
+});
+
+it("keeps material potion shapes and stat colors in filled and empty forms", () => {
+  for (const [material, char, empty, color] of [
+    ["wood", "Σ", sprites.emptyFlask, colors.maroon],
+    ["iron", "δ", sprites.emptyBottle, colors.grey],
+    ["gold", "♂", sprites.emptyPotion, colors.yellow],
+  ] as const) {
+    for (const [stat, foreground] of [
+      ["hp", colors.red],
+      ["mp", colors.blue],
+    ] as const) {
+      expect(
+        projectSprite(getItemSprite({ consume: "potion", material, stat }))
+      ).toMatchObject({ char, foreground });
+    }
+    expect(projectSprite(empty)).toMatchObject({ char, foreground: color });
+  }
+  expect(
+    projectSprite(getItemSprite({ consume: "key", material: "gold" }))
+  ).toMatchObject({ char: "╒", foreground: colors.yellow });
+  expect(projectSprite(getItemSprite({ stackable: "coin" }))).toMatchObject({
+    char: "o",
+    foreground: colors.yellow,
+  });
+});
+
+it("keeps class and equipped NPC references as silver human characters", () => {
+  for (const classKey of classes) {
+    const data = getClassData(classKey);
+    const icon = mergeSprites(data.backdrop || sprites.none, data.sprite);
+    expect(projectSprite(icon)).toMatchObject({
+      char: "♀",
+      foreground: colors.silver,
+    });
+  }
+  for (const unit of [
+    "guide",
+    "earthSmith",
+    "earthDruid",
+    "earthGuard",
+    "banditKnight",
+    "banditArcher",
+  ] as const) {
+    expect(projectSprite(getUnitSprite(unit))).toMatchObject({
+      char: "♀",
+      foreground: colors.silver,
+    });
+  }
+  expect(projectSprite(sprites.swimmingRogue)).toMatchObject({
+    char: "♀",
+    foreground: colors.silver,
+  });
+  expect(projectSprite(sprites.chief)).toMatchObject({
+    char: "♀",
+    foreground: colors.silver,
+  });
+  expect(projectSprite(sprites.ghost)).toMatchObject({
+    char: "♀",
+    foreground: colors.yellow,
   });
 });

@@ -1,5 +1,7 @@
 # Asset Helpers
 
+`getItemSprite` selects the same facing and amount for both normal and terminal layers. Dialog composition preserves the selected variant through background and crop sprites.
+
 Composes game dialog content and resolves item or unit visuals. These helpers keep names, colors, quantities and layered equipment consistent across UI callers.
 
 | Function              | Contract                                                              |

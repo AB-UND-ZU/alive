@@ -1,18 +1,20 @@
 import { SceneSprite, SceneState } from "../interface/frame";
 import { Layer, SPRITE } from "../../engine/components/sprite";
-import {
-  brightColors,
-  colors,
-  darkColors,
-  orderedColors,
-} from "../../game/assets/colors";
-import { projectLayers, TerminalCell } from "./sprites";
+import { colors, darkColors, orderedColors } from "../../game/assets/colors";
+import { projectLayers, projectTerminalLayers, TerminalCell } from "./sprites";
 import { ENTERABLE } from "../../engine/components/enterable";
 import { World } from "../../engine";
 import { PLAYER } from "../../engine/components/player";
 import { BUMPABLE } from "../../engine/components/bumpable";
 import { orientationPoints } from "../../engine/components/orientable";
-import { popupHeight, tooltipHeight } from "../interface/segments";
+import {
+  popupHeight,
+  tooltipHeight,
+  particleHeight,
+  fogHeight,
+} from "../interface/segments";
+import { FOG } from "../../engine/components/fog";
+import { LIGHT } from "../../engine/components/light";
 import { AFFECTABLE } from "../../engine/components/affectable";
 
 export type TerminalSprite = {
@@ -20,10 +22,14 @@ export type TerminalSprite = {
   y: number;
   z: number;
   layers: Layer[];
+  terminalLayers?: Layer[];
+  unit?: boolean;
+  floating?: boolean;
   sprite: { name: string };
   fog?: boolean;
   overlay?: boolean;
-  hero?: { hit: boolean; background?: string };
+  ui?: boolean;
+  hero?: { hit: boolean; ghost?: boolean; background?: string };
 };
 export type TerminalFrame = TerminalCell[][];
 
@@ -45,7 +51,16 @@ export const collectTerminalSprites = (
         const body = bodies.get(entry.key.replace(/particle\d+$/, "body"));
         if (body?.hero) body.hero.hit = true;
       }
-      result.push({ ...entry, overlay: !!entry.particle });
+      result.push({
+        ...entry,
+        overlay: !!entry.particle,
+        ui: [
+          "popupInteract",
+          "dialogText",
+          "discoveryIdle",
+          "pointerArrow",
+        ].includes(entry.particleSequence || ""),
+      });
       continue;
     }
     const key = titleBlock
@@ -56,8 +71,13 @@ export const collectTerminalSprites = (
       body.layers.push(...entry.layers);
       body.z = Math.max(body.z, entry.z);
       body.fog = body.fog || entry.fog;
-      if (entry.sprite === entry.entity[ENTERABLE]?.sprite)
+      if (
+        entry.sprite === entry.entity[SPRITE] ||
+        entry.sprite === entry.entity[ENTERABLE]?.sprite
+      ) {
         body.sprite = entry.sprite;
+        body.terminalLayers = entry.terminalLayers;
+      }
     } else {
       const effects = entry.entity[AFFECTABLE];
       const sprite: TerminalSprite = {
@@ -65,6 +85,7 @@ export const collectTerminalSprites = (
         hero: entry.entity[PLAYER]
           ? {
               hit: false,
+              ghost: !!entry.entity[PLAYER].ghost,
               background: effects?.freeze
                 ? colors.aqua
                 : effects?.burn
@@ -73,6 +94,15 @@ export const collectTerminalSprites = (
             }
           : undefined,
         layers: [...entry.layers],
+        unit: entry.entity[FOG]?.type === "unit",
+        floating:
+          entry.entity[FOG]?.type === "float" ||
+          (entry.entity[LIGHT]?.darkness || 0) > 0,
+        terminalLayers:
+          entry.sprite === entry.entity[SPRITE] ||
+          entry.sprite === entry.entity[ENTERABLE]?.sprite
+            ? entry.terminalLayers
+            : undefined,
         sprite:
           entry.sprite === entry.entity[ENTERABLE]?.sprite
             ? entry.sprite
@@ -83,21 +113,28 @@ export const collectTerminalSprites = (
     }
   }
   for (const sprite of result) {
-    if (sprite.hero) sprite.z = popupHeight - 0.001;
+    if (sprite.hero || sprite.unit) sprite.z = particleHeight + 0.001;
+    if (
+      sprite.ui &&
+      sprite.z >= tooltipHeight &&
+      sprite.z < popupHeight &&
+      !["Melee", "Magic", "True", "Heal"].includes(sprite.sprite.name)
+    )
+      sprite.z = popupHeight - 0.002;
+    if (
+      ["Melee", "Magic", "True"].includes(sprite.sprite.name) &&
+      (sprite.terminalLayers || sprite.layers).some((layer) =>
+        "xX".includes(layer.char)
+      )
+    )
+      sprite.z = popupHeight - 0.001;
   }
   return result;
 };
 
 const fogColor = (color: string) => {
-  if (color === colors.black) return colors.white;
-  if (color === colors.white) return colors.black;
-  return (
-    darkColors[color] ||
-    brightColors[color] ||
-    `#${(Number.parseInt(color.slice(1), 16) ^ 0xffffff)
-      .toString(16)
-      .padStart(6, "0")}`
-  );
+  const dark = darkColors[color] || color;
+  return dark === colors.grey ? colors.black : dark;
 };
 
 export const createTerminalFrame = (
@@ -116,9 +153,11 @@ export const createTerminalFrame = (
     )
   );
   const fogCells = new Set<number>();
+  const protectedCells = new Set<number>();
   let fogApplied = false;
   const applyFog = () => {
     for (const index of fogCells) {
+      if (protectedCells.has(index)) continue;
       const cell = frame[Math.floor(index / columns)][index % columns];
       if (cell.background === colors.navy && cell.char === " ") {
         cell.char = "░";
@@ -138,20 +177,22 @@ export const createTerminalFrame = (
         }
         if (cell.foreground !== colors.yellow)
           cell.foreground = fogColor(cell.foreground);
-        if (cell.foreground === colors.grey) cell.foreground = colors.silver;
+        if (cell.char === "≈") cell.foreground = colors.black;
       }
       cell.background = colors.grey;
     }
     fogApplied = true;
   };
   for (const sprite of [...sprites].sort((a, b) => a.z - b.z)) {
-    if (!fogApplied && sprite.z >= tooltipHeight) applyFog();
+    if (!fogApplied && sprite.z >= fogHeight) applyFog();
     const x = Math.ceil(sprite.x),
       y = Math.ceil(sprite.y);
     if (x < 0 || x >= columns || y < 0 || y >= rows) continue;
     if (sprite.sprite.name === "fog_war") continue;
     if (sprite.fog && !fogApplied) fogCells.add(y * columns + x);
-    let projected = projectLayers(sprite.layers, sprite.sprite.name);
+    let projected = sprite.terminalLayers
+      ? projectTerminalLayers(sprite.terminalLayers)
+      : projectLayers(sprite.layers, sprite.sprite.name);
     if (
       sprite.sprite.name === "button_left" ||
       sprite.sprite.name === "button_right"
@@ -185,24 +226,22 @@ export const createTerminalFrame = (
     if (sprite.hero) {
       projected = {
         ...projected,
-        foreground: sprite.hero.hit ? colors.red : colors.white,
+        foreground: sprite.hero.hit
+          ? colors.red
+          : sprite.hero.ghost
+          ? projected.foreground
+          : colors.white,
         background: sprite.hero.background ?? projected.background,
       };
     }
     if (projected.char === " " && projected.background === undefined) continue;
+    if (sprite.floating) protectedCells.add(y * columns + x);
     if (
       sprite.overlay &&
       sprite.z < popupHeight &&
-      fogCells.has(y * columns + x)
-    ) {
-      projected = {
-        ...projected,
-        background: colors.grey,
-        foreground: [colors.grey, colors.silver].includes(projected.foreground)
-          ? colors.white
-          : projected.foreground,
-      };
-    }
+      projected.background === colors.black
+    )
+      projected = { ...projected, background: frame[y][x].background };
     frame[y][x] = {
       ...projected,
       background: projected.background ?? frame[y][x].background,

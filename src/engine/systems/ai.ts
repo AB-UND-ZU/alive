@@ -1,3 +1,4 @@
+import { spawnerPulse } from "../../game/assets/sprites";
 import { bumpEntity, syncMovementSpring } from "../motion";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -2037,7 +2038,7 @@ export default function setupAi(world: World) {
                   ? [rage]
                   : countdown % 4 === 0
                   ? createText(`${countdown / 4}`, colors.red)
-                  : createText("∙", colors.maroon),
+                  : [spawnerPulse],
               orientation: "up",
               fast: false,
               delay: 0,

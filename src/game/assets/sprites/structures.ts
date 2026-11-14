@@ -288,11 +288,18 @@ export const bench: Sprite = {
 
 export const fortressRoof: Sprite = {
   name: "fortress_roof_center",
+  terminal: { layers: [{ char: "█", color: colors.silver }] },
   layers: [{ char: "█", color: colors.olive }],
 };
 
 export const fortressRoofLeft: Sprite = {
   name: "fortress_roof_left",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "║", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▌", color: colors.grey },
     { char: "≡", color: colors.black },
@@ -307,6 +314,12 @@ export const fortressRoofLeft: Sprite = {
 
 export const fortressRoofRight: Sprite = {
   name: "fortress_roof_right",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "║", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▐", color: colors.grey },
     { char: "≡", color: colors.black },
@@ -321,6 +334,12 @@ export const fortressRoofRight: Sprite = {
 
 export const fortressRoofUp: Sprite = {
   name: "fortress_roof_up",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "═", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▄", color: colors.olive },
     { char: "▀", color: colors.black },
@@ -331,6 +350,12 @@ export const fortressRoofUp: Sprite = {
 
 export const fortressRoofUpInside: Sprite = {
   name: "fortress_roof_up_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "═", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▀", color: colors.grey },
     { char: "≡", color: colors.black },
@@ -342,6 +367,12 @@ export const fortressRoofUpInside: Sprite = {
 
 export const fortressRoofUpRight: Sprite = {
   name: "fortress_roof_up_right",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "╗", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "█", color: colors.olive },
     { char: "▐", color: colors.black },
@@ -353,6 +384,12 @@ export const fortressRoofUpRight: Sprite = {
 
 export const fortressRoofUpRightInside: Sprite = {
   name: "fortress_roof_up_right_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "╗", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▐", color: colors.grey },
     { char: "▀", color: colors.grey },
@@ -365,6 +402,12 @@ export const fortressRoofUpRightInside: Sprite = {
 
 export const fortressRoofDownLeft: Sprite = {
   name: "fortress_roof_down_left",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "╠", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▐", color: colors.olive },
     { char: "▌", color: colors.grey },
@@ -379,6 +422,12 @@ export const fortressRoofDownLeft: Sprite = {
 
 export const fortressRoofDown: Sprite = {
   name: "fortress_roof_down",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "═", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▄", color: colors.grey },
     { char: "≡", color: colors.black },
@@ -392,6 +441,12 @@ export const fortressRoofDown: Sprite = {
 
 export const fortressRoofRightDown: Sprite = {
   name: "fortress_roof_right_down",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "╣", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▄", color: colors.grey },
     { char: "≡", color: colors.black },
@@ -408,6 +463,12 @@ export const fortressRoofRightDown: Sprite = {
 
 export const fortressRoofLeftUp: Sprite = {
   name: "fortress_roof_left_up",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "╔", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "█", color: colors.olive },
     { char: "▌", color: colors.black },
@@ -419,6 +480,12 @@ export const fortressRoofLeftUp: Sprite = {
 
 export const fortressRoofLeftUpInside: Sprite = {
   name: "fortress_roof_left_up_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "╔", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▌", color: colors.grey },
     { char: "▀", color: colors.grey },
@@ -431,6 +498,7 @@ export const fortressRoofLeftUpInside: Sprite = {
 
 export const fortressHouse: Sprite = {
   name: "fortress_house",
+  terminal: { layers: [{ char: "█", color: colors.silver }] },
   layers: [
     { char: "█", color: colors.grey },
     { char: "*", color: colors.black },
@@ -442,6 +510,12 @@ export const fortressHouse: Sprite = {
 
 export const fortressHouseLeft: Sprite = {
   name: "fortress_house_left",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "│", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "█", color: colors.grey },
     { char: "*", color: colors.black },
@@ -453,6 +527,12 @@ export const fortressHouseLeft: Sprite = {
 
 export const fortressHouseLeftInside: Sprite = {
   name: "fortress_house_left_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "│", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▌", color: colors.grey },
     { char: "≡", color: colors.black },
@@ -464,6 +544,12 @@ export const fortressHouseLeftInside: Sprite = {
 
 export const fortressBasementLeftInside: Sprite = {
   name: "fortress_basement_left_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "└", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▌", color: colors.grey },
     { char: "▄", color: colors.grey },
@@ -476,6 +562,12 @@ export const fortressBasementLeftInside: Sprite = {
 
 export const fortressHouseRight: Sprite = {
   name: "fortress_house_right",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "│", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "█", color: colors.grey },
     { char: "*", color: colors.black },
@@ -487,6 +579,12 @@ export const fortressHouseRight: Sprite = {
 
 export const fortressHouseRightInside: Sprite = {
   name: "fortress_house_right_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "│", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▐", color: colors.grey },
     { char: "≡", color: colors.black },
@@ -498,6 +596,12 @@ export const fortressHouseRightInside: Sprite = {
 
 export const fortressBasementRightInside: Sprite = {
   name: "fortress_basement_right_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "┘", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▐", color: colors.grey },
     { char: "▄", color: colors.grey },
@@ -510,6 +614,12 @@ export const fortressBasementRightInside: Sprite = {
 
 export const fortressWallInside: Sprite = {
   name: "fortress_wall_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "─", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▄", color: colors.grey },
     { char: "≡", color: colors.black },
@@ -521,6 +631,12 @@ export const fortressWallInside: Sprite = {
 
 export const fortressWindow: Sprite = {
   name: "fortress_window",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "┴", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "█", color: colors.grey },
     { char: "_", color: colors.black },
@@ -531,6 +647,12 @@ export const fortressWindow: Sprite = {
 
 export const fortressWindowInside: Sprite = {
   name: "fortress_window_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "┬", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▄", color: colors.grey },
     { char: "_", color: colors.black },
@@ -542,6 +664,7 @@ export const fortressWindowInside: Sprite = {
 
 export const roof: Sprite = {
   name: "roof_center",
+  terminal: { layers: [{ char: "█", color: colors.silver }] },
   layers: [
     { char: "█", color: colors.black },
     { char: "▒", color: colors.red },
@@ -550,6 +673,12 @@ export const roof: Sprite = {
 
 export const roofLeft: Sprite = {
   name: "roof_left",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "║", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▒", color: colors.red },
     { char: "▌", color: colors.black },
@@ -559,6 +688,12 @@ export const roofLeft: Sprite = {
 
 export const roofRight: Sprite = {
   name: "roof_right",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "║", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▒", color: colors.red },
     { char: "▐", color: colors.black },
@@ -568,6 +703,12 @@ export const roofRight: Sprite = {
 
 export const roofUp: Sprite = {
   name: "roof_up",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "═", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▒", color: colors.red },
     { char: "▀", color: colors.black },
@@ -577,6 +718,12 @@ export const roofUp: Sprite = {
 
 export const roofUpInside: Sprite = {
   name: "roof_up_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "═", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▀", color: colors.grey },
     { char: "─", color: colors.maroon },
@@ -585,6 +732,12 @@ export const roofUpInside: Sprite = {
 
 export const roofUpRight: Sprite = {
   name: "roof_up_right",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "╗", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▒", color: colors.red },
     { char: "▐", color: colors.black },
@@ -596,6 +749,12 @@ export const roofUpRight: Sprite = {
 
 export const roofUpRightInside: Sprite = {
   name: "roof_up_right_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "╗", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▐", color: colors.grey },
     { char: "▀", color: colors.grey },
@@ -605,6 +764,12 @@ export const roofUpRightInside: Sprite = {
 
 export const roofDownLeft: Sprite = {
   name: "roof_down_left",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "╠", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▒", color: colors.red },
     { char: "▄", color: colors.grey },
@@ -616,6 +781,12 @@ export const roofDownLeft: Sprite = {
 
 export const roofDown: Sprite = {
   name: "roof_down",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "═", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▀", color: colors.black },
     { char: "▒", color: colors.red },
@@ -626,6 +797,12 @@ export const roofDown: Sprite = {
 
 export const roofRightDown: Sprite = {
   name: "roof_right_down",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "╣", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▒", color: colors.red },
     { char: "▄", color: colors.grey },
@@ -637,6 +814,12 @@ export const roofRightDown: Sprite = {
 
 export const roofLeftUp: Sprite = {
   name: "roof_left_up",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "╔", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▒", color: colors.red },
     { char: "▌", color: colors.black },
@@ -648,6 +831,12 @@ export const roofLeftUp: Sprite = {
 
 export const roofLeftUpInside: Sprite = {
   name: "roof_left_up_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "╔", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▌", color: colors.grey },
     { char: "▀", color: colors.grey },
@@ -657,11 +846,18 @@ export const roofLeftUpInside: Sprite = {
 
 export const house: Sprite = {
   name: "house",
+  terminal: { layers: [{ char: "█", color: colors.silver }] },
   layers: [{ char: "█", color: colors.grey }],
 };
 
 export const houseLeft: Sprite = {
   name: "house_left",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "│", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▐", color: colors.grey },
     { char: "│", color: colors.maroon },
@@ -670,6 +866,12 @@ export const houseLeft: Sprite = {
 
 export const basementLeftInside: Sprite = {
   name: "basement_left_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "└", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▌", color: colors.grey },
     { char: "▄", color: colors.grey },
@@ -679,6 +881,12 @@ export const basementLeftInside: Sprite = {
 
 export const houseRight: Sprite = {
   name: "house_right",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "│", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▌", color: colors.grey },
     { char: "│", color: colors.maroon },
@@ -687,6 +895,12 @@ export const houseRight: Sprite = {
 
 export const basementRightInside: Sprite = {
   name: "basement_right_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "┘", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▐", color: colors.grey },
     { char: "▄", color: colors.grey },
@@ -696,6 +910,12 @@ export const basementRightInside: Sprite = {
 
 export const wallInside: Sprite = {
   name: "wall_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "─", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▄", color: colors.grey },
     { char: "─", color: colors.maroon },
@@ -704,6 +924,12 @@ export const wallInside: Sprite = {
 
 export const window: Sprite = {
   name: "window",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "┴", color: colors.maroon },
+    ],
+  },
   layers: [
     { char: "▄", color: colors.grey },
     { char: "┴", color: colors.maroon },
@@ -712,6 +938,12 @@ export const window: Sprite = {
 
 export const windowInside: Sprite = {
   name: "window_inside",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.silver },
+      { char: "┬", color: colors.maroon },
+    ],
+  },
   layers: [{ char: "┬", color: colors.maroon }],
 };
 

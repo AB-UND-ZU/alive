@@ -1,4 +1,3 @@
-import { Sprite } from "../engine/components/sprite";
 import {
   grass,
   path,
@@ -9,16 +8,13 @@ import {
   woodChest,
 } from "../game/assets/sprites";
 import { colors } from "../game/assets/colors";
-import { addBackground } from "../game/assets/ui";
+import { addBackground, mergeSprites } from "../game/assets/ui";
 import { projectSprite } from "../renderers/terminal/sprites";
 import { GridTable } from "./GridTable";
 import { Pixels, textSprites } from "./visuals";
 import { rendererHeaders } from "./RendererComparison";
 
-const hero: Sprite = {
-  name: rogue.name,
-  layers: [...rogueBackdrop.layers, ...rogue.layers],
-};
+const hero = mergeSprites(rogueBackdrop, rogue);
 const rows = [
   [waterDeep, waterDeep, waterDeep, waterDeep, waterDeep],
   [waterDeep, grass, grass, grass, waterDeep],

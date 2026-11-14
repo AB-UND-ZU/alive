@@ -9,6 +9,8 @@ Stores ordered colored character layers and directional or quantity variants.
 | `layers`  | Later layers are drawn over earlier layers.                                |
 | `facing`  | Directional replacements; missing directions fall back to the base layers. |
 | `amounts` | Layer variants for single, double and multiple quantities.                 |
+
+An optional `terminal` variant uses the same layers, facing and amount fields for a simpler character display. It does not replace the browser sprite or change game rules.
 <!-- source-types -->
 
 ## Amount
@@ -34,5 +36,6 @@ export type Sprite = {
   layers: Layer[];
   facing?: Partial<Record<Orientation, Layer[]>>;
   amounts?: Partial<Record<Amount, Layer[]>>;
+  terminal?: Pick<Sprite, "layers" | "facing" | "amounts">;
 };
 ```

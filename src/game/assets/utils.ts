@@ -1320,6 +1320,12 @@ export const getItemSprite = (
   return {
     ...sprite,
     layers: getFacingLayers(sprite, orientation, amount),
+    ...(sprite.terminal && {
+      terminal: {
+        ...sprite.terminal,
+        layers: getFacingLayers(sprite.terminal, orientation, amount),
+      },
+    }),
   };
 };
 
@@ -1359,7 +1365,7 @@ export const createItemName = (
 export const getUnitSprite = (unit: UnitKey) => {
   const unitData = generateUnitData(unit);
 
-  return mergeSprites(
+  const sprite = mergeSprites(
     unitData.backdrop || none,
     ...unitData.equipments
       .filter((equipment) => equipment.offhand === "shield")
@@ -1376,6 +1382,10 @@ export const getUnitSprite = (unit: UnitKey) => {
       ? hostileBar
       : friendlyBar
   );
+  return {
+    ...sprite,
+    ...(unitData.sprite.terminal && { terminal: unitData.sprite.terminal }),
+  };
 };
 
 export const createUnitName = (unit: UnitKey) => {

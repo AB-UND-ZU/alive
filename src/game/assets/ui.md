@@ -4,6 +4,8 @@
 
 `createTab(title, width, selected, instant)` is shared by popup tabs and wiki sections. The selected state uses black text on a white background; the inactive state uses white text with the gray lower-half background. Instant popups use the existing yellow/olive palette.
 
+`terminal` sprite variants pass through backgrounds, selections, buttons, recoloring and sprite merging alongside normal layers. Underlines and strike-through lines keep readable terminal text; blocked rows use a red background. Explicit empty variants remain hidden.
+
 `pixelFrame` in `pixels.ts` builds character frames. Keyboard key and socket sprites are defined in `sprites/particles.ts` and composed by `components/Keyboard`.
 <!-- source-types -->
 

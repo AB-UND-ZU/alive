@@ -51,6 +51,7 @@ import {
   particleHeight,
   immersibleHeight,
   transientHeight,
+  tooltipHeight,
 } from "./segments";
 
 export type SceneSprite = {
@@ -59,11 +60,13 @@ export type SceneSprite = {
   y: number;
   z: number;
   layers: Layer[];
+  terminalLayers?: Layer[];
   sprite: Sprite;
   amount?: number;
   entity: Entity;
   particle?: Entity;
   particleName?: string;
+  particleSequence?: string;
   hidden?: boolean;
   fog?: boolean;
   loot?: boolean;
@@ -237,6 +240,9 @@ export const getSceneFrame = (
         y: py + sy,
         z,
         layers: getFacingLayers(sprite, facing, amount),
+        terminalLayers: sprite.terminal
+          ? getFacingLayers(sprite.terminal, facing, amount)
+          : undefined,
         sprite,
         amount,
         entity,
@@ -320,16 +326,31 @@ export const getSceneFrame = (
       ? new Map(
           getSequences(world, entity).flatMap((sequence) =>
             Object.entries(sequence.particles).map(
-              ([name, id]) => [id, name] as const
+              ([name, id]) => [id, { name, sequence: sequence.name }] as const
             )
           )
         )
       : undefined;
     const message = instant && getSequence(world, entity, "message");
+    const messageDirections = new Map(
+      message
+        ? message.args.messages.flatMap((item) =>
+            item.stack === undefined
+              ? []
+              : [[item.stack, item.orientation] as const]
+          )
+        : []
+    );
     const messageRows = message
       ? [
           ...new Set(
-            Object.keys(message.particles).map((key) => key.split("-")[1])
+            Object.entries(message.particles)
+              .filter(
+                ([, id]) =>
+                  world.getEntityById(id)?.[SPRITE]?.terminal?.layers.length !==
+                  0
+              )
+              .map(([key]) => key.split("-")[1])
           ),
         ]
           .map(Number)
@@ -339,7 +360,19 @@ export const getSceneFrame = (
       message
         ? Object.entries(message.particles).map(([key, id]) => [
             id,
-            messageRows.indexOf(Number(key.split("-")[1])),
+            {
+              row: messageRows
+                .filter(
+                  (stack) =>
+                    messageDirections.get(stack) ===
+                    messageDirections.get(Number(key.split("-")[1]))
+                )
+                .indexOf(Number(key.split("-")[1])),
+              direction:
+                messageDirections.get(Number(key.split("-")[1])) === "down"
+                  ? 1
+                  : -1,
+            },
           ])
         : []
     );
@@ -363,10 +396,19 @@ export const getSceneFrame = (
         particle[ORIENTABLE]?.facing
       );
       entry.particle = particle;
-      entry.particleName = particleNames?.get(world.getEntityId(particle));
+      const particleInfo = particleNames?.get(world.getEntityId(particle));
+      entry.particleName = particleInfo?.name;
+      entry.particleSequence = particleInfo?.sequence;
       const messageRow = messageParticles.get(world.getEntityId(particle));
       if (messageRow !== undefined && entry.z === transientHeight)
-        entry.y = py - 1 - messageRow;
+        entry.y += messageRow.direction * messageRow.row;
+      if (
+        instant &&
+        getSequence(world, entity, "focus")?.particles[
+          entry.particleName || ""
+        ] === world.getEntityId(particle)
+      )
+        entry.z = tooltipHeight - 0.001;
     }
     const needsFog =
       visibility === "fog" &&

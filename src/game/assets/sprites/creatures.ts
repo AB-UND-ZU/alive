@@ -3,11 +3,13 @@ import { colors } from "../colors";
 
 export const scout: Sprite = {
   name: "Scout",
+  terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [{ char: "\u010b", color: colors.silver }],
 };
 
 export const rogue: Sprite = {
   name: "Rogue",
+  terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [
     { char: "`", color: colors.white },
     { char: "\u010b", color: colors.silver },
@@ -25,6 +27,7 @@ export const rogueBackdrop: Sprite = {
 
 export const swimmingRogue: Sprite = {
   name: "Rogue",
+  terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [
     { char: "`", color: colors.white },
     { char: "\u010b", color: colors.silver },
@@ -42,6 +45,7 @@ export const swimmingRogueBackdrop: Sprite = {
 
 export const mage: Sprite = {
   name: "Mage",
+  terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [
     { char: "\u010b", color: colors.silver },
     { char: "~", color: colors.white },
@@ -50,6 +54,7 @@ export const mage: Sprite = {
 
 export const knight: Sprite = {
   name: "Knight",
+  terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [
     { char: "\u010b", color: colors.silver },
     { char: "^", color: colors.white },
@@ -58,6 +63,7 @@ export const knight: Sprite = {
 
 export const bandit: Sprite = {
   name: "Bandit",
+  terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [
     { char: "\u010b", color: colors.silver },
     { char: "'", color: colors.white },
@@ -66,6 +72,7 @@ export const bandit: Sprite = {
 
 export const alien: Sprite = {
   name: "???",
+  terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [{ char: "\u010b", color: colors.silver }],
 };
 
@@ -100,6 +107,7 @@ export const chief: Sprite = {
 
 export const zombie: Sprite = {
   name: "Zombie",
+  terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [
     { char: "[", color: colors.red },
     { char: "]", color: colors.black },
@@ -242,6 +250,7 @@ export const shark: Sprite = {
 
 export const ghost: Sprite = {
   name: "Soul",
+  terminal: { layers: [{ char: "\u010b", color: colors.yellow }] },
   layers: [
     // 50% of silver
     { char: "\u010b", color: "#606060" },
@@ -375,6 +384,7 @@ export const chestBoss: Sprite = {
 
 export const chick: Sprite = {
   name: "Chick",
+  terminal: { layers: [{ char: "\u0103", color: colors.yellow }] },
   layers: [
     { char: "v", color: colors.red },
     { char: "═", color: colors.black },

@@ -3,6 +3,7 @@ import { Sprite } from "../../../engine/components/sprite";
 
 export const woodChest: Sprite = {
   name: "Chest",
+  terminal: { layers: [{ char: "\u011f", color: colors.maroon }] },
   layers: [
     { char: "■", color: colors.grey },
     { char: "±", color: colors.maroon },
@@ -13,6 +14,7 @@ export const woodChest: Sprite = {
 
 export const ironChest: Sprite = {
   name: "Chest",
+  terminal: { layers: [{ char: "\u011f", color: colors.silver }] },
   layers: [
     { char: "■", color: colors.grey },
     { char: "±", color: colors.silver },
@@ -23,6 +25,7 @@ export const ironChest: Sprite = {
 
 export const goldChest: Sprite = {
   name: "Chest",
+  terminal: { layers: [{ char: "\u011f", color: colors.yellow }] },
   layers: [
     { char: "■", color: colors.grey },
     { char: "±", color: colors.yellow },
@@ -33,6 +36,7 @@ export const goldChest: Sprite = {
 
 export const diamondChest: Sprite = {
   name: "Chest",
+  terminal: { layers: [{ char: "\u011f", color: colors.aqua }] },
   layers: [
     { char: "■", color: colors.grey },
     { char: "±", color: colors.aqua },
@@ -43,6 +47,7 @@ export const diamondChest: Sprite = {
 
 export const rubyChest: Sprite = {
   name: "Chest",
+  terminal: { layers: [{ char: "\u011f", color: colors.fuchsia }] },
   layers: [
     { char: "■", color: colors.white },
     { char: "±", color: colors.fuchsia },
@@ -129,6 +134,27 @@ export const campfire: Sprite = {
 
 export const fountainCorner: Sprite = {
   name: "fountain_corner",
+  terminal: {
+    layers: [{ char: "█", color: colors.navy }],
+    facing: {
+      up: [
+        { char: "█", color: colors.navy },
+        { char: "┐", color: colors.blue },
+      ],
+      right: [
+        { char: "█", color: colors.navy },
+        { char: "┘", color: colors.blue },
+      ],
+      down: [
+        { char: "█", color: colors.navy },
+        { char: "└", color: colors.blue },
+      ],
+      left: [
+        { char: "█", color: colors.navy },
+        { char: "┌", color: colors.blue },
+      ],
+    },
+  },
   layers: [{ char: "█", color: colors.navy }],
   facing: {
     up: [
@@ -164,6 +190,27 @@ export const fountainCorner: Sprite = {
 
 export const fountainSide: Sprite = {
   name: "fountain_side",
+  terminal: {
+    layers: [{ char: "█", color: colors.navy }],
+    facing: {
+      up: [
+        { char: "█", color: colors.navy },
+        { char: "─", color: colors.blue },
+      ],
+      right: [
+        { char: "█", color: colors.navy },
+        { char: "│", color: colors.blue },
+      ],
+      down: [
+        { char: "█", color: colors.navy },
+        { char: "─", color: colors.blue },
+      ],
+      left: [
+        { char: "█", color: colors.navy },
+        { char: "│", color: colors.blue },
+      ],
+    },
+  },
   layers: [{ char: "█", color: colors.navy }],
   facing: {
     up: [
@@ -191,6 +238,12 @@ export const fountainSide: Sprite = {
 
 export const fountain: Sprite = {
   name: "Fountain",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.navy },
+      { char: "v", color: colors.blue },
+    ],
+  },
   layers: [
     { char: "v", color: colors.silver },
     { char: "\u0106", color: colors.lime },
@@ -356,6 +409,12 @@ export const oakLoopCorner: Sprite = {
 
 export const fountainHealing: Sprite = {
   name: "Fountain",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.navy },
+      { char: "v", color: colors.lime },
+    ],
+  },
   layers: [
     { char: "v", color: colors.silver },
     { char: "\u0106", color: colors.lime },
@@ -457,6 +516,7 @@ export const earthCask: Sprite = {
 
 export const tumbleweed: Sprite = {
   name: "Bush",
+  terminal: { layers: [{ char: "\u0108", color: colors.maroon }] },
   layers: [
     { char: "\u0100", color: colors.black },
     { char: "\u0101", color: colors.black },

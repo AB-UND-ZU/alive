@@ -11,10 +11,16 @@ are composed together so neither half overwrites the other. Loot and particles r
 backgrounds retain the cell below. Empty transparent sprites do
 not erase the scene. Health bars and item-count dots are not projected.
 
-Fog uses a dark gray background, including unexplored air. Foreground intensity
-is inverted before UI is drawn; sand remains yellow and deep water stays blue. World particles retain the fog background, with gray spell characters made white. Buttons and tabs use brackets. The hero remains
-above world particles; hits color the character red, freeze uses aqua behind
-the white character, and burn uses a dark red background. Dialogs remain on top.
+Fog uses a dark gray background, including empty unexplored air. Bright terrain
+colors darken without brightening already dark characters; squiggly fog is black.
+Floating and opaque bodies keep their sprite colors above fog. World particles
+inherit the ground background when their own background is black. Tooltips and
+interaction text keep their original colors. Focus outlines remain below them.
+
+The hero and other units stay above world effects, except for x/X hit markers.
+Hits color the hero red, freeze uses an aqua background and burn uses maroon.
+Dialogs remain on top. Explicit terminal layers are selected by the shared frame
+from each sprite's facing and amount; equipment does not replace a unit's glyph.
 `shakeTerminalFrame` shifts the complete frame one cell for 100 ms after new damage,
 then restores it. Existing damage on loading does not shake the screen.
 
@@ -31,10 +37,14 @@ export type TerminalSprite = {
   y: number;
   z: number;
   layers: Layer[];
+  terminalLayers?: Layer[];
+  unit?: boolean;
+  floating?: boolean;
   sprite: { name: string };
   fog?: boolean;
   overlay?: boolean;
-  hero?: { hit: boolean; background?: string };
+  ui?: boolean;
+  hero?: { hit: boolean; ghost?: boolean; background?: string };
 };
 ```
 

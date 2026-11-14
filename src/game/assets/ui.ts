@@ -51,6 +51,34 @@ export const createCounter: (amount: number) => Sprite = (amount) => ({
   layers: [{ char: amount.toString(), color: colors.red }],
 });
 
+const terminalLayers = (
+  sprite: Sprite,
+  transform: (layers: Layer[]) => Layer[]
+): Sprite["terminal"] => {
+  const terminal = sprite.terminal || sprite;
+  const map = (layers: Layer[]) =>
+    sprite.terminal && layers.length === 0 ? [] : transform(layers);
+  return {
+    layers: map(terminal.layers),
+    ...(terminal.facing && {
+      facing: Object.fromEntries(
+        Object.entries(terminal.facing).map(([key, layers]) => [
+          key,
+          map(layers!),
+        ])
+      ),
+    }),
+    ...(terminal.amounts && {
+      amounts: Object.fromEntries(
+        Object.entries(terminal.amounts).map(([key, layers]) => [
+          key,
+          map(layers!),
+        ])
+      ),
+    }),
+  };
+};
+
 export const addBackground = (
   sprites: Sprite[],
   background: string = colors.white,
@@ -59,6 +87,12 @@ export const addBackground = (
   sprites.map((sprite) => ({
     name: sprite.name,
     layers: [{ char, color: background }, ...sprite.layers],
+    ...(sprite.terminal && {
+      terminal: terminalLayers(sprite, (layers) => [
+        { char, color: background },
+        ...layers,
+      ]),
+    }),
   }));
 
 export const addForeground = (
@@ -69,6 +103,12 @@ export const addForeground = (
   sprites.map((sprite) => ({
     name: sprite.name,
     layers: [...sprite.layers, { char, color: foreground }],
+    ...(sprite.terminal && {
+      terminal: terminalLayers(sprite, (layers) => [
+        ...layers,
+        { char, color: foreground },
+      ]),
+    }),
   }));
 
 export const strikethrough = (
@@ -78,16 +118,47 @@ export const strikethrough = (
   sprites.map((sprite) => ({
     name: sprite.name,
     layers: [...sprite.layers, { char: "─", color }],
+    terminal: terminalLayers(sprite, (layers) => layers),
   }));
 
 export const underline = (sprites: Sprite[], color: string = colors.silver) =>
   sprites.map((sprite) => ({
     name: sprite.name,
     layers: [{ char: "_", color }, ...sprite.layers],
+    terminal: terminalLayers(sprite, (layers) => layers),
   }));
 
+const selectionLayers = (layers: Layer[], color: string): Layer[] => {
+  const dark = [
+    colors.black,
+    colors.maroon,
+    colors.green,
+    colors.olive,
+    colors.navy,
+    colors.blue,
+    colors.purple,
+    colors.teal,
+  ];
+  return [
+    { char: "█", color },
+    ...layers
+      .filter((layer) => !"█▀▄▌▐".includes(layer.char))
+      .map((layer) => ({
+        ...layer,
+        color: dark.includes(color) ? colors.white : colors.black,
+      })),
+  ];
+};
+
 export const dotted = (sprites: Sprite[], color: string = colors.silver) =>
-  underline(addBackground(sprites, colors.black, "▓"), color);
+  underline(addBackground(sprites, colors.black, "▓"), color).map(
+    (sprite, index) => ({
+      ...sprite,
+      terminal: terminalLayers(sprites[index], (layers) =>
+        selectionLayers(layers, color)
+      ),
+    })
+  );
 
 export const shaded = (
   sprites: Sprite[],
@@ -102,6 +173,9 @@ export const shaded = (
       { char: "▀", color: background },
       ...sprite.layers,
     ],
+    terminal: terminalLayers(sprite, (layers) =>
+      selectionLayers(layers, color)
+    ),
   }));
 
 export const createText: (
@@ -517,6 +591,12 @@ export const createSpriteButton: (
     ...sprites.map((sprite) => ({
       name: "button_generic",
       layers: [...button.layers, ...sprite.layers],
+      ...(sprite.terminal && {
+        terminal: terminalLayers(sprite, (layers) => [
+          ...button.layers,
+          ...layers,
+        ]),
+      }),
     })),
     ...repeat(button, paddingRight),
     getButtonRight(palette, disabled, highlight, pressed),
@@ -570,6 +650,11 @@ export const recolorSprite = (
       );
   }
 
+  if (sprite.terminal) {
+    recolored.terminal = terminalLayers(sprite, (layers) =>
+      recolorLayers(layers, colorOrMap)
+    );
+  }
   return recolored;
 };
 
@@ -615,6 +700,15 @@ export const mergeLayers = (
   );
 
 export const mergeSprites = (...sprites: Sprite[]): Sprite => ({
+  ...(sprites.some((sprite) => sprite.terminal) && {
+    terminal: mergeSprites(
+      ...sprites.map((sprite) => ({
+        name: sprite.name,
+        ...(sprite.terminal || sprite),
+        terminal: undefined,
+      }))
+    ),
+  }),
   name: sprites.filter((sprite) => sprite.name).slice(-1)[0]?.name || "",
   layers: mergeLayers(sprites.map((sprite) => sprite.layers)) || [],
   facing: {
@@ -647,16 +741,27 @@ export const mergeSprites = (...sprites: Sprite[]): Sprite => ({
 export const nonCountable = (sprite: Sprite) => ({
   name: sprite.name,
   layers: sprite.layers,
+  ...(sprite.terminal && { terminal: { layers: sprite.terminal.layers } }),
 });
 
 export const minCountable = (sprite: Sprite) => ({
   name: sprite.name,
   layers: sprite.amounts?.single || sprite.layers,
+  ...(sprite.terminal && {
+    terminal: {
+      layers: sprite.terminal.amounts?.single || sprite.terminal.layers,
+    },
+  }),
 });
 
 export const maxCountable = (sprite: Sprite) => ({
   name: sprite.name,
   layers: sprite.amounts?.multiple || sprite.layers,
+  ...(sprite.terminal && {
+    terminal: {
+      layers: sprite.terminal.amounts?.multiple || sprite.terminal.layers,
+    },
+  }),
 });
 
 export const createCountable = (
@@ -786,6 +891,15 @@ export const createProgress = (
       { char: "▀", color: colors.black },
       ...(sprites[index]?.layers || []),
     ],
+    terminal: {
+      layers: [
+        {
+          char: index < Math.ceil(progress) ? "█" : "░",
+          color: statBackground,
+        },
+        ...(sprites[index]?.terminal?.layers || sprites[index]?.layers || []),
+      ],
+    },
   }));
 };
 
@@ -1065,7 +1179,7 @@ export const getOrientedSprite = (
 });
 
 export const getFacingLayers = (
-  sprite: Sprite,
+  sprite: Pick<Sprite, "layers" | "facing" | "amounts">,
   facing?: Orientation,
   amount?: number
 ) => {

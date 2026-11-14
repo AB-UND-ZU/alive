@@ -2,7 +2,6 @@ import { Layer, Sprite } from "../../engine/components/sprite";
 import { Orientation } from "../../engine/components/orientable";
 import { colors } from "../../game/assets/colors";
 import { getFacingLayers } from "../../game/assets/ui";
-import { chick } from "../../game/assets/sprites/creatures";
 import {
   characterMask,
   composeCharacterPixels,
@@ -156,17 +155,6 @@ export const projectLayers = (layers: Layer[], name = ""): TerminalCell => {
       foreground: colors.lime,
       ...(background ? { background } : {}),
     };
-  } else if (
-    name === "text_generic" &&
-    layers.some((_, index) =>
-      chick.layers.every(
-        (layer, offset) =>
-          layers[index + offset]?.char === layer.char &&
-          layers[index + offset]?.color === layer.color
-      )
-    )
-  ) {
-    result = { ...projectLayers(chick.layers, chick.name), background };
   } else if (
     (name === "text_generic" || name === "button_generic" || progress) &&
     letter &&
@@ -442,8 +430,14 @@ export const projectLayers = (layers: Layer[], name = ""): TerminalCell => {
   return result;
 };
 
+export const projectTerminalLayers = (layers: Layer[]): TerminalCell =>
+  projectLayers(layers, "text_generic");
+
 export const projectSprite = (
   sprite: Sprite,
   facing?: Orientation,
   amount?: number
-) => projectLayers(getFacingLayers(sprite, facing, amount), sprite.name);
+) =>
+  sprite.terminal
+    ? projectTerminalLayers(getFacingLayers(sprite.terminal, facing, amount))
+    : projectLayers(getFacingLayers(sprite, facing, amount), sprite.name);

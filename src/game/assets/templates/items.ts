@@ -17,6 +17,7 @@ export const spirit = createTemplate({
 
 const keyTemplate: Sprite = {
   name: "Key",
+  terminal: { layers: [{ char: "╒", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "\u0103", color: TEMPLATE_COLORS.materialPrimary },
     { char: "\u011c", color: TEMPLATE_COLORS.transparent },
@@ -25,6 +26,9 @@ const keyTemplate: Sprite = {
 };
 const keyElementTemplate: Sprite = {
   name: "Key",
+  terminal: {
+    layers: [{ char: "╒", color: TEMPLATE_COLORS.elementSecondary }],
+  },
   layers: [
     { char: "\u0103", color: TEMPLATE_COLORS.elementSecondary },
     { char: "\u011c", color: TEMPLATE_COLORS.transparent },
@@ -33,6 +37,7 @@ const keyElementTemplate: Sprite = {
 };
 const fireKey: Sprite = {
   name: "Key",
+  terminal: { layers: [{ char: "╒", color: colors.red }] },
   layers: [
     { char: "\u0103", color: colors.red },
     { char: "\u011c", color: colors.black },
@@ -47,6 +52,7 @@ key.default.fire = fireKey;
 
 const flaskTemplate: Sprite = {
   name: "Flask",
+  terminal: { layers: [{ char: "Σ", color: TEMPLATE_COLORS.elementPrimary }] },
   layers: [
     { char: "\u0108", color: TEMPLATE_COLORS.materialPrimary },
     { char: ":", color: TEMPLATE_COLORS.materialSecondary },
@@ -59,6 +65,7 @@ export const flask = createTemplate({ sprite: flaskTemplate });
 
 const bottleTemplate: Sprite = {
   name: "Bottle",
+  terminal: { layers: [{ char: "δ", color: TEMPLATE_COLORS.elementPrimary }] },
   layers: [
     { char: "|", color: TEMPLATE_COLORS.materialSecondary },
     { char: ".", color: TEMPLATE_COLORS.transparent },
@@ -71,6 +78,9 @@ export const bottle = createTemplate({ sprite: bottleTemplate });
 
 const potionTemplate: Sprite = {
   name: "Potion",
+  terminal: {
+    layers: [{ char: "\u010a", color: TEMPLATE_COLORS.elementPrimary }],
+  },
   layers: [
     { char: "¢", color: TEMPLATE_COLORS.materialSecondary },
     { char: "0", color: TEMPLATE_COLORS.materialPrimary },

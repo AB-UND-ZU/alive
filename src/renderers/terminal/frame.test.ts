@@ -1,5 +1,16 @@
 import { AFFECTABLE } from "../../engine/components/affectable";
-import { magicHit, wall, path, sand } from "../../game/assets/sprites";
+import {
+  magicHit,
+  wall,
+  path,
+  sand,
+  ghost,
+  rogue,
+  mage,
+  knight,
+  bandit,
+  alien,
+} from "../../game/assets/sprites";
 import {
   advance,
   assertHero,
@@ -319,7 +330,7 @@ it("shows freeze and burn as hero backgrounds rather than replacing the hero", (
   expect(render().background).not.toBe(colors.maroon);
 });
 
-it("keeps fog backgrounds under spell particles and makes gray spells readable", () => {
+it("preserves fog backgrounds and original particle colors", () => {
   const frame = createTerminalFrame(
     [
       { ...sprite(" ", 0, 0), fog: true },
@@ -340,7 +351,7 @@ it("keeps fog backgrounds under spell particles and makes gray spells readable",
   );
   expect(frame[0][0]).toEqual({
     char: "O",
-    foreground: colors.white,
+    foreground: colors.grey,
     background: colors.grey,
   });
   expect(frame[0][1]).toEqual({
@@ -401,20 +412,20 @@ it("puts new transient messages above the hero and pushes earlier messages up wi
       .map((entry) => [entry.layers[0].char, entry.y]);
   message("A");
   advance(world, 100);
-  expect(rows()).toEqual([["A", 4]]);
+  expect(rows()[0][0]).toBe("A");
+  expect(rows()[0][1]).toBeLessThan(4);
   message("B");
   advance(world, 100);
-  expect(rows()).toEqual([
-    ["A", 3],
-    ["B", 4],
-  ]);
+  expect(rows().map(([text]) => text)).toEqual(["A", "B"]);
+  expect(Number(rows()[0][1])).toBeLessThan(Number(rows()[1][1]) - 1);
   advance(world, 420);
-  expect(rows()).toEqual([["B", 4]]);
+  expect(rows()).toHaveLength(1);
+  expect(rows()[0][0]).toBe("B");
   advance(world, 100);
   expect(rows()).toEqual([]);
 });
 
-it("keeps remembered mountains and paths silver against gray fog, and sand yellow", () => {
+it("keeps terrain silhouettes dark in fog and leaves sand yellow", () => {
   const frame = createTerminalFrame(
     [wall, path, sand].map((terrain, x) => ({
       x,
@@ -429,12 +440,12 @@ it("keeps remembered mountains and paths silver against gray fog, and sand yello
   );
   expect(frame[0][0]).toEqual({
     char: "█",
-    foreground: colors.silver,
+    foreground: colors.black,
     background: colors.grey,
   });
   expect(frame[0][1]).toEqual({
     char: "░",
-    foreground: colors.silver,
+    foreground: colors.black,
     background: colors.grey,
   });
   expect(frame[0][2]).toEqual({
@@ -465,3 +476,223 @@ it.each(["red", "lime"])(
     expect(frame[0].map((cell) => cell.char).join("")).toContain("USE");
   }
 );
+
+it("darkens bright terrain colors without brightening dark colors or squiggly fog", () => {
+  const frame = createTerminalFrame(
+    [colors.green, colors.lime, colors.maroon, colors.red, colors.white].map(
+      (color, x) => ({
+        ...sprite(x === 4 ? "≈" : "+", x, 0),
+        layers: [{ char: x === 4 ? "≈" : "+", color }],
+        fog: true,
+      })
+    ),
+    5,
+    1
+  );
+  expect(frame[0].map((cell) => cell.foreground)).toEqual([
+    colors.green,
+    colors.green,
+    colors.maroon,
+    colors.maroon,
+    colors.black,
+  ]);
+  expect(frame[0].every((cell) => cell.background === colors.grey)).toBe(true);
+});
+
+it("draws fog behind floating and opaque bodies rather than over their colors", () => {
+  const frame = createTerminalFrame(
+    [
+      { ...sprite(" ", 0, 0), fog: true },
+      {
+        ...sprite("│", 0, 0, 5),
+        floating: true,
+        terminalLayers: [
+          { char: "█", color: colors.silver },
+          { char: "│", color: colors.maroon },
+        ],
+      },
+    ],
+    1,
+    1
+  );
+  expect(frame[0][0]).toEqual({
+    char: "│",
+    foreground: colors.maroon,
+    background: colors.silver,
+  });
+});
+
+it("preserves a highlight's terrain background and leaves tooltip colors above it unchanged", () => {
+  const ground = {
+    ...sprite("░", 0, 0),
+    layers: createText("░", colors.black, colors.olive)[0].layers,
+  };
+  const highlight = {
+    ...sprite("┐", 0, 0, 8.499),
+    overlay: true,
+    layers: createText("┐", colors.red, colors.black)[0].layers,
+  };
+  expect(createTerminalFrame([ground, highlight], 1, 1)[0][0]).toEqual({
+    char: "┐",
+    foreground: colors.red,
+    background: colors.olive,
+  });
+  expect(
+    createTerminalFrame([{ ...ground, fog: true }, highlight], 1, 1)[0][0]
+  ).toMatchObject({
+    foreground: colors.red,
+    background: colors.grey,
+  });
+  const tooltip = {
+    ...sprite("R", 0, 0, 9.5),
+    overlay: true,
+    layers: createText("R", colors.white, colors.black)[0].layers,
+  };
+  expect(
+    createTerminalFrame(
+      [{ ...ground, fog: true }, highlight, tooltip],
+      1,
+      1
+    )[0][0].foreground
+  ).toBe(colors.white);
+});
+
+it("lets transient messages move down as in the web frame and stack in that direction", () => {
+  const world = createAreaWorld("| ♀ |", { size: 48 });
+  const hero = assertHero(world);
+  advance(world, 2000);
+  const message = (text: string) =>
+    queueMessage(world, hero, {
+      line: createText(text),
+      fast: true,
+      delay: 0,
+      orientation: "down",
+    });
+  const rows = (instant: boolean) =>
+    getSceneFrame(world, 15, 11, undefined, { instant })
+      .filter(
+        (entry) =>
+          entry.entity === hero &&
+          entry.particle &&
+          ["A", "B"].includes(entry.layers[0]?.char)
+      )
+      .map((entry) => [entry.layers[0].char, entry.y] as const);
+  message("A");
+  advance(world, 100);
+  expect(rows(true)).toEqual(rows(false));
+  expect(rows(true)[0][1]).toBeGreaterThan(5);
+  message("B");
+  advance(world, 100);
+  const positions = rows(true);
+  expect(positions[0][0]).toBe("A");
+  expect(positions[1][0]).toBe("B");
+  expect(positions[0][1]).toBeGreaterThan(positions[1][1] + 1);
+});
+
+it("does not let an invisible terminal message push visible messages away", () => {
+  const world = createAreaWorld("| ♀ |", { size: 48 });
+  const hero = assertHero(world);
+  advance(world, 2000);
+  queueMessage(world, hero, {
+    line: [
+      {
+        name: "pulse",
+        layers: [{ char: "∙", color: colors.maroon }],
+        terminal: { layers: [] },
+      },
+    ],
+    fast: true,
+    delay: 0,
+    orientation: "up",
+  });
+  queueMessage(world, hero, {
+    line: createText("1"),
+    fast: true,
+    delay: 0,
+    orientation: "up",
+  });
+  advance(world, 100);
+  const point = (instant: boolean) =>
+    getSceneFrame(world, 15, 11, undefined, { instant }).find(
+      (entry) =>
+        entry.entity === hero && entry.particle && entry.layers[0]?.char === "1"
+    )!.y;
+  expect(point(true)).toBe(point(false));
+});
+
+it("keeps non-player units above world effects except for x and X hit markers", () => {
+  const world = createAreaWorld("| ♀ |", { size: 48 });
+  const hero = assertHero(world);
+  const scene = getSceneFrame(world, 11, 9, undefined, {
+    instant: true,
+  }).filter((entry) => entry.entity === hero);
+  const source = scene.find((entry) => /body\d+$/.test(entry.key))!;
+  const creature = { ...hero, PLAYER: undefined };
+  const bodies = scene.map((entry) => ({ ...entry, entity: creature }));
+  const effect = {
+    ...source,
+    entity: creature,
+    particle: hero,
+    key: source.key.replace(/body\d+$/, "particle999"),
+    z: 9.2,
+    sprite: createText("O")[0],
+    layers: createText("O")[0].layers,
+  };
+  const x = Math.ceil(source.x),
+    y = Math.ceil(source.y);
+  expect(
+    createTerminalFrame(collectTerminalSprites([...bodies, effect]), 11, 9)[y][
+      x
+    ].char
+  ).toBe("♀");
+  for (const char of ["x", "X"]) {
+    const hit = {
+      ...effect,
+      sprite: magicHit,
+      layers: [{ char, color: colors.fuchsia }],
+    };
+    expect(
+      createTerminalFrame(collectTerminalSprites([...bodies, hit]), 11, 9)[y][x]
+        .char
+    ).toBe(char);
+  }
+});
+
+it("keeps a player ghost yellow instead of applying the living hero color", () => {
+  const world = createAreaWorld("| ♀ |", { size: 48 });
+  const hero = assertHero(world);
+  hero.SPRITE = ghost;
+  hero.PLAYER.ghost = true;
+  const sprites = collectTerminalSprites(
+    getSceneFrame(world, 11, 9, undefined, { instant: true })
+  );
+  const body = sprites.find((entry) => entry.hero)!;
+  expect(
+    createTerminalFrame(sprites, 11, 9)[Math.ceil(body.y)][Math.ceil(body.x)]
+  ).toMatchObject({ char: "♀", foreground: colors.yellow });
+});
+
+it("renders living heroes white and the same human sprites as silver NPCs", () => {
+  const world = createAreaWorld("| ♀ |", { size: 48 });
+  const hero = assertHero(world);
+  for (const human of [rogue, mage, knight, bandit, alien]) {
+    hero.SPRITE = human;
+    const scene = getSceneFrame(world, 11, 9, undefined, {
+      instant: true,
+    }).filter((entry) => entry.entity === hero);
+    const source = scene.find((entry) => /body\d+$/.test(entry.key))!;
+    const x = Math.ceil(source.x),
+      y = Math.ceil(source.y);
+    const living = createTerminalFrame(collectTerminalSprites(scene), 11, 9)[y][
+      x
+    ];
+    expect(living).toMatchObject({ char: "♀", foreground: colors.white });
+    const npc = { ...hero, PLAYER: undefined };
+    const other = createTerminalFrame(
+      collectTerminalSprites(scene.map((entry) => ({ ...entry, entity: npc }))),
+      11,
+      9
+    )[y][x];
+    expect(other).toMatchObject({ char: "♀", foreground: colors.silver });
+  }
+});

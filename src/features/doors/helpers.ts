@@ -95,7 +95,16 @@ export const getMessageIcons = (world: World, entity: TypedEntity) =>
   getMessageLines(world, entity).map((line) =>
     line
       .filter((sprite) => sprite.name !== "text_generic")
-      .map((sprite) => ({ ...sprite, layers: sprite.layers.slice(1) }))
+      .map((sprite) => ({
+        ...sprite,
+        layers: sprite.layers.slice(1),
+        ...(sprite.terminal && {
+          terminal: {
+            ...sprite.terminal,
+            layers: sprite.terminal.layers.slice(1),
+          },
+        }),
+      }))
   );
 
 /** Text of the interaction prompt shown on an entity, e.g. "OPEN". */

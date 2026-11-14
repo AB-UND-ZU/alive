@@ -8,7 +8,8 @@ import { colors } from "../../game/assets/colors";
 import { getTerminalFrame, getTerminalLayout, getPauseActions } from ".";
 import { frameToText } from "./frame";
 import { createCell } from "../../bindings/creation";
-import { frameWidth } from "../../game/assets/utils";
+import { getSequence } from "../../engine/systems/sequence";
+import { getSceneFrame } from "../interface/frame";
 
 const setup = () => {
   const world = createAreaWorld(
@@ -37,6 +38,12 @@ it("shows current and maximum player stats without exposing an infinite XP limit
   expect(lines[0]).toMatch(/12\/25[ ░▀]{2}♥HP/);
   expect(lines[1]).toMatch(/3\/10[ ░▀]{2}♦MP/);
   expect(lines[2]).toMatch(/5[ ░▀]+xXP/);
+  expect(
+    frame
+      .slice(0, 3)
+      .flat()
+      .some((cell) => "▀▄▌▐".includes(cell.char))
+  ).toBe(false);
   expect(lines[0].indexOf("HP")).toBe(lines[2].indexOf("XP"));
   expect(lines[1].indexOf("MP")).toBe(lines[2].indexOf("XP"));
   expect(frameToText(frame)).not.toContain("Infinity");
@@ -85,7 +92,7 @@ it("renders the game's pause actions and saved-game name with an inverted select
     "MENU",
     "SAVE",
   ]);
-  expect(text).toContain("[RESUME]");
+  expect(text).toContain(">[RESUME]");
   expect(text).toMatch(/\[ +MENU/);
   expect(text).toMatch(/\[ +SAVE/);
   expect(text).toContain("20261114-123000");
@@ -98,10 +105,23 @@ it("renders the game's pause actions and saved-game name with an inverted select
   const selected = resume.find((cell) => cell.char === "R")!;
   expect(selected.foreground).toBe(colors.white);
   expect(selected.background).toBe(colors.green);
+  for (const label of ["MENU", "SAVE"]) {
+    const row = frame.find((row) =>
+      row
+        .map((cell) => cell.char)
+        .join("")
+        .includes(label)
+    )!;
+    const start = row
+      .map((cell) => cell.char)
+      .join("")
+      .indexOf(label);
+    expect(row[start].background).toBe(colors.grey);
+  }
 });
 
 it.each([33, 80])(
-  "fits five-cell tabs and close inside the warp dialog at %i columns",
+  "keeps complete five-letter tabs and close at the web positions at %i columns",
   (columns) => {
     const world = createAreaWorld("| ♀ |", { level: "LEVEL_MENU", size: 64 });
     const hero = assertHero(world);
@@ -114,22 +134,35 @@ it.each([33, 80])(
         row
           .map((cell) => cell.char)
           .join("")
-          .includes("[CLA]")
+          .includes("CLASS")
       )!;
     let row = header(read());
     expect(row).toBeDefined();
     expect(row.map((cell) => cell.char).join("")).toContain(
-      "[CLA][STY][LEV]═[X]"
+      "[CLASS]STYLE|LEVEL[X]"
     );
     const text = row.map((cell) => cell.char).join("");
-    const frame = read();
-    const bottom = frame.find((line) =>
-      line.some((cell) => cell.char === "╚")
+    const sequence = getSequence(world, hero, "popup")!;
+    const source = getSceneFrame(
+      world,
+      getTerminalLayout(columns, 30).width,
+      13,
+      undefined,
+      { instant: true }
+    );
+    const close = source.find(
+      (entry) =>
+        entry.particle ===
+        world.getEntityById(sequence.particles["popup-close-1"])
     )!;
-    const left = bottom.findIndex((cell) => cell.char === "╚");
-    const right = left + frameWidth - 1;
-    expect(text.indexOf("[CLA]")).toBe(left);
-    expect(text.indexOf("[X]") + 2).toBe(right);
+    const label = source.find(
+      (entry) =>
+        entry.particle ===
+        world.getEntityById(sequence.particles["popup-tab-1"])
+    )!;
+    const offset = getTerminalLayout(columns, 30).left;
+    expect(text.indexOf("CLASS")).toBe(Math.ceil(label.x) + offset);
+    expect(text.indexOf("X")).toBe(Math.ceil(close.x) + offset);
     const classStart = row.findIndex((cell) => cell.char === "C");
     expect(row[classStart]).toMatchObject({
       foreground: colors.black,
@@ -139,11 +172,10 @@ it.each([33, 80])(
     rerenderEntity(world, hero);
     advance(world, 100);
     row = header(read());
-    const styleStart =
-      row
-        .map((cell) => cell.char)
-        .join("")
-        .indexOf("[STY]") + 1;
+    const styleStart = row
+      .map((cell) => cell.char)
+      .join("")
+      .indexOf("STYLE");
     expect(row[styleStart]).toMatchObject({
       foreground: colors.black,
       background: colors.white,
@@ -170,10 +202,12 @@ it("keeps the underlying cell palette when shading a paused world", () => {
   const { left, top } = getTerminalLayout(80, 40);
   const source = active[top][left + 1];
   expect(paused[top][left + 1]).toEqual({
-    char: "▓",
+    char: "░",
     foreground:
       source.background && source.background !== colors.black
         ? source.background
+        : source.char === " "
+        ? colors.black
         : source.foreground,
     background: colors.black,
   });
@@ -235,4 +269,120 @@ it("keeps the normal menu HUD empty apart from pause", () => {
   expect(text).not.toContain("XP");
   expect(text).not.toContain("SPACE");
   expect(text).toContain("[║]");
+});
+
+it("keeps unavailable shop text and the material key visible", () => {
+  const { world, hero } = setup();
+  createPopup(world, hero, {
+    tabs: ["buy"],
+    deals: [
+      {
+        item: { consume: "key", material: "gold", amount: 1 },
+        stock: 0,
+        prices: [{ stackable: "coin", amount: 2 }],
+      },
+    ],
+  });
+  openPopup(world, hero, hero);
+  advance(world, 2000);
+  const frame = getTerminalFrame(world, 80, 40);
+  const text = frameToText(frame);
+  expect(text).toContain("Out of stock");
+  expect(text).toContain("Key");
+  expect(frame.flat()).toContainEqual(
+    expect.objectContaining({ char: "╒", foreground: colors.yellow })
+  );
+});
+
+it("shows a selected locked class on red rather than an underline", () => {
+  const world = createAreaWorld("| ♀ |", { level: "LEVEL_MENU", size: 64 });
+  const hero = assertHero(world);
+  const portal = createCell(
+    world,
+    { ...hero.POSITION! },
+    "portal",
+    "visible"
+  ).cell;
+  openPopup(world, hero, portal);
+  portal[POPUP]!.verticalIndezes[0] = 1;
+  rerenderEntity(world, portal);
+  advance(world, 2000);
+  const frame = getTerminalFrame(world, 80, 40);
+  const row = frame.find((row) =>
+    row
+      .map((cell) => cell.char)
+      .join("")
+      .includes("Knight")
+  )!;
+  expect(row).toBeDefined();
+  const index = row
+    .map((cell) => cell.char)
+    .join("")
+    .indexOf("Knight");
+  expect(
+    row.slice(index, index + 6).every((cell) => cell.background === colors.red)
+  ).toBe(true);
+});
+
+it.each([33, 80])(
+  "keeps pause shading between and beside its controls at %i columns",
+  (columns) => {
+    const { world } = setup();
+    const rows = 30;
+    const active = getTerminalFrame(world, columns, rows);
+    const paused = getTerminalFrame(world, columns, rows, undefined, {
+      paused: true,
+    });
+    const { top, height } = getTerminalLayout(columns, rows);
+    const overlayTop = top + Math.floor((height - 10) / 2);
+    const titleWidth = "█▀▄ █▀▄ █ █ ▄▀▀ ▄▀▀".length;
+    const overlayLeft = Math.floor((columns - titleWidth) / 2);
+    const buttonLeft = overlayLeft + Math.floor((titleWidth - 9) / 2);
+    for (const [x, y] of [
+      [buttonLeft - 1, overlayTop + 4],
+      [Math.floor(columns / 2), overlayTop + 3],
+    ]) {
+      const source = active[y][x];
+      expect(paused[y][x]).toEqual({
+        char: "░",
+        foreground:
+          source.background && source.background !== colors.black
+            ? source.background
+            : source.char === " "
+            ? colors.black
+            : source.foreground,
+        background: colors.black,
+      });
+    }
+  }
+);
+
+it("does not add a bright pause shade to empty black ground", () => {
+  const { world } = setup();
+  world.metadata.visibleCells = new Set(
+    Array.from({ length: 64 * 64 }, (_, index) => index)
+  );
+  for (const entity of world.getEntities([FOG]))
+    entity[FOG].visibility = "visible";
+  const columns = 80,
+    rows = 30;
+  const active = getTerminalFrame(world, columns, rows);
+  const paused = getTerminalFrame(world, columns, rows, undefined, {
+    paused: true,
+  });
+  const { left, top, width, height } = getTerminalLayout(columns, rows);
+  const y = top + height - 1;
+  const x = active[y].findIndex(
+    (cell, index) =>
+      index > left &&
+      index < left + width - 1 &&
+      cell.char === " " &&
+      cell.background === colors.black
+  );
+  expect(x).toBeGreaterThan(left);
+  expect(paused[y][x]).toMatchObject({
+    foreground: colors.black,
+    background: colors.black,
+  });
+  expect([" ", "░"]).toContain(paused[y][x].char);
 });
