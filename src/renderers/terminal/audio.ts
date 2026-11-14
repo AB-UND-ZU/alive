@@ -70,24 +70,52 @@ export const createAudioMixer = (
 };
 
 export const startTerminalAudio = (channels: AudioChannels = 1) => {
+  const sampleRate = 44100;
+  const blockFrames = 1024;
+  const input = [
+    "-f",
+    "wav",
+    "-ignore_length",
+    "1",
+    "-max_size",
+    String(blockFrames * 4 * channels),
+    "-blocksize",
+    String(blockFrames * 4 * channels),
+    "-probesize",
+    "32",
+    "-analyzeduration",
+    "1",
+    "-i",
+    "pipe:0",
+  ];
   const player = [
+    ...(process.platform === "darwin"
+      ? [
+          {
+            command: "ffmpeg",
+            probe: "-devices",
+            args: [
+              "-nostdin",
+              "-progress",
+              "pipe:1",
+              "-stats_period",
+              "0.05",
+              "-loglevel",
+              "quiet",
+              ...input,
+              "-c:a",
+              "pcm_f32le",
+              "-f",
+              "audiotoolbox",
+              "-",
+            ],
+          },
+        ]
+      : []),
     {
       command: "ffplay",
       probe: "-version",
-      args: [
-        "-nodisp",
-        "-autoexit",
-        "-loglevel",
-        "quiet",
-        "-f",
-        "f32le",
-        "-ar",
-        "44100",
-        "-ch_layout",
-        channels === 2 ? "stereo" : "mono",
-        "-i",
-        "pipe:0",
-      ],
+      args: ["-nodisp", "-autoexit", "-loglevel", "quiet", ...input],
     },
     {
       command: "aplay",
@@ -104,33 +132,52 @@ export const startTerminalAudio = (channels: AudioChannels = 1) => {
         String(channels),
       ],
     },
-  ].find(
-    ({ command, probe }) =>
-      spawnSync(command, [probe], { stdio: "ignore" }).status === 0
-  );
+  ].find(({ command, probe }) => {
+    const result = spawnSync(command, [probe], { encoding: "utf8" });
+    return (
+      result.status === 0 &&
+      (command !== "ffmpeg" || result.stdout?.includes("audiotoolbox"))
+    );
+  });
   if (!player) return undefined;
   const child = spawn(player.command, player.args, {
-    stdio: ["pipe", "ignore", "ignore"],
+    stdio: ["pipe", "pipe", "ignore"],
   });
-  const sampleRate = 44100;
   const mixer = createAudioMixer(sampleRate, channels);
-  const started = performance.now();
+  let started = performance.now();
+  let ready = player.command !== "ffmpeg";
+  let progress = "";
+  child.stdout?.on("data", (chunk) => {
+    if (ready) return;
+    progress += chunk.toString();
+    if (progress.includes("out_time_us=")) {
+      started = performance.now();
+      ready = true;
+      progress = "";
+    }
+  });
   let frames = 0;
-  setAudioOutput(mixer);
+  setAudioOutput({
+    ...mixer,
+    play: (...args) => {
+      if (ready) mixer.play(...args);
+    },
+  });
   const timer = setInterval(() => {
+    if (!ready) return;
     // Keep a small lead and catch up after a delayed game frame.
     const target =
-      Math.floor(((performance.now() - started) * sampleRate) / 1000) + 2048;
+      Math.floor(((performance.now() - started) * sampleRate) / 1000) + 512;
     while (
       frames < target &&
       child.stdin.writableLength <= 4096 * 4 * channels
     ) {
-      const length = Math.min(1024, target - frames);
+      const length = Math.min(256, target - frames);
       const samples = mixer.read(length);
       frames += length;
       if (!child.stdin.write(Buffer.from(samples.buffer))) break;
     }
-  }, 1024 / 44.1);
+  }, 5);
   const close = () => {
     clearInterval(timer);
     setAudioOutput();
@@ -143,5 +190,23 @@ export const startTerminalAudio = (channels: AudioChannels = 1) => {
     setAudioOutput();
   });
   child.stdin.on("error", close);
+  if (player.command !== "aplay") {
+    // Streaming IEEE float WAV bounds input packets without changing PCM samples.
+    const header = Buffer.alloc(44);
+    header.write("RIFF", 0);
+    header.writeUInt32LE(0xffffffff, 4);
+    header.write("WAVEfmt ", 8);
+    header.writeUInt32LE(16, 16);
+    header.writeUInt16LE(3, 20);
+    header.writeUInt16LE(channels, 22);
+    header.writeUInt32LE(sampleRate, 24);
+    header.writeUInt32LE(sampleRate * 4 * channels, 28);
+    header.writeUInt16LE(4 * channels, 32);
+    header.writeUInt16LE(32, 34);
+    header.write("data", 36);
+    header.writeUInt32LE(0xffffffff, 40);
+    child.stdin.write(header);
+  }
+  if (!ready) child.stdin.write(Buffer.alloc(blockFrames * 4 * channels));
   return close;
 };
