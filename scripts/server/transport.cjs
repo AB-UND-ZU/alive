@@ -51,6 +51,8 @@ exports.createGameServer = async ({
     for (const [socket, client] of clients) {
       if (
         client.account &&
+        socket.readyState === WebSocket.OPEN &&
+        socket.bufferedAmount < 2 * 1024 * 1024 &&
         !client.paused &&
         Date.now() - client.applicationTime < 3000
       ) {
@@ -201,7 +203,6 @@ exports.createGameServer = async ({
             type: "pong",
             serverTime: simulation.frame().serverTime,
           });
-          publish();
         } else if (message.type === "pause") {
           if (
             !client.account ||

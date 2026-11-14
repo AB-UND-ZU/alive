@@ -1,3 +1,12 @@
+import { entities } from "..";
+import { none } from "../../game/assets/sprites";
+import {
+  captureMotions,
+  getMotion,
+  sampleMotion,
+  getCameraMotion,
+} from "../motion";
+import { encodeState, decodeState } from "./codec";
 import { createReplica } from "./replica";
 import { createSnapshot } from "../snapshot";
 import { ACTIONABLE } from "../components/actionable";
@@ -108,4 +117,75 @@ it("advances only presentation time and finishes confirmed movement during a sta
   expect(replica.world.metadata.elapsed).toBe(elapsed);
   expect(actor[POSITION]).toEqual(confirmed);
   expect(assertHero(server)[POSITION]).toEqual(confirmed);
+});
+
+it("matches the authoritative mid-animation phase for actors and particles without simulating gameplay", () => {
+  const { server, replica } = setup();
+  walk(server, "right", 1);
+  const particle = entities.createParticle(server, {
+    PARTICLE: {
+      offsetX: 3,
+      offsetY: 0,
+      offsetZ: 0,
+      amount: 1,
+      animatedOrigin: { x: 0, y: 0 },
+      duration: 200,
+    },
+    RENDERABLE: { generation: 0 },
+    SPRITE: none,
+  });
+  advance(server, 80);
+  const frame = {
+    sequence: 1,
+    serverTime: server.metadata.elapsed,
+    snapshot: createSnapshot(server),
+    motions: captureMotions(server),
+  };
+  replica.receive(decodeState(JSON.parse(JSON.stringify(encodeState(frame)))));
+  const actor = assertHero(replica.world),
+    serverActor = assertHero(server);
+  const receivedParticle = replica.world.getEntityById(
+    server.getEntityId(particle)
+  )!;
+  for (const [source, received] of [
+    [serverActor, actor],
+    [particle, receivedParticle],
+  ]) {
+    expect(
+      sampleMotion(getMotion(received)!, replica.world.metadata.renderTime)
+    ).toEqual(sampleMotion(getMotion(source)!, server.metadata.elapsed));
+    expect(getMotion(received)).not.toBe(getMotion(source));
+  }
+  const confirmed = { ...actor[POSITION] };
+  replica.render(40);
+  expect(
+    sampleMotion(getMotion(actor)!, replica.world.metadata.renderTime)
+  ).toEqual(
+    sampleMotion(getMotion(serverActor)!, server.metadata.elapsed + 40)
+  );
+  expect(actor[POSITION]).toEqual(confirmed);
+});
+
+it("drops old presentation clocks when an authenticated connection starts a new snapshot epoch", () => {
+  const { server, replica, send } = setup();
+  walk(server, "right", 1);
+  send(1);
+  replica.render(1000);
+  const actor = assertHero(replica.world);
+  expect(getMotion(actor)).toBeDefined();
+  replica.resetOrdering();
+  expect(getMotion(actor)).toBeUndefined();
+  expect(
+    replica.receive({
+      sequence: 0,
+      serverTime: 10,
+      snapshot: createSnapshot(server),
+      motions: [],
+    })
+  ).toBe(true);
+  expect(getMotion(actor)).toBeUndefined();
+  expect(getCameraMotion(replica.world)).toMatchObject({
+    x: actor[POSITION].x,
+    y: actor[POSITION].y,
+  });
 });

@@ -1,3 +1,4 @@
+import { captureMotions } from "../motion";
 import { createWorld } from "..";
 import { createLevel, createSystems, preloadLevel, World } from "../ecs";
 import { createSnapshot, restoreSnapshot, WorldSnapshot } from "../snapshot";
@@ -314,6 +315,7 @@ export const createHost = (saved?: HostedWorld) => {
         serverTime: elapsed,
         realm: world.metadata.gameEntity[LEVEL].name,
         snapshot: createSnapshot(world),
+        motions: captureMotions(world),
       };
     },
     save: (): HostedWorld => ({

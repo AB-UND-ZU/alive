@@ -6,6 +6,9 @@ import {
   initializeParticleMotion,
   updateCameraMotion,
   getMotion,
+  captureMotions,
+  restoreMotions,
+  resetMotions,
 } from "../motion";
 import { POSITION, Position } from "../components/position";
 import createWorld from "../ecs";
@@ -16,6 +19,7 @@ export type StateFrame = {
   serverTime: number;
   snapshot: WorldSnapshot;
   realm?: LevelName;
+  motions?: ReturnType<typeof captureMotions>;
 };
 
 /** No gameplay systems are installed in this authoritative-state view. */
@@ -23,6 +27,7 @@ export const createReplica = () => {
   const world = createWorld();
   let sequence = -1;
   let serverTime = -1;
+  let localPlayerId: number | undefined;
   const receive = (frame: StateFrame) => {
     if (
       !Number.isSafeInteger(frame.sequence) ||
@@ -32,6 +37,11 @@ export const createReplica = () => {
       frame.serverTime < 0
     )
       return false;
+    const reset =
+      sequence < 0 ||
+      localPlayerId !== world.metadata.localPlayerId ||
+      (frame.realm !== undefined &&
+        frame.realm !== world.metadata.gameEntity[LEVEL]?.name);
     const presentationTime = Math.max(
       world.metadata.renderTime,
       frame.serverTime
@@ -48,7 +58,7 @@ export const createReplica = () => {
       releaseCameraMotion(world);
     }
     const size = world.metadata.gameEntity[LEVEL]?.size;
-    if (size)
+    if (size && !frame.motions && sequence >= 0)
       for (const [id, components] of frame.snapshot.entities) {
         const entity = world.getEntityByIdAndComponents(id, [POSITION]);
         const position = components[POSITION] as Position | undefined;
@@ -65,14 +75,16 @@ export const createReplica = () => {
       if (!getMotion(entity)) initializeParticleMotion(world, entity);
       updateParticleMotion(world, entity);
     }
+    if (frame.motions) restoreMotions(world, frame.motions);
     updateCameraMotion(world, true);
     world.metadata.elapsed = frame.serverTime;
     world.metadata.initial = false;
     world.metadata.occlusionGeneration += 1;
     sequence = frame.sequence;
     serverTime = frame.serverTime;
+    localPlayerId = world.metadata.localPlayerId;
     for (const listener of Object.values(world.metadata.listeners))
-      listener(true);
+      listener(reset);
     return true;
   };
   return {
@@ -82,6 +94,7 @@ export const createReplica = () => {
       sequence = -1;
       serverTime = -1;
       world.metadata.renderTime = 0;
+      resetMotions(world);
     },
     render(delta: number) {
       if (serverTime < 0) return;

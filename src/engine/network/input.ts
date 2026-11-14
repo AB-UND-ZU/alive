@@ -1,7 +1,13 @@
+import { isActionable } from "../systems/freeze";
+import { isDead } from "../systems/damage";
+import { POPUP } from "../components/popup";
+import { frameWidth, frameHeight } from "../../game/assets/utils";
 import { typeChat, navigateChat } from "../systems/popup";
 import {
   keyboardSize,
   keyboardPages,
+  keyboardColumns,
+  keyboardRows,
   getKeyFromIndex,
 } from "../../components/Keyboard";
 import type { World } from "../ecs";
@@ -79,7 +85,12 @@ export const isPlayerInput = (value: unknown): value is PlayerInput => {
     (!record(value.action) ||
       !keys(value.action, ["kind", "index", "offset", "tab"]) ||
       !inputActions.includes(value.action.kind as InputAction["kind"]) ||
-      !index(value.action.index) ||
+      !(value.action.kind === "scroll"
+        ? typeof value.action.index === "number" &&
+          Number.isFinite(value.action.index) &&
+          value.action.index >= 0 &&
+          value.action.index <= 1
+        : index(value.action.index)) ||
       !index(value.action.offset) ||
       !index(value.action.tab))
   )
@@ -164,6 +175,14 @@ export const createPlayerInput = (world: World, playerId: number) => {
       tap = undefined;
       frame[REFERENCE].suspended = false;
     }
+    if (!isActionable(world, player)) {
+      const dead = isDead(world, player);
+      if (!dead || pending?.kind !== "interact") pending = undefined;
+      player[ACTIONABLE].spellTriggered = false;
+      player[ACTIONABLE].skillTriggered = false;
+      if (!dead) player[ACTIONABLE].interactTriggered = false;
+      player[PLAYER].actionTriggered = undefined;
+    }
     if (
       !pending ||
       lastActionGeneration === frame[RENDERABLE].generation ||
@@ -173,9 +192,37 @@ export const createPlayerInput = (world: World, playerId: number) => {
       player[PLAYER].actionTriggered
     )
       return;
-    lastActionGeneration = frame[RENDERABLE].generation;
     const action = pending;
     pending = undefined;
+    const popup = world.getEntityByIdAndComponents(player[PLAYER].popup, [
+      POPUP,
+    ]);
+    if (
+      action.kind === "tab" &&
+      action.tab !== undefined &&
+      (!popup || action.tab >= popup[POPUP].tabs.length)
+    )
+      return;
+    if (
+      action.kind === "content" &&
+      (action.index === undefined ||
+        action.offset === undefined ||
+        action.index > frameHeight + 1 ||
+        action.offset > frameWidth)
+    )
+      return;
+    if (
+      ["type", "chat"].includes(action.kind) &&
+      ((action.index !== undefined && action.index >= keyboardColumns) ||
+        (action.offset !== undefined && action.offset >= keyboardRows) ||
+        (action.tab !== undefined && action.tab >= keyboardPages.length))
+    )
+      return;
+    if (action.kind === "history" && action.index !== 0 && action.index !== 1)
+      return;
+    if (action.kind === "use" && action.index !== undefined && action.index > 9)
+      return;
+    lastActionGeneration = frame[RENDERABLE].generation;
     if (action.kind === "history")
       navigateChat(world, player, action.index === 0 ? -1 : 1);
     else if (action.kind === "text") return;

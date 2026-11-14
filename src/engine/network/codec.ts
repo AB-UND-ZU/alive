@@ -10,7 +10,7 @@ type Value =
 type Node = ["array", Value[]] | ["object", [string, Value][]];
 type Graph = { root: Value; nodes: Node[] };
 
-export const encodeState = (state: unknown): string => {
+export const encodeState = (state: unknown): Graph => {
   const seen = new Map<object, number>();
   const nodes: Node[] = [];
   const encode = (value: unknown): Value => {
@@ -46,12 +46,13 @@ export const encodeState = (state: unknown): string => {
     return ["ref", id];
   };
   const root = encode(state);
-  return JSON.stringify({ root, nodes });
+  return { root, nodes };
 };
 
 /** Decode trusted server state, never client-authored world data. */
-export const decodeState = <T>(message: string): T => {
-  const { root, nodes } = JSON.parse(message) as Graph;
+export const decodeState = <T>(message: Graph | string): T => {
+  const { root, nodes } =
+    typeof message === "string" ? (JSON.parse(message) as Graph) : message;
   const restored = nodes.map((node) => (node[0] === "array" ? [] : {})) as (
     | unknown[]
     | Record<string, unknown>

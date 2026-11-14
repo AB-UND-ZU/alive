@@ -21,7 +21,8 @@ it("preserves special numbers, shared objects, undefined and cycles", () => {
     values: [-Infinity, NaN, -0],
   };
   source.self = source;
-  const result = decodeState<typeof source>(encodeState(source));
+  const wire = JSON.parse(JSON.stringify({ state: encodeState(source) }));
+  const result = decodeState<typeof source>(wire.state);
   expect(result).toEqual(source);
   expect(result.left).toBe(result.right);
   expect(result.self).toBe(result);

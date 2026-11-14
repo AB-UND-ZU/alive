@@ -1,6 +1,6 @@
 # Snapshot wire encoding
 
-`encodeState` encodes plain game data as a JSON object graph. Shared objects and cycles use reference indices. Special numbers and undefined use tagged values, preserving component identity and values such as infinite stat caps across a WebSocket or JSON file boundary.
+`encodeState` produces a JSON-ready object graph for plain game data. The transport serializes its complete message once, instead of embedding an already serialized snapshot inside another JSON string. Shared objects and cycles use reference indices. Special numbers and undefined use tagged values, preserving component identity and values such as infinite stat caps across a WebSocket or JSON file boundary.
 
 `decodeState` reconstructs trusted server data. It is not an input schema and must never be used to accept client-authored world state. Object properties are defined directly so keys such as `__proto__` remain data. Functions and non-plain objects are rejected by the encoder.
 

@@ -386,3 +386,51 @@ export const syncMovementSpring = (world: World, entity: Entity) => {
   }
   motion.config = config;
 };
+
+const copyMotion = (motion: Motion): Motion => ({
+  ...motion,
+  config: { ...motion.config },
+});
+
+export type EntityMotions = [number, { move?: Motion; bump?: Motion }][];
+
+export const captureMotions = (world: World): EntityMotions => {
+  const result: EntityMotions = [];
+  for (const entity of world.getEntities([])) {
+    const move = motions.get(entity),
+      bump = bumps.get(entity)?.motion;
+    if (move || bump)
+      result.push([
+        world.getEntityId(entity),
+        { move: move && copyMotion(move), bump: bump && copyMotion(bump) },
+      ]);
+  }
+  return result;
+};
+
+export const restoreMotions = (world: World, records: EntityMotions) => {
+  for (const [id, record] of records) {
+    const entity = world.getEntityById(id);
+    if (!entity) continue;
+    if (record.move) {
+      const existing = motions.get(entity);
+      if (existing) Object.assign(existing, copyMotion(record.move));
+      else motions.set(entity, copyMotion(record.move));
+    }
+    if (record.bump && entity[BUMPABLE])
+      bumps.set(entity, {
+        generation: entity[BUMPABLE].generation,
+        motion: copyMotion(record.bump),
+      });
+  }
+};
+
+export const resetMotions = (world: World) => {
+  if (world.metadata.gameEntity.LEVEL)
+    for (const entity of world.getEntities([])) {
+      motions.delete(entity);
+      bumps.delete(entity);
+    }
+  particles.delete(world);
+  cameras.delete(world);
+};

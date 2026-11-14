@@ -1,6 +1,13 @@
+import { createText } from "../../game/assets/ui";
+import { AFFECTABLE } from "../components/affectable";
 import { assertIdentifierAndComponents } from "../utils";
 import { POPUP } from "../components/popup";
-import { openPopup, getTabSelections } from "../systems/popup";
+import {
+  openPopup,
+  getTabSelections,
+  createPopup,
+  getVerticalIndex,
+} from "../systems/popup";
 import { createHero } from "../systems/fate";
 import { createPlayerInput, isPlayerInput } from "./input";
 import {
@@ -138,4 +145,51 @@ it("keeps one short movement tap until the native player tick without repeating 
   expect(hero[POSITION]).toEqual({ x: before.x + 1, y: before.y });
   advance(world, 900);
   expect(hero[POSITION]).toEqual({ x: before.x + 1, y: before.y });
+});
+
+it("discards spell attempts made while frozen instead of casting them after thawing", () => {
+  const { world, hero, input } = setup();
+  giveItems(world, hero, [{ spell: "wave", material: "wood", amount: 1 }]);
+  hero[STATS].mp = 5;
+  hero[STATS].maxMp = 5;
+  const affected = world.assertComponents(hero, [AFFECTABLE]);
+  affected[AFFECTABLE].freeze = 20;
+  input.receive({ sequence: 0, action: { kind: "spell" } });
+  advance(world, 500);
+  affected[AFFECTABLE].freeze = 0;
+  advance(world, 900);
+  expect(hero[STATS].mp).toBe(5);
+  expect(hero[ACTIONABLE].spellTriggered).toBe(false);
+});
+
+it("accepts normalized scrollbar positions and ignores coordinates outside the owned dialog", () => {
+  const { world, hero, input } = setup();
+  const use = assertIdentifierAndComponents(world, "use", [POPUP]);
+  createPopup(world, use, {
+    tabs: ["info"],
+    lines: [
+      Array.from({ length: 40 }, (_, index) => createText(`Line ${index}`)),
+    ],
+  });
+  openPopup(world, hero, use, true);
+  const tab = use[POPUP].horizontalIndex;
+  expect(
+    isPlayerInput({ sequence: 0, action: { kind: "scroll", index: 0.75 } })
+  ).toBe(true);
+  expect(
+    isPlayerInput({ sequence: 0, action: { kind: "scroll", index: 2 } })
+  ).toBe(false);
+  input.receive({ sequence: 0, action: { kind: "tab", tab: 4096 } });
+  advance(world, 500);
+  expect(use[POPUP].horizontalIndex).toBe(tab);
+  input.receive({
+    sequence: 1,
+    action: { kind: "content", index: 4096, offset: 4096 },
+  });
+  expect(() => advance(world, 500)).not.toThrow();
+  expect(hero[PLAYER]!.popup).toBe(world.getEntityId(use));
+  expect(use[POPUP].horizontalIndex).toBe(tab);
+  input.receive({ sequence: 2, action: { kind: "scroll", index: 0.75 } });
+  advance(world, 500);
+  expect(getVerticalIndex(world, use)).toBeGreaterThan(0);
 });
