@@ -5,6 +5,8 @@ import {
   getHero,
   giveItems,
   act,
+  step,
+  findEntityAt,
 } from "../../testing/harness";
 import { POPUP } from "../../engine/components/popup";
 import { PLAYER } from "../../engine/components/player";
@@ -455,6 +457,47 @@ it("keeps a homing disc aligned to its visible movement until it reaches a corne
   world.metadata.renderTime = world.metadata.elapsed + 50;
   expect(body().layers).toEqual(getFacingLayers(disc[SPRITE], "down"));
 });
+
+it.each([{}, { includeHidden: true }, { instant: true }])(
+  "does not expose ore behind an unexplored wall with frame options %o",
+  (options) => {
+    const world = createAreaWorld(
+      `
+|█████████|
+|█    █  █|
+|█   ♀█O █|
+|█    █  █|
+|█████████|
+`,
+      { size: 48, level: "LEVEL_ISLAND", legend: { O: "ore" } }
+    );
+    const hero = getHero(world)!;
+    const vein = findEntityAt(world, { x: 6, y: 2 }, [FOG, INVENTORY])!;
+    const oreVisible = () =>
+      getSceneFrame(world, 21, 15, undefined, options).some(
+        (entry) => entry.entity === vein && entry.loot && !entry.hidden
+      );
+    step(world, 10);
+    expect(vein[FOG].visibility).toBe("hidden");
+    expect(world.metadata.visibleCells.has(6 * 48 + 2)).toBe(false);
+    expect(oreVisible()).toBe(false);
+
+    moveEntity(world, hero, { x: 7, y: 2 });
+    step(world, 10);
+    expect(vein[FOG].visibility).toBe("visible");
+    expect(oreVisible()).toBe(true);
+
+    moveEntity(world, hero, { x: 4, y: 2 });
+    step(world, 10);
+    expect(vein[FOG].visibility).toBe("fog");
+    expect(oreVisible()).toBe(true);
+
+    moveEntity(world, hero, { x: 13, y: 2 });
+    step(world, 10);
+    expect(vein[FOG].visibility).toBe("fog");
+    expect(oreVisible()).toBe(false);
+  }
+);
 
 it("keeps hidden loot available for fading and keys items by identity", () => {
   const world = createAreaWorld(area, { size: 48 });

@@ -287,7 +287,8 @@ export const getSceneFrame = (
       entry.hidden = hidden || !entity[SWIMMABLE].swimming;
     }
     const hasLoot = isLootable(world, entity) || isCollecting(world, entity);
-    const lootVisible = hasLoot && (opaque ? inRadius : visible) && !outside;
+    const lootVisible =
+      hasLoot && !hidden && (opaque ? inRadius : visible) && !outside;
     if (hasLoot && (lootVisible || includeHidden)) {
       const items: Entity[] = (entity[INVENTORY]?.items || [])
         .map((itemId: number) =>
