@@ -65,6 +65,8 @@ npm run wiki:test
 
 Fast checks cover types, lint, and small feature tests. `test:slow` checks game integration and rendering; `test:all` runs both test groups. `test:logic` runs engine and game feature tests without a visual host; `test:renderers` runs renderer and browser UI tests. The pre-commit hook runs lint only, so run the checks above before committing code changes. The wiki browser suite checks live examples, navigation, and responsive layout.
 
+Test commands run Jest in one process, Node test files sequentially, and Playwright with one worker. Checks and production builds run at lower CPU priority through `nice`. Run heavy commands one at a time across all worktrees; these limits apply to each command, not to the machine as a whole. `wiki:test` builds all three clients and the wiki before running browser checks, so it also covers those production builds.
+
 CRA still requests Babel's former proposal-plugin name. The development dependency aliases that name to the maintained private-property transform, with the same plugin interface. Drei imports name the used modules directly so unused face-tracking dependencies are excluded from the build graph. Jest transforms those ESM modules and their runtime helpers.
 
 The wiki test script clears `NO_COLOR` for Playwright because its workers force `FORCE_COLOR=1`; passing both flags causes a Node warning.

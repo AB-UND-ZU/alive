@@ -32,6 +32,7 @@ Alive is a browser adventure game built with TypeScript, React, Three.js and an 
 - Run `npm run test:generation` only when changing level generation or generation-dependent fixtures. CI always runs generation and the other game tests together with coverage through `npm run test:ci`.
 - For wiki, run `npm run wiki:build` and `npm run wiki:test`. Inspect the built pages and working examples in a browser after visual changes.
 - Rebuild `src/wiki/minimap.json` with `npm run wiki:minimap` only when the user explicitly asks. Normal wiki builds and previews must reuse the committed snapshot.
+- Run heavy checks and builds one at a time across all worktrees. Inspect running processes before starting a full suite. Keep the npm scripts' single-worker defaults; do not increase workers or bypass their lower CPU priority. `wiki:test` already builds all clients and the wiki, so do not repeat those builds unless a subsequent change requires them.
 - Report what passed, what was checked manually, and any remaining limits. Do not claim checks that were not run.
 
 ## Find the right place
