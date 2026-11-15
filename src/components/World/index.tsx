@@ -52,7 +52,7 @@ export default function World({
   children,
 }: React.PropsWithChildren<{
   createInitialWorld?: () => WorldType;
-  serverStorage?: Pick<Storage, "getItem" | "setItem">;
+  serverStorage?: Pick<Storage, "getItem" | "setItem" | "removeItem">;
   persistent?: boolean;
 }>) {
   const dimensions = useDimensions();

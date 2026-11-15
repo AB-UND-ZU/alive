@@ -1,8 +1,8 @@
 import { serverUrl } from "./url";
 
-/** Bookmarks are separate from the credentials that own remote characters. */
+/** Erasing a server also gives up ownership of its remote character. */
 export const createServerList = (
-  storage: Pick<Storage, "getItem" | "setItem">
+  storage: Pick<Storage, "getItem" | "setItem" | "removeItem">
 ) => {
   const key = "alive.servers";
   const list = (): string[] => JSON.parse(storage.getItem(key) || "[]");
@@ -13,9 +13,11 @@ export const createServerList = (
       storage.setItem(key, JSON.stringify([...new Set([...list(), url])]));
     },
     erase(address: string) {
+      const addressUrl = serverUrl(address);
+      storage.removeItem(`alive.server:${addressUrl}`);
       storage.setItem(
         key,
-        JSON.stringify(list().filter((url) => url !== address))
+        JSON.stringify(list().filter((url) => url !== addressUrl))
       );
     },
   };

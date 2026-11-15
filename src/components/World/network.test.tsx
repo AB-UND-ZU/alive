@@ -41,7 +41,11 @@ it("pauses only its own server connection, avoids local game saves and returns t
     context = useWorld();
     return null;
   }
-  const storage = { getItem: jest.fn(), setItem: jest.fn() };
+  const storage = {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+  };
   const view = render(
     <World createInitialWorld={() => local} persistent serverStorage={storage}>
       <Probe />

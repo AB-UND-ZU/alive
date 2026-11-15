@@ -118,6 +118,8 @@ export function ServerGame({ children }: React.PropsWithChildren) {
     () => ({
       getItem: (key: string) =>
         localStorage.getItem(`alive.wiki.client.${slot}:${key}`),
+      removeItem: (key: string) =>
+        localStorage.removeItem(`alive.wiki.client.${slot}:${key}`),
       setItem: (key: string, value: string) =>
         localStorage.setItem(`alive.wiki.client.${slot}:${key}`, value),
     }),

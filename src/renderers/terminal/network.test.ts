@@ -17,6 +17,11 @@ it("keeps server reconnect ownership across terminal sessions and separates host
       first.getItem("alive.server:ws://host:3001/")
     );
     expect(second.getItem("alive.server:ws://other:3001/")).toBeNull();
+    second.removeItem("alive.server:ws://host:3001/");
+    expect(second.getItem("alive.server:ws://host:3001/")).toBeNull();
+    expect(
+      createServerStorage(file).getItem("alive.server:ws://host:3001/")
+    ).toBeNull();
     writeFileSync(file, "corrupt");
     expect(() => createServerStorage(file)).toThrow();
   } finally {

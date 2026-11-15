@@ -356,7 +356,7 @@ test("server admins receive private player lists and complete usernames before g
   }
 });
 
-test("the native menu portal connects, leaves and reuses the saved identity", async ({
+test("the native menu portal erases credentials and leaves its old character on the server", async ({
   page,
 }, testInfo) => {
   const errors = [];
@@ -467,13 +467,24 @@ test("the native menu portal connects, leaves and reuses the saved identity", as
       )
     )
     .toBe(0);
+  expect(
+    await page.evaluate(
+      (port) => localStorage.getItem(`alive.server:ws://127.0.0.1:${port}/`),
+      server.address.port
+    )
+  ).toBeNull();
   await page.locator("#right").click();
   await expect(page.locator("#keyboard")).toBeVisible();
   await paste(`127.0.0.1:${server.address.port}`);
   await page.locator("body").press("Enter");
+  await expect(page.locator("#keyboard")).toBeVisible();
+  await paste("ClaraNew");
+  await page.locator("body").press("Enter");
   await page.screenshot({ path: testInfo.outputPath("native-return.png") });
   await expect.poll(() => identities.length).toBe(2);
-  expect(identities[1]).toBe(identities[0]);
+  expect(identities[1]).not.toBe(identities[0]);
+  expect(hero.PLAYER.username).toBe("Clara");
+  expect(hero.PLAYER.connected).toBe(false);
   expect(errors).toEqual([]);
 });
 

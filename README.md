@@ -36,7 +36,7 @@ The server prints its LAN WebSocket address and listens on port 3001 by default.
 
 This initial co-op version shares world and quest progress, grants the same quest rewards to every character, and keeps each player's controls and dialogs private. Clients predict one movement cell and animate confirmed effects locally; the server decides every outcome. See [multiplayer](wiki/multiplayer.md), [host implementation](src/engine/network/host.md), and [networking research](src/engine/network/input.md).
 
-All clients, including the native terminal, connect through the in-game **Servers** portal. Select **(Add server)**, enter the URL and choose a username when asked. Saved addresses can be entered or erased; erasing an address keeps its reconnect credentials and server-side character. Native terminal credentials are stored separately from browser credentials.
+All clients, including the native terminal, connect through the in-game **Servers** portal. Select **(Add server)**, enter the URL and choose a username when asked. Saved addresses can be entered or erased; erasing an address deletes its reconnect credentials and leaves the character orphaned on the server. Native terminal credentials are stored separately from browser credentials.
 
 ## Read and preview the wiki
 

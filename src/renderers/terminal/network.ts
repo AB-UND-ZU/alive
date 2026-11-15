@@ -16,16 +16,23 @@ export const createServerStorage = (
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
   }
+  const save = (next: Map<string, string>) => {
+    mkdirSync(dirname(file), { recursive: true, mode: 0o700 });
+    writeFileSync(file + ".tmp", JSON.stringify(Object.fromEntries(next)), {
+      mode: 0o600,
+    });
+    renameSync(file + ".tmp", file);
+    values = next;
+  };
   return {
     getItem: (key: string) => values.get(key) || null,
     setItem(key: string, value: string) {
-      const next = new Map(values).set(key, value);
-      mkdirSync(dirname(file), { recursive: true, mode: 0o700 });
-      writeFileSync(file + ".tmp", JSON.stringify(Object.fromEntries(next)), {
-        mode: 0o600,
-      });
-      renameSync(file + ".tmp", file);
-      values = next;
+      save(new Map(values).set(key, value));
+    },
+    removeItem(key: string) {
+      const next = new Map(values);
+      next.delete(key);
+      save(next);
     },
   };
 };

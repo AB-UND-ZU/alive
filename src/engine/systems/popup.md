@@ -19,7 +19,7 @@ Chat edits use `typeChat(world, hero, keyIndex)` immediately in single player, w
 
 An omitted or empty line clears the speech bubble without adding history.
 
-The local Servers dialog starts with saved addresses and a final (Add server) row. Add enters URL and then Name when no reconnect credential exists; Enter resumes a saved address. Erase removes only its bookmark. URL and Name clear nonempty input or return from an empty input. `hasPopupBackButton` reads current text so an immediate Escape after clearing does not use a stale rendered button.
+The local Servers dialog starts with saved addresses and a final (Add server) row. Add enters URL and then Name when no reconnect credential exists; Enter resumes a saved address. Erase removes its bookmark and reconnect credentials, leaving its server character orphaned. URL and Name clear nonempty input or return from an empty input. `hasPopupBackButton` reads current text so an immediate Escape after clearing does not use a stale rendered button.
 
 `completeChat(world, hero)` appends the current command suggestion to the chat buffer. Desktop Tab and a right swipe use this function. Suggestions are display-only until accepted; history still contains only submitted text.
 

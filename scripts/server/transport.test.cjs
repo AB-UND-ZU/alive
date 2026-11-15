@@ -444,7 +444,7 @@ test("startup admins can manage players through authoritative commands and resta
   }
 });
 
-test("native terminal connections resume their character after erasing and re-adding a bookmark", async () => {
+test("erasing native credentials orphans the old character and re-adding creates a new one", async () => {
   const server = await createGameServer({
     engine,
     file: path.join(directory, "terminal.save"),
@@ -478,9 +478,12 @@ test("native terminal connections resume their character after erasing and re-ad
     assert.deepEqual(bookmarks.list(), []);
     bookmarks.add(url(server));
     const next = await join("AnotherName");
-    assert.equal(next.metadata.localPlayerId, actorId);
-    const hero = next.getEntityById(actorId);
-    assert.equal(hero.PLAYER.username, "Native");
+    assert.notEqual(next.metadata.localPlayerId, actorId);
+    const hero = next.getEntityById(next.metadata.localPlayerId);
+    assert.equal(hero.PLAYER.username, "AnotherName");
+    const orphan = server.simulation.world.getEntityById(actorId);
+    assert.equal(orphan.PLAYER.username, "Native");
+    assert.equal(orphan.PLAYER.connected, false);
     connection.action({ kind: "gear" });
     for (let attempt = 0; attempt < 100 && !hero.PLAYER.popup; attempt++)
       await new Promise((resolve) => setTimeout(resolve, 20));
