@@ -1,10 +1,7 @@
 import { capturePreviewKey } from "./previewInput";
 import { useEffect, useMemo, useRef } from "react";
-import { useWorld } from "../bindings/hooks";
-import Controls from "../components/Controls";
+import { useWorld } from "../renderers/interface/hooks";
 import Dimensions from "../components/Dimensions";
-import Stats from "../components/Stats";
-import Terminal from "../components/Terminal";
 import World from "../components/World";
 import { ensureAudio, setAudioActive } from "../game/sound/resumable";
 
@@ -110,7 +107,7 @@ function Connection({
   return null;
 }
 
-export function ServerGame() {
+export function ServerGame({ children }: React.PropsWithChildren) {
   const started = useRef(false);
   const joined = useRef(false);
   const query = new URLSearchParams(window.location.search);
@@ -129,9 +126,7 @@ export function ServerGame() {
   return (
     <Dimensions className="App">
       <World serverStorage={storage}>
-        <Stats />
-        <Terminal />
-        <Controls pauseOnBlur={false} />
+        {children}
         <Connection
           address={address}
           username={username}

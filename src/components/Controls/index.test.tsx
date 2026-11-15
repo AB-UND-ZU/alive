@@ -212,13 +212,17 @@ describe("keyboard movement", () => {
   });
 
   it("opens the adjacent interaction after moving, pressing Enter and releasing movement", () => {
-    const { world, hero, tick } = setup([], {}, `
+    const { world, hero, tick } = setup(
+      [],
+      {},
+      `
 |     |
 | ♀   |
 |     |
 | ¾   |
 |     |
-`);
+`
+    );
     press("ArrowDown");
     runUntil(world, () => hero[POSITION].y === 2);
     press("Enter");
@@ -233,7 +237,7 @@ describe("keyboard movement", () => {
     expect(getTab(world, popup)).toBe("credits");
   });
 
-  it("clears a queued interaction without a target so the next action still works", () => {
+  it("opens chat without an interaction and allows another action after closing it", () => {
     const { world, hero, tick } = setup();
     const x = hero[POSITION].x;
     press("ArrowRight");
@@ -243,8 +247,12 @@ describe("keyboard movement", () => {
     release("ArrowRight");
     tick(60);
 
-    expect(isInPopup(world, hero)).toBeFalsy();
+    expect(getTab(world, getMenu(world))).toBe("chat");
     expect(hero[ACTIONABLE].interactTriggered).toBe(false);
+    press("Escape");
+    release("Escape");
+    tick(10);
+    expect(isInPopup(world, hero)).toBeFalsy();
     press("g");
     runUntil(world, () => !!isInPopup(world, hero));
     expect(getTab(world, getMenu(world))).toBe("gear");

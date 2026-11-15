@@ -38,7 +38,3 @@ type Action = {
   palette: Palette;
 };
 ```
-
-Compact controls keep spell activation under its spell button, and align both activation groups when both actions exist. Normal game controls retain their full equipment rows.
-
-`pauseOnBlur` defaults to true. The two-client server preview disables it so an unfocused client keeps receiving confirmed state. Blur still releases held input; hiding or leaving the page still pauses the client.

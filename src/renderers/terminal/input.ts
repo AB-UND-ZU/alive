@@ -1,9 +1,16 @@
+import type { InputAction } from "../../engine/network/input";
+import {
+  getLocalPlayer,
+  getInteraction,
+  getPlayerInterface,
+} from "../../engine/players";
+import { isTestMode } from "../../engine/mode";
 import { World } from "../../engine";
+import { LEVEL } from "../../engine/components/level";
 import { ACTIONABLE } from "../../engine/components/actionable";
 import { MOVABLE } from "../../engine/components/movable";
 import { PLAYER, Player } from "../../engine/components/player";
 import { REFERENCE } from "../../engine/components/reference";
-import { IDENTIFIABLE } from "../../engine/components/identifiable";
 import { getSequence } from "../../engine/systems/sequence";
 import { POPUP } from "../../engine/components/popup";
 import { Orientation } from "../../engine/components/orientable";
@@ -15,7 +22,6 @@ import {
   completeChat,
   navigateChat,
 } from "../../engine/systems/popup";
-import { TEST_MODE } from "../../engine/utils";
 import { credits } from "../../game/assets/credits";
 import { play } from "../../game/sound";
 import { isDead } from "../../engine/systems/damage";
@@ -27,7 +33,7 @@ import {
 } from "../../game/assets/keyboard";
 
 type Action =
-  | NonNullable<Player["actionTriggered"]>
+  | Extract<NonNullable<Player["actionTriggered"]>, InputAction["kind"]>
   | "spell"
   | "skill"
   | "interact";
@@ -68,7 +74,15 @@ export const createTerminalInput = (
   openLink: (url: string) => void = () => {}
 ) => {
   let release: ReturnType<typeof setTimeout> | undefined;
-  const getHero = () => world.getEntities([PLAYER, MOVABLE, ACTIONABLE])[0];
+  const getHero = () => getLocalPlayer(world, [MOVABLE, ACTIONABLE]);
+  let text: number[] = [];
+  const flushText = () => {
+    while (text.length)
+      world.metadata.network?.action({
+        kind: "text",
+        indices: text.splice(0, 128),
+      });
+  };
   const stop = () => {
     clearTimeout(release);
     const hero = getHero();
@@ -80,34 +94,48 @@ export const createTerminalInput = (
     if (!hero) return;
     const name = key.name || key.sequence || "";
     const popup = world.getEntityByIdAndComponents(hero[PLAYER].popup, [POPUP]);
-    const chat = popup && getTab(world, popup) === "chat";
+    const tab = popup && getTab(world, popup);
+    const chat =
+      tab === "chat" || (tab === "server" && !world.metadata.network);
+    const send = (kind: "text" | "history" | "complete", index?: number) => {
+      if (kind === "text" && index !== undefined) {
+        if (!text.length) queueMicrotask(flushText);
+        text.push(index);
+      } else {
+        flushText();
+        world.metadata.network?.action({ kind, index });
+      }
+    };
     if (chat) {
       if (name === "backspace") {
-        typeChat(world, hero);
+        if (world.metadata.network) send("text");
+        else typeChat(world, hero);
         return;
       }
       if (name === "tab") {
-        completeChat(world, hero);
+        if (world.metadata.network) send("complete");
+        else completeChat(world, hero);
         return;
       }
       if (name === "up" || name === "down") {
-        navigateChat(world, hero, name === "up" ? -1 : 1);
+        if (world.metadata.network) send("history", name === "up" ? 0 : 1);
+        else navigateChat(world, hero, name === "up" ? -1 : 1);
         return;
       }
       const char = key.sequence;
       const index =
         char && [...char].length === 1 ? getIndexFromKey(char) : undefined;
       if (index) {
-        typeChat(
-          world,
-          hero,
+        const value =
           index.tab * keyboardSize +
-            index.offset * keyboardColumns +
-            index.content
-        );
+          index.offset * keyboardColumns +
+          index.content;
+        if (world.metadata.network) send("text", value);
+        else typeChat(world, hero, value);
         return;
       }
     }
+    flushText();
     const reference = world.assertByIdAndComponents(hero[MOVABLE].reference, [
       REFERENCE,
     ])[REFERENCE];
@@ -124,7 +152,11 @@ export const createTerminalInput = (
     if (name === "return" || name === "enter")
       action = popup
         ? "right"
-        : TEST_MODE && !world.metadata.interact.active
+        : !hero[PLAYER].ghost &&
+          (world.metadata.network ||
+            world.metadata.gameEntity[LEVEL].name !== "LEVEL_MENU" ||
+            isTestMode(world, hero)) &&
+          !getInteraction(world, hero).active
         ? "chat"
         : "interact";
     if (name === "backspace") action = popup ? "left" : undefined;
@@ -137,7 +169,7 @@ export const createTerminalInput = (
     if (name === "tab" && !chat) {
       action = !popup
         ? "use"
-        : popup[IDENTIFIABLE]?.name === "use"
+        : getPlayerInterface(world, hero, "use", [POPUP]) === popup
         ? "close"
         : key.shift
         ? "backtab"
@@ -148,6 +180,34 @@ export const createTerminalInput = (
     if (index !== undefined) action = "use";
     if (name === "/") action = "chat";
     if (!action) return;
+    if (popup) stop();
+    if (action === "right" && popup && getTab(world, popup) === "credits") {
+      const credit = credits[getVerticalIndex(world, popup)];
+      if (credit?.link) {
+        play("confirm");
+        openLink(credit.link);
+      }
+      return;
+    }
+    if (
+      world.metadata.network &&
+      action === "left" &&
+      popup &&
+      getTab(world, popup) === "server"
+    ) {
+      world.metadata.leaveServer();
+      return;
+    }
+    if (world.metadata.network) {
+      const slash = name === "/" ? getIndexFromKey("/") : undefined;
+      world.metadata.network.action({
+        kind: action,
+        index: slash?.content ?? index,
+        offset: slash?.offset,
+        tab: slash?.tab,
+      });
+      return;
+    }
     if (action === "close" && popup) {
       stop();
       hero[PLAYER].actionTriggered = undefined;
@@ -161,15 +221,6 @@ export const createTerminalInput = (
       hero[PLAYER].actionTriggered
     )
       return;
-    if (popup) stop();
-    if (action === "right" && popup && getTab(world, popup) === "credits") {
-      const credit = credits[getVerticalIndex(world, popup)];
-      if (credit?.link) {
-        play("confirm");
-        openLink(credit.link);
-      }
-      return;
-    }
     if (action === "spell") hero[ACTIONABLE].spellTriggered = true;
     else if (action === "skill") hero[ACTIONABLE].skillTriggered = true;
     else if (action === "interact") hero[ACTIONABLE].interactTriggered = true;

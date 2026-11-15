@@ -222,3 +222,17 @@ it("pauses the standalone session when the browser loses focus", () => {
   fireEvent.blur(window);
   expect(setPaused).toHaveBeenCalledWith(true);
 });
+
+it("pastes chat text through normal terminal input without interpreting shortcuts", () => {
+  const { world, hero } = setup();
+  openChat(world);
+  render(<BrowserPreview world={world} {...dimensions} paused={false} />);
+  fireEvent.paste(document.body, {
+    clipboardData: { getData: () => "Text Player" },
+  });
+  const popup = getMenu(world);
+  expect(popup[POPUP].selections[popup[POPUP].horizontalIndex]).toHaveLength(
+    11
+  );
+  expect(hero[ACTIONABLE].spellTriggered).toBe(false);
+});

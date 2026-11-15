@@ -32,3 +32,26 @@ Clipboard text uses one bounded text action containing up to 128 native key indi
 Scrollbar input replaces an already pending scrollbar target with its newest position. Other actions keep the single-action mailbox, so dragging cannot build a backlog or drop its final position.
 
 The mailbox exposes its last applied input sequence after `onUpdate`. Transport receipts still mean received, while authoritative frames carry the applied sequence for visual movement reconciliation. Neither acknowledgment lets a client choose gameplay results or simulation time.
+<!-- source-types -->
+
+## InputAction
+
+```ts src/engine/network/input.ts
+export type InputAction = {
+  kind: (typeof inputActions)[number];
+  index?: number;
+  indices?: number[];
+  offset?: number;
+  tab?: number;
+};
+```
+
+## PlayerInput
+
+```ts src/engine/network/input.ts
+export type PlayerInput = {
+  sequence: number;
+  move?: Orientation[];
+  action?: InputAction;
+};
+```

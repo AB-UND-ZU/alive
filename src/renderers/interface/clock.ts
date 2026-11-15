@@ -2,7 +2,11 @@ export const systemsFrame = 1000 / 30;
 const catchupFrames = 15;
 
 export type FrameWorld = {
-  metadata: { elapsed: number; renderTime: number };
+  metadata: {
+    elapsed: number;
+    renderTime: number;
+    network?: { render: (delta: number) => void };
+  };
   update: (delta: number) => void;
 };
 
@@ -21,6 +25,10 @@ export const createFrameClock = (world: FrameWorld) => {
       return world.metadata.renderTime;
     }
 
+    if (world.metadata.network) {
+      world.metadata.network.render(deltaMs);
+      return world.metadata.renderTime;
+    }
     elapsed += Math.min(deltaMs, systemsFrame * catchupFrames);
     running = true;
     try {

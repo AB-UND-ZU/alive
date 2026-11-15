@@ -136,6 +136,8 @@ export const assertPlayerInterface = <C extends keyof Entity>(
 
 export const getInteraction = (world: World, player: Partial<Entity>) => {
   if (!player[PLAYER]?.accountId) return world.metadata.interact;
+  if (world.metadata.network)
+    return player[PLAYER].interact || world.metadata.interact;
   return (player[PLAYER].interact ||= {
     position: { x: 0, y: 0 },
     size: { x: 0, y: 0 },

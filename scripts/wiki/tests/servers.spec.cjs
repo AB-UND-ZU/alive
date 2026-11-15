@@ -1,4 +1,4 @@
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./fixtures.cjs");
 const { mkdtemp, rm, realpath } = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
@@ -528,9 +528,13 @@ test("multiplayer popup hit areas follow rendered content, dragging and dialog b
   const cell = bar.height / 9;
   await page.mouse.move(bar.x + bar.width / 2, bar.y + 2 * cell);
   await page.mouse.down();
-  await page.mouse.move(bar.x + bar.width / 2, bar.y + bar.height - 2 * cell, {
-    steps: 12,
-  });
+  await page.mouse.move(
+    bar.x + bar.width / 2,
+    bar.y + bar.height - 1.5 * cell,
+    {
+      steps: 12,
+    }
+  );
   await page.mouse.up();
   await expect.poll(row).toBe(39);
   const top = popup().SEQUENCABLE.states.popup.args.scrollIndex;
@@ -573,7 +577,12 @@ test("multiplayer popup hit areas follow rendered content, dragging and dialog b
   const mobileBar = await page.locator("#scroll").boundingBox();
   await page
     .locator("#scroll")
-    .click({ position: { x: mobileBar.width / 2, y: mobileBar.height - 1 } });
+    .click({
+      position: {
+        x: mobileBar.width / 2,
+        y: mobileBar.height - (1.5 * mobileBar.height) / 9,
+      },
+    });
   await expect.poll(row).toBe(39);
   await page.waitForTimeout(1000);
   await page.screenshot({
@@ -582,4 +591,142 @@ test("multiplayer popup hit areas follow rendered content, dragging and dialog b
   });
   await page.locator("#close").click();
   await expect.poll(() => hero.PLAYER.popup).toBeUndefined();
+});
+
+test("isolated renderers share one server with owned controls, dialogs and reconnects", async ({
+  browser,
+  baseURL,
+}, testInfo) => {
+  test.setTimeout(120000);
+  const contexts = [];
+  const clients = [];
+  const errors = [];
+  const read = (page) =>
+    page.evaluate(() => {
+      const element = document.querySelector(
+        ".TerminalBrowserPreview, .Terminal"
+      );
+      if (!element) return null;
+      let fiber =
+        element[
+          Object.keys(element).find((key) => key.startsWith("__reactFiber"))
+        ];
+      while (fiber && !fiber.memoizedProps?.value?.ecs) fiber = fiber.return;
+      const context = fiber?.memoizedProps.value;
+      const world = context?.ecs;
+      const hero = world?.getEntityById(world.metadata.localPlayerId);
+      const popup = world?.getEntityById(hero?.PLAYER.popup);
+      return {
+        network: !!world?.metadata.network,
+        level: world?.metadata.gameEntity.LEVEL.name,
+        position: hero?.POSITION,
+        paused: context?.paused,
+        dialog: popup?.POPUP.active
+          ? popup.POPUP.tabs[popup.POPUP.horizontalIndex]
+          : null,
+      };
+    });
+  try {
+    for (const renderer of ["three-js", "html", "terminal"]) {
+      const context = await browser.newContext({
+        viewport: { width: 900, height: 800 },
+      });
+      contexts.push(context);
+      const page = await context.newPage();
+      page.on("pageerror", (error) =>
+        errors.push(`${renderer}: ${error.message}`)
+      );
+      const client = { page, renderer };
+      clients.push(client);
+      page.on("websocket", (socket) =>
+        socket.on("framereceived", ({ payload }) => {
+          const message = JSON.parse(payload.toString());
+          if (message.type === "welcome") client.id = message.id;
+        })
+      );
+      const folder = renderer === "three-js" ? "/" : `/${renderer}/`;
+      await page.goto(
+        new URL(
+          `${folder}preview.html?server=127.0.0.1:${server.address.port}&username=Renderer${clients.length}#servers`,
+          baseURL
+        ).href
+      );
+      await expect
+        .poll(async () => (await read(page))?.network, { timeout: 20000 })
+        .toBe(true);
+      await expect.poll(() => client.id).toBeTruthy();
+      await expect.poll(async () => (await read(page))?.paused).toBe(false);
+      await page.screenshot({
+        path: testInfo.outputPath(`${renderer}-menu.png`),
+      });
+    }
+    expect(new Set(clients.map((client) => client.id)).size).toBe(3);
+    for (const client of clients) {
+      const world = server.simulation.worldFor(client.id);
+      const actor = world.getEntityById(server.simulation.actorId(client.id));
+      world.metadata.warpPlayer(
+        world.getEntityId(actor),
+        "LEVEL_TUTORIAL",
+        "rogue",
+        actor.SPAWNABLE.hairColor,
+        true
+      );
+    }
+    for (const { page } of clients)
+      await expect
+        .poll(async () => (await read(page))?.level, { timeout: 20000 })
+        .toBe("LEVEL_TUTORIAL");
+    for (const [index, { page, id, renderer }] of clients.entries()) {
+      await page.bringToFront();
+      if ((await read(page)).paused) await page.keyboard.press(" ");
+      await page.keyboard.press("g");
+      await expect.poll(async () => (await read(page))?.dialog).toBe("gear");
+      const actor = server.simulation
+        .worldFor(id)
+        .getEntityById(server.simulation.actorId(id));
+      expect(actor.PLAYER.popup).toBeTruthy();
+      for (const other of clients.filter((client) => client.id !== id)) {
+        const otherActor = server.simulation
+          .worldFor(other.id)
+          .getEntityById(server.simulation.actorId(other.id));
+        expect(otherActor.PLAYER.popup).toBeFalsy();
+      }
+      await page.screenshot({
+        path: testInfo.outputPath(`${renderer}-gear.png`),
+      });
+      await page.keyboard.press("Escape");
+      await expect.poll(async () => (await read(page))?.dialog).toBeNull();
+      const before = { ...actor.POSITION };
+      await page.keyboard.press("ArrowRight");
+      await expect.poll(() => actor.POSITION).not.toEqual(before);
+      await expect
+        .poll(async () => (await read(page))?.position)
+        .toEqual(actor.POSITION);
+      await page.keyboard.press("c");
+      await expect.poll(async () => (await read(page))?.dialog).toBe("chat");
+      await page.keyboard.type(`hello ${index}`);
+      await page.keyboard.press("Enter");
+      await expect.poll(async () => (await read(page))?.dialog).toBeNull();
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.screenshot({
+        path: testInfo.outputPath(`${renderer}-small.png`),
+      });
+    }
+    const returning = clients[2];
+    await returning.page.reload();
+    await expect
+      .poll(async () => (await read(returning.page))?.network, {
+        timeout: 20000,
+      })
+      .toBe(true);
+    expect(
+      server.simulation
+        .worldFor(returning.id)
+        .getEntities(["PLAYER"])
+        .filter((actor) => actor.PLAYER.accountId === returning.id)
+    ).toHaveLength(1);
+    expect(errors).toEqual([]);
+  } finally {
+    for (const context of contexts) await context.close();
+  }
 });

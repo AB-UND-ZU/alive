@@ -86,6 +86,10 @@ export const setMovementOrientations = (
   orientations: Orientation[]
 ) => {
   if (!entity[MOVABLE]) return;
+  if (world.metadata.network) {
+    world.metadata.network.move(orientations);
+    return;
+  }
   const reference = world.assertByIdAndComponents(entity[MOVABLE].reference, [
     REFERENCE,
   ])[REFERENCE];

@@ -1,3 +1,4 @@
+import { getLocalPlayer, selectViewable } from "../../engine/players";
 import { collectScene as collectEntities } from "./scene";
 import type { Entity } from "ecs";
 import { World } from "../../engine";
@@ -5,7 +6,6 @@ import { Layer, Sprite, SPRITE } from "../../engine/components/sprite";
 import { Position, POSITION } from "../../engine/components/position";
 import { FOG } from "../../engine/components/fog";
 import { LEVEL } from "../../engine/components/level";
-import { PLAYER } from "../../engine/components/player";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { LAYER } from "../../engine/components/layer";
 import { LIGHT } from "../../engine/components/light";
@@ -35,6 +35,7 @@ import { isCollecting, isLootable } from "../../engine/systems/collect";
 import { isEnemy, isNeutral } from "../../engine/systems/damage";
 import {
   getCameraMotion,
+  getRenderedPosition,
   getMotion,
   getBumpMotion,
   sampleMotion,
@@ -97,27 +98,26 @@ export const getSceneFrame = (
   }: { includeHidden?: boolean; instant?: boolean; fogCells?: boolean } = {}
 ): SceneSprite[] => {
   const size = world.metadata.gameEntity[LEVEL].size;
-  const hero = world.getEntities([PLAYER, POSITION])[0];
-  const viewable = world
-    .getEntities([VIEWABLE, POSITION])
-    .filter((entity) => entity[VIEWABLE].active)
-    .sort(
-      (left, right) => right[VIEWABLE].priority - left[VIEWABLE].priority
-    )[0];
+  const hero = getLocalPlayer(world, [POSITION]);
+  const viewable = selectViewable(
+    world.getEntities([VIEWABLE, POSITION]),
+    world
+  );
+  const viewPosition = viewable
+    ? getRenderedPosition(viewable)
+    : { x: 0, y: 0 };
   const cameraMotion = getCameraMotion(world);
   const sampledCamera = cameraMotion
     ? sampleMotion(cameraMotion, world.metadata.renderTime)
-    : viewable?.[POSITION] || { x: 0, y: 0 };
+    : viewPosition;
   const targetCamera = {
     x:
-      (viewable?.[POSITION].x || 0) +
-      Math.round((sampledCamera.x - (viewable?.[POSITION].x || 0)) / size) *
-        size +
+      viewPosition.x +
+      Math.round((sampledCamera.x - viewPosition.x) / size) * size +
       (viewable?.[VIEWABLE].fraction?.x || 0),
     y:
-      (viewable?.[POSITION].y || 0) +
-      Math.round((sampledCamera.y - (viewable?.[POSITION].y || 0)) / size) *
-        size +
+      viewPosition.y +
+      Math.round((sampledCamera.y - viewPosition.y) / size) * size +
       (viewable?.[VIEWABLE].fraction?.y || 0),
   };
   const camera = !instant && cameraMotion ? sampledCamera : targetCamera;
@@ -144,12 +144,8 @@ export const getSceneFrame = (
       }
   }
   const position = {
-    x: Math.round(
-      camera.x + signedDistance(camera.x, viewable?.[POSITION].x || 0, size)
-    ),
-    y: Math.round(
-      camera.y + signedDistance(camera.y, viewable?.[POSITION].y || 0, size)
-    ),
+    x: Math.round(camera.x + signedDistance(camera.x, viewPosition.x, size)),
+    y: Math.round(camera.y + signedDistance(camera.y, viewPosition.y, size)),
   };
   const entities = collectEntities(
     world,
@@ -183,8 +179,17 @@ export const getSceneFrame = (
       (visibility !== "hidden" && air) ||
       ((entity[FOG]?.type === "unit" || entity[PROJECTILE]) && !visible) ||
       (outside && !(entity[FOG]?.fixed && visible));
-    let px = x - camera.x + (columns - 1) / 2;
-    let py = y - camera.y + (rows - 1) / 2;
+    const rendered = getRenderedPosition(entity);
+    let px =
+      x -
+      camera.x +
+      (columns - 1) / 2 +
+      signedDistance(entity[POSITION].x, rendered.x, size);
+    let py =
+      y -
+      camera.y +
+      (rows - 1) / 2 +
+      signedDistance(entity[POSITION].y, rendered.y, size);
     const animated =
       !instant &&
       !entity[STICKY] &&

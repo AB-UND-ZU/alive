@@ -2,17 +2,8 @@ import { useLayoutEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Group } from "three";
 import type { Entity } from "ecs";
-<<<<<<< HEAD:src/renderers/three-js/Entity/useMotionPosition.ts
 import { useWorld } from "../../interface/hooks";
 import { useDimensions } from "../../../components/Dimensions";
-import { getBumpMotion, getMotion, sampleMotion } from "../../../engine/motion";
-import { PARTICLE } from "../../../engine/components/particle";
-import { POSITION } from "../../../engine/components/position";
-import { LEVEL } from "../../../engine/components/level";
-import { signedDistance } from "../../../game/math/std";
-=======
-import { useWorld } from "../../interface/hooks";
-import { useDimensions } from "../Dimensions";
 import {
   getBumpMotion,
   getMotion,
@@ -23,7 +14,6 @@ import { PARTICLE } from "../../../engine/components/particle";
 import { POSITION } from "../../../engine/components/position";
 import { LEVEL } from "../../../engine/components/level";
 import { signedDistance } from "../../../game/math/std";
->>>>>>> 90792eca (Stream nearby multiplayer state and predict local motion):src/components/Entity/useMotionPosition.ts
 
 export const useMotionPosition = (
   entity: Entity | undefined,

@@ -40,7 +40,7 @@ type Seed = (typeof seeds)[number];
 ## SoundOptions
 
 ```ts src/game/sound/index.ts
-type SoundOptions = {
+export type SoundOptions = {
   delay?: number;
   intensity?: number;
   proximity?: number;

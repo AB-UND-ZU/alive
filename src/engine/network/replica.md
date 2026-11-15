@@ -27,3 +27,21 @@ export type StateFrame = {
   sounds?: (SoundEvent & { id: number; time: number })[];
 };
 ```
+<!-- source-types -->
+
+## StateFrame
+
+```ts src/engine/network/replica.ts
+export type StateFrame = {
+  sequence: number;
+  removed?: number[];
+  removedComponents?: [number, string[]][];
+  serverTime: number;
+  inputSequence?: number;
+  cells?: number[];
+  visibleCells?: number[];
+  snapshot: WorldSnapshot;
+  realm?: LevelName;
+  sounds?: (SoundEvent & { id: number; time: number })[];
+};
+```

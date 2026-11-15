@@ -56,3 +56,41 @@ type Transfer = {
 ```
 
 Transport frames request a nearby view around the owned character and active camera. Named entities, points of interest, non-spatial state and referenced parents/particles remain available. Normal frames omit generation matrices; opening the native map supplies the full explored-world data. Saves always retain the complete world.
+<!-- source-types -->
+
+## Spawn
+
+```ts src/engine/network/host.ts
+type Spawn = {
+  POSITION: Position;
+  SPAWNABLE: Spawnable;
+  BELONGABLE: Belongable;
+};
+```
+
+## Realm
+
+```ts src/engine/network/host.ts
+type Realm = { world: World; spawn: Spawn };
+```
+
+## HostedWorld
+
+```ts src/engine/network/host.ts
+export type HostedWorld = {
+  elapsed: number;
+  realms: { snapshot: WorldSnapshot; spawn: Spawn }[];
+};
+```
+
+## Transfer
+
+```ts src/engine/network/host.ts
+type Transfer = {
+  accountId: string;
+  level: LevelName;
+  classKey: ClassKey;
+  hairColor: string;
+  resetClass: boolean;
+};
+```

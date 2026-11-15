@@ -1,6 +1,7 @@
+import { getLocalPlayer } from "../../engine/players";
 import { projectLayers } from "./sprites";
 import { World } from "../../engine";
-import { TEST_MODE } from "../../engine/utils";
+import { isTestMode } from "../../engine/mode";
 import { TypedEntity } from "../../engine/entities";
 import { popupTitles } from "../../engine/systems/popup";
 import { POPUP } from "../../engine/components/popup";
@@ -63,6 +64,7 @@ export type TerminalSession = {
   saveName?: string;
   selection?: number;
   failed?: boolean;
+  serverStatus?: import("../../engine/network/client").ConnectionStatus;
   flipped?: boolean;
 };
 
@@ -79,11 +81,16 @@ export const getTerminalLayout = (columns: number, rows: number) => {
 
 export const getPauseActions = (world: World) => [
   { name: "RESUME", palette: "lime" as const, disabled: false },
-  ...(world.metadata.gameEntity[LEVEL].name === "LEVEL_MENU"
+  ...(world.metadata.gameEntity[LEVEL].name === "LEVEL_MENU" &&
+  !world.metadata.network
     ? []
     : [
         { name: "MENU", palette: "red" as const, disabled: false },
-        { name: "SAVE", palette: "white" as const, disabled: !canSave(world) },
+        {
+          name: "SAVE",
+          palette: "white" as const,
+          disabled: !!world.metadata.network || !canSave(world),
+        },
       ]),
 ];
 
@@ -95,7 +102,7 @@ export const getTerminalFrame = (
   session: TerminalSession = {}
 ) => {
   const { width, height, left, top } = getTerminalLayout(columns, rows);
-  const hero = world.getEntities([PLAYER])[0];
+  const hero = getLocalPlayer(world, []);
   let scene = session.suspended
     ? []
     : getSceneFrame(world, width, height, state, {
@@ -240,7 +247,10 @@ export const getTerminalFrame = (
       false,
       !!session.paused
     );
-    if (!TEST_MODE && world.metadata.gameEntity[LEVEL].name === "LEVEL_MENU") {
+    if (
+      !isTestMode(world, hero) &&
+      world.metadata.gameEntity[LEVEL].name === "LEVEL_MENU"
+    ) {
       line(pauseButton, 2, Math.floor((columns - 21) / 2));
     } else {
       const stats = getEntityStats(world, hero);
@@ -409,7 +419,13 @@ export const getTerminalFrame = (
       if (actions.length > 1)
         overlay.push(
           createText(
-            session.failed ? "Failed!" : session.saveName || "",
+            world.metadata.network
+              ? session.serverStatus && session.serverStatus !== "connected"
+                ? "Reconnecting..."
+                : "Server autosaves"
+              : session.failed
+              ? "Failed!"
+              : session.saveName || "",
             session.failed ? colors.red : colors.grey
           )
         );

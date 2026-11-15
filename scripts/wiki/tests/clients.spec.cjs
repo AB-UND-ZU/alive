@@ -13,7 +13,14 @@ test("Clients lists renderer features and keeps the old ThreeJS route", async ({
       .evaluateAll((links) =>
         links.map((link) => link.getAttribute("aria-label"))
       )
-  ).toEqual(["Renderers", "ThreeJS", "HTML", "Terminal"]);
+  ).toEqual([
+    "Renderers",
+    "ThreeJS",
+    "HTML",
+    "Terminal",
+    "Multiplayer",
+    "Server",
+  ]);
   await expect(
     page.getByRole("rowheader", { name: "Lighting", exact: true })
   ).toBeVisible();
@@ -57,7 +64,13 @@ for (const width of [1440, 390]) {
       await expect(
         page.getByRole("link", {
           name: new RegExp(
-            `^Play ${client === "three-js" ? "ThreeJS" : client === "html" ? "HTML" : "Terminal"}\\.?$`
+            `^Play ${
+              client === "three-js"
+                ? "ThreeJS"
+                : client === "html"
+                ? "HTML"
+                : "Terminal"
+            }\\.?$`
           ),
         })
       ).toHaveAttribute("href", new URL(clientPath, page.url()).href);

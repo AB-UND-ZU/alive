@@ -14,6 +14,7 @@ Marks quest, enemy, or grave focus targets.
 
 ```ts src/engine/components/focusable.ts
 export type Focusable = {
+  owner?: number;
   target?: number;
   pendingTarget?: number;
   highlight?: "quest" | "tombstone" | "enemy";

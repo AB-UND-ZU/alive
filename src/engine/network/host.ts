@@ -517,6 +517,7 @@ export const createHost = (saved?: HostedWorld) => {
         realm: world.metadata.gameEntity[LEVEL].name,
         snapshot,
         cells: view?.cells,
+        visibleCells: [...world.metadata.visibleCells],
         sounds: (sounds.get(world) || []).filter(
           (event) => event.time >= elapsed - 1000
         ),

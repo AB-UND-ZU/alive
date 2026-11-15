@@ -16,6 +16,7 @@ export type TerminalSession = {
   saveName?: string;
   selection?: number;
   failed?: boolean;
+  serverStatus?: import("../../engine/network/client").ConnectionStatus;
   flipped?: boolean;
 };
 ```

@@ -1,3 +1,4 @@
+import { setMovementOrientations } from "../../engine/systems/movement";
 import { getInteraction } from "../../engine/players";
 import {
   useCallback,
@@ -799,7 +800,10 @@ export default function Controls({
   const handleMove = useCallback(
     (orientations: Orientation[]) => {
       const heroEntity = heroRef.current;
-      if (ecs?.metadata.network) { ecs.metadata.network.move(orientations); return; }
+      if (ecs?.metadata.network) {
+        ecs.metadata.network.move(orientations);
+        return;
+      }
       if (ecs && heroEntity && !isDead(ecs, heroEntity)) {
         setMovementOrientations(ecs, heroEntity, orientations);
       }

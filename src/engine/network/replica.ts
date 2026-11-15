@@ -26,6 +26,7 @@ export type StateFrame = {
   serverTime: number;
   inputSequence?: number;
   cells?: number[];
+  visibleCells?: number[];
   snapshot: WorldSnapshot;
   realm?: LevelName;
   sounds?: (SoundEvent & { id: number; time: number })[];
@@ -194,6 +195,9 @@ export const createReplica = () => {
       if (!getMotion(entity)) initializeParticleMotion(world, entity);
       updateParticleMotion(world, entity);
     }
+    if (reset) world.metadata.visibleCells.clear();
+    if (frame.visibleCells)
+      world.metadata.visibleCells = new Set(frame.visibleCells);
     prediction.receive(frame, reset);
     updateCameraMotion(world, true);
     world.metadata.elapsed = frame.serverTime;

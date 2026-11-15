@@ -14,7 +14,6 @@ Stores player input, quick items, popup state, chat history and combat counters.
 The optional `accountId` is a public server-owned account binding, not a reconnect secret. It survives ghost and hero replacement. Only authenticated server code assigns it; client input messages cannot set player identity.
 
 `username` is the saved server display name. `admin` is authoritative runtime permission; host saves omit it. `naming` and `nameError` hold the initial private chat prompt. Names and permissions survive death, revival and portal transfers. `interface.server` identifies the private administration output window.
-
 <!-- source-types -->
 
 ## Interaction

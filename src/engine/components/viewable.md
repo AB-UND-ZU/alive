@@ -24,5 +24,3 @@ export type Viewable = {
   fraction?: Position;
 };
 ```
-
-The optional `owner` entity ID restricts a popup camera to its player in an assigned client view. Unassigned single-player worlds retain the original priority selection.

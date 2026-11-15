@@ -25,7 +25,10 @@ export const getSequences: (
   world: World,
   entity: Entity
 ) => SequenceState<any>[] = (world, entity) =>
-  SEQUENCABLE in entity ? Object.values(entity[SEQUENCABLE].states) : [];
+  Object.values({
+    ...(entity[SEQUENCABLE]?.states || {}),
+    ...(presentations.get(world)?.get(world.getEntityId(entity)) || {}),
+  });
 
 const shotParticle: ReturnType<typeof entities.createParticle> = {
   [PARTICLE]: {
@@ -38,12 +41,7 @@ const shotParticle: ReturnType<typeof entities.createParticle> = {
 };
 
 export const getParticles = (world: World, entity: Entity) =>
-  [
-    ...getSequences(world, entity),
-    ...Object.values(
-      presentations.get(world)?.get(world.getEntityId(entity)) || {}
-    ),
-  ]
+  getSequences(world, entity)
     .reduce<Entity[]>(
       (all, sequence) =>
         all.concat(

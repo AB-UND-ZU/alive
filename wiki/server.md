@@ -21,7 +21,7 @@ The server saves all worlds and characters automatically in `~/.alive/server.sav
 
 Usernames are unique and saved with each character. Returning clients keep their saved name.
 
-Each client stores a secret reconnect token in its browser. Keep its site data and use the same server address to return to that character. The two Multiplayer previews keep separate tokens.
+Each browser stores a secret reconnect token. The native terminal client stores its token separately. Keep its site data and use the same server address to return to that character. The two Multiplayer previews keep separate tokens.
 
 To choose a save file:
 

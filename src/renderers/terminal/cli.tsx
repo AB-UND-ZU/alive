@@ -1,3 +1,7 @@
+import { connectTerminalServer, createServerStorage } from "./network";
+import { serverUrl } from "../../engine/network/url";
+import type { ConnectionStatus } from "../../engine/network/client";
+import { getLocalPlayer } from "../../engine/players";
 import React from "react";
 import { spawn } from "child_process";
 import { emitKeypressEvents, Interface, Key } from "readline";
@@ -84,12 +88,51 @@ export const runTerminal = async () => {
   let saved: SaveGame | undefined;
   let pauseSelection = 0;
   let saveFailed = false;
+  let connection: ReturnType<typeof connectTerminalServer> | undefined;
+  let serverStatus: ConnectionStatus | undefined;
+  const storage = createServerStorage();
+  const disconnect = () => {
+    connection?.close();
+    connection = undefined;
+    serverStatus = undefined;
+  };
+  const join = (address: string, username?: string) => {
+    disconnect();
+    const origin = world;
+    try {
+      connection = connectTerminalServer(address, {
+        storage,
+        username,
+        onStatus(status) {
+          serverStatus = status;
+          if (status === "reconnecting" || status === "rejected") {
+            if (world.metadata.network) {
+              paused = true;
+              connection?.pause(true);
+            } else origin.metadata.serverError = "Connection failed!";
+          }
+        },
+        onReady(next) {
+          attach(next);
+          next.metadata.serverAddress = serverUrl(address);
+          paused = suspended = false;
+        },
+      });
+    } catch {
+      origin.metadata.serverError = "Connection failed!";
+    }
+  };
+  const menu = () => {
+    disconnect();
+    attach(createTerminalWorld());
+    paused = suspended = false;
+  };
   try {
     saved = upgradeSave(deserialize(readFileSync(savePath())) as SaveGame);
     setSaveSummaries([getSummary(saved)]);
   } catch {}
   const save = () => {
-    if (!canSave(world)) return;
+    if (world.metadata.network || !canSave(world)) return;
     try {
       saved = createSave(world);
       world.metadata.saveId = saved.id;
@@ -107,6 +150,15 @@ export const runTerminal = async () => {
     input = createTerminalInput(world, openTerminalLink);
     clock = createFrameClock(world);
     state = { stickyCastables: {} };
+    world.metadata.connectServer = join;
+    world.metadata.leaveServer = menu;
+    world.metadata.hasServerPlayer = (address) => {
+      try {
+        return !!storage.getItem(`alive.server:${serverUrl(address)}`);
+      } catch {
+        return false;
+      }
+    };
     world.metadata.setFlipped = (value) => {
       flipped = value;
     };
@@ -156,9 +208,28 @@ export const runTerminal = async () => {
     };
     return { columns, rows };
   };
+  const serverIndex = args.indexOf("--server");
+  if (serverIndex !== -1) {
+    const address = args[serverIndex + 1];
+    if (!address) throw new Error("--server needs a host URL");
+    const nameIndex = args.indexOf("--name");
+    join(address, nameIndex === -1 ? undefined : args[nameIndex + 1]);
+  }
   const frameArg = args.indexOf("--frames");
   if (frameArg !== -1) {
     const { columns, rows } = dimensions();
+    if (connection) {
+      for (
+        let attempt = 0;
+        attempt < 100 && !world.metadata.network && serverStatus !== "rejected";
+        attempt++
+      )
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      if (!world.metadata.network) {
+        disconnect();
+        throw new Error("Server connection failed");
+      }
+    }
     for (let i = 0; i < Number(args[frameArg + 1] || 1); i++)
       clock.advance(systemsFrame);
     const frame = getTerminalFrame(world, columns, rows, state);
@@ -168,6 +239,7 @@ export const runTerminal = async () => {
     process.stdout.write(
       (colored ? frameToAnsi(frame) : frameToText(frame)) + "\n"
     );
+    disconnect();
     return;
   }
   if (!process.stdin.isTTY || !process.stdout.isTTY)
@@ -209,6 +281,7 @@ export const runTerminal = async () => {
               ? saved.name
               : undefined,
           failed: saveFailed,
+          serverStatus,
         }}
       />
     );
@@ -220,6 +293,7 @@ export const runTerminal = async () => {
     closeAudio?.();
     input.stop();
     save();
+    disconnect();
     root.unmount();
     process.stdin.off("keypress", keypress);
     process.stdout.off("resize", render);
@@ -232,7 +306,7 @@ export const runTerminal = async () => {
       stop();
       return;
     }
-    const hero = world.getEntities([PLAYER])[0];
+    const hero = getLocalPlayer(world, []);
     const popup =
       hero && world.getEntityByIdAndComponents(hero[PLAYER].popup, [POPUP]);
     if (paused) {
@@ -252,7 +326,8 @@ export const runTerminal = async () => {
           else if (action.name === "SAVE") save();
           else {
             save();
-            attach(createTerminalWorld());
+            if (world.metadata.network) menu();
+            else attach(createTerminalWorld());
             paused = false;
             suspended = false;
           }
@@ -279,10 +354,15 @@ export const runTerminal = async () => {
   process.stdout.on("resize", render);
   process.once("SIGTERM", stop);
   process.once("SIGINT", stop);
+  let remotePaused: boolean | undefined;
   let previous = performance.now();
   const timer = setInterval(() => {
     const now = performance.now();
     setAudioActive(!paused && !suspended);
+    if (world.metadata.network && remotePaused !== (paused || suspended)) {
+      remotePaused = paused || suspended;
+      world.metadata.network.pause(remotePaused);
+    }
     clock.advance(
       now - previous,
       paused ||

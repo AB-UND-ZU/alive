@@ -210,7 +210,9 @@ export function GamePreview({
           )}
           {loaded ? (
             <iframe
-              key={`${name}-${renderer}-${testMode}-${variant || preset || ""}-${revision}`}
+              key={`${name}-${renderer}-${testMode}-${
+                variant || preset || ""
+              }-${revision}`}
               ref={(element) => {
                 frame.current = element;
                 onFrame?.(element);
@@ -221,7 +223,15 @@ export function GamePreview({
                   : sceneDefinitions[name].title
               }
               tabIndex={name === "interface" ? -1 : 0}
-              src={server ? `${base}preview.html?server=${encodeURIComponent(server.url)}&client=${server.client}&username=${encodeURIComponent(server.username || "")}#servers` : source}
+              src={
+                server
+                  ? `${base}preview.html?server=${encodeURIComponent(
+                      server.url
+                    )}&client=${server.client}&username=${encodeURIComponent(
+                      server.username || ""
+                    )}#servers`
+                  : source
+              }
               style={{
                 width,
                 height: name === "chat" ? "auto" : height,
@@ -249,7 +259,9 @@ export function GamePreview({
         </div>
         <GridCenteredNote>
           <Text>
-            {server ? "Click to control this player." : name === "clients"
+            {server
+              ? "Click to control this player."
+              : name === "clients"
               ? "Play using the normal game controls."
               : name === "game" && preset
               ? `Play ${presets[preset].title} using the normal game controls.`

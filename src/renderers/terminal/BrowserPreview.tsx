@@ -1,3 +1,4 @@
+import { getLocalPlayer } from "../../engine/players";
 import {
   CSSProperties,
   Fragment,
@@ -14,6 +15,7 @@ import { useWorld } from "../interface/hooks";
 import { RendererProps } from "../interface/types";
 import { createTerminalInput } from "./input";
 import { getPauseActions, getTerminalFrame, getTerminalLayout } from "./screen";
+import { getTab } from "../../engine/systems/popup";
 import { PLAYER } from "../../engine/components/player";
 import { POPUP } from "../../engine/components/popup";
 import { ensureAudio } from "../../game/sound/resumable";
@@ -103,7 +105,8 @@ export default function BrowserPreview({
       if (!pausedRef.current) {
         const elapsed = world.metadata.elapsed;
         clock.advance(time - previous);
-        if (world.metadata.elapsed !== elapsed) render();
+        if (world.metadata.network || world.metadata.elapsed !== elapsed)
+          render();
       } else clock.reset();
       previous = time;
       frame = requestAnimationFrame(update);
@@ -159,7 +162,7 @@ export default function BrowserPreview({
           }
           return;
         }
-        const hero = world.getEntities([PLAYER])[0];
+        const hero = getLocalPlayer(world, []);
         const popup =
           hero && world.getEntityByIdAndComponents(hero[PLAYER].popup, [POPUP]);
         if (event.key === "Escape" && !popup?.[POPUP].active) {
@@ -178,6 +181,21 @@ export default function BrowserPreview({
         ctrl: event.ctrlKey,
       });
     };
+    const paste = (event: ClipboardEvent) => {
+      if (pausedRef.current) return;
+      const hero = getLocalPlayer(world, []);
+      const popup = world.getEntityByIdAndComponents(hero?.[PLAYER].popup, [
+        POPUP,
+      ]);
+      if (!popup) return;
+      const tab = getTab(world, popup);
+      if (tab !== "chat" && !(tab === "server" && !world.metadata.network))
+        return;
+      const text = event.clipboardData?.getData("text/plain");
+      if (!text) return;
+      event.preventDefault();
+      for (const char of text) input.press({ sequence: char });
+    };
     const focus = () => setFocused(true);
     const stop = () => {
       input.stop();
@@ -188,6 +206,7 @@ export default function BrowserPreview({
       if (document.hidden) stop();
     };
     window.addEventListener("keydown", press);
+    document.addEventListener("paste", paste);
     window.addEventListener("blur", stop);
     window.addEventListener("pagehide", stop);
     document.addEventListener("visibilitychange", visibility);
@@ -195,6 +214,7 @@ export default function BrowserPreview({
     return () => {
       input.stop();
       window.removeEventListener("keydown", press);
+      document.removeEventListener("paste", paste);
       window.removeEventListener("blur", stop);
       window.removeEventListener("pagehide", stop);
       document.removeEventListener("visibilitychange", visibility);
@@ -211,6 +231,7 @@ export default function BrowserPreview({
           selection: pauseSelection,
           saveName: context.saveStatus?.name,
           failed: context.saveStatus?.failed,
+          serverStatus: context.serverStatus,
         }
       : {}),
   });

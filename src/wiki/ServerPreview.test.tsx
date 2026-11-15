@@ -88,7 +88,7 @@ it("connects two distinct client slots to the same normalized server", () => {
     const frame = screen.getByTitle(`Player ${client} game`);
     expect(frame).toHaveAttribute(
       "src",
-      `/alive/wiki/preview.html?server=ws%3A%2F%2Flocalhost%3A3001%2F&client=${client}#servers`
+      `/alive/wiki/preview.html?server=ws%3A%2F%2Flocalhost%3A3001%2F&client=${client}&username=#servers`
     );
     status(client, "connected");
   }

@@ -29,7 +29,7 @@ const name = (scene || "game") as SceneName;
 if (name === "touch") void enableTouchEmulation();
 let PreviewClient: React.LazyExoticComponent<
   React.ComponentType<
-    React.PropsWithChildren<{ name: SceneName; shadows: boolean }>
+    React.PropsWithChildren<{ name: SceneName | "servers"; shadows: boolean }>
   >
 >;
 if (process.env.REACT_APP_RENDERER === "terminal") {
@@ -363,5 +363,13 @@ function Preview() {
   );
 }
 createRoot(document.getElementById("root")!).render(
-  scene === "servers" ? <ServerGame /> : <Preview />
+  scene === "servers" ? (
+    <ServerGame>
+      <Suspense fallback={null}>
+        <PreviewClient name="servers" shadows />
+      </Suspense>
+    </ServerGame>
+  ) : (
+    <Preview />
+  )
 );

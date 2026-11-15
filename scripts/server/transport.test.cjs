@@ -441,3 +441,68 @@ test("startup admins can manage players through authoritative commands and resta
     await server.close();
   }
 });
+
+test("native terminal sessions render confirmed state and reconnect to their saved character", async () => {
+  const { execFile } = require("node:child_process");
+  const { promisify } = require("node:util");
+  const { readFile } = require("node:fs/promises");
+  const data = path.join(directory, "terminal-profile");
+  const server = await createGameServer({
+    engine,
+    file: path.join(directory, "terminal.save"),
+  });
+  const run = (name) =>
+    promisify(execFile)(
+      process.execPath,
+      [
+        "scripts/terminal.cjs",
+        "--server",
+        url(server),
+        "--name",
+        name,
+        "--frames",
+        "60",
+        "--plain",
+      ],
+      { env: { ...process.env, XDG_DATA_HOME: data }, timeout: 15000 }
+    );
+  try {
+    await run("Native");
+    const credentials = JSON.parse(
+      await readFile(path.join(data, "alive/servers.json"), "utf8")
+    );
+    const { id } = JSON.parse(credentials[`alive.server:${url(server)}/`]);
+    const world = server.simulation.worldFor(id);
+    const hero = world.getEntityById(server.simulation.actorId(id));
+    assert.equal(hero.PLAYER.username, "Native");
+    world.metadata.warpPlayer(
+      world.getEntityId(hero),
+      "LEVEL_TUTORIAL",
+      "rogue",
+      hero.SPAWNABLE.hairColor,
+      true
+    );
+    for (
+      let attempt = 0;
+      attempt < 100 &&
+      server.simulation.worldFor(id).metadata.gameEntity.LEVEL.name !==
+        "LEVEL_TUTORIAL";
+      attempt++
+    )
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    assert.equal(
+      server.simulation.worldFor(id).metadata.gameEntity.LEVEL.name,
+      "LEVEL_TUTORIAL"
+    );
+    const { stdout } = await run("AnotherName");
+    assert.match(stdout, /25\/25/);
+    const actors = server.simulation
+      .worldFor(id)
+      .getEntities(["PLAYER"])
+      .filter((actor) => actor.PLAYER.accountId === id);
+    assert.equal(actors.length, 1);
+    assert.equal(actors[0].PLAYER.username, "Native");
+  } finally {
+    await server.close();
+  }
+});

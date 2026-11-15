@@ -34,7 +34,3 @@ export type Motion = {
   pingPong?: boolean;
 };
 ```
-
-Network snapshots carry entity values, without movement or bump motion records. Clients interpolate confirmed positions locally and start bumps when their confirmed generation changes. A new authenticated snapshot epoch clears old motion clocks. Camera motion remains local to the selected player.
-
-Network prediction uses a separate rendered-position map and the same movement/camera springs. `getRenderedPosition` affects rendering only; canonical POSITION and map occupancy stay confirmed. `previewBump` stores anticipation motion without changing BUMPABLE, and a matching confirmed bump can adopt it.

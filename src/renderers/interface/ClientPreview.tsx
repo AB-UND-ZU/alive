@@ -1,3 +1,4 @@
+import { getLocalPlayer } from "../../engine/players";
 import { useEffect } from "react";
 import { useWorld } from "./hooks";
 import { PLAYER } from "../../engine/components/player";
@@ -46,7 +47,7 @@ export default function ClientPreview() {
       void ensureAudio();
     };
     const key = (event: KeyboardEvent) => {
-      const hero = ecs?.getEntities([PLAYER])[0];
+      const hero = ecs && getLocalPlayer(ecs, []);
       if (
         event.key === "Escape" &&
         !ecs?.getEntityByIdAndComponents(hero?.[PLAYER].popup, [POPUP])?.[POPUP]
@@ -69,7 +70,7 @@ export default function ClientPreview() {
       }
     };
     const report = () => {
-      const hero = ecs?.getEntities([PLAYER])[0];
+      const hero = ecs && getLocalPlayer(ecs, []);
       const popup = ecs?.getEntityByIdAndComponents(hero?.[PLAYER].popup, [
         POPUP,
       ]);

@@ -9,11 +9,12 @@ Configures a temporary visual particle.
 
 ```ts src/engine/components/particle.ts
 export type Particle = {
+  owner?: number;
   offsetX: number;
   offsetY: number;
   offsetZ: number;
   animatedOrigin?: Point;
-  amount?: number
-  duration?: number
+  amount?: number;
+  duration?: number;
 };
 ```

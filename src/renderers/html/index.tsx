@@ -1,3 +1,4 @@
+import { getLocalPlayer } from "../../engine/players";
 import { CSSProperties, useEffect, useReducer, useMemo, useRef } from "react";
 import { RendererProps } from "../interface/types";
 import { characterMarkup } from "../../components/Row/characters";
@@ -75,7 +76,10 @@ export default function HtmlRenderer({
     }),
     [world]
   );
-  const viewpoint = getActiveViewable(world.getEntities([VIEWABLE, POSITION]));
+  const viewpoint = getActiveViewable(
+    world.getEntities([VIEWABLE, POSITION]),
+    world
+  );
   const quake = viewpoint?.[VIEWABLE].quake;
   if (
     !paused &&
@@ -89,7 +93,7 @@ export default function HtmlRenderer({
     shake.x = random(-3, 3) * 0.1;
     shake.y = -random(-3, 3) * 0.1;
   }
-  const hero = world.getEntities([PLAYER])[0];
+  const hero = getLocalPlayer(world, []);
   if (hero) {
     const received =
       (hero[PLAYER].receivedStats.melee || 0) +

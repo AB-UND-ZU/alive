@@ -5,7 +5,6 @@
 `unmount`. A committed frame is encoded as ANSI and passed to `write`.
 React components and hooks work without a browser or DOM. The host only
 accepts frame surfaces; strings belong inside the frame's cells.
-
 <!-- source-types -->
 
 ## Props

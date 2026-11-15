@@ -269,3 +269,30 @@ it("refreshes neighboring water collision cells when a submerged patch opens", (
   });
   expect(level.walkable[8][8]).toBe(1);
 });
+
+it("keeps confirmed sight between delta frames and clears it on an empty update", () => {
+  const { server, replica } = setup();
+  const snapshot = createSnapshot(server);
+  replica.receive({
+    sequence: 1,
+    serverTime: server.metadata.elapsed,
+    snapshot,
+    visibleCells: [1, 2],
+  });
+  expect([...replica.world.metadata.visibleCells]).toEqual([1, 2]);
+  replica.receive({
+    sequence: 2,
+    serverTime: server.metadata.elapsed,
+    snapshot: { ...snapshot, entities: [] },
+    removed: [],
+  });
+  expect([...replica.world.metadata.visibleCells]).toEqual([1, 2]);
+  replica.receive({
+    sequence: 3,
+    serverTime: server.metadata.elapsed,
+    snapshot: { ...snapshot, entities: [] },
+    removed: [],
+    visibleCells: [],
+  });
+  expect(replica.world.metadata.visibleCells.size).toBe(0);
+});

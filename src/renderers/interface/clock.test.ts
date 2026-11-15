@@ -80,3 +80,23 @@ describe("simulation clock", () => {
     expect(world.metadata.elapsed).toBeCloseTo(systemsFrame);
   });
 });
+
+it("advances only presentation for a network replica and preserves authoritative time", () => {
+  const local = createWorld();
+  const render = jest.fn();
+  const world = {
+    ...local,
+    metadata: { ...local.metadata, network: { render } },
+  };
+  render.mockImplementation((delta) => {
+    world.metadata.renderTime += delta;
+  });
+  const clock = createFrameClock(world);
+  clock.advance(80);
+  expect(render).toHaveBeenCalledWith(80);
+  expect(world.update).not.toHaveBeenCalled();
+  expect(world.metadata.elapsed).toBe(0);
+  expect(world.metadata.renderTime).toBe(80);
+  clock.advance(1000, true);
+  expect(render).toHaveBeenCalledTimes(1);
+});

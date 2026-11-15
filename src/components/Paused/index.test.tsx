@@ -231,7 +231,7 @@ it("keeps server connection in the native menu instead of the pause overlay", ()
 
 it("keeps the standard pause layout with disabled saving on a server", () => {
   const world = createAreaWorld(area);
-  world.metadata.network = { send: jest.fn() } as unknown as NonNullable<
+  world.metadata.network = { render: jest.fn() } as unknown as NonNullable<
     typeof world.metadata.network
   >;
   const view = renderPaused(world, { serverStatus: "connected" });

@@ -13,7 +13,6 @@ Stores the active level’s dimensions, cell matrices, spatial map, and generati
 | `map`         | Registered entities grouped by x, y and entity ID.    |
 
 `serverPlayers` is a derived public roster of account IDs, names, connection/ban status and admin flags. It supplies username completion across levels; host saves omit it. Reconnect secrets never enter the ECS.
-
 <!-- source-types -->
 
 ## LevelName

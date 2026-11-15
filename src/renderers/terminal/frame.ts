@@ -1,3 +1,4 @@
+import { getLocalPlayer } from "../../engine/players";
 import { SceneSprite, SceneState } from "../interface/frame";
 import { Layer, SPRITE } from "../../engine/components/sprite";
 import { colors, darkColors, orderedColors } from "../../game/assets/colors";
@@ -8,12 +9,11 @@ import { PLAYER } from "../../engine/components/player";
 import { BUMPABLE } from "../../engine/components/bumpable";
 import { PARTICLE } from "../../engine/components/particle";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
-import { Orientation, orientationPoints } from "../../engine/components/orientable";
 import {
-  popupHeight,
-  fogHeight,
-  objectHeight,
-} from "../interface/segments";
+  Orientation,
+  orientationPoints,
+} from "../../engine/components/orientable";
+import { popupHeight, fogHeight, objectHeight } from "../interface/segments";
 import { FOG } from "../../engine/components/fog";
 import { LIGHT } from "../../engine/components/light";
 import { LOCKABLE } from "../../engine/components/lockable";
@@ -347,7 +347,7 @@ export const shakeTerminalFrame = (
   frame: TerminalFrame,
   state?: TerminalState
 ): TerminalFrame => {
-  const hero = world.getEntities([PLAYER])[0];
+  const hero = getLocalPlayer(world, []);
   if (!state || !hero) return frame;
   const stats = hero[PLAYER].receivedStats;
   const received = stats.melee + stats.magic + stats.true;

@@ -4,14 +4,16 @@ import type { SceneName } from "../../wiki/sceneDefinitions";
 import BrowserPreview from "./BrowserPreview";
 
 export default function FeaturePreview({
+  name,
   children,
-}: React.PropsWithChildren<{ name: SceneName; shadows: boolean }>) {
+}: React.PropsWithChildren<{ name: SceneName | "servers"; shadows: boolean }>) {
   const { ecs, paused, suspended } = useWorld();
   const dimensions = useDimensions();
   if (!ecs) return null;
   return (
     <div className="ClientTerminal">
       <BrowserPreview
+        interactiveSession={name === "servers"}
         world={ecs}
         columns={Math.max(
           33,

@@ -202,6 +202,6 @@ it("tolerates an old selected camera losing its component during a world transit
   const viewpoint = getActiveViewable(world.getEntities([VIEWABLE, POSITION]));
   const { renderer, advanceFrames } = await renderScene(world, <Systems />);
   world.removeComponentFromEntity(viewpoint, VIEWABLE, false);
-  await expect(advanceFrames(2)).resolves.not.toThrow();
+  await advanceFrames(2);
   await renderer.unmount();
 });

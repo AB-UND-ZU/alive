@@ -9,7 +9,7 @@ import {
   keyboardColumns,
   keyboardRows,
   getKeyFromIndex,
-} from "../../components/Keyboard";
+} from "../../game/assets/keyboard";
 import type { World } from "../ecs";
 import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";

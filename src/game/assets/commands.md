@@ -41,5 +41,3 @@ export type CommandSignature = {
   short: string;
 };
 ```
-
-Hosted worlds gate execution on the acting player’s authoritative admin flag. `/server` queues administration through host metadata, with username completion from the replicated roster. Usernames match case-insensitively; completion preserves the typed prefix.

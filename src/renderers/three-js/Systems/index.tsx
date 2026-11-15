@@ -1,3 +1,4 @@
+import { getLocalPlayer } from "../../../engine/players";
 import { useFrame } from "@react-three/fiber";
 import { animated, useSpring } from "@react-spring/three";
 import { Position, POSITION } from "../../../engine/components/position";
@@ -31,14 +32,14 @@ import { orientationPoints } from "../../../engine/components/orientable";
 const shakeFactor = 0.1;
 const shakeSpring = { duration: 50 };
 
-
 export default function Systems() {
   const { ecs, paused, suspended } = useWorld();
   const dimensions = useDimensions();
   const { position, fraction, viewable, jump } = useViewpoint();
   const overscan = useOverscan(position.x, position.y, suspended || jump);
   const game = useGame();
-  const hero = useHero() || ecs?.getEntities([RENDERABLE, PLAYER, POSITION])[0];
+  const hero =
+    useHero() || (ecs && getLocalPlayer(ecs, [RENDERABLE, POSITION]));
   const heroX = hero?.[POSITION].x || 0;
   const heroY = hero?.[POSITION].y || 0;
   const brightness = hero?.[LIGHT]?.brightness || 0;
@@ -48,7 +49,10 @@ export default function Systems() {
     if (!ecs || !hero || brightness <= 0) return casters;
 
     // Prepare blockers before the light moves into a neighboring cell.
-    for (const offset of [{ x: 0, y: 0 }, ...Object.values(orientationPoints)]) {
+    for (const offset of [
+      { x: 0, y: 0 },
+      ...Object.values(orientationPoints),
+    ]) {
       const origin = { x: heroX + offset.x, y: heroY + offset.y };
       for (const point of traceCircularVisiblity(ecs, origin, brightness)) {
         const cell = getCell(ecs, point);
@@ -60,14 +64,7 @@ export default function Systems() {
     return casters;
     // Walls can change without changing the light coordinates.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    ecs,
-    hero,
-    heroX,
-    heroY,
-    brightness,
-    occlusionGeneration,
-  ]);
+  }, [ecs, hero, heroX, heroY, brightness, occlusionGeneration]);
   const structure = hero?.[LAYER]?.structure;
   const damageReceived =
     (hero?.[PLAYER].receivedStats.melee || 0) +
@@ -91,7 +88,7 @@ export default function Systems() {
 
     clock.advance(delta * 1000);
 
-    const quake = viewable?.[VIEWABLE].quake;
+    const quake = viewable?.[VIEWABLE]?.quake;
     if (quake !== undefined && game && quake > game[RENDERABLE].generation) {
       api.start({
         to: async (next) => {

@@ -40,11 +40,3 @@ export type World = ReturnType<typeof createWorld>;
 ```ts src/engine/ecs.ts
 export type PatchedWorld = ECSWorld & { ecs: World };
 ```
-
-## Dedicated server imports
-
-The simulation can run in Node without a DOM or audio device. Browser capability checks stay at the UI and sound boundaries. Initial terminal dimensions use a fixed fallback outside a browser; this does not change browser sizing. `scripts/server/build.cjs` bundles the same engine and replaces only the browser sound-worker factory with its unavailable-worker result. `npm run test:server` exercises native movement and snapshot restoration in a real Node process. The dedicated host runs these same systems; browser replicas render confirmed state. Realm and ownership handling live in `src/engine/network/host.ts`.
-
-## Preloading a level
-
-Preloading registers every positioned entity in the spatial map, including entities created after a generator's initial registration pass. It does not depend on creation notifications surviving cleanup. This keeps NPCs available to both nearby interaction prompts and cell-based actions in newly created and restored worlds.

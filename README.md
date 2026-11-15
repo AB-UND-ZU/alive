@@ -30,11 +30,13 @@ npm run server
 npm start
 ```
 
-The server prints its LAN WebSocket address and listens on port 3001 by default. Open the game on port 3000, pause, choose **Servers**, and connect to the printed address. New players create a character through the shared menu's portal. Use separate browser profiles for separate players.
+The server prints its LAN WebSocket address and listens on port 3001 by default. Open the game on port 3000, use the in-game **Servers** portal, and enter `localhost:3001` or the printed LAN address. New players create a character through the shared menu's portal. Use separate browser profiles for separate players.
 
 `HOST` and `PORT` configure the server listener; `ALIVE_SERVER_SAVE` selects its save file (default `~/.alive/server.save`). The server stores all characters and worlds. Each browser stores its own reconnect key per server address. Use a local HTTP game address with plain LAN WebSockets; HTTPS pages require a WSS server.
 
-This initial co-op version shares world and quest progress, grants the same quest rewards to every character, and keeps each player's controls and dialogs private. Clients render confirmed state without gameplay prediction. See [multiplayer](wiki/multiplayer.md), [host implementation](src/engine/network/host.md), and [networking research](src/engine/network/input.md).
+This initial co-op version shares world and quest progress, grants the same quest rewards to every character, and keeps each player's controls and dialogs private. Clients predict one movement cell and animate confirmed effects locally; the server decides every outcome. See [multiplayer](wiki/multiplayer.md), [host implementation](src/engine/network/host.md), and [networking research](src/engine/network/input.md).
+
+Connect the native terminal client with `npm run terminal -- --server localhost:3001 --name Player`. Its reconnect credentials are stored separately from browser credentials. Three.js, HTML and terminal browser clients use the same in-game Servers portal.
 
 ## Read and preview the wiki
 
@@ -47,7 +49,6 @@ npm run wiki:dev
 Open http://127.0.0.1:4173. Edits rebuild and reload the preview automatically. `npm run wiki:build` writes a static site to `.wiki-build/`. See [wiki tools](src/wiki/index.md) for Markdown authoring, imported examples, browser checks, and GitHub Pages deployment.
 
 Wiki builds and previews reuse the committed minimap snapshot. Run `npm run wiki:minimap` only when you want to regenerate it, then review and commit `src/wiki/minimap.json`.
-
 
 ## Development
 

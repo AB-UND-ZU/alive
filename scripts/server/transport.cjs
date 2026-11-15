@@ -125,6 +125,12 @@ exports.createGameServer = async ({
           });
           transmitted = {
             ...frame,
+            visibleCells: isDeepStrictEqual(
+              frame.visibleCells,
+              client.previous.visibleCells
+            )
+              ? undefined
+              : frame.visibleCells,
             cells: isDeepStrictEqual(frame.cells, client.previous.cells)
               ? undefined
               : frame.cells,

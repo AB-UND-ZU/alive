@@ -93,6 +93,7 @@ export const collectScene = (
 
         // render castables and sticky separately
         if (
+          entity.PLAYER?.connected === false ||
           !(RENDERABLE in entity) ||
           !(SPRITE in entity) ||
           (CASTABLE in entity &&
