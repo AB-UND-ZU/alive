@@ -346,5 +346,6 @@
   {"source": "src/testing/context.md", "title": "Test Context", "route": "development/testing/context.html", "aliases": [], "chapter": "Development", "group": "Engine", "navigation": true},
   {"source": "src/wiki/ServerGame.md", "title": "Server Game", "route": "development/wiki/servergame.html", "aliases": [], "chapter": "Development", "group": "Wiki", "navigation": true},
   {"source": "src/wiki/ServerPreview.md", "title": "Server Preview", "route": "development/wiki/serverpreview.html", "aliases": [], "chapter": "Development", "group": "Wiki", "navigation": true},
-  {"source": "src/wiki/previewInput.md", "title": "Preview input", "route": "development/wiki/previewinput.html", "aliases": [], "chapter": "Development", "group": "Wiki", "navigation": true}
+  {"source": "src/wiki/previewInput.md", "title": "Preview input", "route": "development/wiki/previewinput.html", "aliases": [], "chapter": "Development", "group": "Wiki", "navigation": true},
+  {"source": "src/engine/network/servers.md", "title": "Saved Servers", "route": "development/engine/network/servers.html", "aliases": [], "chapter": "Development", "group": "Engine", "navigation": true}
 ]

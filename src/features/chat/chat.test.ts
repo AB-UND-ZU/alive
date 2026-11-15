@@ -2,6 +2,7 @@ import { advance, createAreaWorld } from "../../testing/harness";
 import { playedSounds, resetPlayedSounds } from "../../testing/env";
 import { PLAYER } from "../../engine/components/player";
 import { TOOLTIP } from "../../engine/components/tooltip";
+import { getSequence } from "../../engine/systems/sequence";
 import { getTab, isInPopup, submitChat } from "../../engine/systems/popup";
 import {
   act,
@@ -175,6 +176,9 @@ describe("chat", () => {
     advance(world, 2000);
     expect(getDialog(hero)).toEqual(["second"]);
     advance(world, 1100);
+    expect(getSequence(world, hero, "dialog")?.args.active).toBe(false);
+    expect(getDialog(hero)).toEqual(["second"]);
+    advance(world, 1000);
     expect(getDialog(hero)).toEqual([]);
     expect(hero[TOOLTIP].override).toBeUndefined();
   });

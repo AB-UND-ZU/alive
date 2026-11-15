@@ -15,9 +15,11 @@ Create dialogs with `createPopup`: it initializes selection arrays and a priorit
 
 Chat edits use `typeChat(world, hero, keyIndex)` immediately in single player, without sharing the pending movement/action slot. Hosted client edits become bounded text intents applied by the server, with a 128-character input limit. Omit the index to delete a character.
 
-`submitChat(world, hero, line)` sends text, records history and executes slash commands through the same path as chat confirmation. It returns the command response, if any, and closes an open chat. Sequences can import it to make the player speak without opening a dialog. Keyboard selections may also be passed as an array to preserve layered special characters. The normal UI still requires test mode to submit chat.
+`submitChat(world, hero, line)` sends text, records history and executes slash commands through the same path as chat confirmation. It returns the command response, if any, and closes an open chat. Sequences can import it to make the player speak without opening a dialog. Keyboard selections may also be passed as an array to preserve layered special characters. Ordinary players can chat; commands require single-player test mode or server admin permission.
 
 An omitted or empty line clears the speech bubble without adding history.
+
+The local Servers dialog starts with saved addresses and a final (Add server) row. Add enters URL and then Name when no reconnect credential exists; Enter resumes a saved address. Erase removes only its bookmark. URL and Name clear nonempty input or return from an empty input. `hasPopupBackButton` reads current text so an immediate Escape after clearing does not use a stale rendered button.
 
 `completeChat(world, hero)` appends the current command suggestion to the chat buffer. Desktop Tab and a right swipe use this function. Suggestions are display-only until accepted; history still contains only submitted text.
 

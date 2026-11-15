@@ -15,7 +15,7 @@ import { useWorld } from "../interface/hooks";
 import { RendererProps } from "../interface/types";
 import { createTerminalInput } from "./input";
 import { getPauseActions, getTerminalFrame, getTerminalLayout } from "./screen";
-import { getTab } from "../../engine/systems/popup";
+import { isChatInput } from "../../engine/systems/popup";
 import { PLAYER } from "../../engine/components/player";
 import { POPUP } from "../../engine/components/popup";
 import { ensureAudio } from "../../game/sound/resumable";
@@ -188,9 +188,7 @@ export default function BrowserPreview({
         POPUP,
       ]);
       if (!popup) return;
-      const tab = getTab(world, popup);
-      if (tab !== "chat" && !(tab === "server" && !world.metadata.network))
-        return;
+      if (!isChatInput(world, popup)) return;
       const text = event.clipboardData?.getData("text/plain");
       if (!text) return;
       event.preventDefault();

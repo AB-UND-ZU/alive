@@ -7292,6 +7292,36 @@ export const displayChat = displayPopupView((world, entity, state) => {
       ],
       leftButton: createButton("LEAVE", 7, false, false, false, "red"),
     };
+  if (server && !entity[POPUP].server?.adding) {
+    const servers = world.metadata.listServers();
+    const selected = servers[getVerticalIndex(world, entity)];
+    return {
+      icon: popupIdles.server,
+      content: [
+        ...servers.map((address) => [
+          none,
+          none,
+          ...createText(
+            address
+              .replace(/^wss?:\/\//, "")
+              .replace(/\/$/, "")
+              .slice(0, frameWidth - 4)
+          ),
+        ]),
+        [none, none, ...createText("(Add server)", colors.grey)],
+      ],
+      selection: "selected",
+      leftButton: createButton("ERASE", 7, !selected, false, false, "red"),
+      rightButton: createButton(
+        selected ? "ENTER" : "ADD",
+        6,
+        false,
+        false,
+        false,
+        "lime"
+      ),
+    };
+  }
   const naming = player?.[PLAYER].naming;
   const showCaret = generation % 2 === 0;
 
@@ -7350,9 +7380,9 @@ export const displayChat = displayPopupView((world, entity, state) => {
       "lime"
     ),
     leftButton: createButton(
-      "CLEAR",
+      (server || naming) && selections.length === 0 ? "\u011aBACK" : "CLEAR",
       7,
-      selections.length === 0,
+      !(server || naming) && selections.length === 0,
       false,
       false,
       "red"
@@ -8855,8 +8885,8 @@ export const popupInteract: Sequence<InteractSequence> = (
   }
 
   // render bar extension after one tick
-  if (state.args.generation === 0 && generation === 1) {
-    state.args.generation = generation;
+  if (state.args.generation === 0 && generation >= 1) {
+    state.args.generation = 1;
 
     const outerBarParticle = entities.createFibre(world, {
       [ORIENTABLE]: { facing: orientation },
@@ -8876,8 +8906,8 @@ export const popupInteract: Sequence<InteractSequence> = (
   }
 
   // render button content and shadows
-  if (state.args.generation === 1 && generation === 2) {
-    state.args.generation = generation;
+  if (state.args.generation === 1 && generation >= 2) {
+    state.args.generation = 2;
     updated = true;
 
     const barLeftParticle = entities.createParticle(world, {
@@ -8969,15 +8999,13 @@ export const popupInteract: Sequence<InteractSequence> = (
   }
 
   if (
-    (orientation === "left" &&
-      state.args.generation === interactWidth + 1 &&
-      generation === interactWidth + 2) ||
-    (orientation === "right" &&
-      state.args.generation === 2 &&
-      generation === 3) ||
-    (!horizontal &&
-      state.args.generation === paddingLeft + 1 &&
-      generation === paddingLeft + 2)
+    state.particles.left &&
+    generation >=
+      (horizontal
+        ? orientation === "left"
+          ? interactWidth + 2
+          : 3
+        : paddingLeft + 2)
   ) {
     updated = true;
     const leftParticle = world.assertById(state.particles.left);
@@ -8986,15 +9014,13 @@ export const popupInteract: Sequence<InteractSequence> = (
   }
 
   if (
-    (orientation === "right" &&
-      state.args.generation === interactWidth + 1 &&
-      generation === interactWidth + 2) ||
-    (orientation === "left" &&
-      state.args.generation === 2 &&
-      generation === 3) ||
-    (!horizontal &&
-      state.args.generation === paddingRight + 1 &&
-      generation === paddingRight + 2)
+    state.particles.right &&
+    generation >=
+      (horizontal
+        ? orientation === "right"
+          ? interactWidth + 2
+          : 3
+        : paddingRight + 2)
   ) {
     updated = true;
     const rightParticle = world.assertById(state.particles.right);
@@ -9033,11 +9059,15 @@ export const discoveryIdle: Sequence<DiscoverySequence> = (
   entity,
   state
 ) => {
-  const heroEntity = getScriptPlayer(world, entity, [POSITION]);
+  const heroEntity = getScriptPlayer(world, entity, [POSITION, PLAYER]);
 
   const size = world.metadata.gameEntity[LEVEL].size;
   const controlled = state.args.force !== undefined;
-  const interactSequence = getSequence(world, entity, "interact");
+  const prompt =
+    world.getEntityById(
+      heroEntity?.[PLAYER].interface?.prompts?.[world.getEntityId(entity)]
+    ) || entity;
+  const interactSequence = getSequence(world, prompt, "interact");
   const shouldHide = state.args.force === false;
 
   const finished = state.args.idle === none;
@@ -9156,9 +9186,11 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
   const totalLength = state.args.text.length;
   const expired =
     isDead(world, entity) ||
-    (!state.args.overridden &&
-      !state.args.isIdle &&
-      state.elapsed / charDelay > totalLength * 1.3 + 20);
+    (!state.args.isIdle &&
+      (entity[PLAYER] && state.args.overridden
+        ? state.elapsed >= 3000
+        : !state.args.overridden &&
+          state.elapsed / charDelay > totalLength * 1.3 + 20));
   const isCloseBy =
     isAdjacent &&
     !!heroEntity &&
@@ -9414,11 +9446,11 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
       delete state.particles.bubble;
     }
 
-    entity[TOOLTIP].changed = undefined;
+    if (!world.metadata.presentation) entity[TOOLTIP].changed = undefined;
 
     const nextDialog = Math.max(0, entity[TOOLTIP].nextDialog) + 1;
     if (expired && entity[TOOLTIP].dialogs.length > nextDialog) {
-      entity[TOOLTIP].nextDialog = nextDialog;
+      if (!world.metadata.presentation) entity[TOOLTIP].nextDialog = nextDialog;
       finished = true;
     } else if (entity[TOOLTIP].idle) {
       // add idle particle
@@ -9441,7 +9473,7 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
     ((!expired && !active) ||
       (expired && (!isCloseBy || entity[TOOLTIP].changed)))
   ) {
-    if (!isCloseBy) {
+    if (!isCloseBy && !world.metadata.presentation) {
       entity[TOOLTIP].nextDialog = 0;
     }
 
@@ -9453,6 +9485,16 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
     finished = true;
   }
 
+  if (
+    finished &&
+    entity[PLAYER] &&
+    state.args.overridden &&
+    !world.metadata.presentation
+  ) {
+    entity[TOOLTIP].dialogs = [];
+    entity[TOOLTIP].override = undefined;
+    entity[TOOLTIP].enemy = false;
+  }
   return { finished, updated };
 };
 

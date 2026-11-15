@@ -1,10 +1,17 @@
 import { createSequence } from "../systems/sequence";
 import { createText } from "../../game/assets/ui";
-import { createPopup, openPopup, closePopup } from "../systems/popup";
+import {
+  createPopup,
+  openPopup,
+  closePopup,
+  submitChat,
+} from "../systems/popup";
 import { createHost } from "./host";
 import { createReplica } from "./replica";
 import { presentationNames, presentations } from "../presentation";
-import { getParticles } from "../systems/sequence";
+import { moveEntity } from "../systems/map";
+import { none } from "../../game/assets/sprites";
+import { getParticles, getSequence } from "../systems/sequence";
 import { getEntityGeneration } from "../systems/renderer";
 
 it("runs decorative particles locally without advancing authoritative systems or allocating server IDs", () => {
@@ -185,4 +192,80 @@ it("animates confirmed hit markers locally without transmitting their particles 
   replica.render(1000);
   expect(actor.STATS.hp).toBe(hp);
   expect(getParticles(replica.world, actor)).toEqual([]);
+});
+
+it("types and expires player chat locally without changing confirmed tooltip data", () => {
+  const host = createHost();
+  const id = host.join("chat");
+  host.identify("chat", "Alice", false);
+  for (let i = 0; i < 60; i++) host.step();
+  const hero = host.world.assertByIdAndComponents(id, ["PLAYER", "TOOLTIP"]);
+  submitChat(host.world, hero, "A long chat message");
+  host.step();
+  const replica = createReplica();
+  replica.world.metadata.localPlayerId = id;
+  replica.receive(host.frame("chat"));
+  const local = replica.world.assertByIdAndComponents(id, [
+    "TOOLTIP",
+    "SEQUENCABLE",
+  ]);
+  const confirmed = JSON.stringify(local.TOOLTIP);
+  const visible = () =>
+    Object.entries(
+      getSequence(replica.world, local, "dialog")?.particles || {}
+    ).filter(
+      ([name, id]) =>
+        name.startsWith("char-") &&
+        replica.world.getEntityById(id)?.SPRITE !== none
+    ).length;
+  replica.render(100);
+  const first = visible();
+  replica.render(150);
+  expect(visible()).toBeGreaterThan(first);
+  expect(local.SEQUENCABLE.states.dialog?.particles).toEqual({});
+  expect(JSON.stringify(local.TOOLTIP)).toBe(confirmed);
+  for (let i = 0; i < 75; i++) host.step();
+  replica.receive(host.frame("chat"));
+  replica.render(450);
+  const typed = visible();
+  replica.render(150);
+  replica.render(100);
+  expect(visible()).toBeLessThan(typed);
+  expect(local.TOOLTIP.override).toBe("visible");
+  for (let i = 0; i < 60; i++) host.step();
+  expect(hero.TOOLTIP.dialogs).toEqual([]);
+  expect(hero.TOOLTIP.override).toBeUndefined();
+});
+
+it("hides discovery only for the player seeing that entity's interaction prompt", () => {
+  const host = createHost();
+  const first = host.join("first"),
+    second = host.join("second");
+  const source = host.world
+    .getEntities(["IDENTIFIABLE", "POPUP"])
+    .find((e) => e.IDENTIFIABLE.name === "server_portal")!;
+  moveEntity(host.world, host.world.getEntityById(first)!, { x: 7, y: 20 });
+  moveEntity(host.world, host.world.getEntityById(second)!, { x: 8, y: 23 });
+  for (let i = 0; i < 60; i++) host.step();
+  const make = (account: string, id: number) => {
+    const replica = createReplica();
+    replica.world.metadata.localPlayerId = id;
+    replica.receive(host.frame(account));
+    for (let i = 0; i < 8; i++) replica.render(100);
+    const entity = replica.world.getEntityById(host.world.getEntityId(source))!;
+    const discovery = getSequence(replica.world, entity, "discovery")!;
+    return { replica, entity, discovery };
+  };
+  const a = make("first", first),
+    b = make("second", second);
+  const sprite = (view: typeof a) =>
+    view.replica.world.getEntityById(view.discovery.particles.discovery)!
+      .SPRITE;
+  expect(sprite(a)).toBe(none);
+  expect(sprite(b)).not.toBe(none);
+  openPopup(host.world, host.world.getEntityById(first)!, source);
+  host.step();
+  b.replica.receive(host.frame("second"));
+  b.replica.render(100);
+  expect(sprite(b)).not.toBe(none);
 });

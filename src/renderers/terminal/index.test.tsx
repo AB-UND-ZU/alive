@@ -1,4 +1,4 @@
-import { createPopup, openPopup } from "../../engine/systems/popup";
+import { createPopup, openPopup, submitChat } from "../../engine/systems/popup";
 import { POPUP } from "../../engine/components/popup";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import {
@@ -592,3 +592,26 @@ it.each([0, 1, 2, 3])(
     expect(frameToText(frame)).not.toMatch(/[∙≡☺]/);
   }
 );
+
+it("uses the shared LIST, URL, NAME and INFO titles for server dialogs", () => {
+  const { world, hero } = setup();
+  const popup = world
+    .getEntities(["IDENTIFIABLE", "POPUP"])
+    .find((entity) => entity.IDENTIFIABLE.name === "use")!;
+  createPopup(world, popup, {
+    tabs: ["server"],
+    owner: world.getEntityId(hero),
+  });
+  openPopup(world, hero, popup, true);
+  advance(world, 1000);
+  const text = () => frameToText(getTerminalFrame(world, 80, 30));
+  expect(text()).toMatch(/\[\s*LIST\s*\]/);
+  submitChat(world, hero);
+  advance(world, 300);
+  expect(text()).toMatch(/\[\s*URL\s*\]/);
+  submitChat(world, hero, "localhost:3001");
+  advance(world, 300);
+  expect(text()).toMatch(/\[\s*NAME\s*\]/);
+  world.metadata.warpPlayer = () => {};
+  expect(text()).toMatch(/\[\s*INFO\s*\]/);
+});

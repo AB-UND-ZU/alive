@@ -12,13 +12,7 @@ npm run terminal
 
 Use `npm run terminal -- --test` to enable [chat commands](chat.md). Sounds play on the host machine through native Web Audio. The native client requires Node.js 24 or newer. Native terminal saves are separate; browser clients share [savegames](savegames.md).
 
-Connect to a [Server](server.md):
-
-```sh
-npm run terminal -- --server localhost:3001 --name Player
-```
-
-The server saves the character. The native client keeps its reconnect token in `~/.local/share/alive/servers.json`, or under `XDG_DATA_HOME` when set. Server admins may use commands.
+Use the in-game Servers portal to add or enter a [Server](server.md). The server saves the character. The native client keeps its server list and reconnect tokens in `~/.local/share/alive/servers.json`, or under `XDG_DATA_HOME` when set. Erasing a listed address keeps the token. Server admins may use commands.
 
 | Input | Action |
 | --- | --- |

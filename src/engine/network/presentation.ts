@@ -1,3 +1,7 @@
+import type {
+  DiscoverySequence,
+  InteractSequence,
+} from "../components/sequencable";
 import { captureSounds } from "../../game/sound/events";
 import type { World } from "../ecs";
 import { SEQUENCABLE } from "../components/sequencable";
@@ -41,7 +45,8 @@ export const renderPresentations = (world: World) => {
           !isPresentationSequence(entity, playing) ||
           (playing.name === "displayPopup" && !entity.POPUP?.active) ||
           playing.name !== state.name ||
-          playing.started !== state.started
+          playing.started !== state.started ||
+          playing.reference !== state.reference
         ) {
           disposeParticles(world, state);
           delete states[type];
@@ -75,6 +80,10 @@ export const renderPresentations = (world: World) => {
             },
             particles: {},
           };
+        if (playing.name === "discoveryIdle")
+          state.args.force = (playing.args as DiscoverySequence).force;
+        if (playing.name === "popupInteract")
+          state.args.active = (playing.args as InteractSequence).active;
         state.elapsed = Math.max(
           0,
           world.metadata.renderTime - playing.started!
@@ -165,7 +174,15 @@ export const renderPresentations = (world: World) => {
             if (particle) particle[PARTICLE].owner = popup.owner;
           }
         } else {
-          const result = sequences[state.name](world, entity, state as never);
+          const result = captureSounds(
+            () => {},
+            () => sequences[state.name](world, entity, state as never)
+          );
+          if (state.name === "popupInteract")
+            for (const id of Object.values(state.particles)) {
+              const particle = world.getEntityByIdAndComponents(id, [PARTICLE]);
+              if (particle) particle[PARTICLE].owner = state.args.owner;
+            }
           changed = result.updated;
           if (result.finished) {
             completed.add(state);

@@ -11,13 +11,15 @@ import { ACTIONABLE } from "../../engine/components/actionable";
 import { MOVABLE } from "../../engine/components/movable";
 import { PLAYER, Player } from "../../engine/components/player";
 import { REFERENCE } from "../../engine/components/reference";
-import { getSequence } from "../../engine/systems/sequence";
 import { POPUP } from "../../engine/components/popup";
 import { Orientation } from "../../engine/components/orientable";
 import {
+  isChatInput,
+  hasPopupBackButton,
   closePopup,
   getTab,
   getVerticalIndex,
+  getTabSelections,
   typeChat,
   completeChat,
   navigateChat,
@@ -94,9 +96,7 @@ export const createTerminalInput = (
     if (!hero) return;
     const name = key.name || key.sequence || "";
     const popup = world.getEntityByIdAndComponents(hero[PLAYER].popup, [POPUP]);
-    const tab = popup && getTab(world, popup);
-    const chat =
-      tab === "chat" || (tab === "server" && !world.metadata.network);
+    const chat = popup && isChatInput(world, popup);
     const send = (kind: "text" | "history" | "complete", index?: number) => {
       if (kind === "text" && index !== undefined) {
         if (!text.length) queueMicrotask(flushText);
@@ -160,11 +160,7 @@ export const createTerminalInput = (
         ? "chat"
         : "interact";
     if (name === "backspace") action = popup ? "left" : undefined;
-    if (
-      name === "escape" &&
-      popup &&
-      getSequence(world, popup, "popup")?.args.backButton
-    )
+    if (name === "escape" && popup && hasPopupBackButton(world, popup))
       action = "left";
     if (name === "tab" && !chat) {
       action = !popup
@@ -193,7 +189,8 @@ export const createTerminalInput = (
       world.metadata.network &&
       action === "left" &&
       popup &&
-      getTab(world, popup) === "server"
+      (getTab(world, popup) === "server" ||
+        (hero[PLAYER].naming && !getTabSelections(world, popup).length))
     ) {
       world.metadata.leaveServer();
       return;

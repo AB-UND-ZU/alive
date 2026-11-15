@@ -1,3 +1,7 @@
+import type {
+  DiscoverySequence,
+  InteractSequence,
+} from "./components/sequencable";
 import { isPresentationSequence } from "./presentation";
 import { SEQUENCABLE } from "./components/sequencable";
 import { LIQUID } from "./components/liquid";
@@ -148,7 +152,15 @@ export const createSnapshot = (
                       ...state,
                       started: state!.started,
                       elapsed: 0,
-                      args: state!.initialArgs!,
+                      args: {
+                        ...state!.initialArgs!,
+                        ...(state!.name === "discoveryIdle"
+                          ? { force: (state!.args as DiscoverySequence).force }
+                          : {}),
+                        ...(state!.name === "popupInteract"
+                          ? { active: (state!.args as InteractSequence).active }
+                          : {}),
+                      },
                       particles: {},
                     }
                   : state,

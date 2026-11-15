@@ -1,3 +1,4 @@
+import { createServerList } from "../../engine/network/servers";
 import { connectTerminalServer, createServerStorage } from "./network";
 import { serverUrl } from "../../engine/network/url";
 import type { ConnectionStatus } from "../../engine/network/client";
@@ -91,6 +92,7 @@ export const runTerminal = async () => {
   let connection: ReturnType<typeof connectTerminalServer> | undefined;
   let serverStatus: ConnectionStatus | undefined;
   const storage = createServerStorage();
+  const servers = createServerList(storage);
   const disconnect = () => {
     connection?.close();
     connection = undefined;
@@ -100,6 +102,7 @@ export const runTerminal = async () => {
     disconnect();
     const origin = world;
     try {
+      servers.add(address);
       connection = connectTerminalServer(address, {
         storage,
         username,
@@ -151,6 +154,8 @@ export const runTerminal = async () => {
     clock = createFrameClock(world);
     state = { stickyCastables: {} };
     world.metadata.connectServer = join;
+    world.metadata.listServers = servers.list;
+    world.metadata.eraseServer = servers.erase;
     world.metadata.leaveServer = menu;
     world.metadata.hasServerPlayer = (address) => {
       try {
@@ -208,28 +213,9 @@ export const runTerminal = async () => {
     };
     return { columns, rows };
   };
-  const serverIndex = args.indexOf("--server");
-  if (serverIndex !== -1) {
-    const address = args[serverIndex + 1];
-    if (!address) throw new Error("--server needs a host URL");
-    const nameIndex = args.indexOf("--name");
-    join(address, nameIndex === -1 ? undefined : args[nameIndex + 1]);
-  }
   const frameArg = args.indexOf("--frames");
   if (frameArg !== -1) {
     const { columns, rows } = dimensions();
-    if (connection) {
-      for (
-        let attempt = 0;
-        attempt < 100 && !world.metadata.network && serverStatus !== "rejected";
-        attempt++
-      )
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      if (!world.metadata.network) {
-        disconnect();
-        throw new Error("Server connection failed");
-      }
-    }
     for (let i = 0; i < Number(args[frameArg + 1] || 1); i++)
       clock.advance(systemsFrame);
     const frame = getTerminalFrame(world, columns, rows, state);

@@ -41,7 +41,7 @@ load dialog. This file is separate from browser saves.
 
 ## Multiplayer
 
-Use the in-game Servers portal, or start with `npm run terminal -- --server localhost:3001 --name Player`. The authoritative server saves the character. Native reconnect tokens live in `$XDG_DATA_HOME/alive/servers.json`, defaulting to `~/.local/share/alive/servers.json`; they are separate from browser tokens. Server admins may use commands. Pause releases input while the shared world continues; Menu disconnects to the local menu and Save stays disabled.
+Use the in-game Servers portal. Select the empty (Add server) row, enter a URL and choose a username when asked. Erase removes an address while retaining the reconnect token. The authoritative server saves the character. Native reconnect tokens live in `$XDG_DATA_HOME/alive/servers.json`, defaulting to `~/.local/share/alive/servers.json`; they are separate from browser tokens. Server admins may use commands. Pause releases input while the shared world continues; Menu disconnects to the local menu and Save stays disabled.
 
 ## Sprite projection
 

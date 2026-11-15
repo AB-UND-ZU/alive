@@ -4,7 +4,6 @@ import { Sprite } from "./sprite";
 
 export type Tooltip = {
   idle?: Sprite;
-  chatRemaining?: number;
   dialogs: Sprite[][];
   nextDialog: number;
   persistent: boolean;

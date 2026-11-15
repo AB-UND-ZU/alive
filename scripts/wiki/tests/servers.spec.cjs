@@ -219,7 +219,6 @@ test("Multiplayer reports an unreachable host and accepts another address", asyn
     )
     .toBe("Dora: hello");
   await expect(frame.locator("#keyboard")).toHaveCount(0);
-  await expect.poll(() => players[0].TOOLTIP.chatRemaining).toBeLessThan(2000);
   await page.screenshot({
     path: testInfo.outputPath("chat-desktop.png"),
     fullPage: true,
@@ -394,6 +393,8 @@ test("the native menu portal connects, leaves and reuses the saved identity", as
   // Allow the native interaction system to discover the adjacent portal.
   await page.waitForTimeout(150);
   await page.locator("body").press("Enter");
+  await expect(page.locator("#keyboard")).toHaveCount(0);
+  await page.locator("#right").click();
   await expect(page.locator("#keyboard")).toBeVisible();
   await paste(`127.0.0.1:${server.address.port}`);
   await page.locator("body").press("Enter");
@@ -455,9 +456,18 @@ test("the native menu portal connects, leaves and reuses the saved identity", as
     .poll(() => page.evaluate(() => typeof window.aliveChat))
     .toBe("function");
   await page.evaluate(() => window.aliveChat("/tp 7,20"));
-  // Allow the native interaction system to discover the adjacent portal.
   await page.waitForTimeout(150);
   await page.locator("body").press("Enter");
+  await expect(page.locator("#keyboard")).toHaveCount(0);
+  await page.locator("#left").click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => JSON.parse(localStorage.getItem("alive.servers") || "[]").length
+      )
+    )
+    .toBe(0);
+  await page.locator("#right").click();
   await expect(page.locator("#keyboard")).toBeVisible();
   await paste(`127.0.0.1:${server.address.port}`);
   await page.locator("body").press("Enter");
@@ -575,14 +585,12 @@ test("multiplayer popup hit areas follow rendered content, dragging and dialog b
   await expect.poll(() => popup()?.POPUP.horizontalIndex).toBe(0);
   await expect(page.locator("#scroll")).toBeVisible();
   const mobileBar = await page.locator("#scroll").boundingBox();
-  await page
-    .locator("#scroll")
-    .click({
-      position: {
-        x: mobileBar.width / 2,
-        y: mobileBar.height - (1.5 * mobileBar.height) / 9,
-      },
-    });
+  await page.locator("#scroll").click({
+    position: {
+      x: mobileBar.width / 2,
+      y: mobileBar.height - (1.5 * mobileBar.height) / 9,
+    },
+  });
   await expect.poll(row).toBe(39);
   await page.waitForTimeout(1000);
   await page.screenshot({

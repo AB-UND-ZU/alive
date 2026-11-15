@@ -16,7 +16,9 @@ before(async () => {
     export {createReplica} from "./src/engine/network/replica";
     export {encodeState,decodeState} from "./src/engine/network/codec";
     export {giveItems} from "./src/testing/harness";
-    export {submitChat} from "./src/engine/systems/popup";`,
+    export {submitChat} from "./src/engine/systems/popup";
+    export {createServerList} from "./src/engine/network/servers";
+    export {connectTerminalServer,createServerStorage} from "./src/renderers/terminal/network";`,
       resolveDir: process.cwd(),
       loader: "ts",
     },
@@ -442,67 +444,49 @@ test("startup admins can manage players through authoritative commands and resta
   }
 });
 
-test("native terminal sessions render confirmed state and reconnect to their saved character", async () => {
-  const { execFile } = require("node:child_process");
-  const { promisify } = require("node:util");
-  const { readFile } = require("node:fs/promises");
-  const data = path.join(directory, "terminal-profile");
+test("native terminal connections resume their character after erasing and re-adding a bookmark", async () => {
   const server = await createGameServer({
     engine,
     file: path.join(directory, "terminal.save"),
   });
-  const run = (name) =>
-    promisify(execFile)(
-      process.execPath,
-      [
-        "scripts/terminal.cjs",
-        "--server",
-        url(server),
-        "--name",
-        name,
-        "--frames",
-        "60",
-        "--plain",
-      ],
-      { env: { ...process.env, XDG_DATA_HOME: data }, timeout: 15000 }
-    );
+  const storage = engine.createServerStorage(
+    path.join(directory, "native/servers.json")
+  );
+  let connection;
+  const join = (username) =>
+    new Promise((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error("Native connection timed out")),
+        5000
+      );
+      connection = engine.connectTerminalServer(url(server), {
+        storage,
+        username,
+        onReady(world) {
+          clearTimeout(timeout);
+          resolve(world);
+        },
+      });
+    });
   try {
-    await run("Native");
-    const credentials = JSON.parse(
-      await readFile(path.join(data, "alive/servers.json"), "utf8")
-    );
-    const { id } = JSON.parse(credentials[`alive.server:${url(server)}/`]);
-    const world = server.simulation.worldFor(id);
-    const hero = world.getEntityById(server.simulation.actorId(id));
+    const first = await join("Native");
+    const actorId = first.metadata.localPlayerId;
+    connection.close();
+    const bookmarks = engine.createServerList(storage);
+    bookmarks.add(url(server));
+    bookmarks.erase(url(server) + "/");
+    assert.deepEqual(bookmarks.list(), []);
+    bookmarks.add(url(server));
+    const next = await join("AnotherName");
+    assert.equal(next.metadata.localPlayerId, actorId);
+    const hero = next.getEntityById(actorId);
     assert.equal(hero.PLAYER.username, "Native");
-    world.metadata.warpPlayer(
-      world.getEntityId(hero),
-      "LEVEL_TUTORIAL",
-      "rogue",
-      hero.SPAWNABLE.hairColor,
-      true
-    );
-    for (
-      let attempt = 0;
-      attempt < 100 &&
-      server.simulation.worldFor(id).metadata.gameEntity.LEVEL.name !==
-        "LEVEL_TUTORIAL";
-      attempt++
-    )
+    connection.action({ kind: "gear" });
+    for (let attempt = 0; attempt < 100 && !hero.PLAYER.popup; attempt++)
       await new Promise((resolve) => setTimeout(resolve, 20));
-    assert.equal(
-      server.simulation.worldFor(id).metadata.gameEntity.LEVEL.name,
-      "LEVEL_TUTORIAL"
-    );
-    const { stdout } = await run("AnotherName");
-    assert.match(stdout, /25\/25/);
-    const actors = server.simulation
-      .worldFor(id)
-      .getEntities(["PLAYER"])
-      .filter((actor) => actor.PLAYER.accountId === id);
-    assert.equal(actors.length, 1);
-    assert.equal(actors[0].PLAYER.username, "Native");
+    assert.ok(hero.PLAYER.popup);
   } finally {
+    connection?.close();
     await server.close();
   }
 });

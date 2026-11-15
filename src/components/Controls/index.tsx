@@ -1,3 +1,4 @@
+import { isChatInput, hasPopupBackButton } from "../../engine/systems/popup";
 import { setMovementOrientations } from "../../engine/systems/movement";
 import { getInteraction } from "../../engine/players";
 import {
@@ -594,9 +595,7 @@ export default function Controls({
       if (
         (inMenu &&
           !ecs?.metadata.network &&
-          !(
-            hero && getActivePopup(ecs!, hero)?.POPUP?.tabs.includes("server")
-          )) ||
+          !(hero && !!getActivePopup(ecs!, hero)?.POPUP?.server?.adding)) ||
         !ecs ||
         !hero ||
         pausedRef.current ||
@@ -700,11 +699,17 @@ export default function Controls({
     ) => {
       event.preventDefault();
 
-      if (ecs?.metadata.network && popupTab === "server")
+      if (
+        ecs?.metadata.network &&
+        (popupTab === "server" ||
+          (heroRef.current?.PLAYER.naming &&
+            popup &&
+            !getTabSelections(ecs, popup).length))
+      )
         ecs.metadata.leaveServer();
       else handleAction("left");
     },
-    [handleAction, ecs, popupTab]
+    [handleAction, ecs, popupTab, popup]
   );
 
   const handleRight = useCallback(
@@ -859,7 +864,9 @@ export default function Controls({
             !(
               !!ecs &&
               (popupTab === "chat" ||
-                (popupTab === "server" && !ecs?.metadata.network)) &&
+                (popupTab === "server" &&
+                  !ecs?.metadata.network &&
+                  !!popup?.POPUP?.server?.adding)) &&
               (getIndexFromKey(event.key) || backspaceKeys.includes(event.key))
             )))
       )
@@ -868,7 +875,9 @@ export default function Controls({
       if (
         !!ecs &&
         (popupTab === "chat" ||
-          (popupTab === "server" && !ecs?.metadata.network)) &&
+          (popupTab === "server" &&
+            !ecs?.metadata.network &&
+            !!popup?.POPUP?.server?.adding)) &&
         !interactKeys.includes(event.key) &&
         !closeKeys.includes(event.key) &&
         event.type === "keydown"
@@ -953,7 +962,7 @@ export default function Controls({
         return;
       } else if (closeKeys.includes(event.key) && event.type === "keydown") {
         if (ecs && popup) {
-          if (!getSequence(ecs, popup, "popup")?.args.backButton) {
+          if (!hasPopupBackButton(ecs, popup)) {
             handleClose(event);
           } else {
             handleLeft(event);
@@ -1057,7 +1066,9 @@ export default function Controls({
         !(
           !!ecs &&
           (popupTab === "chat" ||
-            (popupTab === "server" && !ecs?.metadata.network))
+            (popupTab === "server" &&
+              !ecs?.metadata.network &&
+              !!popup?.POPUP?.server?.adding))
         )
       )
         return;
@@ -1084,7 +1095,9 @@ export default function Controls({
         if (
           !!ecs &&
           (popupTab === "chat" ||
-            (popupTab === "server" && !ecs?.metadata.network))
+            (popupTab === "server" &&
+              !ecs?.metadata.network &&
+              !!popup?.POPUP?.server?.adding))
         ) {
           if (
             primaryOrientation === "right" &&
@@ -1142,8 +1155,7 @@ export default function Controls({
         !player ||
         !current ||
         pausedRef.current ||
-        !["chat", "server"].includes(getTab(ecs, current)) ||
-        (getTab(ecs, current) === "server" && ecs.metadata.network)
+        !isChatInput(ecs, current)
       )
         return;
       const text = event.clipboardData?.getData("text/plain");
@@ -1546,7 +1558,9 @@ export default function Controls({
             onClick={handleContent}
           />
           {(popupTab === "chat" ||
-            (popupTab === "server" && !ecs?.metadata.network)) && <Keyboard />}
+            (popupTab === "server" &&
+              !ecs?.metadata.network &&
+              !!popup?.POPUP?.server?.adding)) && <Keyboard />}
         </>
       )}
       {children}

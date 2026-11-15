@@ -7,7 +7,7 @@ npm install
 npm run server
 ```
 
-Enter the printed WebSocket address on [Multiplayer](clients-multiplayer.md). Use the LAN address when playing from another device. The default port is [[data:3001]].
+In the game, use the Servers portal and select **(Add server)**. Enter the printed WebSocket address and a username when asked. [Multiplayer](clients-multiplayer.md) also connects two previews. Use the LAN address when playing from another device. The default port is [[data:3001]].
 
 ## Shared world
 
@@ -21,7 +21,7 @@ The server saves all worlds and characters automatically in `~/.alive/server.sav
 
 Usernames are unique and saved with each character. Returning clients keep their saved name.
 
-Each browser stores a secret reconnect token. The native terminal client stores its token separately. Keep its site data and use the same server address to return to that character. The two Multiplayer previews keep separate tokens.
+Each browser stores a secret reconnect token. The native terminal client stores its token separately. Keep its site data and use the same server address to return to that character. Erasing a saved server removes its local address only. Adding it again restores the same character. The two embedded previews keep separate tokens.
 
 To choose a save file:
 

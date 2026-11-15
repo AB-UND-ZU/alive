@@ -78,8 +78,9 @@ for (const mobile of [false, true]) {
         const during = await state(page);
         expect(during.row).toBeGreaterThanOrEqual(2);
         expect(during.interval).toBe(175);
-        expect(during.row).toBeLessThanOrEqual(
-          during.generation - before.generation
+        // A new press can step before the repeat clock advances.
+        expect(during.row - before.row).toBeLessThanOrEqual(
+          during.generation - before.generation + 1
         );
         if (mobile)
           await client.send("Input.dispatchTouchEvent", {

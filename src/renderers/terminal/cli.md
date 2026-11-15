@@ -10,7 +10,7 @@ Save errors remain visible in the pause overlay. Loading attaches a fresh
 input controller and frame clock to the restored world. The viewport dimensions
 are shared with the renderer so camera framing and terminal bounds agree.
 
-`--server localhost:3001 --name Player` connects through the shared WebSocket client. A saved reconnect token restores the same character; new unnamed clients receive the in-game name prompt. Tokens are written atomically to `$XDG_DATA_HOME/alive/servers.json`, defaulting to `~/.local/share/alive/servers.json`. Remote sessions disable local saves and run only presentation frames. Menu disconnects and restores the local menu. The in-game Servers portal uses these same callbacks.
+The in-game Servers portal lists saved addresses and connects through the shared WebSocket client. A saved reconnect token restores the same character; new unnamed clients receive the in-game name prompt. Tokens are written atomically to `$XDG_DATA_HOME/alive/servers.json`, defaulting to `~/.local/share/alive/servers.json`. Remote sessions disable local saves and run only presentation frames. Menu disconnects and restores the local menu. The in-game Servers portal uses these same callbacks.
 
 `emitTerminalKeys` uses a 50 ms Escape decoder timeout: a bare Escape closes promptly while split arrow-key sequences are still recognized.
 

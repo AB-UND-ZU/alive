@@ -69,7 +69,7 @@ const popups = [
 ] as const;
 
 export type Popup = {
-  server?: { address?: string };
+  server?: { adding?: boolean; address?: string };
   source?: number;
   revision?: number;
   sourceRevision?: number;

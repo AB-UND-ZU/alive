@@ -3,7 +3,7 @@ import { projectLayers } from "./sprites";
 import { World } from "../../engine";
 import { isTestMode } from "../../engine/mode";
 import { TypedEntity } from "../../engine/entities";
-import { popupTitles } from "../../engine/systems/popup";
+import { getPopupTitle } from "../../engine/systems/popup";
 import { POPUP } from "../../engine/components/popup";
 import { getSequence } from "../../engine/systems/sequence";
 import { PLAYER } from "../../engine/components/player";
@@ -180,7 +180,9 @@ export const getTerminalFrame = (
           : tabCell === tabCount * 6 || tabCell === (selected + 1) * 6
           ? "]"
           : "|"
-        : padCenter(popupTitles[tabs[tab]], 5)[(tabCell % 6) - 1];
+        : padCenter(getPopupTitle(world, popup, tabs[tab]), 5)[
+            (tabCell % 6) - 1
+          ];
       const foreground = active
         ? colors.black
         : sequence.args.instant

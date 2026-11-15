@@ -10,4 +10,4 @@ Chooses nearby tooltips and advances their displayed messages after contextual i
 
 [Tooltip](../components/tooltip.md) stores text and timing state. Selection depends on the hero's position, sight and current spawn/interaction state. [Sequence](sequence.md) advances the resulting message animation.
 
-Player chat countdowns update every simulation frame before the tooltip generation cache. Expiry clears the player override and disposes its dialog sequence without changing NPC timing.
+A changed visible player message bypasses the tooltip generation cache so its sequence starts on the next engine frame. The dialog sequence handles its three-second expiry and normal untyping, then clears the player override. Multiplayer clients animate these confirmed sequences locally.

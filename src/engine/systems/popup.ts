@@ -45,7 +45,13 @@ import { Equipment, EQUIPPABLE, slots } from "../components/equippable";
 import { Item, ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { entities } from "..";
-import { add, clamp, combine, getDistance, normalize } from "../../game/math/std";
+import {
+  add,
+  clamp,
+  combine,
+  getDistance,
+  normalize,
+} from "../../game/math/std";
 import { TypedEntity } from "../entities";
 import { isDead, isEnemy, isNeutral } from "./damage";
 import {
@@ -204,6 +210,22 @@ export const popTabSelection = (world: World, popupEntity: Entity) => {
   return value;
 };
 
+export const isChatInput = (world: World, popup: Entity) =>
+  getTab(world, popup) === "chat" ||
+  (getTab(world, popup) === "server" &&
+    !world.metadata.network &&
+    !!popup[POPUP].server?.adding);
+
+export const hasPopupBackButton = (world: World, popup: Entity) => {
+  const naming = getPopupPlayer(world, popup, [PLAYER])?.[PLAYER].naming;
+  if (
+    (getTab(world, popup) === "server" && isChatInput(world, popup)) ||
+    naming
+  )
+    return getTabSelections(world, popup).length === 0;
+  return !!getSequence(world, popup, "popup")?.args.backButton;
+};
+
 export const typeChat = (
   world: World,
   heroEntity: Entity,
@@ -212,7 +234,7 @@ export const typeChat = (
   const popup = world.getEntityByIdAndComponents(heroEntity[PLAYER]?.popup, [
     POPUP,
   ]);
-  if (!popup || !["chat", "server"].includes(getTab(world, popup))) return;
+  if (!popup || !isChatInput(world, popup)) return;
 
   if (world.metadata.network) {
     world.metadata.network.action(
@@ -358,6 +380,17 @@ export const submitChat = (
     const input = [...line].join("").trim();
     const config = (serverPopup[POPUP].server ||= {});
     world.metadata.serverError = "";
+    if (!config.adding) {
+      const address =
+        world.metadata.listServers()[getVerticalIndex(world, serverPopup)];
+      if (address) world.metadata.connectServer?.(address);
+      else {
+        config.adding = true;
+        setVerticalIndex(world, serverPopup, 0);
+      }
+      rerenderEntity(world, serverPopup);
+      return;
+    }
     try {
       if (!config.address) {
         const address = serverUrl(input);
@@ -456,7 +489,6 @@ export const submitChat = (
 
   if (getSequence(world, heroEntity, "dialog"))
     disposeSequence(world, heroEntity, "dialog");
-  heroEntity[TOOLTIP].chatRemaining = 3000;
   heroEntity[TOOLTIP].enemy = !!command;
   heroEntity[TOOLTIP].dialogs = dialog.length
     ? [
@@ -731,6 +763,8 @@ export const getPopupTitle = (
   if (tab === "server")
     return world.metadata.network || world.metadata.warpPlayer
       ? "INFO"
+      : !entity[POPUP].server?.adding
+      ? "LIST"
       : entity[POPUP].server?.address
       ? "NAME"
       : "URL";
@@ -988,6 +1022,17 @@ export const openPopup = (
   }
   const popupId = world.getEntityId(popupEntity);
   const transaction = getDiscoveryTab(world, popupEntity);
+  if (
+    transaction === "server" &&
+    !world.metadata.warpPlayer &&
+    !world.metadata.network
+  ) {
+    popupEntity[POPUP].server = {};
+    popupEntity[POPUP].selections[popupEntity[POPUP].tabs.indexOf("server")] =
+      [];
+    setVerticalIndex(world, popupEntity, 0);
+    world.metadata.serverError = "";
+  }
   heroEntity[PLAYER].popup = popupId;
   updateMovementInterval(world, heroEntity);
   popupEntity[POPUP].active = true;
@@ -1240,6 +1285,12 @@ const getPopupLength = (world: World, hero: Entity, entity: Entity) => {
       return credits.length;
     case "load":
       return selections.length === 0 ? getSaveSummaries().length : 0;
+    case "server":
+      return entity[POPUP].server?.adding ||
+        world.metadata.warpPlayer ||
+        world.metadata.network
+        ? 1
+        : world.metadata.listServers().length + 1;
     case "chat":
       return hero[PLAYER].chatHistory.length + 1;
     case "info":
@@ -2058,8 +2109,19 @@ export default function setupPopup(world: World) {
 
       if (tab === "server") {
         world.metadata.serverError = "";
-        popupEntity[POPUP].server = {};
-        popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] = [];
+        const config = (popupEntity[POPUP].server ||= {});
+        if (!config.adding) {
+          const address =
+            world.metadata.listServers()[getVerticalIndex(world, popupEntity)];
+          if (address) world.metadata.eraseServer(address);
+        } else if (selections.length) {
+          popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] =
+            [];
+        } else if (config.address) {
+          delete config.address;
+        } else {
+          popupEntity[POPUP].server = {};
+        }
       } else if (tab === "chat") {
         // clear chat
         popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] = [];

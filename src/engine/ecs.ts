@@ -253,6 +253,8 @@ export default function createWorld() {
       connectServer: undefined as
         | undefined
         | ((address: string, username?: string) => void),
+      listServers: () => [] as string[],
+      eraseServer: (_address: string) => {},
       hasServerPlayer: (_address: string) => false,
       leaveServer: () => {},
       serverError: "",

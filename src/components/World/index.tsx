@@ -1,3 +1,4 @@
+import { createServerList } from "../../engine/network/servers";
 import {
   connectServer,
   ConnectionStatus,
@@ -73,9 +74,12 @@ export default function World({
 
   // world callbacks only use stable state setters, so they are created once
   const [actions] = useState(() => {
+    const servers = createServerList(serverStorage || localStorage);
     const connectWorld = (world: WorldType) => {
       worldRef.current = world;
       world.metadata.connectServer = joinServer;
+      world.metadata.listServers = servers.list;
+      world.metadata.eraseServer = servers.erase;
       world.metadata.leaveServer = openMenu;
       world.metadata.hasServerPlayer = (address) =>
         !!(serverStorage || localStorage).getItem(
@@ -147,6 +151,7 @@ export default function World({
       const generation = ++connectionGeneration.current;
       ensureAudio();
       try {
+        servers.add(address);
         connectionRef.current = connectServer(address, {
           storage: serverStorage,
           username,

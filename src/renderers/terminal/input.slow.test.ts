@@ -1,4 +1,10 @@
 import {
+  createPopup,
+  openPopup,
+  submitChat,
+  getPopupTitle,
+} from "../../engine/systems/popup";
+import {
   createAreaWorld,
   advance,
   advanceUntil,
@@ -214,5 +220,27 @@ it("closes a terminal dialog without waiting for another simulation tick", () =>
   input.press({ name: "escape" });
   expect(isInPopup(world, hero)).toBeFalsy();
   expect(world.metadata.elapsed).toBe(elapsed);
+  input.stop();
+});
+
+it("returns to the server list immediately after deleting the last URL character", () => {
+  const world = createAreaWorld("|  ♀  |");
+  const hero = assertHero(world);
+  const popup = getMenu(world);
+  createPopup(world, popup, {
+    tabs: ["server"],
+    owner: world.getEntityId(hero),
+  });
+  openPopup(world, hero, popup, true);
+  submitChat(world, hero);
+  advance(world, 300);
+  const input = createTerminalInput(world);
+  input.press({ sequence: "x", name: "x" });
+  advance(world, 100);
+  input.press({ name: "backspace" });
+  input.press({ name: "escape" });
+  advance(world, 300);
+  expect(hero.PLAYER!.popup).toBe(world.getEntityId(popup));
+  expect(getPopupTitle(world, popup)).toBe("LIST");
   input.stop();
 });

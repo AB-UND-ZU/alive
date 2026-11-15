@@ -14,6 +14,8 @@ popup chat
 
 [[key:Enter]] Send the chat message.
 
+New messages replace the previous message. After three seconds, it untypes and disappears.
+
 [[key:Tab]] Complete the command.
 
 [[key:↑]] [[key:↓]] Browse command history.

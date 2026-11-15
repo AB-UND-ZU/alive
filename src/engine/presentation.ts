@@ -11,6 +11,9 @@ export const presentationNames = new Set([
   "fireBurn",
   "amountMarker",
   "displayPopup",
+  "discoveryIdle",
+  "popupInteract",
+  "dialogText",
 ]);
 
 export const presentationGenerations = new WeakMap<object, number>();
@@ -49,6 +52,7 @@ export const isPresentationSequence = (
   state: SequenceState<any>
 ) =>
   presentationNames.has(state.name) &&
+  (state.name !== "dialogText" || !!entity.PLAYER) &&
   (state.name !== "displayPopup" ||
     (!!entity.POPUP &&
       !entity.POPUP.sprite &&
