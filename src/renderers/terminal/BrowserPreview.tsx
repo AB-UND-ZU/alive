@@ -56,9 +56,13 @@ export default function BrowserPreview({
   const clock = useMemo(() => createFrameClock(world), [world]);
   const input = useMemo(
     () =>
-      createTerminalInput(world, (url) => {
-        window.open(url, "_blank");
-      }),
+      createTerminalInput(
+        world,
+        (url) => {
+          window.open(url, "_blank");
+        },
+        { releaseOnTimeout: false }
+      ),
     [world]
   );
   const state = useMemo(() => ({ world, stickyCastables: {} }), [world]);
@@ -178,6 +182,8 @@ export default function BrowserPreview({
         ctrl: event.ctrlKey,
       });
     };
+    const release = (event: KeyboardEvent) =>
+      input.release(keyNames[event.key] || event.key.toLowerCase());
     const focus = () => setFocused(true);
     const stop = () => {
       input.stop();
@@ -188,6 +194,7 @@ export default function BrowserPreview({
       if (document.hidden) stop();
     };
     window.addEventListener("keydown", press);
+    window.addEventListener("keyup", release);
     window.addEventListener("blur", stop);
     window.addEventListener("pagehide", stop);
     document.addEventListener("visibilitychange", visibility);
@@ -195,6 +202,7 @@ export default function BrowserPreview({
     return () => {
       input.stop();
       window.removeEventListener("keydown", press);
+      window.removeEventListener("keyup", release);
       window.removeEventListener("blur", stop);
       window.removeEventListener("pagehide", stop);
       document.removeEventListener("visibilitychange", visibility);

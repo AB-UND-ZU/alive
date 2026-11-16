@@ -65,12 +65,15 @@ export type TerminalKey = {
 
 export const createTerminalInput = (
   world: World,
-  openLink: (url: string) => void = () => {}
+  openLink: (url: string) => void = () => {},
+  { releaseOnTimeout = true }: { releaseOnTimeout?: boolean } = {}
 ) => {
   let release: ReturnType<typeof setTimeout> | undefined;
+  let movementKey: string | undefined;
   const getHero = () => world.getEntities([PLAYER, MOVABLE, ACTIONABLE])[0];
   const stop = () => {
     clearTimeout(release);
+    movementKey = undefined;
     const hero = getHero();
     if (!hero) return;
     setMovementOrientations(world, hero, []);
@@ -115,7 +118,8 @@ export const createTerminalInput = (
     if (direction && !key.ctrl && !isDead(world, hero)) {
       setMovementOrientations(world, hero, [direction]);
       clearTimeout(release);
-      release = setTimeout(stop, 100);
+      movementKey = name;
+      if (releaseOnTimeout) release = setTimeout(stop, 100);
       return;
     }
     let action: Action | undefined =
@@ -187,5 +191,8 @@ export const createTerminalInput = (
       reference.suspensionCounter === -1 ? -1 : reference.suspensionCounter + 1;
     reference.suspended = false;
   };
-  return { press, stop };
+  const releaseKey = (name: string) => {
+    if (name === movementKey) stop();
+  };
+  return { press, release: releaseKey, stop };
 };

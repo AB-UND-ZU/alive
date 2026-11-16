@@ -1,13 +1,13 @@
 # Terminal input
 
 `TerminalKey` accepts the name, sequence and modifier fields supplied by Node's
-readline keypress events. `createTerminalInput(world)` returns `press` and
+readline keypress events. `createTerminalInput(world)` returns `press`, `release` and
 `stop`. It sets the same movement/reference and action flags as browser
 controls, and uses the engine's direct typing, completion and history APIs
 while chat is open. It queues normal game actions. Escape closes an active popup immediately through the engine's close helper, retaining the normal Back action where available.
 
 Terminal keyboards lack keyup events; a 100 ms timeout releases movement.
-A new key event extends that hold. `stop` releases it immediately, including
+A new key event extends that hold. Browser callers pass `{ releaseOnTimeout: false }` as the third argument and call `release(name)` on keyup instead. Only the currently active movement key releases it; unrelated keys and an older direction cannot cancel a newer direction. `stop` releases it immediately, including
 when pausing, leaving or replacing a world. Dialog actions release movement before
 confirming, so a recent selection move cannot swallow Enter. In test mode, Enter
 opens chat when no interaction is available. Credit links use the URL callback

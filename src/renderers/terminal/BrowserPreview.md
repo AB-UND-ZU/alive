@@ -4,4 +4,4 @@
 
 The clock, screen projection and keyboard handler are shared with the terminal client. React redraws when the fixed-step clock advances, rather than on every browser animation frame.
 
-The default preview lets its parent control focus and visibility. Pausing stops native movement and simulation without adding another pause overlay. `interactiveSession` enables the native pause menu, save actions and browser deactivation handling through the shared world context. Recognized game keys prevent browser scrolling; browser shortcuts remain available. The renderer stays keyboard-only.
+The default preview lets its parent control focus and visibility. Pausing stops native movement and simulation without adding another pause overlay. `interactiveSession` enables the native pause menu, save actions and browser deactivation handling through the shared world context. Recognized game keys prevent browser scrolling; browser shortcuts remain available. The renderer stays keyboard-only. Browser movement remains held until its keyup event; the native terminal's inferred 100 ms release is disabled. Losing focus, pausing and unmounting still release movement immediately.

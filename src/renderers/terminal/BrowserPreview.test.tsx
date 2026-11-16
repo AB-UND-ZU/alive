@@ -6,6 +6,8 @@ import { ACTIONABLE } from "../../engine/components/actionable";
 import { POPUP } from "../../engine/components/popup";
 import { openChat, getMenu } from "../../features/chat/helpers";
 import { credits } from "../../game/assets/credits";
+import { REFERENCE } from "../../engine/components/reference";
+import { POSITION } from "../../engine/components/position";
 import { MOVABLE } from "../../engine/components/movable";
 import { WorldProvider } from "../interface/hooks";
 import { createWorldContext } from "../../testing/context";
@@ -221,4 +223,49 @@ it("pauses the standalone session when the browser loses focus", () => {
   );
   fireEvent.blur(window);
   expect(setPaused).toHaveBeenCalledWith(true);
+});
+
+it("keeps a browser direction held through the first movement tick and stops on keyup", () => {
+  jest.useFakeTimers();
+  try {
+    const { world, hero } = setup();
+    const reference = world.assertByIdAndComponents(hero[MOVABLE].reference, [
+      REFERENCE,
+    ])[REFERENCE];
+    reference.delta = 0;
+    const start = { ...hero[POSITION] };
+    const nextFrame = () =>
+      act(() => {
+        jest.advanceTimersByTime(50);
+        update(performance.now());
+      });
+    render(<BrowserPreview world={world} {...dimensions} paused={false} />);
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    for (let frame = 0; frame < 9; frame += 1) {
+      nextFrame();
+      expect(hero[MOVABLE].orientations).toEqual(["right"]);
+    }
+    expect(hero[POSITION]).not.toEqual(start);
+    fireEvent.keyUp(window, { key: "ArrowRight" });
+    expect(hero[MOVABLE].orientations).toEqual([]);
+    const stopped = { ...hero[POSITION] };
+    for (let frame = 0; frame < 9; frame += 1) {
+      nextFrame();
+    }
+    expect(hero[POSITION]).toEqual(stopped);
+  } finally {
+    jest.useRealTimers();
+  }
+});
+
+it("only releases the active browser movement key", () => {
+  const { world, hero } = setup();
+  render(<BrowserPreview world={world} {...dimensions} paused={false} />);
+  fireEvent.keyDown(window, { key: "ArrowRight" });
+  fireEvent.keyDown(window, { key: "ArrowDown" });
+  fireEvent.keyUp(window, { key: "ArrowRight" });
+  fireEvent.keyUp(window, { key: "q" });
+  expect(hero[MOVABLE].orientations).toEqual(["down"]);
+  fireEvent.keyUp(window, { key: "ArrowDown" });
+  expect(hero[MOVABLE].orientations).toEqual([]);
 });
