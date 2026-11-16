@@ -13,6 +13,9 @@ export const centerArea = `\
                    
                    
                    
+                   
+                   
+                   
  ▓▀▄ ▓   ▓ ▓ ▓ ▄▀▀ 
  ▓▄▓ ▓   ▓ ▓ ▓ ▓▄▄ 
  ▓ ▓ ▀▄▄ ▓ ▓▄▀ ▓▄▄ 
@@ -33,6 +36,9 @@ export const centerArea = `\
                    
                    
                  ¼ 
+                   
+                   
+                 ⅓ 
                    
                    
                  ¾ \

@@ -328,6 +328,7 @@ import {
   scrolledVerticalIndex,
   createUnitName,
   createItemName,
+  getClassSprite,
   questWidth,
   rewardWidth,
   hookSpeed,
@@ -429,7 +430,7 @@ import {
   onSameLayer,
 } from "../../engine/systems/enter";
 import { Spawnable, SPAWNABLE } from "../../engine/components/spawnable";
-import { ClassKey, getClassData } from "../balancing/classes";
+import { ClassKey } from "../balancing/classes";
 import { levelConfig } from "../levels";
 import { getActiveViewable } from "../../renderers/interface/hooks";
 import {
@@ -453,11 +454,7 @@ import { COLLIDABLE } from "../../engine/components/collidable";
 import { LAYER } from "../../engine/components/layer";
 import { SHOOTABLE } from "../../engine/components/shootable";
 import { ATTACKABLE } from "../../engine/components/attackable";
-import {
-  generateNpcData,
-  generateUnitData,
-  unitBackdrops,
-} from "../balancing/units";
+import { generateNpcData, generateUnitData } from "../balancing/units";
 import { Vanishable, VANISHABLE } from "../../engine/components/vanishable";
 import { colorPalettes, getElementColor } from "./templates";
 import {
@@ -3994,6 +3991,8 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
     handler = displayBuild;
   } else if (transaction === "chat") {
     handler = displayChat;
+  } else if (transaction === "dialog") {
+    handler = displayDialog;
   } else if (transaction === "credits") {
     handler = displayCredits;
   } else if (transaction === "load") {
@@ -5711,11 +5710,44 @@ export const displayStyle = displayPopupView((world, entity, state) => {
   };
 });
 
-const getHeroSprite = (classKey: ClassKey, hairColor: string) =>
-  mergeSprites(
-    unitBackdrops[classKey]?.[hairColor] || none,
-    getClassData(classKey, hairColor).sprite
-  );
+export const displayDialog = displayPopupView((world, entity) => {
+  const popup = entity[POPUP] as Popup;
+  const selections = getTabSelections(world, entity);
+  const verticalIndex = getVerticalIndex(world, entity);
+  const dialogs = popup.dialogs || [];
+  const reading = selections.length > 0;
+  const selected = dialogs[reading ? selections[0] : verticalIndex];
+
+  return {
+    icon: popupIdles.dialog,
+    content: reading
+      ? selected?.content || []
+      : dialogs.map((dialog, index) => {
+          const line = createText(
+            dialog.title,
+            index === verticalIndex ? colors.white : colors.grey
+          );
+          const description =
+            index === verticalIndex ? dialog.description || [] : [];
+          const row = [
+            ...line,
+            ...repeat(none, frameWidth - 3 - line.length - description.length),
+            ...description,
+          ];
+          return [
+            none,
+            ...(index === verticalIndex ? shaded(row, colors.grey) : row),
+          ];
+        }),
+    selection: !reading && selected ? "selected" : undefined,
+    rightButton: reading
+      ? undefined
+      : createButton("VIEW", 6, !selected, false, false, "lime"),
+    leftButton: reading
+      ? createButton("\u011aBACK", 7, false, false, false, "red")
+      : undefined,
+  };
+});
 
 const creditsGap = "   ";
 
@@ -5741,7 +5773,7 @@ export const displayCredits = displayPopupView((world, entity, state) => {
     const selected = verticalIndex === rowIndex;
     const creditSprite =
       credit.classKey && credit.hairColor
-        ? getHeroSprite(credit.classKey, credit.hairColor)
+        ? getClassSprite(credit.classKey, credit.hairColor)
         : credit.sprite || none;
     const creditTitle = createText(
       credit.name,
@@ -5848,7 +5880,7 @@ export const displayLoad: Sequence<PopupSequence> = (world, entity, state) => {
 
         return [
           none,
-          getHeroSprite(save.classKey, save.hairColor),
+          getClassSprite(save.classKey, save.hairColor),
           ...(erasing
             ? shaded(line, colors.maroon, "█")
             : selected

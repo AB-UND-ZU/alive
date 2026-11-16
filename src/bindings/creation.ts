@@ -1,6 +1,7 @@
 import { Entity } from "ecs";
 import { isTouch } from "../renderers/interface/platform";
 import { gameVersion } from "../game/assets/version";
+import { getUpdates } from "../game/assets/updates";
 import { entities, World } from "../engine";
 import { ACTIONABLE } from "../engine/components/actionable";
 import {
@@ -939,6 +940,7 @@ export const insertArea = (
       else if (cell === "½") entity = "settings_sound";
       else if (cell === "¼") entity = "settings_controls";
       else if (cell === "¾") entity = "credits_sign";
+      else if (cell === "⅓") entity = "updates_sign";
       else if (!override) {
         console.error(`Unrecognized cell: "${cell}"!`);
       }
@@ -2264,6 +2266,12 @@ export const createCell = (
     all.push(menuSign);
     setIdentifier(world, menuSign, "menu_sign");
     return { cell: menuSign, all };
+  } else if (cell === "updates_sign") {
+    const updatesSign = createSign(world, { x, y }, [], ["dialog"]);
+    world.assertComponents(updatesSign, [POPUP])[POPUP].dialogs = getUpdates();
+    setIdentifier(world, updatesSign, "updates_sign");
+    all.push(updatesSign);
+    return { cell: updatesSign, all };
   } else if (cell === "credits_sign") {
     const creditsSign = createSign(world, { x, y }, [], ["credits"]);
     all.push(creditsSign);
@@ -4706,6 +4714,9 @@ export const createCell = (
       [],
       [],
       [..."Controls  ", ".\x00:", ..."  ", ".\x00:"],
+      [],
+      [],
+      [..."Updates   ", ".\x00:", ..."  ", ".\x00:"],
       [],
       [],
       [..."Credits   ", ".\x00:", ..."  ", ".\x00:"],

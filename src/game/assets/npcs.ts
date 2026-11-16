@@ -192,6 +192,7 @@ const menuItems: { name: string; disabled?: () => boolean }[] = [
   { name: "continue", disabled: () => getSaveSummaries().length === 0 },
   { name: "sound-fx" },
   { name: "controls" },
+  { name: "updates" },
   { name: "credits" },
 ];
 

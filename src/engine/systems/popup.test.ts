@@ -21,6 +21,8 @@ import {
   removePopup,
   getTab,
   getVerticalIndex,
+  getTabSelections,
+  setVerticalIndex,
   isInPopup,
 } from "./popup";
 import { STATS } from "../components/stats";
@@ -212,4 +214,81 @@ describe("dialog navigation timing", () => {
       expect(steps[1] - steps[0]).toBeGreaterThanOrEqual(walkingTick - FRAME);
     }
   );
+});
+
+describe("dialog entries", () => {
+  it("reads long text, clamps scrolling and restores the selected entry on back", () => {
+    const { world, hero } = setup();
+    const popup = getSign(world);
+    createPopup(world, popup, {
+      tabs: ["dialog"],
+      dialogs: [
+        {
+          title: "Short",
+          description: createText("A note"),
+          content: [createText("Hello")],
+        },
+        {
+          title: "Long",
+          description: createText("A book"),
+          content: Array.from({ length: 30 }, (_, index) =>
+            createText(`Line ${index}`)
+          ),
+        },
+      ],
+    });
+    openPopup(world, hero, popup, true);
+    step(world, 30);
+    setVerticalIndex(world, popup, 1);
+    trigger(world, "right");
+    advanceUntil(world, () => getTabSelections(world, popup).length === 1);
+    step(world, 30);
+    const state = getSequence(world, popup, "popup")!;
+    expect(state.args.contentClickable).toBe(false);
+    expect(state.args.backButton).toBe(true);
+    expect(state.args.scrollMax).toBeGreaterThan(0);
+    hero[PLAYER].contentTriggered = 1;
+    trigger(world, "scroll");
+    advanceUntil(world, () => !hero[PLAYER].actionTriggered);
+    expect(getVerticalIndex(world, popup)).toBe(state.args.scrollMax);
+    trigger(world, "down");
+    advanceUntil(world, () => !hero[PLAYER].actionTriggered);
+    expect(getVerticalIndex(world, popup)).toBe(state.args.scrollMax);
+    trigger(world, "right");
+    advanceUntil(world, () => !hero[PLAYER].actionTriggered);
+    expect(getTabSelections(world, popup)).toEqual([1]);
+    trigger(world, "left");
+    advanceUntil(world, () => getTabSelections(world, popup).length === 0);
+    expect(getVerticalIndex(world, popup)).toBe(1);
+    step(world, 30);
+    expect(state.args.contentClickable).toBe(true);
+    setVerticalIndex(world, popup, 0);
+    trigger(world, "right");
+    advanceUntil(world, () => getTabSelections(world, popup).length === 1);
+    step(world, 30);
+    expect(state.args.scrollMax).toBeUndefined();
+    expect(state.args.contentHeight).toBe(1);
+    popup[POPUP].dialogs![0].content.push(createText("Another line"));
+    rerenderEntity(world, popup);
+    step(world, 30);
+    expect(state.args.contentHeight).toBe(2);
+    trigger(world, "close");
+    advanceUntil(world, () => !isInPopup(world, hero));
+  });
+
+  it("leaves an empty dialog list open without selecting a missing entry", () => {
+    const { world, hero } = setup();
+    const popup = getSign(world);
+    createPopup(world, popup, { tabs: ["dialog"] });
+    openPopup(world, hero, popup, true);
+    step(world, 30);
+    trigger(world, "right");
+    advanceUntil(world, () => !hero[PLAYER].actionTriggered);
+    expect(getTabSelections(world, popup)).toEqual([]);
+    expect(getVerticalIndex(world, popup)).toBe(0);
+    expect(isInPopup(world, hero)).toBe(true);
+    expect(getSequence(world, popup, "popup")?.args.contentClickable).toBe(
+      false
+    );
+  });
 });

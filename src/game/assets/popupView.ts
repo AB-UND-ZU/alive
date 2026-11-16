@@ -88,6 +88,7 @@ export const getPopupInputs = (
     "info",
     "talk",
     "credits",
+    "dialog",
     "load",
     "pack",
     "sprite",
@@ -111,7 +112,7 @@ export const getPopupInputs = (
     : 0;
   return JSON.stringify([
     entity[RENDERABLE].generation,
-    popup,
+    popup.dialogs ? { ...popup, dialogs: undefined } : popup,
     state.args.instant,
     state.args.windowHeight,
     world.metadata.gameEntity[LEVEL].name,

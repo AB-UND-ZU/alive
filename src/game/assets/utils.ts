@@ -71,7 +71,8 @@ import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
 import { REFERENCE } from "../../engine/components/reference";
 import { Item, Materialized } from "../../engine/components/item";
-import { generateUnitData, UnitKey } from "../balancing/units";
+import { ClassKey, getClassData } from "../balancing/classes";
+import { unitDefinitions, unitBackdrops, UnitKey } from "../balancing/units";
 import {
   getTab,
   getVerticalIndex,
@@ -1369,8 +1370,14 @@ export const createItemName = (
   ];
 };
 
+export const getClassSprite = (classKey: ClassKey, hairColor = colors.white) =>
+  mergeSprites(
+    unitBackdrops[classKey]?.[hairColor] || none,
+    getClassData(classKey, hairColor).sprite
+  );
+
 export const getUnitSprite = (unit: UnitKey) => {
-  const unitData = generateUnitData(unit);
+  const unitData = unitDefinitions[unit];
 
   const sprite = mergeSprites(
     unitData.backdrop || none,
@@ -1396,7 +1403,7 @@ export const getUnitSprite = (unit: UnitKey) => {
 };
 
 export const createUnitName = (unit: UnitKey) => {
-  const unitData = generateUnitData(unit);
+  const unitData = unitDefinitions[unit];
   const sprite = getUnitSprite(unit);
 
   return [

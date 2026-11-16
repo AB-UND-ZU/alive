@@ -75,6 +75,7 @@ export type Popup = {
   horizontalIndex: number;
   selections: number[][];
   chatSuggestion?: number;
+  dialogs?: Dialog[];
   sprite?: {
     sprites: Sprite[];
     selected: number;
@@ -92,5 +93,17 @@ export type Popup = {
   choices: Omit<Item, "carrier" | "bound">[];
   viewpoint: number;
   tabs: (typeof popups)[number][];
+};
+```
+
+## Dialog
+
+A `dialog` tab lists these entries and opens their content with VIEW. The optional single-row description appears at the right of the active list row. Every row is an array of stacked sprites; keep text within the popup's 17-cell reading width.
+
+```ts src/engine/components/popup.ts
+export type Dialog = {
+  title: string;
+  description?: Sprite[];
+  content: Sprite[][];
 };
 ```

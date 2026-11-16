@@ -551,6 +551,7 @@ export const popupIdles = {
   chat: undefined,
   build: undefined,
   credits: info,
+  dialog: info,
   load: mapDiscovery,
   pack: undefined,
   sprite: undefined,
@@ -579,6 +580,7 @@ export const popupActions = {
   style: "STYLE",
   chat: "CHAT",
   credits: "READ",
+  dialog: "READ",
   load: "LOAD",
   pack: "LIST",
   sprite: "VIEW",
@@ -596,6 +598,7 @@ export const popupTitles = {
   warp: "LEVEL",
   use: "USE",
   credits: "TY <3",
+  dialog: "INFO",
   load: "SAVES",
 };
 
@@ -972,6 +975,15 @@ const getPopupLength = (world: World, hero: Entity, entity: Entity) => {
       return hairColors.length;
     case "credits":
       return credits.length;
+    case "dialog":
+      return selections.length
+        ? Math.max(
+            0,
+            (popup.dialogs?.[selections[0]]?.content.length || 0) -
+              (frameHeight - 2) +
+              1
+          )
+        : popup.dialogs?.length || 0;
     case "load":
       return selections.length === 0 ? getSaveSummaries().length : 0;
     case "chat":
@@ -1676,6 +1688,15 @@ export default function setupPopup(world: World) {
             fast: false,
             delay: 0,
           });
+        }
+      } else if (tab === "dialog") {
+        if (
+          selections.length === 0 &&
+          popupEntity[POPUP].dialogs?.[verticalIndex]
+        ) {
+          pushTabSelection(world, popupEntity);
+          setVerticalIndex(world, popupEntity, 0);
+          play("confirm");
         }
       } else if (tab === "load") {
         const erasing = selections.length === 1;

@@ -1,6 +1,15 @@
 import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
+export const listBullet: Sprite = {
+  name: "List bullet",
+  layers: [
+    { char: "-", color: colors.grey },
+    { char: "└", color: colors.black },
+    { char: "·", color: colors.grey },
+  ],
+};
+
 export const none: Sprite = {
   name: "",
   layers: [],

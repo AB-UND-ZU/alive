@@ -40,6 +40,12 @@ export type Focus = {
 
 export const shops = ["buy", "sell"] as const;
 
+export type Dialog = {
+  title: string;
+  description?: Sprite[];
+  content: Sprite[][];
+};
+
 const popups = [
   ...shops,
   "craft",
@@ -61,6 +67,7 @@ const popups = [
   "plant",
   "build",
   "credits",
+  "dialog",
   "load",
   "pack",
   "sprite",
@@ -73,6 +80,7 @@ export type Popup = {
   horizontalIndex: number;
   selections: number[][];
   chatSuggestion?: number;
+  dialogs?: Dialog[];
   sprite?: {
     sprites: Sprite[];
     selected: number;

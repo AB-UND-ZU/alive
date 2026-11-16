@@ -17,6 +17,7 @@ Composes game dialog content and resolves item or unit visuals. These helpers ke
 | getItemSprite         | Choose a world, resource or display variant and its facing            |
 | createItemText        | Quantity followed by icon and optionally the full name                |
 | createItemName        | Display icon followed by the normalized item name                     |
+| getClassSprite        | Compose the class backdrop and colored body sprite                    |
 | getUnitSprite         | Compose backdrop, shield, body, visible sword and relationship marker |
 | createUnitName        | Unit icon and normalized name in the faction's dialog color           |
 
@@ -50,3 +51,5 @@ export type QuestStage<T extends StepAnimations> = {
 ```ts src/game/assets/utils.ts
 export type PopupSelection = "blocked" | "selected" | "active";
 ```
+
+Unit label helpers read `unitDefinitions` directly. Building a label must not generate a unit's random loot or consume gameplay randomness.
