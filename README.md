@@ -2,7 +2,7 @@
 
 A browser adventure game made from layered DOS characters and sixteen terminal colors. Built with TypeScript, React, Three.js, and an entity component system.
 
-[Play](https://ab-und-zu.github.io/alive/) · [Wiki](https://ab-und-zu.github.io/alive/wiki/)
+[Play](https://ab-und-zu.github.io/alive/) · [HTML](https://ab-und-zu.github.io/alive/html/) · [Web Terminal](https://ab-und-zu.github.io/alive/terminal/) · [Wiki](https://ab-und-zu.github.io/alive/wiki/)
 
 ![Alive title screen](media/game.png)
 
@@ -13,7 +13,9 @@ npm ci
 npm start
 ```
 
-The default renderer uses Three.js. Open `http://localhost:3000/alive/?renderer=html` for the HTML/SVG renderer, with the same controls and fog of war but no lighting or shadows.
+The default renderer uses Three.js. Open `http://localhost:3000/alive/html/` for the HTML/SVG renderer, with the same controls and fog of war but no lighting or shadows.
+
+Open `http://localhost:3000/alive/terminal/` for the web Terminal client. It uses a simplified character grid and keyboard controls, with fog of war but no lighting or shadows.
 
 ```sh
 npm run terminal
