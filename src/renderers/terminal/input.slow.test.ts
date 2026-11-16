@@ -216,3 +216,17 @@ it("closes a terminal dialog without waiting for another simulation tick", () =>
   expect(world.metadata.elapsed).toBe(elapsed);
   input.stop();
 });
+
+it("clears chat on Escape and closes only when its prompt is empty", () => {
+  const { world, hero, input } = setup();
+  openChat(world);
+  for (const char of "draft") input.press({ sequence: char });
+  input.press({ name: "escape" });
+  expect(getPrompt(world)).toBe("");
+  expect(isInPopup(world, hero)).toBeTruthy();
+  input.press({ name: "escape" });
+  advance(world, 700);
+  expect(isInPopup(world, hero)).toBeFalsy();
+  expect(getDialog(hero)).toEqual([]);
+  input.stop();
+});

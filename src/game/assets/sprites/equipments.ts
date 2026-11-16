@@ -15,7 +15,7 @@ export const bombActive: Sprite = {
 
 export const emptyFlask: Sprite = {
   name: "Flask",
-  terminal: { layers: [{ char: "σ", color: colors.maroon }] },
+  terminal: { layers: [{ char: "σ", color: colors.grey }] },
   layers: [
     { char: "\u0108", color: colors.maroon },
     { char: ":", color: colors.grey },
@@ -38,7 +38,7 @@ export const emptyBottle: Sprite = {
 
 export const emptyPotion: Sprite = {
   name: "Potion",
-  terminal: { layers: [{ char: "\u010a", color: colors.yellow }] },
+  terminal: { layers: [{ char: "\u010a", color: colors.grey }] },
   layers: [
     { char: "¢", color: colors.silver },
     { char: "0", color: colors.maroon },
@@ -54,6 +54,7 @@ export const emptyPotion: Sprite = {
 
 export const emptyElixir: Sprite = {
   name: "Elixir",
+  terminal: { layers: [{ char: "T", color: colors.grey }] },
   layers: [
     { char: '"', color: colors.olive },
     { char: "T", color: colors.yellow },

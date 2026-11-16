@@ -39,22 +39,19 @@ it("shows current and maximum player stats without exposing an infinite XP limit
     xp: 5,
     maxXp: Infinity,
   });
+  const { top } = getTerminalLayout(80, 30);
   const frame = getTerminalFrame(world, 80, 30);
-  const lines = frameToText(frame).split("\n");
+  const stats = frame.slice(top - 4, top - 1);
+  const lines = frameToText(stats).split("\n");
   expect(lines[0]).toMatch(/12\/25[ ░▀]{2}♥HP/);
   expect(lines[1]).toMatch(/3\/10[ ░▀]{2}♦MP/);
   expect(lines[2]).toMatch(/5[ ░▀]+xXP/);
-  expect(
-    frame
-      .slice(0, 3)
-      .flat()
-      .some((cell) => "▀▄▌▐".includes(cell.char))
-  ).toBe(false);
+  expect(stats.flat().some((cell) => "▀▄▌▐".includes(cell.char))).toBe(false);
   expect(lines[0].indexOf("HP")).toBe(lines[2].indexOf("XP"));
   expect(lines[1].indexOf("MP")).toBe(lines[2].indexOf("XP"));
   expect(frameToText(frame)).not.toContain("Infinity");
   expect(
-    frame[0]
+    stats[0]
       .filter((cell) => /[0-9♥HP/]/.test(cell.char))
       .every((cell) => cell.foreground === colors.red)
   ).toBe(true);
@@ -62,12 +59,12 @@ it("shows current and maximum player stats without exposing an infinite XP limit
   expect(frame.every((row) => row.length === 80)).toBe(true);
 });
 
-it("keeps the player hidden in fog even without lights or shadows", () => {
+it("keeps the hero visible in its own cell without lights or shadows", () => {
   const { world, hero } = setup();
   hero[FOG]!.visibility = "visible";
   expect(frameToText(getTerminalFrame(world, 33, 24))).toContain("♀");
   hero[FOG]!.visibility = "fog";
-  expect(frameToText(getTerminalFrame(world, 33, 24))).not.toContain("♀");
+  expect(frameToText(getTerminalFrame(world, 33, 24))).toContain("♀");
 });
 
 it("centers a bounded game viewport inside full-width terminal chrome", () => {
@@ -76,13 +73,13 @@ it("centers a bounded game viewport inside full-width terminal chrome", () => {
     width: 33,
     height: 13,
     left: 23,
-    top: 13,
+    top: 14,
   });
   const rows = frameToText(getTerminalFrame(world, 80, 40)).split("\n");
-  expect(rows[3]).toBe("─".repeat(80));
-  expect(rows[36]).toBe("─".repeat(80));
-  expect(rows[13][23]).toBe("│");
-  expect(rows[13][55]).toBe("│");
+  expect(rows[13].slice(23, 56)).toBe("┌" + "─".repeat(31) + "┐");
+  expect(rows[27].slice(23, 56)).toBe("└" + "─".repeat(31) + "┘");
+  expect(rows[14][23]).toBe("│");
+  expect(rows[14][55]).toBe("│");
 });
 
 it("renders the game's pause actions and saved-game name with an inverted selection", () => {
@@ -109,8 +106,8 @@ it("renders the game's pause actions and saved-game name with an inverted select
       .includes("[RESUME]")
   )!;
   const selected = resume.find((cell) => cell.char === "R")!;
-  expect(selected.foreground).toBe(colors.white);
-  expect(selected.background).toBe(colors.green);
+  expect(selected.foreground).toBe(colors.black);
+  expect(selected.background).toBe(colors.lime);
   for (const label of ["MENU", "SAVE"]) {
     const row = frame.find((row) =>
       row
@@ -190,13 +187,22 @@ it.each([33, 80])(
   }
 );
 
-it("retains the pause title's literal upper and lower blocks", () => {
+it("retains the pause title's upper and lower filled halves", () => {
   const { world } = setup();
-  const text = frameToText(
-    getTerminalFrame(world, 80, 40, undefined, {
-      paused: true,
-    })
-  );
+  const frame = getTerminalFrame(world, 80, 40, undefined, { paused: true });
+  const text = frame
+    .map((row) =>
+      row
+        .map((cell) =>
+          cell.char === "▄" &&
+          cell.foreground === colors.black &&
+          cell.background === colors.white
+            ? "▀"
+            : cell.char
+        )
+        .join("")
+    )
+    .join("\n");
   expect(text).toContain("█▀▄ █▀▄ █ █ ▄▀▀ ▄▀▀");
   expect(text).toContain("█▄█ █▄█ █ █ █▄▄ █▄▄");
 });
@@ -405,38 +411,40 @@ it.each([33, 80])(
     const content = frame
       .slice(layout.top, layout.top + layout.height)
       .map((row) => row.slice(layout.left + 1, layout.left + layout.width - 1));
-    expect(frameToText(content).replace(/\s/g, "")).toBe("Loadingmap...");
+    expect(frameToText(content).replace(/\s/g, "")).toBe("│Loadingmap...│");
+    const loading = content.flat().find((cell) => cell.char === "L")!;
+    expect(loading).toMatchObject({
+      foreground: colors.black,
+      background: colors.white,
+    });
     expect(frameToText(frame)).toContain("HP");
     expect(frameToText(frame)).toContain("SPACE");
-    expect(frame[3].every((cell) => cell.char === "─")).toBe(true);
+    expect(frame[layout.top - 1][layout.left].char).toBe("┌");
+    expect(
+      frame[layout.top + layout.height][layout.left + layout.width - 1].char
+    ).toBe("┘");
   }
 );
 
-it("uses a single white palette for the selected Save button and its brackets", () => {
+it.each([
+  [0, "[RESUME]", colors.lime],
+  [1, "[ MENU ]", colors.red],
+  [2, "[ SAVE ]", colors.white],
+] as const)("uses the bright palette for pause selection %i", (selection, label, background) => {
   const { world } = setup();
   const frame = getTerminalFrame(world, 80, 30, undefined, {
     paused: true,
-    selection: 2,
+    selection,
   });
   const row = frame.find((line) =>
-    line
-      .map((cell) => cell.char)
-      .join("")
-
-      .includes("[ SAVE ]")
+    line.map((cell) => cell.char).join("").includes(label)
   )!;
-  const start = row
-    .map((cell) => cell.char)
-    .join("")
-
-    .indexOf("[ SAVE ]");
+  const start = row.map((cell) => cell.char).join("").indexOf(label);
+  const cells = row.slice(start, start + label.length);
+  expect(cells.every((cell) => cell.background === background)).toBe(true);
   expect(
-    row
-      .slice(start, start + 8)
-      .every(
-        (cell) =>
-          cell.foreground === colors.black && cell.background === colors.white
-      )
+    cells.filter((cell) => cell.char !== " ")
+      .every((cell) => cell.foreground === colors.black)
   ).toBe(true);
 });
 
@@ -527,9 +535,10 @@ it("keeps the empty portion of stats bars black without dotted shading", () => {
     maxXp: 10,
   });
   const frame = getTerminalFrame(world, 80, 30);
+  const { top } = getTerminalLayout(80, 30);
   expect(
     frame
-      .slice(0, 3)
+      .slice(top - 4, top - 1)
       .flat()
       .some((cell) => cell.char === "░")
   ).toBe(false);
@@ -590,5 +599,129 @@ it.each([0, 1, 2, 3])(
         )
     ).toBe(true);
     expect(frameToText(frame)).not.toMatch(/[∙≡☺]/);
+  }
+);
+
+it.each([
+  [21, 20],
+  [33, 20],
+  [80, 30],
+])("connects all viewport corners at %i by %i cells", (columns, rows) => {
+  const { world } = setup();
+  const frame = getTerminalFrame(world, columns, rows);
+  const { left, top, width, height } = getTerminalLayout(columns, rows);
+  expect(height).toBeGreaterThanOrEqual(13);
+  expect(
+    frame[top - 1]
+      .slice(left, left + width)
+      .map((cell) => cell.char)
+      .join("")
+  ).toBe("┌" + "─".repeat(width - 2) + "┐");
+  expect(
+    frame[top + height]
+      .slice(left, left + width)
+      .map((cell) => cell.char)
+      .join("")
+  ).toBe("└" + "─".repeat(width - 2) + "┘");
+  for (const row of frame.slice(top, top + height)) {
+    expect(row[left].char).toBe("│");
+    expect(row[left + width - 1].char).toBe("│");
+  }
+  expect(top + height).toBeLessThan(rows - 2);
+});
+
+it("mirrors the top stats and buttons with the equipped controls", () => {
+  const { world } = setup();
+  const normal = getTerminalFrame(world, 80, 30);
+  const flipped = getTerminalFrame(world, 80, 30, undefined, { flipped: true });
+  const { top } = getTerminalLayout(80, 30);
+  for (const y of [top - 4, top - 3]) {
+    const first = normal[y].findIndex((cell) => cell.char !== " ");
+    expect(flipped[y].findIndex((cell) => cell.char !== " ")).toBe(first + 2);
+  }
+  const normalRow = frameToText([normal[top - 2]]);
+  const flippedRow = frameToText([flipped[top - 2]]);
+  expect(normalRow.indexOf("USE")).toBeGreaterThan(normalRow.indexOf("XP"));
+  expect(flippedRow.indexOf("USE")).toBeLessThan(flippedRow.indexOf("XP"));
+});
+
+it("shows both walls of a thirteen-row dungeon room at the minimum browser height", () => {
+  const room = Array.from(
+    { length: 13 },
+    (_, y) =>
+      "|" +
+      (y === 0 || y === 12
+        ? "█████████"
+        : y === 6
+        ? "█   ♀   █"
+        : "█       █") +
+      "|"
+  ).join("\n");
+  const world = createAreaWorld(room, { size: 48 });
+  advance(world, 700);
+  const frame = getTerminalFrame(world, 33, 20);
+  const layout = getTerminalLayout(33, 20);
+  for (const y of [layout.top, layout.top + layout.height - 1])
+    expect(frame[y][16].background).toBe(colors.silver);
+});
+
+it("keeps one complete world row below a settled dialog", () => {
+  const { world, hero } = setup();
+  createPopup(world, hero, { tabs: ["info"], lines: [[]] });
+  openPopup(world, hero, hero);
+  advance(world, 1500);
+  const { width, height } = getTerminalLayout(33, 20);
+  const sequence = getSequence(world, hero, "popup")!;
+  const bottom = world.assertById(sequence.particles["popup-down-0"]);
+  const entry = getSceneFrame(world, width, height, undefined, {
+    instant: true,
+  }).find((entry) => entry.particle === bottom)!;
+  expect(entry).toBeDefined();
+  expect(Math.ceil(entry.y)).toBeLessThan(height - 1);
+});
+
+it("draws startup loading inside the connected frame without the old world", () => {
+  const { world } = setup();
+  const frame = getTerminalFrame(world, 33, 24, undefined, {
+    suspended: true,
+    loadingSounds: true,
+  });
+  const layout = getTerminalLayout(33, 24);
+  const content = frame
+    .slice(layout.top, layout.top + layout.height)
+    .map((row) => row.slice(layout.left + 1, layout.left + layout.width - 1));
+  expect(frameToText(content).replace(/\s/g, "")).toBe("│Loadinggame...│");
+  expect(frame[layout.top - 1][layout.left].char).toBe("┌");
+  expect(
+    frame[layout.top + layout.height][layout.left + layout.width - 1].char
+  ).toBe("┘");
+});
+
+it.each([20, 21, 30, 40, 80])(
+  "keeps stats and controls beside the frame at %i rows",
+  (rows) => {
+    const { world } = setup();
+    const frame = getTerminalFrame(world, 80, rows);
+    const { top, height } = getTerminalLayout(80, rows);
+    const text = frameToText(frame).split("\n");
+    expect(text[top - 4]).toContain("HP");
+    expect(text[top - 3]).toContain("MP");
+    expect(text[top - 2]).toContain("XP");
+    expect(text[top + height + 1]).toContain("SPACE");
+    expect(
+      text
+        .slice(0, top - 4)
+        .join("")
+        .trim()
+    ).toBe("");
+    expect(
+      text
+        .slice(top + height + 3)
+        .join("")
+        .trim()
+    ).toBe("");
+    expect(Math.abs(top - 4 - (rows - (top + height + 3)))).toBeLessThanOrEqual(
+      1
+    );
   }
 );

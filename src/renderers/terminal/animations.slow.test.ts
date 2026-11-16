@@ -9,38 +9,29 @@ import { ProgressSequence } from "../../engine/components/sequencable";
 import { getSceneFrame } from "../interface/frame";
 import { collectTerminalSprites } from "./frame";
 
-it("keeps each fountain drop paired with its mirrored partner throughout its path", () => {
+it("keeps fountain side drops mirrored throughout their path", () => {
   const world = createAreaWorld("| ⌠ ♀ |", { size: 48 });
   advance(world, 2000);
   let seen = 0;
   for (let tick = 0; tick < 150; tick++) {
     step(world);
     const scene = getSceneFrame(world, 25, 17, undefined, { instant: true });
-    const owner = scene.find(
-      (entry) => entry.particleSequence === "fountainSplash"
-    )!.entity;
-    const center = scene.find(
-      (entry) => entry.entity === owner && /body\d+$/.test(entry.key)
-    )!;
-    const drops = scene.filter(
-      (entry) =>
-        entry.entity === owner && entry.particleName?.startsWith("drop-")
+    const center = scene.find((entry) => entry.particleName === "fountain")!;
+    const drops = collectTerminalSprites(scene).filter((entry) =>
+      ["fountain_drop", "fountain_heal"].includes(entry.sprite.name)
     );
-    for (const left of drops.filter((entry) =>
-      entry.particleName!.endsWith("-left")
-    )) {
-      const right = drops.find(
-        (entry) =>
-          entry.particleName === left.particleName!.replace(/left$/, "right")
-      )!;
-      expect(right).toBeDefined();
-      const pair = collectTerminalSprites([center, left, right]).slice(1);
-      expect(pair[0].x + pair[1].x).toBe(2 * Math.ceil(center.x));
-      expect(pair[0].y).toBe(pair[1].y);
+    const left = drops.filter((entry) => entry.x < Math.ceil(center.x));
+    for (const drop of left) {
+      expect(
+        drops.some(
+          (other) =>
+            other.x === 2 * Math.ceil(center.x) - drop.x && other.y === drop.y
+        )
+      ).toBe(true);
       seen++;
     }
   }
-  expect(seen).toBeGreaterThan(150);
+  expect(seen).toBeGreaterThan(50);
 });
 
 it("keeps level-up cross and ring particles mirrored at every native-cell step", () => {

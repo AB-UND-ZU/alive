@@ -267,6 +267,14 @@ export const drain: Sprite = {
 
 export const bubble: Sprite = {
   name: "water_bubble",
+  terminal: {
+    layers: [{ char: "∙", color: colors.blue }],
+    amounts: {
+      single: [{ char: "\u0106", color: colors.blue }],
+      double: [{ char: "\u0108", color: colors.blue }],
+      multiple: [{ char: "o", color: colors.blue }],
+    },
+  },
   layers: [{ char: "∙", color: colors.blue }],
   amounts: {
     single: [
@@ -597,6 +605,12 @@ export const tooltipHostileEnd: Sprite = {
 
 export const dialogStart: Sprite = {
   name: "dialog_start",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.white },
+      { char: "│", color: colors.black },
+    ],
+  },
   layers: [
     { char: "▐", color: colors.white },
     { char: "│", color: colors.black },
@@ -606,6 +620,12 @@ export const dialogStart: Sprite = {
 
 export const dialogEnd: Sprite = {
   name: "dialog_end",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.white },
+      { char: "│", color: colors.black },
+    ],
+  },
   layers: [
     { char: "▌", color: colors.white },
     { char: "│", color: colors.black },
@@ -615,6 +635,12 @@ export const dialogEnd: Sprite = {
 
 export const shoutStart: Sprite = {
   name: "shout_start",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.red },
+      { char: "│", color: colors.black },
+    ],
+  },
   layers: [
     { char: "▐", color: colors.red },
     { char: "│", color: colors.black },
@@ -624,6 +650,12 @@ export const shoutStart: Sprite = {
 
 export const shoutEnd: Sprite = {
   name: "shout_end",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.red },
+      { char: "│", color: colors.black },
+    ],
+  },
   layers: [
     { char: "▌", color: colors.red },
     { char: "│", color: colors.black },
@@ -676,6 +708,7 @@ export const allyLine: Sprite = {
 
 export const bubbleUp: Sprite = {
   name: "bubble_up",
+  terminal: { layers: [{ char: "╙", color: colors.white }] },
   layers: [
     { char: "╙", color: colors.silver },
     { char: "-", color: colors.black },
@@ -686,6 +719,7 @@ export const bubbleUp: Sprite = {
 
 export const bubbleRight: Sprite = {
   name: "bubble_right",
+  terminal: { layers: [{ char: "╜", color: colors.white }] },
   layers: [
     { char: "╜", color: colors.silver },
     { char: "-", color: colors.black },
@@ -696,6 +730,7 @@ export const bubbleRight: Sprite = {
 
 export const bubbleDown: Sprite = {
   name: "bubble_down",
+  terminal: { layers: [{ char: "╖", color: colors.white }] },
   layers: [
     { char: "╖", color: colors.silver },
     { char: "-", color: colors.black },
@@ -706,6 +741,7 @@ export const bubbleDown: Sprite = {
 
 export const bubbleLeft: Sprite = {
   name: "bubble_left",
+  terminal: { layers: [{ char: "╓", color: colors.white }] },
   layers: [
     { char: "╓", color: colors.silver },
     { char: "-", color: colors.black },
@@ -716,6 +752,7 @@ export const bubbleLeft: Sprite = {
 
 export const shoutUp: Sprite = {
   name: "shout_up",
+  terminal: { layers: [{ char: "╙", color: colors.red }] },
   layers: [
     { char: "╙", color: colors.maroon },
     { char: "-", color: colors.black },
@@ -726,6 +763,7 @@ export const shoutUp: Sprite = {
 
 export const shoutRight: Sprite = {
   name: "shout_right",
+  terminal: { layers: [{ char: "╜", color: colors.red }] },
   layers: [
     { char: "╜", color: colors.maroon },
     { char: "-", color: colors.black },
@@ -736,6 +774,7 @@ export const shoutRight: Sprite = {
 
 export const shoutDown: Sprite = {
   name: "shout_down",
+  terminal: { layers: [{ char: "╖", color: colors.red }] },
   layers: [
     { char: "╖", color: colors.maroon },
     { char: "-", color: colors.black },
@@ -746,6 +785,7 @@ export const shoutDown: Sprite = {
 
 export const shoutLeft: Sprite = {
   name: "shout_left",
+  terminal: { layers: [{ char: "╓", color: colors.red }] },
   layers: [
     { char: "╓", color: colors.maroon },
     { char: "-", color: colors.black },
@@ -1793,6 +1833,7 @@ export const thickLine: Sprite = {
 
 export const emptySlot: Sprite = {
   name: "Slot",
+  terminal: { layers: [{ char: "█", color: colors.grey }] },
   layers: [
     { char: "M", color: colors.grey },
     { char: "[", color: colors.grey },
@@ -1806,6 +1847,12 @@ export const emptySlot: Sprite = {
 
 export const interactLeft: Sprite = {
   name: "interact_left",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.lime },
+      { char: "[", color: colors.black },
+    ],
+  },
   layers: [
     { char: "▌", color: colors.black },
     { char: "│", color: colors.green },
@@ -1813,6 +1860,12 @@ export const interactLeft: Sprite = {
 };
 export const interactRight: Sprite = {
   name: "interact_left",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.lime },
+      { char: "]", color: colors.black },
+    ],
+  },
   layers: [
     { char: "▐", color: colors.black },
     { char: "│", color: colors.green },
@@ -1902,10 +1955,11 @@ export const fountainDrop: Sprite = {
   name: "fountain_drop",
   terminal: {
     layers: [{ char: "|", color: colors.blue }],
+    facing: { up: [{ char: "┬", color: colors.blue }] },
     amounts: {
-      single: [{ char: "∙", color: colors.blue }],
+      single: [{ char: ":", color: colors.blue }],
       double: [{ char: ".", color: colors.blue }],
-      multiple: [{ char: ":", color: colors.blue }],
+      multiple: [{ char: ",", color: colors.blue }],
     },
   },
   layers: [{ char: "|", color: colors.blue }],
@@ -1920,10 +1974,11 @@ export const fountainHeal: Sprite = {
   name: "fountain_heal",
   terminal: {
     layers: [{ char: "|", color: colors.lime }],
+    facing: { up: [{ char: "┬", color: colors.lime }] },
     amounts: {
-      single: [{ char: "∙", color: colors.lime }],
+      single: [{ char: ":", color: colors.lime }],
       double: [{ char: ".", color: colors.lime }],
-      multiple: [{ char: ":", color: colors.lime }],
+      multiple: [{ char: ",", color: colors.lime }],
     },
   },
   layers: [{ char: "|", color: colors.lime }],
@@ -2039,6 +2094,7 @@ export const caret: Sprite = {
 
 export const mapDiscovery: Sprite = {
   name: "Map",
+  terminal: { layers: [{ char: "#", color: colors.lime }] },
   layers: [
     { char: "■", color: colors.green },
     { char: "≡", color: colors.lime },
@@ -2231,6 +2287,12 @@ export const double: Sprite = {
 
 export const weaponSlot: Sprite = {
   name: "Weapon",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.grey },
+      { char: "/", color: colors.black },
+    ],
+  },
   layers: [
     { char: "*", color: colors.black },
     { char: "\u0100", color: colors.grey },
@@ -2241,11 +2303,23 @@ export const weaponSlot: Sprite = {
 
 export const offhandSlot: Sprite = {
   name: "Offhand",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.grey },
+      { char: "¬", color: colors.black },
+    ],
+  },
   layers: [{ char: "¬", color: colors.black }],
 };
 
 export const bootsSlot: Sprite = {
   name: "Boots",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.grey },
+      { char: '"', color: colors.black },
+    ],
+  },
   layers: [
     { char: "\u0116", color: colors.black },
     { char: "\u0111", color: colors.grey },
@@ -2256,16 +2330,34 @@ export const bootsSlot: Sprite = {
 
 export const spellSlot: Sprite = {
   name: "Spell",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.grey },
+      { char: "+", color: colors.black },
+    ],
+  },
   layers: [{ char: "+", color: colors.black }],
 };
 
 export const skillSlot: Sprite = {
   name: "Skill",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.grey },
+      { char: "»", color: colors.black },
+    ],
+  },
   layers: [{ char: "»", color: colors.black }],
 };
 
 export const toolSlot: Sprite = {
   name: "Tool",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.grey },
+      { char: "↑", color: colors.black },
+    ],
+  },
   layers: [
     { char: "\u0106", color: colors.black },
     { char: "∙", color: colors.grey },
@@ -2274,6 +2366,12 @@ export const toolSlot: Sprite = {
 
 export const ringSlot: Sprite = {
   name: "Ring",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.grey },
+      { char: "ô", color: colors.black },
+    ],
+  },
   layers: [
     { char: "|", color: colors.black },
     { char: ".", color: colors.grey },
@@ -2285,6 +2383,12 @@ export const ringSlot: Sprite = {
 
 export const amuletSlot: Sprite = {
   name: "Amulet",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.grey },
+      { char: "♦", color: colors.black },
+    ],
+  },
   layers: [
     { char: "t", color: colors.black },
     { char: "\u0112", color: colors.grey },
@@ -2296,6 +2400,12 @@ export const amuletSlot: Sprite = {
 
 export const compassSlot: Sprite = {
   name: "Compass",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.grey },
+      { char: "↕", color: colors.black },
+    ],
+  },
   layers: [
     { char: "\u0108", color: colors.black },
     { char: "ª", color: colors.grey },
@@ -2309,6 +2419,12 @@ export const compassSlot: Sprite = {
 
 export const torchSlot: Sprite = {
   name: "Torch",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.grey },
+      { char: "î", color: colors.black },
+    ],
+  },
   layers: [
     { char: "┐", color: colors.black },
     { char: "-", color: colors.grey },
@@ -2319,6 +2435,12 @@ export const torchSlot: Sprite = {
 
 export const mapSlot: Sprite = {
   name: "Map",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.grey },
+      { char: "#", color: colors.black },
+    ],
+  },
   layers: [
     { char: "■", color: colors.black },
     { char: "≡", color: colors.black },

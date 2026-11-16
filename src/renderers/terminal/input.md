@@ -10,7 +10,7 @@ Terminal keyboards lack keyup events; a 100 ms timeout releases movement.
 A new key event extends that hold. Browser callers pass `{ releaseOnTimeout: false }` as the third argument and call `release(name)` on keyup instead. Only the currently active movement key releases it; unrelated keys and an older direction cannot cancel a newer direction. `stop` releases it immediately, including
 when pausing, leaving or replacing a world. Dialog actions release movement before
 confirming, so a recent selection move cannot swallow Enter. In test mode, Enter
-opens chat when no interaction is available. Credit links use the URL callback
+opens chat when no interaction is available. C and slash also require test mode. The menu disables the same quick-action, bag, map, gear and stats shortcuts as the web controls. Credit links use the URL callback
 passed to `createTerminalInput`; browser previews open a new tab and the native
 client uses the operating system URL opener.
 
@@ -36,3 +36,5 @@ export type TerminalKey = {
   ctrl?: boolean;
 };
 ```
+
+In chat, Escape clears the current prompt first. A second Escape closes it.

@@ -23,3 +23,5 @@ external for its CommonJS initialization, and native Web Audio external so it
 can load its platform binary.
 
 Before opening the interactive screen, the client preloads the same sound catalog as the browser, including class movement speeds and popup timing. First-use playback does not need to synthesize these sounds.
+
+Sound preparation draws `Loading game...` inside the native frame before input starts. It does not print a separate line into the terminal scrollback.

@@ -12,9 +12,9 @@ it("keeps source-defined resource shapes and material colors through item lookup
   for (const [name, char, color] of [
     ["wood", "•", colors.maroon],
     ["coconut", "○", colors.maroon],
-    ["plank", "█", colors.maroon],
-    ["grain", "·", colors.yellow],
-    ["pearl", "·", colors.white],
+    ["plank", "■", colors.maroon],
+    ["grain", "∙", colors.yellow],
+    ["pearl", "∙", colors.white],
     ["algae", "w", colors.green],
     ["spore", ":", colors.white],
     ["mineral", "•", colors.lime],
@@ -58,9 +58,9 @@ it("uses material-colored tool and accessory symbols for all material and elemen
     ["wand", ";"],
     ["hammer", "↑"],
     ["pickaxe", "→"],
-    ["axe", "Γ"],
+    ["axe", "7"],
     ["shovel", "↓"],
-    ["hook", "⌠"],
+    ["hook", "Γ"],
     ["torch", "î"],
     ["ring", "ô"],
     ["boots", '"'],
@@ -104,7 +104,7 @@ it("preserves sigma flasks, water buckets and static compass directions", () => 
     });
   expect(projectSprite(sprites.emptyFlask)).toMatchObject({
     char: "σ",
-    foreground: colors.maroon,
+    foreground: colors.grey,
   });
   for (const material of materials) {
     expect(projectSprite(bucket[material].default).char).toBe("u");
@@ -127,9 +127,28 @@ it("preserves sigma flasks, water buckets and static compass directions", () => 
 
 it("distinguishes carried terrain and the golem head from their world sprites", () => {
   for (const [sprite, char, foreground] of [
-    [sprites.sandBlock, "÷", colors.yellow],
-    [sprites.gravelBlock, "÷", colors.silver],
+    [sprites.sandBlock, "%", colors.yellow],
+    [sprites.gravelBlock, "%", colors.silver],
     [sprites.golemHead, "☻", colors.grey],
   ] as const)
     expect(projectSprite(sprite)).toMatchObject({ char, foreground });
+});
+
+it("uses the original bubble dots and circles, ending with o", () => {
+  const cells = [undefined, 1, 2, 3].map((amount) =>
+    projectSprite(sprites.bubble, undefined, amount)
+  );
+  expect(cells.map((cell) => cell.char)).toEqual(["∙", "•", "○", "o"]);
+  expect(cells.every((cell) => cell.foreground === colors.blue)).toBe(true);
+});
+
+it("uses a left double chevron for Dash spell items", () => {
+  for (const material of materials)
+    for (const element of [undefined, ...elements] as const)
+      expect(
+        projectSprite(getItemSprite({ spell: "dash", material, element }))
+      ).toMatchObject({
+        char: "«",
+        foreground: colorPalettes[material].primary,
+      });
 });

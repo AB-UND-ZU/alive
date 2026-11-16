@@ -1,3 +1,4 @@
+import { createCell } from "../../bindings/creation";
 import { HOMING } from "../../engine/components/homing";
 import { shootHoming } from "../../engine/systems/homing";
 import {
@@ -34,10 +35,10 @@ import { PARTICLE } from "../../engine/components/particle";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { entities } from "../../engine";
 import { getSequence } from "../../engine/systems/sequence";
-import { tooltipLine, questPointer } from "../../game/assets/sprites";
+import { tooltipLine, questPointer, wall } from "../../game/assets/sprites";
 import { getFacingLayers } from "../../game/assets/ui";
 import { dropEntity } from "../../engine/systems/drop";
-import { moveEntity } from "../../engine/systems/map";
+import { moveEntity, registerEntity } from "../../engine/systems/map";
 
 const area = `
 |█████████|
@@ -358,8 +359,14 @@ it("animates sequence particles while keeping actors instant", () => {
 it("marks explored fog on world sprites without changing interface particle colors", () => {
   const world = createAreaWorld(area, { size: 48 });
   const hero = world.assertComponents(getHero(world)!, [FOG, SPRITE]);
-  hero[FOG].type = "object";
   hero[FOG].visibility = "fog";
+  const crate = entities.createGround(world, {
+    [FOG]: { type: "object", visibility: "fog" },
+    [POSITION]: { x: hero[POSITION]!.x + 1, y: hero[POSITION]!.y },
+    [SPRITE]: wall,
+    [RENDERABLE]: { generation: 0 },
+  });
+  registerEntity(world, crate);
   const particle = entities.createFibre(world, {
     [SPRITE]: questPointer,
     [PARTICLE]: { offsetX: 1, offsetY: 0, offsetZ: 9 },
@@ -370,27 +377,43 @@ it("marks explored fog on world sprites without changing interface particle colo
     pointer: world.getEntityId(particle),
   };
   const frame = getSceneFrame(world, 15, 11, undefined, { instant: true });
-  expect(frame.find((entry) => entry.sprite === hero[SPRITE])?.fog).toBe(true);
+  expect(frame.find((entry) => entry.sprite === hero[SPRITE])?.fog).toBe(false);
+  expect(
+    frame.find(
+      (entry) => entry.entity === crate && entry.sprite === crate[SPRITE]
+    )?.fog
+  ).toBe(true);
   expect(
     frame.find((entry) => entry.sprite === questPointer)?.fog
   ).toBeUndefined();
-  hero[FOG].visibility = "visible";
+  expect(frame.find((entry) => entry.sprite === questPointer)?.layers).toEqual(
+    getFacingLayers(questPointer, "right")
+  );
+  crate[FOG]!.visibility = "visible";
   expect(
-    getSceneFrame(world, 15, 11).find((entry) => entry.sprite === hero[SPRITE])
-      ?.fog
+    getSceneFrame(world, 15, 11).find(
+      (entry) => entry.entity === crate && entry.sprite === crate[SPRITE]
+    )?.fog
   ).toBe(false);
 });
 
-it("marks unexplored air for terminal fog coloring", () => {
+it("marks unexplored air for terminal fog coloring while keeping the hero's cell clear", () => {
   const world = createAreaWorld(area, { size: 48 });
-  const hero = world.assertComponents(getHero(world)!, [FOG, SPRITE]);
-  hero[FOG].type = "air";
-  hero[FOG].visibility = "hidden";
+  const hero = world.assertComponents(getHero(world)!, [FOG, SPRITE, POSITION]);
+  const air = createCell(
+    world,
+    { x: hero[POSITION].x + 1, y: hero[POSITION].y },
+    "air",
+    "hidden"
+  ).cell;
+  registerEntity(world, air);
+  hero[FOG].visibility = "fog";
+  const frame = getSceneFrame(world, 15, 11, undefined, { instant: true });
   expect(
-    getSceneFrame(world, 15, 11, undefined, { instant: true }).find(
-      (entry) => entry.sprite === hero[SPRITE]
-    )?.fog
+    frame.find((entry) => entry.entity === air && entry.sprite === air[SPRITE])
+      ?.fog
   ).toBe(true);
+  expect(frame.find((entry) => entry.sprite === hero[SPRITE])?.fog).toBe(false);
 });
 
 it("removes closed popup particles from an instant frame before the next engine update", () => {

@@ -235,6 +235,12 @@ export const ice: Sprite = {
 
 export const sand: Sprite = {
   name: "Desert",
+  terminal: {
+    layers: [
+      { char: "█", color: colors.olive },
+      { char: "░", color: colors.black },
+    ],
+  },
   layers: [
     { char: "\u0107", color: colors.olive },
     { char: "\u0109", color: colors.olive },
@@ -249,6 +255,7 @@ export const beach: Sprite = {
 
 export const path: Sprite = {
   name: "Path",
+  terminal: { layers: [{ char: "░", color: colors.silver }] },
   layers: [
     { char: "\u0107", color: colors.grey },
     { char: "\u0109", color: colors.grey },
@@ -382,6 +389,7 @@ export const leaves: Sprite = {
 
 export const stemRottenLeft: Sprite = {
   name: "tree_stem_rotten_left",
+  terminal: { layers: [{ char: "╗", color: colors.maroon }] },
   layers: [
     { char: "[", color: colors.maroon },
     { char: ".", color: colors.black },
@@ -396,6 +404,7 @@ export const stemRottenLeft: Sprite = {
 
 export const stemRottenRight: Sprite = {
   name: "tree_stem_rotten_right",
+  terminal: { layers: [{ char: "╔", color: colors.maroon }] },
   layers: [
     { char: "]", color: colors.maroon },
     { char: ".", color: colors.black },
@@ -437,6 +446,7 @@ export const branchRottenRight: Sprite = {
 
 export const leavesRottenLeft: Sprite = {
   name: "tree_leaves_rotten_left",
+  terminal: { layers: [{ char: "▐", color: colors.green }] },
   layers: [
     { char: "╞", color: colors.maroon },
     { char: "│", color: colors.black },
@@ -451,6 +461,7 @@ export const leavesRottenLeft: Sprite = {
 
 export const leavesRottenRight: Sprite = {
   name: "tree_leaves_rotten_right",
+  terminal: { layers: [{ char: "▌", color: colors.green }] },
   layers: [
     { char: "H", color: colors.green },
     { char: "[", color: colors.green },
@@ -479,7 +490,7 @@ export const palm1: Sprite = {
 
 export const palm2: Sprite = {
   name: "palm_two",
-  terminal: { layers: [{ char: "Y", color: colors.green }] },
+  terminal: { layers: [{ char: "⌠", color: colors.green }] },
   layers: [
     { char: "█", color: colors.black },
     { char: "┐", color: colors.olive },
@@ -492,7 +503,7 @@ export const palm2: Sprite = {
 
 export const palmBurnt1: Sprite = {
   name: "palm_burnt_one",
-  terminal: { layers: [{ char: "Y", color: colors.maroon }] },
+  terminal: { layers: [{ char: ",", color: colors.maroon }] },
   layers: [
     { char: "┐", color: colors.olive },
     { char: "─", color: colors.black },
@@ -504,7 +515,7 @@ export const palmBurnt1: Sprite = {
 
 export const palmBurnt2: Sprite = {
   name: "palm_burnt_two",
-  terminal: { layers: [{ char: "Y", color: colors.maroon }] },
+  terminal: { layers: [{ char: ",", color: colors.maroon }] },
   layers: [
     { char: "┐", color: colors.olive },
     { char: "─", color: colors.black },
@@ -517,7 +528,7 @@ export const palmBurnt2: Sprite = {
 
 export const desertPalmBurnt1: Sprite = {
   name: "desert_palm_burnt_one",
-  terminal: { layers: [{ char: "Y", color: colors.maroon }] },
+  terminal: { layers: [{ char: ",", color: colors.maroon }] },
   layers: [
     { char: "\u0107", color: colors.olive },
     { char: "\u0109", color: colors.olive },
@@ -535,7 +546,7 @@ export const desertPalmBurnt1: Sprite = {
 
 export const desertPalmBurnt2: Sprite = {
   name: "desert_palm_burnt_two",
-  terminal: { layers: [{ char: "Y", color: colors.maroon }] },
+  terminal: { layers: [{ char: ",", color: colors.maroon }] },
   layers: [
     { char: "\u0107", color: colors.olive },
     { char: "\u0109", color: colors.olive },
@@ -675,6 +686,7 @@ export const tree2: Sprite = {
 
 export const treeBurnt1: Sprite = {
   name: "tree_burnt_one",
+  terminal: { layers: [{ char: ",", color: colors.maroon }] },
   layers: [
     { char: "│", color: colors.maroon },
     { char: "┘", color: colors.black },
@@ -686,6 +698,7 @@ export const treeBurnt1: Sprite = {
 
 export const treeBurnt2: Sprite = {
   name: "tree_burnt_two",
+  terminal: { layers: [{ char: ",", color: colors.maroon }] },
   layers: [
     { char: "│", color: colors.maroon },
     { char: ":", color: colors.grey },
@@ -696,6 +709,7 @@ export const treeBurnt2: Sprite = {
 
 export const oakBurnt: Sprite = {
   name: "oak_burnt",
+  terminal: { layers: [{ char: ",", color: colors.maroon }] },
   layers: [
     { char: "l", color: colors.maroon },
     { char: "▀", color: colors.black },
@@ -821,13 +835,13 @@ export const cactus1: Sprite = {
 
 export const cactus2: Sprite = {
   name: "cactus_two",
-  terminal: { layers: [{ char: "√", color: colors.green }] },
+  terminal: { layers: [{ char: "¥", color: colors.green }] },
   layers: [{ char: "¥", color: colors.green }],
 };
 
 export const desertCactus2: Sprite = {
   name: "desert_cactus_two",
-  terminal: { layers: [{ char: "√", color: colors.green }] },
+  terminal: { layers: [{ char: "¥", color: colors.green }] },
   layers: [
     { char: "\u0107", color: colors.olive },
     { char: "\u0109", color: colors.olive },
@@ -885,7 +899,7 @@ export const rock1: Sprite = {
 
 export const rock2: Sprite = {
   name: "",
-  terminal: { layers: [{ char: "•", color: colors.grey }] },
+  terminal: { layers: [{ char: "•", color: colors.silver }] },
   layers: [
     { char: "\u0105", color: colors.grey },
     { char: "I", color: colors.black },

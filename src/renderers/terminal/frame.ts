@@ -5,20 +5,34 @@ import { projectLayers, projectTerminalLayers, TerminalCell } from "./sprites";
 import { ENTERABLE } from "../../engine/components/enterable";
 import { World } from "../../engine";
 import { PLAYER } from "../../engine/components/player";
+import { BURNABLE } from "../../engine/components/burnable";
 import { BUMPABLE } from "../../engine/components/bumpable";
 import { PARTICLE } from "../../engine/components/particle";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
-import { Orientation, orientationPoints } from "../../engine/components/orientable";
+import {
+  Orientation,
+  orientationPoints,
+} from "../../engine/components/orientable";
 import {
   popupHeight,
   fogHeight,
   objectHeight,
+  immersibleHeight,
 } from "../interface/segments";
 import { FOG } from "../../engine/components/fog";
 import { LIGHT } from "../../engine/components/light";
 import { LOCKABLE } from "../../engine/components/lockable";
+import { MOUNTABLE } from "../../engine/components/mountable";
 import { HARVESTABLE } from "../../engine/components/harvestable";
-import { tombstone1, tombstone2 } from "../../game/assets/sprites";
+import {
+  tombstone1,
+  tombstone2,
+  campfire,
+  fountainDrop,
+  fountainHeal,
+  fountainHealing,
+} from "../../game/assets/sprites";
+import { getFacingLayers } from "../../game/assets/ui";
 import { AFFECTABLE } from "../../engine/components/affectable";
 
 export type TerminalSprite = {
@@ -33,6 +47,7 @@ export type TerminalSprite = {
   fog?: boolean;
   overlay?: boolean;
   ui?: boolean;
+  dialog?: boolean;
   hero?: { hit: boolean; ghost?: boolean; background?: string };
 };
 export type TerminalFrame = TerminalCell[][];
@@ -48,6 +63,16 @@ export const collectTerminalSprites = (
   const result: TerminalSprite[] = [];
   const bodies = new Map<string, TerminalSprite>();
   for (const entry of scene) {
+    if (
+      entry.particleSequence === "vortexDots" &&
+      entry.particleName?.startsWith("vortex-")
+    )
+      continue;
+    if (
+      entry.particleSequence === "fountainSplash" &&
+      entry.particleName?.startsWith("drop-")
+    )
+      continue;
     if (/^scratch(?:-|$)/.test(entry.particleName || "")) continue;
     const bodyEntry = /body\d+$/.test(entry.key);
     if (
@@ -87,7 +112,10 @@ export const collectTerminalSprites = (
       const sprite = {
         ...entry,
         z:
-          beam && ["start", "end"].includes(entry.particleName || "")
+          entry.particleSequence === "transientMessage" &&
+          !entry.entity[PLAYER]?.popup
+            ? popupHeight - 0.0008
+            : beam && ["start", "end"].includes(entry.particleName || "")
             ? entry.z + 0.0001
             : entry.particleSequence?.startsWith("cast")
             ? Math.max(entry.z, objectHeight + 0.01)
@@ -112,7 +140,9 @@ export const collectTerminalSprites = (
             : beam
             ? Math.ceil(entry.y - 1e-6)
             : entry.y,
-        overlay: !!entry.particle,
+        overlay:
+          !!entry.particle && entry.particleSequence !== "transientMessage",
+        dialog: entry.particleSequence === "dialogText",
         ui: [
           "popupInteract",
           "dialogText",
@@ -121,6 +151,49 @@ export const collectTerminalSprites = (
         ].includes(entry.particleSequence || ""),
       };
       result.push(sprite);
+      const fountainState =
+        entry.particleName === "fountain" &&
+        entry.entity[SEQUENCABLE]?.states.fountain;
+      if (fountainState) {
+        const tick = Math.floor(fountainState.elapsed / 125);
+        const phase = tick % 6;
+        const healing =
+          entry.sprite === fountainHealing ||
+          scene.some(
+            (particle) =>
+              particle.entity === entry.entity &&
+              particle.particleSequence === "fountainSplash" &&
+              particle.sprite === fountainHeal
+          );
+        const drop = healing ? fountainHeal : fountainDrop;
+        if (healing) sprite.terminalLayers = fountainHealing.terminal!.layers;
+        const segments =
+          phase === 0
+            ? [0]
+            : phase === 4
+            ? [3]
+            : phase === 5
+            ? []
+            : [phase - 1, phase];
+        for (const segment of segments) {
+          const layers = getFacingLayers(
+            drop.terminal!,
+            segment === 1 ? "up" : undefined,
+            segment >= 2 ? (Math.floor(tick / 6) % 3) + 1 : undefined
+          );
+          for (const x of segment < 2 ? [0] : [-1, 1]) {
+            result.push({
+              ...sprite,
+              sprite: drop,
+              x: Math.ceil(entry.x) + x,
+              y: Math.ceil(entry.y) - (segment === 0 || segment === 3 ? 1 : 2),
+              z: immersibleHeight,
+              layers,
+              terminalLayers: layers,
+            });
+          }
+        }
+      }
       continue;
     }
     const key = titleBlock
@@ -140,6 +213,7 @@ export const collectTerminalSprites = (
       }
     } else {
       const effects = entry.entity[AFFECTABLE];
+      const mount = entry.entity[PLAYER]?.mount;
       const sprite: TerminalSprite = {
         ...entry,
         hero: entry.entity[PLAYER]
@@ -148,7 +222,13 @@ export const collectTerminalSprites = (
               ghost: !!entry.entity[PLAYER].ghost,
               background: effects?.freeze
                 ? colors.aqua
-                : effects?.burn
+                : effects?.burn ||
+                  (mount &&
+                    scene.some(
+                      (entry) =>
+                        entry.entity[MOUNTABLE]?.medium === "water" &&
+                        entry.key.startsWith(`${mount}:`)
+                    ))
                 ? colors.maroon
                 : undefined,
             }
@@ -190,17 +270,42 @@ export const collectTerminalSprites = (
       bodies.set(key, sprite);
       result.push(sprite);
     }
+    if (entry.sprite === campfire && entry.entity[BURNABLE]?.burning)
+      bodies.get(key)!.terminalLayers = [{ char: "█", color: colors.maroon }];
+  }
+  const hero = result.find((sprite) => sprite.hero);
+  const buttons = result.filter(
+    (sprite) =>
+      sprite.ui && /^(button_|interact_left$)/.test(sprite.sprite.name)
+  );
+  if (
+    hero &&
+    buttons.some(
+      (sprite) =>
+        Math.ceil(sprite.x) === Math.ceil(hero.x) &&
+        Math.ceil(sprite.y) === Math.ceil(hero.y)
+    )
+  ) {
+    const offset = Math.ceil(hero.y) > 0 ? -1 : 1;
+    for (const sprite of buttons) sprite.y += offset;
   }
   for (const sprite of result) {
     if (sprite.unit) sprite.z = popupHeight - 0.00175;
-    if (sprite.hero) sprite.z = popupHeight - 0.0015;
+    if (sprite.hero) sprite.z = popupHeight - 0.0006;
     if (
       sprite.ui &&
       sprite.z < popupHeight &&
       !["Melee", "Magic", "True", "Heal"].includes(sprite.sprite.name)
     )
-      sprite.z = popupHeight - 0.002;
+      sprite.z =
+        popupHeight -
+        (sprite.dialog
+          ? 0.00075
+          : /^(button_|interact_)/.test(sprite.sprite.name)
+          ? 0.0007
+          : 0.002);
     if (
+      sprite.z < popupHeight &&
       ["Melee", "Magic", "True"].includes(sprite.sprite.name) &&
       (sprite.terminalLayers || sprite.layers).some((layer) =>
         "oxX".includes(layer.char)
@@ -215,6 +320,13 @@ const fogColor = (color: string) => {
   const dark = darkColors[color] || color;
   return dark === colors.grey ? colors.black : dark;
 };
+
+const fogHalfColor = (color: string) =>
+  color === colors.black
+    ? colors.grey
+    : color === colors.yellow
+    ? colors.yellow
+    : fogColor(color);
 
 export const createTerminalFrame = (
   sprites: TerminalSprite[],
@@ -238,6 +350,11 @@ export const createTerminalFrame = (
     for (const index of fogCells) {
       if (protectedCells.has(index)) continue;
       const cell = frame[Math.floor(index / columns)][index % columns];
+      if (cell.char === "▄") {
+        cell.background = fogHalfColor(cell.background || colors.black);
+        cell.foreground = fogHalfColor(cell.foreground);
+        continue;
+      }
       if (cell.background === colors.navy && cell.char === " ") {
         cell.char = "░";
         cell.foreground = colors.blue;
@@ -302,15 +419,27 @@ export const createTerminalFrame = (
         background,
       };
     }
+    if (
+      sprite.sprite.name.startsWith("button_") &&
+      sprite.layers.some(
+        (layer) => layer.char === "░" && layer.color === colors.black
+      )
+    )
+      projected = { ...projected, background: colors.grey };
     if (sprite.hero) {
+      const foreground = sprite.hero.hit
+        ? colors.red
+        : sprite.hero.ghost
+        ? projected.foreground
+        : colors.white;
+      const background =
+        sprite.hero.background ??
+        projected.background ??
+        frame[y][x].background;
       projected = {
         ...projected,
-        foreground: sprite.hero.hit
-          ? colors.red
-          : sprite.hero.ghost
-          ? projected.foreground
-          : colors.white,
-        background: sprite.hero.background ?? projected.background,
+        foreground,
+        background: background === foreground ? colors.black : background,
       };
     }
     if (projected.char === " " && projected.background === undefined) continue;

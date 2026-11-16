@@ -1194,6 +1194,8 @@ export const queueMessage = (
 
     messageState.args.messages.push({
       ...message,
+      orientation:
+        messageState.args.messages[0]?.orientation ?? message.orientation,
       delay,
     });
   } else {

@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import App from "./App";
+import { calculateDimensions } from "../interface/dimensions";
 import { installFakeIndexedDB } from "../../game/saves/testing";
 import { loadSounds } from "../../game/sound";
 import * as audio from "../../game/sound/resumable";
@@ -9,9 +10,16 @@ import { LEVEL } from "../../engine/components/level";
 import { MOVABLE } from "../../engine/components/movable";
 
 let mockContext: WorldContext;
+let mockPreviewProps: {
+  columns: number;
+  rows: number;
+  cellHeight: number;
+  cellWidth: number;
+};
 jest.mock("./BrowserPreview", () => ({
   __esModule: true,
-  default: (props: object) => {
+  default: (props: typeof mockPreviewProps) => {
+    mockPreviewProps = props;
     mockContext = require("../interface/hooks").useWorld();
     return require("react").createElement(
       jest.requireActual("./BrowserPreview").default,
@@ -75,6 +83,9 @@ it("waits for sound loading, generates the standard menu and starts the terminal
     jest.advanceTimersByTime(32);
   });
   const world = mockContext.ecs!;
+  expect(
+    screen.getByRole("group", { name: "Terminal renderer" })
+  ).toHaveTextContent("Loading game...");
   expect(mockContext.suspended).toBe(true);
   expect(mockContext.paused).toBe(true);
   expect(world.getEntities(["PLAYER", "POSITION"])).toHaveLength(0);
@@ -145,4 +156,16 @@ it("waits for parent visibility in preview mode and keeps unfocused autoplay mut
   message("pause");
   fireEvent.blur(window);
   expect(mockContext.paused).toBe(true);
+});
+
+it("uses the shared browser cell size without shrinking to a minimum terminal grid", async () => {
+  await boot();
+  const dimensions = calculateDimensions();
+  expect(mockPreviewProps.cellHeight).toBe(dimensions.cellHeight);
+  expect(mockPreviewProps.columns).toBe(
+    Math.max(1, Math.floor(dimensions.screenWidth / mockPreviewProps.cellWidth))
+  );
+  expect(mockPreviewProps.rows).toBe(
+    Math.max(1, Math.floor(dimensions.screenHeight / dimensions.cellHeight))
+  );
 });

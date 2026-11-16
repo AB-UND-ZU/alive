@@ -593,8 +593,16 @@ export const createSpriteButton: (
       layers: [...button.layers, ...sprite.layers],
       ...(sprite.terminal && {
         terminal: terminalLayers(sprite, (layers) => [
-          ...button.layers,
-          ...layers,
+          ...(disabled ? [{ char: "█", color: colors.grey }] : button.layers),
+          ...layers.map((layer) =>
+            sprite.name === "text_generic" &&
+            sprite.layers[0]?.char === "_" &&
+            sprite.layers[0].color === colors.black &&
+            layer.color === colors.black &&
+            /^[A-Za-z0-9]$/.test(layer.char)
+              ? { ...layer, color: disabled ? colors.olive : colors.grey }
+              : layer
+          ),
         ]),
       }),
     })),
@@ -937,7 +945,11 @@ export const stretch = (left: Sprite[], right: Sprite[], width: number) =>
     ...right,
   ].slice(0, width);
 
-export const slotShadow: Sprite = recolorSprite(emptySlot, colors.black);
+// World shadows must not inherit the gear slot's Terminal background.
+export const slotShadow: Sprite = {
+  name: emptySlot.name,
+  layers: recolorLayers(emptySlot.layers, colors.black),
+};
 export const discovery = createText("°", colors.lime)[0];
 export const quest = createText("?", colors.lime)[0];
 export const ongoing = createText("?", colors.silver)[0];
@@ -1184,6 +1196,12 @@ export const getOrientedSprite = (
 ) => ({
   ...sprite,
   layers: getFacingLayers(sprite, orientation),
+  ...(sprite.terminal && {
+    terminal: {
+      ...sprite.terminal,
+      layers: getFacingLayers(sprite.terminal, orientation),
+    },
+  }),
 });
 
 export const getFacingLayers = (

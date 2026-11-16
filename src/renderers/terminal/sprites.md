@@ -12,7 +12,7 @@ Results are cached by sprite name and layers.
 
 A few composites need a recognizable single-cell form: people use `♀`, eyes
 use `O` asleep and `Ö` awake, keys use `╒`, and shots keep their arrow direction. Terrain retains
-patterns from the level legends, including sand, paths and water. Buildings use silver backgrounds with maroon single wall lines and double roof lines. Doors show their key over the door color; opened doors leave the ground visible. Trees have a maroon background, berry fruit stays visible, and deep water uses a plain navy background. Beam endpoints retain their box-drawing shape; beam interiors use `:` in the source center color. Dash marks use `^`, `>`, `v` and `<`; dormant traps use `%`. Warning lines and the
+patterns from the level legends, including sand, paths and water. Houses use silver interiors with outward maroon half-block sides and black windows and role plates. Roof surfaces use red quarter shading over maroon, inside connected single red lines. Lower roof corners use `├` and `┤` to continue down the house sides. Fortress sprites retain their own outlines. Doors show their key over the door color; opened doors leave the ground visible. Trees have a maroon background, berry fruit stays visible, and deep water uses a plain navy background. Beam endpoints retain their box-drawing shape; beam interiors use `:` in the source center color. Dash marks use `^`, `>`, `v` and `<`; dormant traps use `%`. Warning lines and the
 activated trap frame retain their directional source characters and spell colors.
 Dialog selections invert their existing character against the selection background.
 
@@ -29,3 +29,7 @@ export type TerminalCell = {
   background?: string;
 };
 ```
+
+Explicit Terminal control-picture glyphs remain visible on black dialog backgrounds. The game font atlas stores those glyphs at private code points, so its missing Unicode pixel mask must not erase the native character.
+
+Explicit one-character Terminal sprites retain their glyph and background through dialog composition without font-pixel matching. Upper halves use their color as the background and draw the lower half with `▄`, including a black lower half for upper-only artwork.

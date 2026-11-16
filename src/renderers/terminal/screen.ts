@@ -1,4 +1,5 @@
 import { projectLayers } from "./sprites";
+import { popupHeight } from "../interface/segments";
 import { World } from "../../engine";
 import { TEST_MODE } from "../../engine/utils";
 import { TypedEntity } from "../../engine/entities";
@@ -25,16 +26,13 @@ import {
   buttonPalettes,
   createProgress,
   createText,
+  createDialog,
+  underline,
   addBackground,
 } from "../../game/assets/ui";
 import { centerSprites } from "../../game/assets/pixels";
 import {
   none,
-  sand,
-  beach,
-  waterDeep,
-  waterShallow,
-  ice,
   mapZoom1,
   mapZoom2,
   mapZoom3,
@@ -43,7 +41,7 @@ import {
   pauseInvertPressed,
 } from "../../game/assets/sprites";
 import { getItemSprite } from "../../game/assets/utils";
-import { colors } from "../../game/assets/colors";
+import { colors, orderedColors } from "../../game/assets/colors";
 import { repeat, padCenter } from "../../game/math/std";
 import { getActionActivations, getActionName } from "../interface/actions";
 import { getSceneFrame } from "../interface/frame";
@@ -60,6 +58,7 @@ export { capabilities } from "./capabilities";
 export type TerminalSession = {
   paused?: boolean;
   suspended?: boolean;
+  loadingSounds?: boolean;
   saveName?: string;
   selection?: number;
   failed?: boolean;
@@ -68,12 +67,12 @@ export type TerminalSession = {
 
 export const getTerminalLayout = (columns: number, rows: number) => {
   const width = Math.min(columns, 33);
-  const height = Math.min(13, Math.max(1, rows - 8));
+  const height = Math.min(13, Math.max(1, rows - 7));
   return {
     width,
     height,
     left: Math.floor((columns - width) / 2),
-    top: 4 + Math.floor((rows - 8 - height) / 2),
+    top: 4 + Math.floor((rows - 7 - height) / 2),
   };
 };
 
@@ -119,25 +118,21 @@ export const getTerminalFrame = (
         ["buy", "sell"].includes(tabs[selected]) &&
         entry.sprite.name === "Coin"
       ) {
-        entry.terminalLayers = getItemSprite({
-          stackable: "coin",
-          amount: 1,
-        }).terminal?.layers;
+        entry.terminalLayers = [
+          { char: "█", color: colors.black },
+          ...getItemSprite({ stackable: "coin", amount: 1 }).terminal!.layers,
+        ];
       }
       if (
         entry.particleName?.startsWith("popup-content-") &&
-        ((tabs[selected] === "map" &&
-          entry.layers.every(
-            (layer) =>
-              " █▀▄▌▐░▒▓".includes(layer.char) ||
-              mapFog?.layers.some(
-                (fog) => fog.char === layer.char && fog.color === layer.color
-              )
-          )) ||
-          (tabs[selected] === "warp" &&
-            [sand, beach, waterDeep, waterShallow, ice].some(
-              (terrain) => terrain.name === entry.sprite.name
-            )))
+        tabs[selected] === "map" &&
+        entry.layers.every(
+          (layer) =>
+            " █▀▄▌▐░▒▓".includes(layer.char) ||
+            mapFog?.layers.some(
+              (fog) => fog.char === layer.char && fog.color === layer.color
+            )
+        )
       ) {
         const pixel = projectLayers(entry.layers, "map_pixel");
         entry.terminalLayers = [
@@ -241,19 +236,33 @@ export const getTerminalFrame = (
       !!session.paused
     );
     if (!TEST_MODE && world.metadata.gameEntity[LEVEL].name === "LEVEL_MENU") {
-      line(pauseButton, 2, Math.floor((columns - 21) / 2));
+      line(
+        pauseButton,
+        top - 2,
+        Math.floor((columns - 21) / 2) + (session.flipped ? 18 : 0)
+      );
     } else {
       const stats = getEntityStats(world, hero);
-      const progressLeft = Math.floor((columns - 21) / 2) + 3;
-      line(progress(stats, "hp", false), 0, progressLeft);
-      line(progress(stats, "mp"), 1, progressLeft);
-      line(
+      const progressLeft =
+        Math.floor((columns - 21) / 2) + (session.flipped ? 5 : 3);
+      line(progress(stats, "hp", false), top - 4, progressLeft);
+      line(progress(stats, "mp"), top - 3, progressLeft);
+      const useButton = createSpriteButton(
         [
-          ...pauseButton,
-          ...progress(stats, "xp"),
-          ...createButton("USE", 5, !!session.paused, false, false, "yellow"),
+          ...createText("US", colors.black),
+          ...underline(createText("E", colors.black), colors.black),
         ],
-        2
+        5,
+        !!session.paused,
+        false,
+        false,
+        "yellow"
+      );
+      line(
+        session.flipped
+          ? [...useButton, ...progress(stats, "xp"), ...pauseButton]
+          : [...pauseButton, ...progress(stats, "xp"), ...useButton],
+        top - 2
       );
       const action = (slot: "spell" | "skill" | "tool", fallback: string) => {
         const entity = world.getEntityByIdAndComponents(
@@ -320,50 +329,71 @@ export const getTerminalFrame = (
         session.flipped
           ? [...equipment, none, ...spell.button, ...skill.button]
           : [...skill.button, ...spell.button, none, ...equipment],
-        rows - 3
+        top + height + 1
       );
       line(
         session.flipped
           ? [...repeat(none, 9), ...spell.activation, ...skill.activation]
           : [...skill.activation, ...spell.activation, ...repeat(none, 9)],
-        rows - 2
+        top + height + 2
       );
     }
   }
-  line(createText("─".repeat(columns), colors.silver), 3, 0);
-  line(createText("─".repeat(columns), colors.silver), rows - 4, 0);
   // The game keeps its own maximum viewport inside the full terminal chrome.
   for (let y = top; y < top + height; y++) {
-    line(createText("│", colors.silver), y, left);
-    line(createText("│", colors.silver), y, left + width - 1);
-  }
-  if (top > 4) {
+    line(createText("│", colors.silver), y, left, popupHeight - 0.0005);
     line(
-      createText("┌" + "─".repeat(width - 2) + "┐", colors.silver),
-      top - 1,
-      left
-    );
-    line(
-      createText("└" + "─".repeat(width - 2) + "┘", colors.silver),
-      top + height,
-      left
+      createText("│", colors.silver),
+      y,
+      left + width - 1,
+      popupHeight - 0.0005
     );
   }
+  line(
+    createText("┌" + "─".repeat(width - 2) + "┐", colors.silver),
+    top - 1,
+    left,
+    popupHeight - 0.0005
+  );
+  line(
+    createText("└" + "─".repeat(width - 2) + "┘", colors.silver),
+    top + height,
+    left,
+    popupHeight - 0.0005
+  );
   if (session.suspended) {
     line(
-      createText("Loading map...", colors.white),
+      createDialog(
+        session.loadingSounds ? "Loading game..." : "Loading map..."
+      ),
       top + Math.floor(height / 2)
     );
   } else if (session.paused) {
     const background = createTerminalFrame(sprites, columns, rows);
+    const fogged = new Set(
+      sprites
+        .filter((sprite) => sprite.fog)
+        .map((sprite) => sprite.y * columns + sprite.x)
+    );
     for (let y = top; y < top + height; y++)
       line(
         background[y]
           .slice(left + 1, left + width - 1)
-          .flatMap((cell) =>
+          .flatMap((cell, x) =>
             createText(
               "░",
-              cell.background && cell.background !== colors.black
+              fogged.has(y * columns + left + 1 + x) &&
+                cell.background === colors.grey &&
+                cell.char !== " " &&
+                orderedColors.includes(cell.foreground) &&
+                ![
+                  colors.black,
+                  colors.grey,
+                  colors.silver,
+                  colors.white,
+                ].includes(cell.foreground)
+                ? cell.foreground
+                : cell.background && cell.background !== colors.black
                 ? cell.background
                 : cell.char === " "
                 ? colors.black
@@ -389,21 +419,14 @@ export const getTerminalFrame = (
         const selected = (session.selection || 0) === index && !action.disabled;
         overlay.push([
           ...createText(selected ? ">" : " "),
-          ...(selected && action.palette === "white"
-            ? createText("[ SAVE ]", colors.black, colors.white)
-            : createSpriteButton(
-                createText(
-                  action.name,
-                  selected && action.palette !== "white"
-                    ? colors.white
-                    : buttonPalettes[action.palette].text
-                ),
-                8,
-                action.disabled || !selected,
-                selected && action.palette !== "white",
-                false,
-                action.palette
-              )),
+          ...createSpriteButton(
+            createText(action.name, buttonPalettes[action.palette].text),
+            8,
+            action.disabled || !selected,
+            false,
+            selected,
+            action.palette
+          ),
         ]);
       });
       if (actions.length > 1)

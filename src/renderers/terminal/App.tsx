@@ -19,17 +19,13 @@ function TerminalClient() {
     }
   }, [ecs, suspended, preview, setInitial, setPaused]);
   if (!ecs) return null;
-  const cellHeight = Math.min(
-    dimensions.cellHeight,
-    dimensions.screenWidth / 33 / (9 / 16),
-    dimensions.screenHeight / 24
-  );
+  const cellHeight = preview ? 32 : dimensions.cellHeight;
   const cellWidth = cellHeight * (9 / 16);
   return (
     <BrowserPreview
       world={ecs}
-      columns={Math.max(33, Math.floor(dimensions.screenWidth / cellWidth))}
-      rows={Math.max(24, Math.floor(dimensions.screenHeight / cellHeight))}
+      columns={Math.max(1, Math.floor(dimensions.screenWidth / cellWidth))}
+      rows={Math.max(1, Math.floor(dimensions.screenHeight / cellHeight))}
       cellWidth={cellWidth}
       cellHeight={cellHeight}
       paused={paused || suspended}
@@ -41,7 +37,11 @@ function TerminalClient() {
 export default function App() {
   const preview = isClientPreview();
   return (
-    <Dimensions className="App TerminalClientApp">
+    <Dimensions
+      className={`App TerminalClientApp${
+        preview ? " TerminalMenuPreview" : ""
+      }`}
+    >
       <World persistent={!preview}>
         <TerminalClient />
         {preview && <ClientPreview />}

@@ -1,3 +1,4 @@
+import { STATS } from "../../engine/components/stats";
 import { AFFECTABLE } from "../../engine/components/affectable";
 import {
   magicHit,
@@ -11,12 +12,15 @@ import {
   bandit,
   alien,
   tombstone1,
+  fountainDrop,
+  fountain,
 } from "../../game/assets/sprites";
 import {
   advance,
   assertHero,
   createAreaWorld,
   createTestWorld,
+  advanceUntil,
 } from "../../testing/harness";
 import { PLAYER } from "../../engine/components/player";
 import { BUMPABLE } from "../../engine/components/bumpable";
@@ -30,7 +34,12 @@ import {
   shakeTerminalFrame,
   TerminalState,
 } from "./frame";
-import { addBackground, createButton, createText } from "../../game/assets/ui";
+import {
+  addBackground,
+  createButton,
+  createText,
+  getFacingLayers,
+} from "../../game/assets/ui";
 import { createTerminalRoot, TerminalScreen } from "./react";
 import React from "react";
 import { getSceneFrame } from "../interface/frame";
@@ -560,7 +569,7 @@ it("preserves a highlight's terrain background and leaves tooltip colors above i
   ).toBe(colors.white);
 });
 
-it("puts downward messages above their owner in terminal frames without changing web positions", () => {
+it("stacks downward messages below their owner without changing web animation", () => {
   const world = createAreaWorld("| ♀ |", { size: 48 });
   const hero = assertHero(world);
   advance(world, 2000);
@@ -582,13 +591,13 @@ it("puts downward messages above their owner in terminal frames without changing
       .map((entry) => [entry.layers[0].char, entry.y] as const);
   message("A");
   advance(world, 100);
-  expect(rows(true)[0][1]).toBe(4);
+  expect(rows(true)[0][1]).toBe(6);
   expect(rows(false)[0][1]).toBeGreaterThan(5);
   message("B");
   advance(world, 100);
   expect(rows(true)).toEqual([
-    ["A", 3],
-    ["B", 4],
+    ["A", 7],
+    ["B", 6],
   ]);
 });
 
@@ -700,7 +709,6 @@ it("renders living heroes white and the same human sprites as silver NPCs", () =
     expect(other).toMatchObject({ char: "♀", foreground: colors.silver });
   }
 });
-
 
 it("keeps discovery above focus outlines and the hero above interaction bars, but below dialogs", () => {
   const world = createAreaWorld("| ♀ |", { size: 48 });
@@ -823,21 +831,30 @@ it("keeps harvestable remains visible as commas without exposing world graves", 
   }
 });
 
-
-it("places discovery over its owner and chooses its real interaction icon only in sight", () => {
+it("places revealed discovery above its owner and hidden markers on its cell", () => {
   const world = createAreaWorld("| P B K A ♀ |", {
     size: 48,
     legend: { P: "pot", B: "bench", K: "kettle", A: "anvil" },
   });
   advance(world, 2000);
   const vaseScene = getSceneFrame(world, 21, 13, undefined, { instant: true });
-  const vase = vaseScene.find((entry) => entry.entity.SPRITE?.name === "Vase" && /body\d+$/.test(entry.key))!;
-  const vaseFrame = createTerminalFrame(collectTerminalSprites(vaseScene), 21, 13);
+  const vase = vaseScene.find(
+    (entry) =>
+      entry.entity.SPRITE?.name === "Vase" && /body\d+$/.test(entry.key)
+  )!;
+  const vaseFrame = createTerminalFrame(
+    collectTerminalSprites(vaseScene),
+    21,
+    13
+  );
   expect(vaseFrame[Math.ceil(vase.y)][Math.ceil(vase.x)].char).toBe("&");
   for (const tab of ["craft", "brew", "forge"] as const) {
     const owner = world
       .getEntities(["POPUP", "POSITION", "FOG", "SEQUENCABLE"])
       .find((entity) => entity.POPUP.tabs.includes(tab))!;
+    const hero = assertHero(world);
+    moveEntity(world, hero, { x: owner.POSITION.x + 2, y: owner.POSITION.y });
+    advance(world, 500);
     owner.FOG.visibility = "visible";
     const visible = getSceneFrame(world, 17, 13, undefined, { instant: true });
     const body = visible.find(
@@ -859,7 +876,8 @@ it("places discovery over its owner and chooses its real interaction icon only i
       (entry) =>
         entry.entity === owner && entry.particleSequence === "discoveryIdle"
     )!;
-    expect(hidden.terminalLayers).toEqual([{ char: "°", color: colors.white }]);
+    expect(hidden.terminalLayers).toEqual([{ char: "°", color: colors.lime }]);
+    expect(hidden.y).toBe(body.y);
   }
 });
 
@@ -890,7 +908,6 @@ it("hides opened gate bodies and keeps fogged stumps as comma silhouettes", () =
     background: colors.grey,
   });
 });
-
 
 it("uses an undiscovered marker for a visible entity hidden by the current building layer", () => {
   const world = createAreaWorld(
@@ -926,13 +943,23 @@ it("uses an undiscovered marker for a visible entity hidden by the current build
       (entry) =>
         entry.entity === anvil && entry.particleSequence === "discoveryIdle"
     )!.terminalLayers
-  ).toEqual([{ char: "°", color: colors.white }]);
+  ).toEqual([{ char: "°", color: colors.lime }]);
+  const body = scene.find(
+    (entry) => entry.entity === anvil && /body\d+$/.test(entry.key)
+  )!;
+  const marker = scene.find(
+    (entry) =>
+      entry.entity === anvil && entry.particleSequence === "discoveryIdle"
+  )!;
+  expect(marker.y).toBe(body.y);
 });
 
-
-it.each(["| D     |\n| B  ♀  |", "| D  |\n| B♀ |"])(
-  "keeps adjacent units above discovery markers and interaction bars: %s",
-  (area) => {
+it.each([
+  ["| D     |\n| B  ♀  |", "Ω"],
+  ["| D  |\n| B♀ |", "│"],
+])(
+  "keeps interaction bars above adjacent units and the hero visible: %s",
+  (area, expected) => {
     const world = createAreaWorld(area, {
       size: 48,
       legend: { D: "dummy", B: "bench" },
@@ -959,7 +986,7 @@ it.each(["| D     |\n| B  ♀  |", "| D  |\n| B♀ |"])(
       )
     ).toBe(true);
     const frame = createTerminalFrame(collectTerminalSprites(scene), 17, 13);
-    expect(frame[Math.ceil(body.y)][Math.ceil(body.x)].char).toBe("Ω");
+    expect(frame[Math.ceil(body.y)][Math.ceil(body.x)].char).toBe(expected);
     moveEntity(world, hero, dummy.POSITION);
     const together = getSceneFrame(world, 17, 13, undefined, { instant: true });
     const player = together.find(
@@ -972,3 +999,144 @@ it.each(["| D     |\n| B  ♀  |", "| D  |\n| B♀ |"])(
     ).toBe("♀");
   }
 );
+
+it("keeps engine fountain drops from overlapping the terminal flow", () => {
+  const world = createAreaWorld("| ♀ |", { size: 48 });
+  const hero = assertHero(world);
+  const source = getSceneFrame(world, 11, 9, undefined, { instant: true }).find(
+    (entry) => entry.entity === hero && /body\d+$/.test(entry.key)
+  )!;
+  const body = {
+    ...source,
+    key: source.key.replace(/body\d+$/, "particle0"),
+    sprite: fountain,
+    layers: fountain.layers,
+    particleSequence: "fountainSplash",
+    particleName: "fountain",
+  };
+  const drops = Array.from({ length: 6 }, (_, generation) =>
+    ["left", "right"].map((orientation) => ({
+      ...body,
+      key: `${source.key}:drop-${generation + 1}-${orientation}`,
+      particleName: `drop-${generation + 1}-${orientation}`,
+      sprite: { ...fountainDrop, name: `${generation + 1}-${orientation}` },
+      layers: fountainDrop.layers,
+    }))
+  ).flat();
+  expect(
+    collectTerminalSprites([body, ...drops]).map((entry) => entry.sprite.name)
+  ).toEqual([fountain.name]);
+});
+
+it("keeps fountain healing unchanged while reducing terminal splash particles", () => {
+  const world = createAreaWorld("| ♀⌠ |", { size: 48 });
+  const hero = world.assertComponents(assertHero(world), [STATS, PLAYER]);
+  hero[STATS].maxHp = 20;
+  hero[STATS].hp = 5;
+  let reduced = false;
+  advanceUntil(
+    world,
+    () => {
+      const scene = getSceneFrame(world, 15, 11, undefined, { instant: true });
+      const drops = scene.filter(
+        (entry) =>
+          entry.particleSequence === "fountainSplash" &&
+          entry.particleName?.startsWith("drop-")
+      );
+      const hp = hero[STATS].hp;
+      const result = collectTerminalSprites(scene);
+      if (
+        result.filter((entry) =>
+          ["fountain_drop", "fountain_heal"].includes(entry.sprite.name)
+        ).length < drops.length
+      )
+        reduced = true;
+      expect(hero[STATS].hp).toBe(hp);
+      expect(drops.every((entry) => entry.entity)).toBe(true);
+      expect(
+        result.filter((entry) =>
+          ["fountain_drop", "fountain_heal"].includes(entry.sprite.name)
+        ).length
+      ).toBeLessThanOrEqual(4);
+      return hero[STATS].hp === hero[STATS].maxHp;
+    },
+    60000
+  );
+  expect(reduced).toBe(true);
+  expect(hero[PLAYER].receivedStats.hp).toBe(15);
+});
+
+it("uses the engine's discovery distance and hysteresis before revealing the interaction icon", () => {
+  const world = createAreaWorld("| B       ♀ |", {
+    size: 48,
+    legend: { B: "bench" },
+  });
+  const hero = assertHero(world);
+  const owner = world
+    .getEntities(["POPUP", "POSITION", "FOG", "SEQUENCABLE"])
+    .find((entity) => entity.POPUP.tabs.includes("craft"))!;
+  const capture = () => {
+    owner.FOG.visibility = "visible";
+    const scene = getSceneFrame(world, 25, 13, undefined, { instant: true });
+    return {
+      body: scene.find(
+        (entry) => entry.entity === owner && /body\d+$/.test(entry.key)
+      )!,
+      marker: scene.find(
+        (entry) =>
+          entry.entity === owner && entry.particleSequence === "discoveryIdle"
+      )!,
+    };
+  };
+  advance(world, 1000);
+  let current = capture();
+  expect(current.marker.terminalLayers).toEqual([
+    { char: "°", color: colors.lime },
+  ]);
+  expect(current.marker.y).toBe(current.body.y - 1);
+  moveEntity(world, hero, { x: owner.POSITION.x, y: owner.POSITION.y + 3 });
+  advance(world, 500);
+  current = capture();
+  const idle = owner.SEQUENCABLE.states.discovery!.args.idle;
+  expect(current.marker.terminalLayers).toEqual(
+    getFacingLayers(idle.terminal || idle)
+  );
+  expect(current.marker.y).toBe(current.body.y - 1);
+  moveEntity(world, hero, { x: owner.POSITION.x, y: owner.POSITION.y + 5 });
+  advance(world, 500);
+  current = capture();
+  expect(current.marker.terminalLayers).toEqual(
+    getFacingLayers(idle.terminal || idle)
+  );
+  moveEntity(world, hero, { x: owner.POSITION.x, y: owner.POSITION.y + 6 });
+  advance(world, 500);
+  current = capture();
+  expect(current.marker.terminalLayers).toEqual([
+    { char: "°", color: colors.lime },
+  ]);
+  expect(current.marker.y).toBe(current.body.y - 1);
+});
+
+it("keeps discovery above a rendered Sign outside vision", () => {
+  const world = createAreaWorld("| S       ♀ |", {
+    size: 48,
+    legend: { S: "spawn_sign" },
+  });
+  advance(world, 1000);
+  const sign = world
+    .getEntities(["POPUP", "POSITION", "FOG", "SEQUENCABLE"])
+    .find((entity) => entity.SPRITE?.name === "Sign")!;
+  sign.FOG.visibility = "fog";
+  const scene = getSceneFrame(world, 25, 13, undefined, { instant: true });
+  const body = scene.find(
+    (entry) => entry.entity === sign && /body\d+$/.test(entry.key)
+  )!;
+  const marker = scene.find(
+    (entry) =>
+      entry.entity === sign && entry.particleSequence === "discoveryIdle"
+  )!;
+  expect(body).toBeDefined();
+  expect(body.hidden).toBe(false);
+  expect(marker.terminalLayers).toEqual([{ char: "°", color: colors.lime }]);
+  expect(marker.y).toBe(body.y - 1);
+});

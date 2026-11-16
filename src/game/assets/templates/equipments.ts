@@ -177,7 +177,7 @@ export const shovel = createTemplate({
 
 const axeTemplate: Sprite = {
   name: "Axe",
-  terminal: { layers: [{ char: "Γ", color: TEMPLATE_COLORS.materialPrimary }] },
+  terminal: { layers: [{ char: "7", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "'", color: TEMPLATE_COLORS.materialPrimary },
     { char: "º", color: TEMPLATE_COLORS.materialPrimary },
@@ -213,7 +213,7 @@ const axeTemplate: Sprite = {
 };
 const ironAxe: Sprite = {
   name: "Axe",
-  terminal: { layers: [{ char: "Γ", color: colors.grey }] },
+  terminal: { layers: [{ char: "7", color: colors.grey }] },
   layers: [
     { char: "'", color: colors.white },
     { char: "º", color: colors.white },
@@ -342,7 +342,7 @@ pickaxe.iron.default = ironPickaxe;
 
 const hookTemplate: Sprite = {
   name: "Hook",
-  terminal: { layers: [{ char: "⌠", color: TEMPLATE_COLORS.materialPrimary }] },
+  terminal: { layers: [{ char: "Γ", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "│", color: TEMPLATE_COLORS.materialSecondary },
     { char: "┐", color: TEMPLATE_COLORS.transparent },
@@ -388,7 +388,7 @@ const hookTemplate: Sprite = {
 };
 const ironHook: Sprite = {
   name: "Hook",
-  terminal: { layers: [{ char: "⌠", color: colors.grey }] },
+  terminal: { layers: [{ char: "Γ", color: colors.grey }] },
   layers: [
     { char: "│", color: colors.grey },
     { char: "┐", color: colors.black },
@@ -588,6 +588,7 @@ export const trapSpell = createTemplate({
 
 const dashSpellTemplate: Sprite = {
   name: "Dash",
+  terminal: { layers: [{ char: "«", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "-", color: TEMPLATE_COLORS.materialPrimary },
     { char: "»", color: TEMPLATE_COLORS.materialPrimary },
@@ -596,6 +597,7 @@ const dashSpellTemplate: Sprite = {
 };
 const dashSpellElementTemplate: Sprite = {
   name: "Dash",
+  terminal: { layers: [{ char: "«", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "-", color: TEMPLATE_COLORS.materialPrimary },
     { char: "»", color: TEMPLATE_COLORS.elementPrimary },
@@ -640,6 +642,7 @@ export const bow = createTemplate({
 
 const slashTemplate: Sprite = {
   name: "Slash",
+  terminal: { layers: [{ char: "@", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "\u03c3", color: TEMPLATE_COLORS.materialPrimary },
     { char: "\u0106", color: TEMPLATE_COLORS.transparent },
@@ -650,6 +653,7 @@ const slashTemplate: Sprite = {
 };
 const slashElementTemplate: Sprite = {
   name: "Slash",
+  terminal: { layers: [{ char: "@", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "\u03c3", color: TEMPLATE_COLORS.materialPrimary },
     { char: "\u0106", color: TEMPLATE_COLORS.transparent },
@@ -665,6 +669,7 @@ export const slash = createTemplate({
 
 const blockTemplate: Sprite = {
   name: "Block",
+  terminal: { layers: [{ char: "O", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "0", color: TEMPLATE_COLORS.materialPrimary },
     { char: "=", color: TEMPLATE_COLORS.transparent },
@@ -763,6 +768,7 @@ torch.gold.default = torchGold;
 
 const mapTemplate: Sprite = {
   name: "Map",
+  terminal: { layers: [{ char: "#", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
     { char: "■", color: TEMPLATE_COLORS.materialSecondary },
     { char: "≡", color: TEMPLATE_COLORS.materialPrimary },
@@ -779,9 +785,9 @@ export const map = createTemplate({
 for (const [template, char] of [
   [wand, ";"],
   [shovel, "\u0118"],
-  [axe, "Γ"],
+  [axe, "7"],
   [pickaxe, "\u0119"],
-  [hook, "⌠"],
+  [hook, "Γ"],
 ] as const)
   for (const material of ["wood", "iron"] as const)
     for (const sprite of Object.values(template[material]))

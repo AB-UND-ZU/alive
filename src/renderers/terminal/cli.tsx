@@ -174,9 +174,19 @@ export const runTerminal = async () => {
     throw new Error(
       "Use an interactive terminal, or --frames 1 to print a frame"
     );
+  process.stdout.write("\x1b[?1049h\x1b[?25l\x1b[2J");
+  const root = createTerminalRoot((output) => process.stdout.write(output));
   const closeAudio = startTerminalAudio();
   if (closeAudio) {
-    process.stdout.write("Loading game...\n");
+    const { columns, rows } = dimensions();
+    root.render(
+      <Terminal
+        world={world}
+        columns={columns}
+        rows={rows}
+        session={{ suspended: true, loadingSounds: true }}
+      />
+    );
     await loadSounds({
       move: Object.values(classDefinitions).map(({ stats }) =>
         getHasteInterval(world, stats.haste)
@@ -184,7 +194,6 @@ export const runTerminal = async () => {
       open: [(frameHeight - 1) * popupDelay],
     });
   }
-  const root = createTerminalRoot((output) => process.stdout.write(output));
   const render = () => {
     const { columns, rows } = dimensions();
     if (columns < 33 || rows < 24) {
@@ -271,7 +280,6 @@ export const runTerminal = async () => {
     }
     input.press(key);
   };
-  process.stdout.write("\x1b[?1049h\x1b[?25l\x1b[2J");
   emitTerminalKeys(process.stdin);
   process.stdin.setRawMode(true);
   process.stdin.resume();

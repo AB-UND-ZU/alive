@@ -133,10 +133,11 @@ it("keeps chest material colors and a visible tumbleweed without an item backgro
     rubyChest,
   ])
     expect(projectSprite(chest).char).toBe("⌂");
-  expect(projectSprite(tumbleweed)).toEqual({
-    char: "○",
+  expect(projectSprite(tumbleweed)).toMatchObject({
+    char: "/",
     foreground: colors.maroon,
   });
+  expect(projectSprite(tumbleweed).background).toBeUndefined();
   expect(projectSprite(spawnerPulse)).toEqual({
     char: " ",
     foreground: colors.black,
@@ -168,7 +169,9 @@ it("renders the same fountain frame through the game scene and terminal interfac
     fogCells: true,
   }).filter((entry) => !entry.particle || entry.particleName === "fountain");
   const geometry = createTerminalFrame(
-    collectTerminalSprites(scene),
+    collectTerminalSprites(scene).filter(
+      (entry) => entry.sprite !== fountainDrop && entry.sprite !== fountainHeal
+    ),
     layout.width,
     layout.height
   );

@@ -61,7 +61,15 @@ const flaskTemplate: Sprite = {
     { char: "∙", color: TEMPLATE_COLORS.elementPrimary },
   ],
 };
-export const flask = createTemplate({ sprite: flaskTemplate });
+export const flask = createTemplate({
+  sprite: {
+    ...flaskTemplate,
+    terminal: {
+      layers: [{ char: "σ", color: colors.grey }],
+    },
+  },
+  materialElementSprite: flaskTemplate,
+});
 
 const bottleTemplate: Sprite = {
   name: "Bottle",
@@ -74,7 +82,15 @@ const bottleTemplate: Sprite = {
     { char: "°", color: TEMPLATE_COLORS.materialSecondary },
   ],
 };
-export const bottle = createTemplate({ sprite: bottleTemplate });
+export const bottle = createTemplate({
+  sprite: {
+    ...bottleTemplate,
+    terminal: {
+      layers: [{ char: "δ", color: colors.grey }],
+    },
+  },
+  materialElementSprite: bottleTemplate,
+});
 
 const potionTemplate: Sprite = {
   name: "Potion",
@@ -92,7 +108,15 @@ const potionTemplate: Sprite = {
     { char: "\u0106", color: TEMPLATE_COLORS.elementPrimary },
   ],
 };
-export const potion = createTemplate({ sprite: potionTemplate });
+export const potion = createTemplate({
+  sprite: {
+    ...potionTemplate,
+    terminal: {
+      layers: [{ char: "\u010a", color: colors.grey }],
+    },
+  },
+  materialElementSprite: potionTemplate,
+});
 
 const elixirTemplate: Sprite = {
   name: "Elixir",

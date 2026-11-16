@@ -1,4 +1,6 @@
 import { World } from "../../engine";
+import { LEVEL } from "../../engine/components/level";
+import { menuName } from "../../game/levels/menu";
 import { ACTIONABLE } from "../../engine/components/actionable";
 import { MOVABLE } from "../../engine/components/movable";
 import { PLAYER, Player } from "../../engine/components/player";
@@ -9,6 +11,8 @@ import { POPUP } from "../../engine/components/popup";
 import { Orientation } from "../../engine/components/orientable";
 import {
   closePopup,
+  clearChat,
+  getTabSelections,
   getTab,
   getVerticalIndex,
   typeChat,
@@ -151,11 +155,20 @@ export const createTerminalInput = (
     const index = /^\d$/.test(name) ? Number(name) : undefined;
     if (index !== undefined) action = "use";
     if (name === "/") action = "chat";
-    if (!action) return;
+    if (!action || (action === "chat" && !TEST_MODE)) return;
+    if (
+      !TEST_MODE &&
+      world.metadata.gameEntity[LEVEL].name === menuName &&
+      ["use", "inspect", "map", "gear", "stats"].includes(action)
+    )
+      return;
     if (action === "close" && popup) {
       stop();
       hero[PLAYER].actionTriggered = undefined;
-      closePopup(world, hero, popup);
+      if (chat && getTabSelections(world, popup).length) {
+        clearChat(world, popup);
+        play("back");
+      } else closePopup(world, hero, popup);
       return;
     }
     if (

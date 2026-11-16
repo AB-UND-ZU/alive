@@ -25,6 +25,18 @@ export const terminalCharacter = (char: string) => {
 };
 
 const cache = new Map<string, TerminalCell>();
+const cacheCell = (key: string, cell: TerminalCell) => {
+  const result =
+    cell.char === "▀"
+      ? {
+          char: "▄",
+          foreground: cell.background || colors.black,
+          background: cell.foreground,
+        }
+      : cell;
+  cache.set(key, result);
+  return result;
+};
 
 export const projectLayers = (layers: Layer[], name = ""): TerminalCell => {
   const key = JSON.stringify([name, layers]);
@@ -40,8 +52,7 @@ export const projectLayers = (layers: Layer[], name = ""): TerminalCell => {
       foreground: layers[layers.length - 1].color,
       background: layers[layers.length - 2].color,
     };
-    cache.set(key, cell);
-    return cell;
+    return cacheCell(key, cell);
   }
   if (name === "map_pixel") {
     const pixels = composeCharacterPixels(layers);
@@ -63,8 +74,7 @@ export const projectLayers = (layers: Layer[], name = ""): TerminalCell => {
       foreground: dominant(0),
       background: dominant(half),
     };
-    cache.set(key, cell);
-    return cell;
+    return cacheCell(key, cell);
   }
   const pixelArt =
     (name === "" || name === "text_generic" || name === "popup_background") &&
@@ -98,8 +108,7 @@ export const projectLayers = (layers: Layer[], name = ""): TerminalCell => {
         : upper === colors.black
         ? { char: "▄", foreground: lower, background: upper }
         : { char: "▀", foreground: upper, background: lower };
-    cache.set(key, cell);
-    return cell;
+    return cacheCell(key, cell);
   }
   const shadeIndex =
     layers[0]?.char === "█" && layers[0].color === colors.black ? 1 : 0;
@@ -130,8 +139,7 @@ export const projectLayers = (layers: Layer[], name = ""): TerminalCell => {
       background: shade.color,
       foreground: dark.includes(shade.color) ? colors.white : colors.black,
     };
-    cache.set(key, selected);
-    return selected;
+    return cacheCell(key, selected);
   }
   const pixels = composeCharacterPixels(layers);
   const counts = new Map<string, number>();
@@ -306,15 +314,6 @@ export const projectLayers = (layers: Layer[], name = ""): TerminalCell => {
   } else if (name === "Berry") {
     const fruit = layers.find((layer) => layer.color === colors.purple);
     result = { char: fruit?.char || "°", foreground: colors.fuchsia };
-  } else if (name === "water_bubble") {
-    result = {
-      char: layers.some((layer) => layer.char === "w")
-        ? "O"
-        : layers.some((layer) => layer.char === "\u0108")
-        ? "o"
-        : "•",
-      foreground: colors.blue,
-    };
   } else if (name === "wall_solid" || name === "wall_granite") {
     result = {
       char: " ",
@@ -451,7 +450,10 @@ export const projectLayers = (layers: Layer[], name = ""): TerminalCell => {
         };
     }
   }
-  if (pixels.every((pixel) => pixel === colors.black))
+  if (
+    pixels.every((pixel) => pixel === colors.black) &&
+    !(name === "text_generic" && controls.includes(letter?.char || ""))
+  )
     result = { char: " ", foreground: colors.black, background: colors.black };
   if (
     /^button_(generic|disabled|left|right)$/.test(name) &&
@@ -464,12 +466,23 @@ export const projectLayers = (layers: Layer[], name = ""): TerminalCell => {
       background: colors.grey,
     };
   }
-  cache.set(key, result);
-  return result;
+  return cacheCell(key, result);
 };
 
-export const projectTerminalLayers = (layers: Layer[]): TerminalCell =>
-  projectLayers(layers, "text_generic");
+export const projectTerminalLayers = (layers: Layer[]): TerminalCell => {
+  const glyph = layers[layers.length - 1];
+  if (
+    glyph &&
+    !"█▀▄".includes(glyph.char) &&
+    layers.slice(0, -1).every((layer) => layer.char === "█")
+  )
+    return {
+      char: terminalCharacter(glyph.char),
+      foreground: glyph.color,
+      ...(layers.length > 1 && { background: layers[layers.length - 2].color }),
+    };
+  return projectLayers(layers, "text_generic");
+};
 
 export const projectSprite = (
   sprite: Sprite,

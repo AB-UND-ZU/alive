@@ -52,7 +52,7 @@ it("renders the native chrome and restores the hero's DOS font character", () =>
     screen.getByRole("group", { name: "Terminal renderer" })
   ).toBeInTheDocument();
   expect(screen.getByText("\u010b")).toBeInTheDocument();
-  const edge = screen.getAllByText(/^─+$/)[0];
+  const edge = screen.getByText(/^┌─+┐$/);
   fireEvent.focus(window);
   expect(edge).toHaveStyle({ color: "#00ff00" });
   fireEvent.blur(window);
@@ -268,4 +268,35 @@ it("only releases the active browser movement key", () => {
   expect(hero[MOVABLE].orientations).toEqual(["down"]);
   fireEvent.keyUp(window, { key: "ArrowDown" });
   expect(hero[MOVABLE].orientations).toEqual([]);
+});
+
+it("renders a compact world viewport without HUD chrome at normal wiki cell size", () => {
+  const { world } = setup();
+  const { container } = render(
+    <BrowserPreview
+      world={world}
+      columns={11}
+      rows={7}
+      cellWidth={18}
+      cellHeight={32}
+      sceneOnly
+      paused
+    />
+  );
+  const preview = screen.getByRole("group", { name: "Terminal renderer" });
+  const lines = preview.textContent!.split("\n");
+  expect(lines).toHaveLength(7);
+  expect(lines.map((line) => Array.from(line).length)).toEqual(
+    Array(7).fill(11)
+  );
+  expect(preview).toHaveStyle({
+    "--cell-width": "18px",
+    "--cell-height": "32px",
+  });
+  expect(preview).not.toHaveTextContent("HP");
+  expect(preview).not.toHaveTextContent("MP");
+  expect(world.metadata.dimensions.renderedColumns).toBe(11);
+  expect(world.metadata.dimensions.renderedRows).toBe(7);
+  // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+  expect(container.querySelector("svg")).toBeNull();
 });

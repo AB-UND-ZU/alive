@@ -23,13 +23,7 @@ export const getWarpMap = (world: World, entity: Entity) => {
   const map: Sprite[][] = [
     ...(
       (entity[POPUP] as Popup).lines[entity[POPUP].horizontalIndex] || []
-    ).map((line) => [
-      ...line.map((sprite) => ({
-        ...sprite,
-        terminal: { layers: sprite.layers },
-      })),
-      ...repeat(none, frameWidth - 4 - line.length),
-    ]),
+    ).map((line) => [...line, ...repeat(none, frameWidth - 4 - line.length)]),
   ];
   const selectedLevel = getSelectedLevel(world, entity);
   const level = selectedLevel && levelConfig[selectedLevel];
@@ -42,19 +36,29 @@ export const getWarpMap = (world: World, entity: Entity) => {
     ? colors.white
     : colors.lime;
 
+  const player = createText("\u010b", warpColor)[0];
   const selection = selectedLevel
     ? getWarpSelection(
         selectedLevel,
         warpColor,
         lockedLevel || currentLevel ? "dashed" : "thick",
         lockedLevel
-          ? blocked
+          ? { ...blocked, terminal: { layers: player.layers } }
           : showPlayer
-          ? mergeSprites(shadow, createText("\u010b", warpColor)[0])
+          ? mergeSprites(shadow, player)
           : none
       )
     : [];
-  const content = level ? overlay(map, selection) : map;
+  const content = level
+    ? overlay(
+        map,
+        selection.map((line) =>
+          line.map((sprite) =>
+            sprite.layers.every((layer) => layer.char === " ") ? none : sprite
+          )
+        )
+      )
+    : map;
 
   return {
     content,

@@ -12,10 +12,22 @@ import {
   forgeHammer,
   forgeHandle,
   popupActive,
+  heartUp,
+  manaUp,
+  letter,
+  letterRead,
+  schema,
+  mapDiscovery,
+  portal,
   time,
   times,
 } from "../../game/assets/sprites";
-import { shaded } from "../../game/assets/ui";
+import {
+  createSpriteButton,
+  createText,
+  shaded,
+  underline,
+} from "../../game/assets/ui";
 import { getItemSprite } from "../../game/assets/utils";
 import { frameToText } from "./frame";
 import { getTerminalFrame, getTerminalLayout } from "./screen";
@@ -28,6 +40,11 @@ import {
 import { getForgeOptions } from "../../game/balancing/forging";
 import { projectSprite, projectLayers } from "./sprites";
 import { createPreviewWorld } from "../../wiki/scenes";
+import { moveEntity } from "../../engine/systems/map";
+import { POPUP } from "../../engine/components/popup";
+import { WARPABLE } from "../../engine/components/warpable";
+import { POSITION } from "../../engine/components/position";
+import { SPRITE } from "../../engine/components/sprite";
 
 it("keeps popup selections inverted but uses a plain caret in Pause", () => {
   expect(projectSprite(popupActive)).toMatchObject({
@@ -176,7 +193,7 @@ it("keeps the moving forge head opaque over the step item throughout its swing",
   }
 });
 
-it("reduces minimap terrain to an upper pixel and a background pixel", () => {
+it("reduces minimap terrain to an upper background and lower pixel", () => {
   const projected = projectLayers(
     [
       { char: "█", color: colors.navy },
@@ -186,8 +203,128 @@ it("reduces minimap terrain to an upper pixel and a background pixel", () => {
     "map_pixel"
   );
   expect(projected).toEqual({
-    char: "▀",
-    foreground: colors.green,
-    background: colors.yellow,
+    char: "▄",
+    foreground: colors.yellow,
+    background: colors.green,
+  });
+});
+
+it("uses a hash for letters, schematics and maps without changing their web layers", () => {
+  const map = getItemSprite({ accessory: "map", material: "gold" });
+  for (const sprite of [letter, letterRead, schema, map, mapDiscovery]) {
+    expect(projectSprite(sprite).char).toBe("#");
+    expect(sprite.layers.some((layer) => layer.char === "#")).toBe(false);
+  }
+  expect(projectSprite(letter).foreground).toBe(colors.grey);
+  expect(projectSprite(letterRead).foreground).toBe(colors.grey);
+  expect(projectSprite(schema).foreground).toBe(colors.white);
+  expect(projectSprite(map).foreground).toBe(colors.yellow);
+  expect(projectSprite(mapDiscovery).foreground).toBe(colors.lime);
+  expect(portal.layers).toEqual([{ char: "∩", color: colors.silver }]);
+  const world = createAreaWorld("| ♀S |", {
+    size: 64,
+    legend: { S: "menu_sign" },
+  });
+  const sign = world
+    .getEntities([POPUP])
+    .find((entity) => entity[POPUP].tabs.every((tab) => tab === "info"))!;
+  const warpReferences = sign[POPUP].lines
+    .flat(2)
+    .filter((sprite) => ["Map", "Portal"].includes(sprite.name));
+  expect(warpReferences).toHaveLength(2);
+  expect(warpReferences.map((sprite) => projectSprite(sprite).char)).toEqual([
+    "#",
+    "∩",
+  ]);
+});
+
+it("keeps the same warp glyph before and after approaching its interaction", () => {
+  const world = createAreaWorld("| ♀    p |", {
+    size: 64,
+    legend: { p: "portal" },
+  });
+  const hero = world.assertComponents(assertHero(world), [POSITION]);
+  const warp = world.getEntities([WARPABLE, POSITION, SPRITE])[0];
+  const layout = getTerminalLayout(80, 30);
+  for (const distance of [4, 1]) {
+    moveEntity(world, hero, {
+      x: warp[POSITION].x - distance,
+      y: warp[POSITION].y,
+    });
+    advance(world, 600);
+    const body = getSceneFrame(world, layout.width, layout.height, undefined, {
+      instant: true,
+    }).find((entry) => entry.entity === warp && entry.sprite === warp[SPRITE])!;
+    expect(body).toBeDefined();
+    for (let tick = 0; tick < 6; tick++) {
+      const frame = getTerminalFrame(world, 80, 30);
+      const cell =
+        frame[layout.top + Math.ceil(body.y)][layout.left + Math.ceil(body.x)];
+      expect(cell.char).toBe("∩");
+      expect([colors.red, colors.lime, colors.yellow]).not.toContain(
+        cell.background
+      );
+      advance(world, 150);
+    }
+  }
+});
+
+it("renders Slash as an at sign using the item's material color", () => {
+  for (const [item, color] of [
+    [{ skill: "slash", material: "wood" }, colors.maroon],
+    [{ skill: "slash", material: "iron" }, colors.grey],
+    [{ skill: "slash", material: "gold" }, colors.yellow],
+    [{ skill: "slash", material: "diamond" }, colors.aqua],
+    [{ skill: "slash", material: "ruby" }, colors.fuchsia],
+  ] as const) {
+    const sprite = getItemSprite(item);
+    expect(projectSprite(sprite)).toMatchObject({
+      char: "@",
+      foreground: color,
+    });
+    expect(sprite.layers.some((layer) => layer.char === "@")).toBe(false);
+  }
+});
+
+it("dims only an underlined black button shortcut while preserving its background", () => {
+  for (const palette of ["white", "yellow", "lime"] as const) {
+    const text = [
+      ...createText("US", colors.black),
+      ...underline(createText("E", colors.black), colors.black),
+    ];
+    const button = createSpriteButton(text, 5, false, false, false, palette);
+    const plain = projectSprite(button[1]);
+    const hotkey = projectSprite(button[3]);
+    expect(plain).toMatchObject({ char: "U", foreground: colors.black });
+    expect(hotkey).toMatchObject({ char: "E", foreground: colors.grey });
+    expect(hotkey.background).toBe(plain.background);
+    expect(button[3].layers.at(-1)).toEqual({ char: "E", color: colors.black });
+  }
+  const literal = createSpriteButton(createText("_", colors.black), 3)[1];
+  expect(projectSprite(literal)).toMatchObject({
+    char: "_",
+    foreground: colors.black,
+  });
+  const reference = createSpriteButton(
+    underline(createText("E", colors.white)),
+    3
+  )[1];
+  expect(projectSprite(reference).foreground).toBe(colors.white);
+});
+
+it("uses a letter O for Block and lime maximum health and mana icons", () => {
+  expect(
+    projectSprite(getItemSprite({ skill: "block", material: "iron" }))
+  ).toMatchObject({
+    char: "O",
+    foreground: colors.grey,
+  });
+  expect(projectSprite(heartUp)).toMatchObject({
+    char: "♥",
+    foreground: colors.lime,
+  });
+  expect(projectSprite(manaUp)).toMatchObject({
+    char: "♦",
+    foreground: colors.lime,
   });
 });

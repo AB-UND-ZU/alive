@@ -518,7 +518,15 @@ export const earthCask: Sprite = {
 
 export const tumbleweed: Sprite = {
   name: "Bush",
-  terminal: { layers: [{ char: "\u0108", color: colors.maroon }] },
+  terminal: {
+    layers: [{ char: "/", color: colors.maroon }],
+    facing: {
+      up: [{ char: "|", color: colors.maroon }],
+      right: [{ char: "/", color: colors.maroon }],
+      down: [{ char: "-", color: colors.maroon }],
+      left: [{ char: "\\", color: colors.maroon }],
+    },
+  },
   layers: [
     { char: "\u0100", color: colors.black },
     { char: "\u0101", color: colors.black },

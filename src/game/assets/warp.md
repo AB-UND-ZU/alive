@@ -7,3 +7,5 @@ The helper is separate from `sequences.ts` because exports from that module form
 The return value also exposes the native `selection` layer. Wiki uses it to show all level regions together; ordinary sequences continue to consume `content`.
 
 `getWarpSelection` renders a level frame and optional marker. `getWarpMap` supplies its gameplay color/state, while the wiki overview supplies green. The returned `background` excludes the selected frame.
+
+Transparent selection cells retain the underlying terrain sprite. Terminal frame edges over sand use its olive background; the unframed texture stays unchanged.

@@ -364,9 +364,9 @@ describe("terminal sprite projection", () => {
         "sprite_pixel_pair"
       )
     ).toEqual({
-      char: "▀",
-      foreground: colors.red,
-      background: colors.blue,
+      char: "▄",
+      foreground: colors.blue,
+      background: colors.red,
     });
     expect(
       projectLayers(
@@ -407,18 +407,25 @@ describe("terminal sprite projection", () => {
       )
     ).toBe(true);
     expect(
-      title.some(
-        (entry) => projectLayers(entry.layers, entry.sprite.name).char === "▀"
-      )
+      title.some((entry) => {
+        const cell = projectLayers(entry.layers, entry.sprite.name);
+        return (
+          cell.char === "▄" &&
+          cell.foreground === colors.black &&
+          cell.background === colors.maroon
+        );
+      })
     ).toBe(true);
   });
 
   it("keeps text-art block directions and XP labels in the native screen", () => {
     expect(
-      createText("█▀▄", colors.white)
-        .map((sprite) => projectSprite(sprite).char)
-        .join("")
-    ).toBe("█▀▄");
+      createText("█▀▄", colors.white).map((sprite) => projectSprite(sprite))
+    ).toEqual([
+      { char: "█", foreground: colors.white, background: colors.white },
+      { char: "▄", foreground: colors.black, background: colors.white },
+      { char: "▄", foreground: colors.white, background: colors.black },
+    ]);
     const bar = createProgress({ xp: 0, maxXp: 10 }, "xp", 13);
     expect(bar.map((sprite) => projectSprite(sprite).char).join("")).toContain(
       "xXP"
@@ -497,8 +504,8 @@ describe("terminal sprite projection", () => {
       });
     }
     expect(projectSprite(sprites.bubble, undefined, 1).char).toBe("•");
-    expect(projectSprite(sprites.bubble, undefined, 2).char).toBe("o");
-    expect(projectSprite(sprites.bubble, undefined, 3).char).toBe("O");
+    expect(projectSprite(sprites.bubble, undefined, 2).char).toBe("○");
+    expect(projectSprite(sprites.bubble, undefined, 3).char).toBe("o");
   });
 
   it("draws useful terminal symbols for doors, tools, switches and experience", () => {
@@ -536,7 +543,7 @@ describe("terminal sprite projection", () => {
       });
   });
 
-  it("uses dark fountain water with visible lines and connected building outlines", () => {
+  it("uses dark fountain water and distinct roof and wall edges", () => {
     expect(projectSprite(sprites.fountain)).toEqual({
       char: "v",
       foreground: colors.silver,
@@ -552,21 +559,27 @@ describe("terminal sprite projection", () => {
       foreground: colors.grey,
       background: colors.navy,
     });
-    const outline = [
-      sprites.roofLeftUp,
-      sprites.roofUp,
-      sprites.roofUpRight,
-      sprites.roofDownLeft,
-      sprites.roofDown,
-      sprites.roofRightDown,
-      sprites.houseLeft,
-      sprites.houseRight,
-    ];
-    expect(outline.map((sprite) => projectSprite(sprite).char).join("")).toBe(
-      "╔═╗╠═╣││"
-    );
-    for (const sprite of outline)
+    for (const [sprite, char] of [
+      [sprites.roofLeftUp, "┌"],
+      [sprites.roofUp, "─"],
+      [sprites.roofUpRight, "┐"],
+      [sprites.roofLeft, "│"],
+      [sprites.roofRight, "│"],
+      [sprites.roofDownLeft, "├"],
+      [sprites.roofDown, "─"],
+      [sprites.roofRightDown, "┤"],
+    ] as const)
+      expect(projectSprite(sprite)).toEqual({
+        char,
+        foreground: colors.red,
+        background: colors.maroon,
+      });
+    for (const [sprite, char] of [
+      [sprites.houseLeft, "▌"],
+      [sprites.houseRight, "▐"],
+    ] as const)
       expect(projectSprite(sprite)).toMatchObject({
+        char,
         foreground: colors.maroon,
         background: colors.silver,
       });
@@ -644,22 +657,22 @@ describe("terminal sprite projection", () => {
 
 it("uses source-defined terminal item displays without changing the browser layers", () => {
   const cases = [
-    [sprites.grain, "·", colors.yellow],
+    [sprites.grain, "∙", colors.yellow],
     [sprites.cactus1, "√", colors.green],
-    [sprites.cactus2, "√", colors.green],
+    [sprites.cactus2, "¥", colors.green],
     [sprites.palm1, "Y", colors.green],
-    [sprites.palm2, "Y", colors.green],
+    [sprites.palm2, "⌠", colors.green],
     [sprites.rock1, "▬", colors.silver],
-    [sprites.rock2, "•", colors.grey],
+    [sprites.rock2, "•", colors.silver],
     [sprites.ghost, "♀", colors.yellow],
-    [sprites.shroom, "·", colors.maroon],
+    [sprites.shroom, "∙", colors.maroon],
     [sprites.flower, "·", colors.teal],
     [sprites.coconut, "○", colors.maroon],
   ] as const;
   for (const [sprite, char, foreground] of cases) {
     expect(projectSprite(sprite)).toMatchObject({ char, foreground });
-    expect(sprite.layers).not.toEqual(sprite.terminal!.layers);
   }
+  expect(sprites.cactus2.layers).toEqual([{ char: "¥", color: colors.green }]);
   for (const stackable of ["berry", "worm"] as const) {
     const cell = projectSprite(getItemSprite({ stackable }));
     expect(cell.char.trim()).not.toBe("");
@@ -678,9 +691,9 @@ it("uses source-defined terminal item displays without changing the browser laye
 
 it("keeps material potion shapes and stat colors in filled and empty forms", () => {
   for (const [material, char, empty, color] of [
-    ["wood", "σ", sprites.emptyFlask, colors.maroon],
+    ["wood", "σ", sprites.emptyFlask, colors.grey],
     ["iron", "δ", sprites.emptyBottle, colors.grey],
-    ["gold", "♂", sprites.emptyPotion, colors.yellow],
+    ["gold", "♂", sprites.emptyPotion, colors.grey],
   ] as const) {
     for (const [stat, foreground] of [
       ["hp", colors.red],
@@ -787,4 +800,17 @@ it("keeps tree reference glyphs and backgrounds through dialog composition", () 
         background: colors.maroon,
       });
   }
+});
+
+it.each([
+  [undefined, "/"],
+  ["up", "|"],
+  ["right", "/"],
+  ["down", "-"],
+  ["left", "\\"],
+] as const)("shows the tumbleweed's inner stroke facing %s", (facing, char) => {
+  expect(projectSprite(sprites.tumbleweed, facing)).toMatchObject({
+    char,
+    foreground: colors.maroon,
+  });
 });

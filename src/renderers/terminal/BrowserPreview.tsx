@@ -12,6 +12,8 @@ import { colors } from "../../game/assets/colors";
 import { createFrameClock } from "../interface/clock";
 import { useWorld } from "../interface/hooks";
 import { RendererProps } from "../interface/types";
+import { getSceneFrame } from "../interface/frame";
+import { collectTerminalSprites, createTerminalFrame } from "./frame";
 import { createTerminalInput } from "./input";
 import { getPauseActions, getTerminalFrame, getTerminalLayout } from "./screen";
 import { PLAYER } from "../../engine/components/player";
@@ -43,7 +45,8 @@ export default function BrowserPreview({
   cellHeight,
   paused,
   interactiveSession = false,
-}: RendererProps & { interactiveSession?: boolean }) {
+  sceneOnly = false,
+}: RendererProps & { interactiveSession?: boolean; sceneOnly?: boolean }) {
   const context = useWorld();
   const { suspended, flipped } = context;
   const contextRef = useRef(context);
@@ -68,7 +71,9 @@ export default function BrowserPreview({
   const state = useMemo(() => ({ world, stickyCastables: {} }), [world]);
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
-  const layout = getTerminalLayout(columns, rows);
+  const layout = sceneOnly
+    ? { width: columns, height: rows, left: 0, top: 0 }
+    : getTerminalLayout(columns, rows);
   const dimensions = {
     ...world.metadata.dimensions,
     columns: layout.width,
@@ -76,7 +81,7 @@ export default function BrowserPreview({
     renderedColumns: layout.width,
     rows,
     renderedRows: layout.height,
-    hudRows: 4,
+    hudRows: sceneOnly ? 0 : 4,
     padding: 0,
     screenWidth: columns * cellWidth,
     screenHeight: rows * cellHeight,
@@ -210,18 +215,32 @@ export default function BrowserPreview({
     };
   }, [world, input, interactiveSession]);
 
-  const frame = getTerminalFrame(world, columns, rows, state, {
-    suspended,
-    flipped,
-    ...(interactiveSession
-      ? {
-          paused: context.paused,
-          selection: pauseSelection,
-          saveName: context.saveStatus?.name,
-          failed: context.saveStatus?.failed,
-        }
-      : {}),
-  });
+  const frame = sceneOnly
+    ? createTerminalFrame(
+        suspended
+          ? []
+          : collectTerminalSprites(
+              getSceneFrame(world, columns, rows, state, {
+                instant: true,
+                fogCells: true,
+              })
+            ),
+        columns,
+        rows
+      )
+    : getTerminalFrame(world, columns, rows, state, {
+        suspended,
+        loadingSounds: context.loadingSounds,
+        flipped,
+        ...(interactiveSession
+          ? {
+              paused: context.paused,
+              selection: pauseSelection,
+              saveName: context.saveStatus?.name,
+              failed: context.saveStatus?.failed,
+            }
+          : {}),
+      });
   return (
     <pre
       className="TerminalBrowserPreview"
@@ -240,17 +259,15 @@ export default function BrowserPreview({
         for (let x = 0; x < row.length; x++) {
           const cell = row[x];
           const edge =
-            y === 3 ||
-            y === rows - 4 ||
-            ((x === layout.left || x === layout.left + layout.width - 1) &&
-              y >= layout.top &&
-              y < layout.top + layout.height) ||
-            (layout.top > 4 &&
-              (y === layout.top - 1 || y === layout.top + layout.height) &&
-              x >= layout.left &&
-              x < layout.left + layout.width);
+            x >= layout.left &&
+            x < layout.left + layout.width &&
+            (y === layout.top - 1 ||
+              y === layout.top + layout.height ||
+              ((x === layout.left || x === layout.left + layout.width - 1) &&
+                y >= layout.top &&
+                y < layout.top + layout.height));
           const color =
-            !interactiveSession && focused && edge
+            !sceneOnly && !interactiveSession && focused && edge
               ? colors.lime
               : cell.foreground;
           const background = cell.background || colors.black;

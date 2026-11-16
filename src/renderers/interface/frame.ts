@@ -40,7 +40,7 @@ import {
   sampleMotion,
 } from "../../engine/motion";
 import { getDistance, normalize, signedDistance } from "../../game/math/std";
-import { getFacingLayers } from "../../game/assets/ui";
+import { discovery, getFacingLayers } from "../../game/assets/ui";
 import { fogOfWar } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import {
@@ -98,6 +98,10 @@ export const getSceneFrame = (
 ): SceneSprite[] => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const hero = world.getEntities([PLAYER, POSITION])[0];
+  const heroCell = hero && {
+    x: normalize(hero[POSITION].x, size),
+    y: normalize(hero[POSITION].y, size),
+  };
   const viewable = world
     .getEntities([VIEWABLE, POSITION])
     .filter((entity) => entity[VIEWABLE].active)
@@ -124,13 +128,11 @@ export const getSceneFrame = (
   const structure = hero?.[LAYER]?.structure;
   const scene: SceneSprite[] = [];
   if (fogCells) {
+    const snap = instant ? Math.floor : Math.round;
     for (let y = 0; y < rows; y++)
       for (let x = 0; x < columns; x++) {
-        const mapX = normalize(
-          Math.round(x + camera.x - (columns - 1) / 2),
-          size
-        );
-        const mapY = normalize(Math.round(y + camera.y - (rows - 1) / 2), size);
+        const mapX = normalize(snap(x + camera.x - (columns - 1) / 2), size);
+        const mapY = normalize(snap(y + camera.y - (rows - 1) / 2), size);
         scene.push({
           key: `fog-cell:${x}:${y}`,
           x,
@@ -139,7 +141,9 @@ export const getSceneFrame = (
           layers: [],
           sprite: { name: "visibility", layers: [] },
           entity: world.metadata.gameEntity,
-          fog: !world.metadata.visibleCells.has(mapX * size + mapY),
+          fog:
+            !(instant && heroCell?.x === mapX && heroCell?.y === mapY) &&
+            !world.metadata.visibleCells.has(mapX * size + mapY),
         });
       }
   }
@@ -171,8 +175,13 @@ export const getSceneFrame = (
     const id = world.getEntityId(entity);
     const visibility = entity[FOG]?.visibility;
     const air = entity[FOG]?.type === "air";
-    const visible = visibility === "visible" || !!entity[PROJECTILE];
-    const fog = visibility === "fog" || (air && visibility === "hidden");
+    const ownCell =
+      instant &&
+      heroCell?.x === normalize(x, size) &&
+      heroCell?.y === normalize(y, size);
+    const visible = ownCell || visibility === "visible" || !!entity[PROJECTILE];
+    const fog =
+      !ownCell && (visibility === "fog" || (air && visibility === "hidden"));
     const outside = !inside && isOutside(world, entity, structure);
     const opaque = (entity[LIGHT]?.darkness || 0) > 0;
     const inRadius =
@@ -393,16 +402,18 @@ export const getSceneFrame = (
         entry.particleSequence === "discoveryIdle" &&
         entry.layers.length
       ) {
-        const idle = getSequence(world, entity, "discovery")!.args.idle;
-        entry.y = py - 1;
-        entry.terminalLayers =
-          visible && !hidden
-            ? getFacingLayers(idle.terminal || idle)
-            : [{ char: "°", color: colors.white }];
+        const revealed = visible && !hidden && particle[SPRITE] !== discovery;
+        entry.y = hidden ? py : py - 1;
+        entry.terminalLayers = revealed
+          ? getFacingLayers(particle[SPRITE].terminal || particle[SPRITE])
+          : [{ char: "°", color: colors.lime }];
       }
       const messageRow = messageParticles.get(world.getEntityId(particle));
-      if (messageRow !== undefined && entry.z === transientHeight)
-        entry.y = py - 1 - messageRow;
+      if (message && messageRow !== undefined && entry.z === transientHeight)
+        entry.y =
+          py +
+          (message.args.messages[0]?.orientation === "down" ? 1 : -1) *
+            (1 + messageRow);
       if (
         instant &&
         getSequence(world, entity, "focus")?.particles[
