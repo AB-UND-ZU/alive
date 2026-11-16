@@ -24,7 +24,7 @@
   width: var(--html-cell-width);
   height: var(--html-cell-height);
   pointer-events: none;
-  transition: opacity 200ms linear;
+  transition: opacity 200ms linear, filter 200ms linear;
 }
 
 .HtmlRendererCharacter,

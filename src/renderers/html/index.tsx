@@ -16,10 +16,10 @@ import { POSITION } from "../../engine/components/position";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { random } from "../../game/math/std";
+import { getSequence } from "../../engine/systems/sequence";
 import { colors } from "../../game/assets/colors";
 import { fogOfWar } from "../../game/assets/sprites";
 
-const fogLayers = [{ char: "▓", color: colors.black }];
 const swimmingLayers = [{ char: "▄", color: colors.navy }];
 
 export { capabilities } from "./capabilities";
@@ -118,14 +118,25 @@ export default function HtmlRenderer({
   if (suspended) return null;
   const scene = getSceneFrame(world, columns, rows, sceneState, {
     includeHidden: true,
-  });
+  }).filter((entry) => entry.sprite !== fogOfWar);
   const now = performance.now();
   const present = new Set<string>();
   const appearing = new Set<string>();
   for (const entry of scene) {
+    const drop = entry.particle && getSequence(world, entry.entity, "collect");
+    let dropping = false;
+    if (
+      entry.particle &&
+      drop?.args.drop &&
+      world.getEntityId(entry.particle) === drop.particles.loot
+    ) {
+      entry.key = entry.key.replace(/particle\d+$/, `loot${drop.args.itemId}`);
+      entry.loot = true;
+      dropping = true;
+    }
     if (!entry.loot) continue;
     present.add(entry.key);
-    if (!loot.sprites.has(entry.key)) appearing.add(entry.key);
+    if (!dropping && !loot.sprites.has(entry.key)) appearing.add(entry.key);
     loot.sprites.set(entry.key, {
       entry: { ...entry, x: entry.x + camera.x, y: entry.y + camera.y },
     });
@@ -167,11 +178,7 @@ export default function HtmlRenderer({
         }}
       >
         {scene.map((entry) => {
-          const layers = entry.swimming
-            ? swimmingLayers
-            : entry.sprite === fogOfWar
-            ? fogLayers
-            : entry.layers;
+          const layers = entry.swimming ? swimmingLayers : entry.layers;
           const backgroundColor =
             layers.length === 1 && layers[0].char === "█"
               ? layers[0].color
@@ -182,6 +189,7 @@ export default function HtmlRenderer({
               className="HtmlRendererSprite"
               style={{
                 opacity: entry.hidden || appearing.has(entry.key) ? 0 : 1,
+                filter: entry.fog ? "brightness(0.25)" : undefined,
                 backgroundColor,
                 boxShadow: backgroundColor
                   ? `0 0 0 ${
