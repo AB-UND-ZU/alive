@@ -88,6 +88,26 @@ let history: Dialog[] | undefined;
 // Build once after game modules initialize; the history uses the normal popup labels.
 export const getUpdates = (): Dialog[] =>
   (history ||= [
+    update("0x07", "20261116", [
+      ...change(
+        ["New renderers:"],
+        [sprites.schema, accent("HTML+CSS+SVG")],
+        [sprites.mapDiscovery, accent("Terminal")]
+      ),
+      ...change(
+        ["Increase ", item({ spell: "trap", material: "wood" })],
+        ["area to ", accent("3x3")]
+      ),
+      ...change(
+        [
+          "Nerf earth ",
+          item({ spell: "trap", material: "wood", element: "earth" }),
+        ],
+        ["and ", item({ spell: "dash", material: "wood" }), " damage"]
+      ),
+      ...change([label(sprites.sign, "Updates"), " history"]),
+      ...change(["Smooth rendering"]),
+    ]),
     update("0x06", "20261111", [
       ...change([unitSprite("wormTower"), unit("wormBoss"), " boss"]),
       ...change([
