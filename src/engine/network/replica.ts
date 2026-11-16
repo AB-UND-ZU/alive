@@ -24,7 +24,7 @@ export type StateFrame = {
   removed?: number[];
   removedComponents?: [number, string[]][];
   serverTime: number;
-  inputSequence?: number;
+  movementSequence?: number;
   cells?: number[];
   visibleCells?: number[];
   snapshot: WorldSnapshot;
@@ -227,7 +227,6 @@ export const createReplica = () => {
         serverTime + 1000,
         world.metadata.renderTime + Math.max(0, delta)
       );
-      prediction.render();
       renderPresentations(world);
     },
     get sequence() {

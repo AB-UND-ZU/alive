@@ -7309,6 +7309,15 @@ export const displayChat = displayPopupView((world, entity, state) => {
           ),
         ]),
         [none, none, ...createText("(Add server)", colors.grey)],
+        ...(world.metadata.serverError
+          ? [
+              [],
+              ...chunked(
+                createText(world.metadata.serverError, colors.red),
+                frameWidth - 2
+              ),
+            ]
+          : []),
       ],
       selection: "selected",
       leftButton: createButton("ERASE", 7, !selected, false, false, "red"),
@@ -7353,10 +7362,10 @@ export const displayChat = displayPopupView((world, entity, state) => {
   );
   const content: Sprite[][] = [
     ...(server && world.metadata.serverError
-      ? [createText(world.metadata.serverError, colors.red)]
+      ? chunked(createText(world.metadata.serverError, colors.red), width)
       : []),
     ...(naming && player?.[PLAYER].nameError
-      ? [createText(player[PLAYER].nameError, colors.red)]
+      ? chunked(createText(player[PLAYER].nameError, colors.red), width)
       : []),
     ...repeat([], verticalIndex),
     ...chunked(lines, width).slice(firstRow),

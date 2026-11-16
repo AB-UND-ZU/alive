@@ -21,10 +21,10 @@ const setup = () => {
   const id = server.getEntityId(assertHero(server));
   const replica = createReplica();
   replica.world.metadata.localPlayerId = id;
-  const send = (sequence: number, inputSequence = -1) =>
+  const send = (sequence: number, movementSequence = -1) =>
     replica.receive({
       sequence,
-      inputSequence,
+      movementSequence,
       serverTime: server.metadata.elapsed,
       snapshot: createSnapshot(server),
       cells: server.metadata.gameEntity.LEVEL.initialized.flatMap((column, x) =>

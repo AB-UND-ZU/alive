@@ -18,7 +18,7 @@ before(async () => {
     export {giveItems} from "./src/testing/harness";
     export {submitChat} from "./src/engine/systems/popup";
     export {createServerList} from "./src/engine/network/servers";
-    export {connectTerminalServer,createServerStorage} from "./src/renderers/terminal/network";`,
+    export {getTerminalFrame} from "./src/renderers/terminal/screen"; export {connectTerminalServer,createServerStorage} from "./src/renderers/terminal/network";`,
       resolveDir: process.cwd(),
       loader: "ts",
     },
@@ -470,6 +470,11 @@ test("erasing native credentials orphans the old character and re-adding creates
     });
   try {
     const first = await join("Native");
+    for (let frame = 0; frame < 40; frame++) {
+      connection.render(33);
+      engine.getTerminalFrame(first, 80, 30);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
     const actorId = first.metadata.localPlayerId;
     connection.close();
     const bookmarks = engine.createServerList(storage);
@@ -488,6 +493,46 @@ test("erasing native credentials orphans the old character and re-adding creates
     for (let attempt = 0; attempt < 100 && !hero.PLAYER.popup; attempt++)
       await new Promise((resolve) => setTimeout(resolve, 20));
     assert.ok(hero.PLAYER.popup);
+  } finally {
+    connection?.close();
+    await server.close();
+  }
+});
+
+test("an invalid username shows a wrapped error and keeps the native prompt usable", async () => {
+  const server = await createGameServer({
+    engine,
+    file: path.join(directory, "invalid-name.save"),
+  });
+  let connection;
+  try {
+    const world = await new Promise((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error("Username prompt timed out")),
+        5000
+      );
+      connection = engine.connectTerminalServer(url(server), {
+        username: "x".repeat(17),
+        storage: { getItem: () => null, setItem: () => {} },
+        onReady(world) {
+          clearTimeout(timeout);
+          resolve(world);
+        },
+      });
+    });
+    const player = world.getEntityById(world.metadata.localPlayerId);
+    assert.equal(player.PLAYER.naming, true);
+    assert.ok(player.PLAYER.nameError);
+    for (let i = 0; i < 40; i++) {
+      connection.render(33);
+      engine.getTerminalFrame(world, 80, 30);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+    const text = engine
+      .getTerminalFrame(world, 80, 30)
+      .map((row) => row.map((cell) => cell.char).join(""))
+      .join("\n");
+    assert.match(text, /Use 1-16/);
   } finally {
     connection?.close();
     await server.close();

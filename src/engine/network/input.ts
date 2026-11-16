@@ -53,6 +53,7 @@ export type InputAction = {
 export type PlayerInput = {
   sequence: number;
   move?: Orientation[];
+  step?: Orientation[];
   action?: InputAction;
 };
 
@@ -69,9 +70,18 @@ const index = (value: unknown) =>
 export const isPlayerInput = (value: unknown): value is PlayerInput => {
   if (
     !record(value) ||
-    !keys(value, ["sequence", "move", "action"]) ||
+    !keys(value, ["sequence", "move", "step", "action"]) ||
     !Number.isSafeInteger(value.sequence) ||
     (value.sequence as number) < 0
+  )
+    return false;
+  if (
+    value.step !== undefined &&
+    (!Array.isArray(value.step) ||
+      value.step.length < 1 ||
+      value.step.length > 2 ||
+      new Set(value.step).size !== value.step.length ||
+      !value.step.every((entry) => orientations.includes(entry)))
   )
     return false;
   if (
@@ -121,13 +131,34 @@ export const isPlayerInput = (value: unknown): value is PlayerInput => {
       ))
   )
     return false;
-  return value.move !== undefined || value.action !== undefined;
+  return (
+    value.move !== undefined ||
+    value.step !== undefined ||
+    value.action !== undefined
+  );
 };
 
 /** One bounded mailbox per authenticated player, driven only by server time. */
 export const createPlayerInput = (world: World, playerId: number) => {
+  let movementSequence = -1;
+  let step:
+    | { sequence: number; move: Orientation[]; generation?: number }
+    | undefined;
+  const finishStep = () => {
+    if (!step || step.generation === undefined) return;
+    const player = world.getEntityById(playerId);
+    const frame = world.getEntityById(player?.MOVABLE?.reference);
+    if (frame?.RENDERABLE?.generation !== step.generation) {
+      movementSequence = step.sequence;
+      step = undefined;
+      move = [];
+      if (player?.MOVABLE) {
+        player.MOVABLE.orientations = [];
+        player.MOVABLE.pendingOrientation = undefined;
+      }
+    }
+  };
   let received = -1;
-  let applied = -1;
   let move: Orientation[] = [];
   let tap: Orientation | undefined;
   let pending: InputAction | undefined;
@@ -140,13 +171,17 @@ export const createPlayerInput = (world: World, playerId: number) => {
     const player = world.getEntityByIdAndComponents(playerId, [PLAYER]);
     if (
       player?.[PLAYER].naming &&
-      (message.move?.length ||
+      (message.step?.length ||
+        message.move?.length ||
         (message.action &&
           !["text", "type", "right", "left", "history"].includes(
             message.action.kind
           )))
     )
       return false;
+    finishStep();
+    if (message.step && !step)
+      step = { sequence: message.sequence, move: [...message.step] };
     received = message.sequence;
     lastMessageTime = world.metadata.elapsed;
     if (message.move) {
@@ -170,6 +205,8 @@ export const createPlayerInput = (world: World, playerId: number) => {
     return true;
   };
   const release = () => {
+    if (step) movementSequence = step.sequence;
+    step = undefined;
     move = [];
     tap = undefined;
     pending = undefined;
@@ -199,6 +236,7 @@ export const createPlayerInput = (world: World, playerId: number) => {
     }
   };
   const onUpdate = () => {
+    finishStep();
     const player = world.getEntityByIdAndComponents(playerId, [
       PLAYER,
       MOVABLE,
@@ -208,7 +246,6 @@ export const createPlayerInput = (world: World, playerId: number) => {
       release();
       return;
     }
-    applied = received;
     const frame = world.getEntityByIdAndComponents(player[MOVABLE].reference, [
       REFERENCE,
       RENDERABLE,
@@ -218,6 +255,12 @@ export const createPlayerInput = (world: World, playerId: number) => {
     if (world.metadata.elapsed - lastMessageTime > 1000) release();
     for (const edit of text.splice(0, 4))
       typeChat(world, player, edit.indices || edit.index);
+    if (step) {
+      if (step.generation === undefined)
+        step.generation = frame[RENDERABLE].generation;
+      move = step.move;
+      tap = move[0];
+    }
     const wasMoving = player[MOVABLE].orientations.length > 0;
     player[MOVABLE].orientations = [...move];
     if (
@@ -233,7 +276,7 @@ export const createPlayerInput = (world: World, playerId: number) => {
       player[MOVABLE].pendingOrientation = undefined;
     if (move.length || tap) {
       if (tap) player[MOVABLE].pendingOrientation = tap;
-      frame[REFERENCE].suspensionCounter = move.length ? -1 : 1;
+      frame[REFERENCE].suspensionCounter = step ? 1 : move.length ? -1 : 1;
       tap = undefined;
       frame[REFERENCE].suspended = false;
     }
@@ -332,8 +375,9 @@ export const createPlayerInput = (world: World, playerId: number) => {
     frame[REFERENCE].suspended = false;
   };
   return {
-    get applied() {
-      return applied;
+    get movementSequence() {
+      finishStep();
+      return movementSequence;
     },
     receive,
     release,

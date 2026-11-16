@@ -2,7 +2,7 @@
 
 `createPlayerInput` owns one bounded intent mailbox for one authenticated entity ID. Its transport-facing `receive` method validates actions and movement, rejects duplicate sequence numbers, and never updates the world clock or performs gameplay. `onUpdate` is driven by the simulation, with at most one action per actor reference generation. The native trigger, movement and magic systems retain their normal eligibility and cooldown checks.
 
-Held movement is latest-value state, with one bounded pending tap so a short press survives until the actor’s native reference tick. Only one action can wait, so a lagged connection cannot accumulate a spell burst. Queued or already-triggered intents wake a suspended actor reference without shortening its tick; accepting another action still requires a new native generation. Dialog-only commands are ignored when no dialog is open, and releasing input clears both the mailbox and transient actor triggers. Inputs expire after one second of server time without a fresh message. Clients must refresh held movement; stopping, disconnecting and pausing must release it. `received` acknowledges receipt, not action execution. Character IDs, positions, stats, inventory and client clock deltas are deliberately absent from the accepted payload.
+Movement steps occupy one bounded slot until the actor reference generation advances. The first direction remains committed through later direction changes or floods; `movementSequence` acknowledges its resolution, including blocked movement. Held `move` state remains available for dialog navigation. Only one action can wait, so a lagged connection cannot accumulate a spell burst. Queued or already-triggered intents wake a suspended actor reference without shortening its tick; accepting another action still requires a new native generation. Dialog-only commands are ignored when no dialog is open, and releasing input clears both the mailbox and transient actor triggers. Inputs expire after one second of server time without a fresh message. Clients refresh held dialog movement; stopping, disconnecting and pausing must release it. `received` acknowledges receipt, not action execution. Character IDs, positions, stats, inventory and client clock deltas are deliberately absent from the accepted payload.
 
 The dedicated host, WebSocket transport, browser replica and Servers menu use these primitives.
 
@@ -10,7 +10,7 @@ The dedicated host, WebSocket transport, browser replica and Servers menu use th
 
 Use a dedicated server running the same simulation. Keep its fast frame loop for sequence side effects and the existing, independently offset actor reference clocks for gameplay. The 350 ms world reference is not the simulation frame rate. The networked version retains authoritative sequences on the server; separating decorative sequence execution is safe only after auditing each sequence for gameplay effects.
 
-Clients render confirmed snapshots and retarget native presentation springs toward confirmed positions. They must not run gameplay prediction or authoritative systems. Finish only confirmed motion during a stall, without inventing subsequent game states. Reconnection should replace the client view with a full snapshot rather than replay disconnected inputs. Save credentials belong outside the world snapshot, with unguessable reconnect tokens stored as hashes on the server.
+Clients render confirmed snapshots and retarget native presentation springs toward confirmed positions. They must not run authoritative systems. A single outstanding movement step may preview one cell; see [prediction](prediction.md). Reconnection should replace the client view with a full snapshot rather than replay disconnected inputs. Save credentials belong outside the world snapshot, with unguessable reconnect tokens stored as hashes on the server.
 
 Full-world snapshots simplify the initial transport. Backpressure must discard intermediate unsent snapshots rather than queueing an unbounded history. A separate message-size and message-rate limit is still necessary even with bounded gameplay input. Dialog state, interaction prompts and camera selection are owned by the acting player.
 
@@ -19,7 +19,7 @@ These choices apply the fixed server timestep described by [Gabriel Gambetta](ht
 
 ## Current implementation references
 
-Colyseus 0.18’s [server-input contract](https://docs.colyseus.io/netcode/server-input) separates fixed simulation stepping, validated bounded input, receipt/consumption acknowledgements and idle input policy. Holding movement through small packet gaps does not justify repeating edge-triggered actions. Alive adopts those boundaries while keeping native per-character cooldowns. Its [prediction documentation](https://docs.colyseus.io/netcode/client-prediction) also separates predicted simulation from presentation smoothing; Alive deliberately uses confirmed presentation only, accepting input latency to avoid reconciliation and rollback.
+Colyseus 0.18’s [server-input contract](https://docs.colyseus.io/netcode/server-input) separates fixed simulation stepping, validated bounded input, receipt/consumption acknowledgements and idle input policy. Holding movement through small packet gaps does not justify repeating edge-triggered actions. Alive adopts those boundaries while keeping native per-character cooldowns. Its [prediction documentation](https://docs.colyseus.io/netcode/client-prediction) also separates predicted simulation from presentation smoothing; Alive predicts one committed grid step and reconciles it by execution sequence, without server rollback.
 
 The public [Mk48.io server input](https://github.com/SoftbearStudios/mk48/blob/main/server/src/world_inbound.rs) validates commands against server-owned player and entity state, while its [outbound world view](https://github.com/SoftbearStudios/mk48/blob/main/server/src/world_outbound.rs) builds each player’s view from authoritative world data. This supports separating world ownership from a player’s camera and interface. Alive keeps that separation, but sends complete level worlds instead of Mk48’s sensor-filtered contacts. Its public repository notes that releases may be newer than the published source. No code from either project is copied into Alive.
 
@@ -31,7 +31,7 @@ Clipboard text uses one bounded text action containing up to 128 native key indi
 
 Scrollbar input replaces an already pending scrollbar target with its newest position. Other actions keep the single-action mailbox, so dragging cannot build a backlog or drop its final position.
 
-The mailbox exposes its last applied input sequence after `onUpdate`. Transport receipts still mean received, while authoritative frames carry the applied sequence for visual movement reconciliation. Neither acknowledgment lets a client choose gameplay results or simulation time.
+The mailbox exposes its movement execution sequence after the actor tick. Transport receipts do not confirm movement execution. Neither acknowledgment lets a client choose gameplay results or simulation time.
 <!-- source-types -->
 
 ## InputAction
@@ -52,6 +52,7 @@ export type InputAction = {
 export type PlayerInput = {
   sequence: number;
   move?: Orientation[];
+  step?: Orientation[];
   action?: InputAction;
 };
 ```

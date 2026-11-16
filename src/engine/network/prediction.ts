@@ -18,18 +18,12 @@ import {
 
 /** One speculative visual step; confirmed components are never modified. */
 export const createPrediction = (world: World) => {
-  let held: Orientation[] = [];
-  let inputSequence = -1;
-  let nextAt = 0;
   let nextActionAt = 0;
   let pending:
     | {
         actor: NonNullable<ReturnType<typeof actor>>;
-        from: Position;
         to: Position;
         sequence: number;
-        issued: number;
-        tick: number;
       }
     | undefined;
   const actor = () => getLocalPlayer(world, ["POSITION", "MOVABLE", "PLAYER"]);
@@ -57,13 +51,12 @@ export const createPrediction = (world: World) => {
     targetMotion(actor, actor.POSITION);
     pending = undefined;
   };
-  const render = () => {
+  const move = (held: Orientation[], sequence: number) => {
     const hero = actor();
     if (
       pending ||
       !hero ||
       !held.length ||
-      world.metadata.renderTime < nextAt ||
       hero.PLAYER.popup ||
       hero.PLAYER.mount ||
       hero.PLAYER.ghost ||
@@ -81,23 +74,14 @@ export const createPrediction = (world: World) => {
     if (!isWalkable(world, to, hero)) return;
     pending = {
       actor: hero,
-      from: { ...hero.POSITION },
       to,
-      sequence: inputSequence,
-      issued: world.metadata.renderTime,
-      tick: reference.tick,
+      sequence: sequence,
     };
-    nextAt = world.metadata.renderTime + reference.tick;
     setPredictedPosition(hero, to);
     targetMotion(hero, to);
   };
   return {
-    move(move: Orientation[], sequence: number) {
-      held = [...move];
-      inputSequence = sequence;
-      render();
-    },
-    render,
+    move,
     action(kind: string) {
       const hero = actor();
       if (
@@ -117,37 +101,22 @@ export const createPrediction = (world: World) => {
     receive(frame: StateFrame, reset: boolean) {
       if (reset) {
         cancel();
-        held = [];
-        nextAt = 0;
         return;
       }
       if (!pending) return;
-      const { actor, from, to, issued, tick, sequence } = pending;
-      const confirmed = actor.POSITION;
-      if (confirmed.x === to.x && confirmed.y === to.y) {
+      const { actor, to, sequence } = pending;
+      if ((frame.movementSequence ?? -1) < sequence) return;
+      if (actor.POSITION.x === to.x && actor.POSITION.y === to.y) {
         setPredictedPosition(actor);
         pending = undefined;
-      } else if (
-        confirmed.x !== from.x ||
-        confirmed.y !== from.y ||
-        actor.PLAYER.popup ||
-        actor.PLAYER.mount ||
-        !isActionable(world, actor) ||
-        (frame.inputSequence !== undefined &&
-          frame.inputSequence >= sequence &&
-          frame.serverTime >= issued + tick + 34)
-      ) {
-        cancel();
-        nextAt = world.metadata.renderTime + tick;
-      }
+      } else cancel();
     },
     owns(id: number) {
       return !!pending && world.getEntityId(pending.actor) === id;
     },
     clear() {
-      held = [];
       cancel();
-      nextAt = nextActionAt = 0;
+      nextActionAt = 0;
     },
   };
 };

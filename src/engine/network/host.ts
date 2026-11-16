@@ -511,8 +511,8 @@ export const createHost = (saved?: HostedWorld) => {
       return {
         sequence,
         serverTime: elapsed,
-        inputSequence: accountId
-          ? inputs.get(accountId)?.input.applied
+        movementSequence: accountId
+          ? inputs.get(accountId)?.input.movementSequence
           : undefined,
         realm: world.metadata.gameEntity[LEVEL].name,
         snapshot,

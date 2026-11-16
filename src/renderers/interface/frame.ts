@@ -398,7 +398,9 @@ export const getSceneFrame = (
         entry.particleSequence === "discoveryIdle" &&
         entry.layers.length
       ) {
-        const idle = getSequence(world, entity, "discovery")!.args.idle;
+        const idle =
+          getSequence(world, entity, "discovery")?.args.idle ||
+          particle[SPRITE];
         entry.y = py - 1;
         entry.terminalLayers =
           visible && !hidden

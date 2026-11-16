@@ -90,10 +90,10 @@ it("stores reconnect ownership and sends only intents while leaving the confirme
   connection.move(["right"]);
   connection.action({ kind: "spell" });
   expect(socket.messages.slice(-2)).toEqual([
-    { type: "input", input: { sequence: 0, move: ["right"] } },
+    { type: "input", input: { sequence: 0, step: ["right"] } },
     {
       type: "input",
-      input: { sequence: 1, move: ["right"], action: { kind: "spell" } },
+      input: { sequence: 1, action: { kind: "spell" } },
     },
   ]);
   expect(createSnapshot(connection.world)).toEqual(before);
@@ -123,9 +123,7 @@ it("drops held input and never replays actions across reconnection", () => {
   expect(onReady).toHaveBeenCalledTimes(1);
   jest.advanceTimersByTime(250);
   const inputs = next.messages.filter((message) => message.type === "input");
-  expect(inputs).toHaveLength(1);
-  expect(inputs[0].input.move).toEqual([]);
-  expect(inputs[0].input.action).toBeUndefined();
+  expect(inputs).toHaveLength(0);
   connection.close();
 });
 
@@ -210,5 +208,36 @@ it("keeps a short lag spike connected and repeats the last applied state acknowl
   expect(socket.messages).toContainEqual({ type: "heartbeat", sequence: 7 });
   state(socket, 8);
   expect(sockets).toHaveLength(1);
+  connection.close();
+});
+
+it("retires a stalled handshake and connects when the host becomes available without restarting", () => {
+  const { connection, sockets, onStatus, onReady, state } = setup();
+  const stale = sockets[0];
+  // Some browsers do not report a close promptly for an unreachable host.
+  stale.close = () => {};
+  jest.advanceTimersByTime(5500);
+  expect(onStatus).toHaveBeenCalledWith("reconnecting");
+  expect(sockets.length).toBeGreaterThan(1);
+  stale.open();
+  expect(stale.messages).toHaveLength(0);
+  const next = sockets[sockets.length - 1];
+  next.open();
+  next.receive({ type: "welcome", id: "new", token: "secret" });
+  state(next);
+  expect(onReady).toHaveBeenCalledTimes(1);
+  expect(onStatus).toHaveBeenLastCalledWith("connected");
+  connection.close();
+  const count = sockets.length;
+  jest.advanceTimersByTime(20000);
+  expect(sockets).toHaveLength(count);
+});
+
+it("does not depend on the close event after an offline connection error", () => {
+  const { connection, sockets } = setup();
+  sockets[0].close = () => {};
+  sockets[0].onerror?.();
+  jest.advanceTimersByTime(250);
+  expect(sockets).toHaveLength(2);
   connection.close();
 });

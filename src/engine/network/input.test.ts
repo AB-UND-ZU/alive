@@ -281,3 +281,22 @@ it("uses the latest scrollbar target received before the server tick", () => {
   advance(world, 500);
   expect(getVerticalIndex(world, popup)).toBe(31);
 });
+
+it("commits one movement step through direction floods and acknowledges execution rather than receipt", () => {
+  const { world, hero, input } = setup();
+  const start = { ...hero.POSITION };
+  input.receive({ sequence: 0, step: ["right"] });
+  for (let sequence = 1; sequence < 100; sequence++)
+    input.receive({ sequence, step: [sequence % 2 ? "left" : "down"] });
+  expect(input.movementSequence).toBe(-1);
+  advance(world, 350);
+  expect(hero.POSITION).toEqual({ x: start.x + 1, y: start.y });
+  expect(input.movementSequence).toBe(0);
+  advance(world, 1000);
+  expect(hero.POSITION).toEqual({ x: start.x + 1, y: start.y });
+  expect(input.receive({ sequence: 99, step: ["down"] })).toBe(false);
+  input.receive({ sequence: 100, step: ["down"] });
+  advance(world, 350);
+  expect(hero.POSITION).toEqual({ x: start.x + 1, y: start.y + 1 });
+  expect(input.movementSequence).toBe(100);
+});

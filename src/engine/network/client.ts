@@ -53,26 +53,50 @@ export const connectServer = (
     if (socket?.readyState === 1 && socket.bufferedAmount < 4096)
       socket.send(JSON.stringify(message));
   };
+  let pendingMovement: number | undefined;
   const input = (action?: InputAction) => {
     if (!welcomed || paused || stopped || status !== "connected") return;
     if (socket?.readyState !== 1 || socket.bufferedAmount >= 4096) return;
+    const hero = replica.world.getEntityById(
+      replica.world.metadata.localPlayerId
+    );
+    const directions = hero?.PLAYER?.popup ? move : undefined;
+    const step =
+      !hero?.PLAYER?.popup && move.length && pendingMovement === undefined
+        ? [...move]
+        : undefined;
+    if (!action && !directions && !step) return;
     const sent = sequence++;
-    send({ type: "input", input: { sequence: sent, move, action } });
-    replica.prediction.move(move, sent);
+    send({
+      type: "input",
+      input: {
+        sequence: sent,
+        ...(directions ? { move: directions } : {}),
+        ...(step ? { step } : {}),
+        ...(action ? { action } : {}),
+      },
+    });
+    if (step) {
+      pendingMovement = sent;
+      replica.prediction.move(step, sent);
+    }
     if (action) replica.prediction.action(action.kind);
   };
   const open = () => {
     if (stopped) return;
     welcomed = false;
+    lastState = Date.now();
     notify(ready ? "reconnecting" : "connecting");
     const current = (options.socket || ((url) => new WebSocket(url)))(url);
     socket = current;
-    current.onopen = () =>
+    current.onopen = () => {
+      if (socket !== current || stopped) return;
       send({
         type: "join",
         ...claim,
         ...(options.username ? { username: options.username } : {}),
       });
+    };
     current.onmessage = (event) => {
       if (socket !== current || stopped) return;
       try {
@@ -99,13 +123,27 @@ export const connectServer = (
           // Restored server mailboxes use a fresh connection sequence.
           send({ type: "pause", paused });
         } else if (message.type === "state" && welcomed) {
+          const previousActor = replica.world.metadata.localPlayerId;
+          const previousRealm = replica.world.metadata.gameEntity.LEVEL?.name;
           replica.world.metadata.localPlayerId = message.actorId;
           const frame = decodeState(message.state) as Parameters<
             typeof replica.receive
           >[0];
           if (replica.receive(frame)) {
+            if (
+              previousActor !== message.actorId ||
+              (frame.realm && frame.realm !== previousRealm)
+            ) {
+              pendingMovement = undefined;
+              move = [];
+            }
             sounds.receive(replica.world, frame, paused);
             lastState = Date.now();
+            if (
+              pendingMovement !== undefined &&
+              (frame.movementSequence ?? -1) >= pendingMovement
+            )
+              pendingMovement = undefined;
             notify("connected");
             if (!ready) {
               ready = true;
@@ -119,10 +157,16 @@ export const connectServer = (
         current.close(1002, "Invalid server response");
       }
     };
-    current.onerror = () => current.close();
+    current.onerror = () => {
+      if (socket !== current || stopped) return;
+      current.onclose?.({ code: 1006 } as CloseEvent);
+      current.close();
+    };
     current.onclose = (event) => {
       if (socket !== current || stopped) return;
+      socket = undefined;
       welcomed = false;
+      pendingMovement = undefined;
       replica.prediction.clear();
       move = [];
       if (event.code === 1008) {
@@ -134,12 +178,19 @@ export const connectServer = (
     };
   };
   const timer = setInterval(() => {
+    if (socket && !welcomed && Date.now() - lastState > 5000) {
+      const stale = socket;
+      stale.onclose?.({ code: 1006 } as CloseEvent);
+      stale.close();
+    }
     if (welcomed) {
       send({ type: "heartbeat", sequence: replica.sequence });
       if (!paused) input();
       if (!paused && Date.now() - lastState > 15000) {
         move = [];
-        socket?.close();
+        const stale = socket;
+        stale?.onclose?.({ code: 1006 } as CloseEvent);
+        stale?.close();
       }
     }
   }, 250);
@@ -159,11 +210,19 @@ export const connectServer = (
         if (!next) lastState = Date.now();
       }
       replica.prediction.clear();
+      pendingMovement = undefined;
       paused = next;
       move = [];
       send({ type: "pause", paused });
     },
-    render: replica.render,
+    render(delta: number) {
+      replica.render(delta);
+      if (
+        !replica.world.getEntityById(replica.world.metadata.localPlayerId)
+          ?.PLAYER?.popup
+      )
+        input();
+    },
     close() {
       stopped = true;
       replica.prediction.clear();
