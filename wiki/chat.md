@@ -18,7 +18,7 @@ popup chat
 
 [[key:Backspace]] Erase the last character.
 
-[[key:Escape]] Clear the chat input.
+[[key:Escape]] Clear the input, or close chat when empty.
 
 
 ## Command Reference

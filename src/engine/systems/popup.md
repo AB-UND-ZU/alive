@@ -9,6 +9,8 @@ Processes the active dialog using the hero's action reference, selection stack a
 | Tab direction            | Change tabs while preserving per-tab selections             |
 | Transaction confirmation | Check stock, funds or other requirements before applying it |
 
+The internal instant-dialog entity (`use`) is excluded from nearby world interactions. Its saved position must not hide a sign or reopen its shortcut tabs as a normal popup.
+
 Create dialogs with `createPopup`: it initializes selection arrays and a priority-90 camera viewpoint. The viewpoint is registered immediately so closing before the next world update is safe. Replacing an existing popup removes its old viewpoint and discovery sequence. `closePopup` and `removePopup` handle the matching cleanup. [Popup data](../components/popup.md) describes the state shape.
 
 [Trigger](trigger.md) queues input before this system. The generation and `lastInteraction` checks prevent the same action from also moving the hero. [Interact](interact.md) maintains the active contextual target later in the update.
@@ -36,3 +38,5 @@ The [Restorable component](../components/restorable.md) stores the confirmed sav
 Scrollbar input queues a `scroll` action with its percentage in `contentTriggered`. The next player tick maps it to the renderer's `scrollMax`, so selected lists and plain text use the same bounds as the drawn handle. New drag positions replace the queued percentage before processing.
 
 A `dialog` tab lists `POPUP.dialogs`. Each entry supplies a title, optional right-aligned description and text content as stacked sprites. Only the active row shows its description; the list has no separate description panel. VIEW pushes the selected row onto the existing selection stack and starts reading at row zero. The shared scrollbar handles the text; BACK restores the selected list row. Closing and reopening returns to the list. Empty lists cannot be opened. Call `rerenderEntity` after replacing or editing dialog data; the cached view does not serialize its static text on every frame.
+
+Escape clears a nonempty chat prompt first and closes an empty chat. `clearChat(world, popup)` also resets command suggestions and the history selection.

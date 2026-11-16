@@ -5,6 +5,7 @@ import { RENDERABLE } from "../components/renderable";
 import { MOVABLE } from "../components/movable";
 import { Orientation } from "../components/orientable";
 import { PLAYER } from "../components/player";
+import { IDENTIFIABLE } from "../components/identifiable";
 import addPopup, { Deal, Popup, POPUP, Target } from "../components/popup";
 import { Entity } from "ecs";
 import { TOOLTIP } from "../components/tooltip";
@@ -138,6 +139,7 @@ export const isInTab = (
 
 export const isPopupAvailable = (world: World, entity: Entity) =>
   POPUP in entity &&
+  entity[IDENTIFIABLE]?.name !== "use" &&
   !isDead(world, entity) &&
   (!isEnemy(world, entity) || isNeutral(world, entity));
 
@@ -190,6 +192,12 @@ export const popTabSelection = (world: World, popupEntity: Entity) => {
     popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex].pop();
   rerenderEntity(world, popupEntity);
   return value;
+};
+
+export const clearChat = (world: World, popupEntity: Entity) => {
+  popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] = [];
+  popupEntity[POPUP].chatSuggestion = 0;
+  setVerticalIndex(world, popupEntity, 0);
 };
 
 export const typeChat = (
@@ -1247,7 +1255,10 @@ export default function setupPopup(world: World) {
     if (heroEntity[PLAYER].actionTriggered === "close") {
       // close popup
       heroEntity[PLAYER].actionTriggered = undefined;
-      if (popupSequence) {
+      if (getTab(world, popupEntity) === "chat" && selections.length) {
+        clearChat(world, popupEntity);
+        play("back");
+      } else if (popupSequence) {
         closePopup(world, heroEntity, popupEntity);
         play("close");
       }
@@ -1788,8 +1799,7 @@ export default function setupPopup(world: World) {
       const forgeCompleted = tab === "forge" && selections.length === 4;
 
       if (tab === "chat") {
-        // clear chat
-        popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] = [];
+        clearChat(world, popupEntity);
         play("back");
       } else if (tab === "load" && selections.length === 0) {
         // ask before erasing a saved game

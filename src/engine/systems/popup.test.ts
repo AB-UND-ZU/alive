@@ -32,7 +32,9 @@ import { RENDERABLE } from "../components/renderable";
 import { rerenderEntity } from "./renderer";
 import { getEntityHaste, getHasteInterval } from "./movement";
 import { World } from "../ecs";
-import { getCellEntities } from "./map";
+import { getCellEntities, moveEntity } from "./map";
+import { createSign } from "../../bindings/creation";
+import { assertIdentifierAndComponents } from "../utils";
 import { TypedEntity } from "../entities";
 import { getSequence } from "./sequence";
 import { createText } from "../../game/assets/ui";
@@ -70,6 +72,36 @@ const setup = () => {
 };
 
 describe("popup interaction", () => {
+  it.each(["chat", "inspect", "stats", "gear"] as const)(
+    "opens a sign at the previous %s dialog location",
+    (tab) => {
+      const { world, hero } = setup();
+      trigger(world, tab);
+      advanceUntil(world, () => !!hero[PLAYER].popup);
+      const menu = world.assertByIdAndComponents(hero[PLAYER].popup!, [
+        POPUP,
+        POSITION,
+      ]);
+      expect(getTab(world, menu)).toBe(tab);
+      closePopup(world, hero, menu);
+      const position = { ...menu[POSITION] };
+      const sign = createSign(world, position, [[createText("Spawn point")]]);
+      moveEntity(world, hero, { x: position.x - 1, y: position.y });
+      step(world, 15);
+      trigger(world, "interact");
+      advanceUntil(world, () => !!hero[PLAYER].popup);
+      step(world, 40);
+      expect(hero[PLAYER].popup).toBe(world.getEntityId(sign));
+      expect(getTab(world, sign)).toBe("info");
+      closePopup(world, hero, sign);
+      trigger(world, "inspect");
+      advanceUntil(world, () => !!hero[PLAYER].popup);
+      expect(
+        getTab(world, assertIdentifierAndComponents(world, "use", [POPUP]))
+      ).toBe("inspect");
+    }
+  );
+
   it("offers the adjacent sign as interaction", () => {
     const { world, hero } = setup();
 

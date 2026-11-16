@@ -165,16 +165,18 @@ describe("chat", () => {
     expect(getDialog(hero)).toEqual([]);
   });
 
-  it("discards typed text when closing the chat", () => {
+  it("clears typed text before closing chat with Escape", () => {
     const { world, hero } = setup();
     openChat(world);
     type(world, "draft");
 
     act(world, "close");
-    openChat(world);
-
+    expect(isInPopup(world, hero)).toBeTruthy();
     expect(getPrompt(world)).toBe("");
     expect(hero[PLAYER].chatHistory).toEqual([]);
+    act(world, "close");
+    expect(isInPopup(world, hero)).toBeFalsy();
+    expect(getDialog(hero)).toEqual([]);
   });
 
   it("closes the chat when pressing the chat key again", () => {
