@@ -17,10 +17,10 @@ const rows = source("src/game/levels/menu/areas.ts")
 if (rows.length !== 3 || rows.some((row) => row.length !== 17)) {
   throw new Error("Expected three 17-column title rows in menu/areas.ts");
 }
-const sizing = source("src/components/Dimensions/sizing.tsx");
+const sizing = source("src/renderers/interface/dimensions.ts");
 const aspectMatch = sizing.match(/export const aspectRatio = (\d+) \/ (\d+)/);
 const aspect = Number(aspectMatch[1]) / Number(aspectMatch[2]);
-const textMatch = source("src/components/Entity/utils.ts").match(
+const textMatch = source("src/renderers/interface/segments.ts").match(
   /export const textSize = (\d+) \/ (\d+) \+ ([\d.]+)/
 );
 const textSize =
@@ -55,7 +55,7 @@ try {
     function glyph(char, column, row, fill) {
       const outline = font.glyphs[char].o.trim().split(/\s+/);
       const x = left + column * cellWidth;
-      // Same glyph origin as Entity/Layer.tsx: [-aspectRatio / 2, -0.25].
+      // Same glyph origin as renderers/three-js/Entity/Layer.tsx: [-aspectRatio / 2, -0.25].
       const baseline = top + (row + 0.75) * cellHeight;
       let d = "";
       for (let i = 0; i < outline.length; i += 3) {
