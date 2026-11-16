@@ -4,7 +4,6 @@ import { SpriteCode } from "./SpriteCode";
 import { useEffect, useRef, useState } from "react";
 import { displayedClasses } from "../game/assets/pixels";
 import { PresetName, presets } from "./presets";
-import { createDialog } from "../game/assets/ui";
 import { Pixels, Text } from "./visuals";
 import "./preview-layout.css";
 import { GridCenteredNote } from "./GridCenteredNote";
@@ -16,7 +15,7 @@ export function GamePreview({
   name,
   base,
   preset,
-  testMode = true,
+  testMode = name !== "clients",
   variant,
   renderer = "three-js",
 }: {
@@ -48,11 +47,9 @@ export function GamePreview({
   }>({});
   const responsive = name === "chat" || name === "sprites";
   const wide = name === "game" || name === "interface" || name === "clients";
-  const height =
-    name === "clients" && renderer === "terminal"
-      ? 480
-      : sceneLayout(name).height;
-  const [width, setWidth] = useState(wide ? 576 : 414);
+  const compact = name === "comparison";
+  const height = sceneLayout(name).height;
+  const [width, setWidth] = useState(compact ? 198 : wide ? 576 : 414);
   const clientBase = new URL(
     renderer === "three-js" ? "../" : `../${renderer}/`,
     new URL(base, window.location.href)
@@ -146,8 +143,10 @@ export function GamePreview({
     const resize = new ResizeObserver(([entry]) =>
       setWidth(
         Math.max(
-          wide ? 378 : 414,
-          wide
+          compact ? 198 : wide ? 378 : 414,
+          compact
+            ? 198
+            : wide
             ? Math.min(576, Math.floor(entry.contentRect.width / 18) * 18)
             : 414
         )
@@ -163,7 +162,7 @@ export function GamePreview({
       window.removeEventListener("message", message);
       document.removeEventListener("visibilitychange", visibility);
     };
-  }, [name, wide, preset, variant, renderer, testMode]);
+  }, [name, wide, compact, preset, variant, renderer, testMode]);
   useEffect(() => {
     if (name === "light" && isReady)
       frame.current?.contentWindow?.postMessage(
@@ -175,7 +174,10 @@ export function GamePreview({
     <section
       ref={container}
       id={name === "game" && preset ? "scenario-" + preset : undefined}
-      className={`Preview ${active ? "active" : ""}`}
+      className={`Preview ${compact ? "PreviewCompact" : ""} ${
+        active ? "active" : ""
+      }`}
+      style={compact ? { width } : undefined}
       data-scene={name}
       data-renderer={renderer}
       aria-label={sceneDefinitions[name].title}
@@ -199,20 +201,18 @@ export function GamePreview({
       )}
       <div className="PreviewLayout">
         <div className="PreviewScroll">
-          {!isReady && (
-            <div className="PreviewLoading" role="status">
-              <Pixels rows={[createDialog("Loading map...")]} />
-            </div>
-          )}
           {loaded ? (
             <iframe
-              key={`${name}-${renderer}-${testMode}-${variant || preset || ""}-${revision}`}
+              key={`${name}-${renderer}-${testMode}-${
+                variant || preset || ""
+              }-${revision}`}
               ref={frame}
               title={sceneDefinitions[name].title}
-              tabIndex={name === "interface" ? -1 : 0}
+              tabIndex={name === "interface" || compact ? -1 : 0}
               src={source}
               style={{
                 width,
+                pointerEvents: compact ? "none" : undefined,
                 height: name === "chat" ? "auto" : height,
                 maxWidth: responsive ? "100%" : undefined,
                 aspectRatio: name === "chat" ? `414 / ${height}` : undefined,
@@ -236,17 +236,19 @@ export function GamePreview({
             />
           )}
         </div>
-        <GridCenteredNote>
-          <Text>
-            {name === "clients"
-              ? "Play using the normal game controls."
-              : name === "game" && preset
-              ? `Play ${presets[preset].title} using the normal game controls.`
-              : name === "abilities" && option === "trap"
-              ? "Press Space to place a trap, then step away to arm it."
-              : sceneDefinitions[name].instruction}
-          </Text>
-        </GridCenteredNote>
+        {!compact && (
+          <GridCenteredNote>
+            <Text>
+              {name === "clients"
+                ? "Play using the normal game controls."
+                : name === "game" && preset
+                ? `Play ${presets[preset].title} using the normal game controls.`
+                : name === "abilities" && option === "trap"
+                ? "Press Space to place a trap, then step away to arm it."
+                : sceneDefinitions[name].instruction}
+            </Text>
+          </GridCenteredNote>
+        )}
       </div>
       {name === "light" && (
         <button

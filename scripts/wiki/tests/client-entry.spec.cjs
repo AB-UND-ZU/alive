@@ -15,6 +15,7 @@ const session = (page) =>
       level: world?.metadata.gameEntity.LEVEL.name,
       position: hero?.POSITION,
       paused: context?.paused,
+      promptLength: popup?.POPUP.selections[popup.POPUP.horizontalIndex]?.length,
       dialog: popup?.POPUP.active
         ? popup.POPUP.tabs[popup.POPUP.horizontalIndex]
         : null,
@@ -55,6 +56,11 @@ for (const renderer of ["three-js", "html", "terminal"]) {
       .not.toEqual(before);
     await page.keyboard.press("c");
     await expect.poll(async () => (await session(page)).dialog).toBe("chat");
+    await page.keyboard.type("draft");
+    await expect.poll(async () => (await session(page)).promptLength).toBe(5);
+    await page.keyboard.press("Escape");
+    await expect.poll(async () => (await session(page)).promptLength).toBe(0);
+    expect((await session(page)).dialog).toBe("chat");
     await page.keyboard.press("Escape");
     await expect.poll(async () => (await session(page)).dialog).toBeNull();
     await page.keyboard.press("Escape");

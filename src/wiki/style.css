@@ -570,16 +570,6 @@ h1.Heading {
   }
 }
 
-.PreviewLoading {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--black);
-  z-index: 5;
-  pointer-events: none;
-}
 .ModeLever {
   display: flex;
   align-items: flex-start;

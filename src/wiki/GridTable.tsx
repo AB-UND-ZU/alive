@@ -118,6 +118,13 @@ export function GridTable({
             : []
         ),
         ...cells[column].flatMap((cell) =>
+          Array.from(cell.querySelectorAll("iframe, .PreviewPlaceholder")).map(
+            (frame) =>
+              Math.ceil(frame.getBoundingClientRect().width / 18) +
+              (compact ? 0 : 2)
+          )
+        ),
+        ...cells[column].flatMap((cell) =>
           Array.from(cell.querySelectorAll(".Pixels > .Row")).map(
             (row) =>
               Math.ceil(row.getBoundingClientRect().width / 18) +

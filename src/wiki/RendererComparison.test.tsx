@@ -2,8 +2,18 @@ import { render, screen, within } from "@testing-library/react";
 import { ReactNode } from "react";
 import "../engine";
 import { RendererComparison } from "./RendererComparison";
-import { RendererExamples } from "./RendererExamples";
 import { ReferenceContext } from "./references";
+
+jest.mock("./GamePreview", () => ({
+  GamePreview: ({ renderer, name }: { renderer: string; name: string }) => (
+    <div
+      role="img"
+      aria-label={`${renderer} live example`}
+      data-scene={name}
+      data-renderer={renderer}
+    />
+  ),
+}));
 
 beforeAll(() => {
   global.ResizeObserver = class {
@@ -29,7 +39,7 @@ it("compares the clients' visible features and links to their pages", () => {
         ),
       }}
     >
-      <RendererComparison />
+      <RendererComparison base="/alive/wiki/" />
     </ReferenceContext.Provider>
   );
   expect(screen.getByRole("link", { name: "HTML" })).toHaveAttribute(
@@ -49,17 +59,16 @@ it("compares the clients' visible features and links to their pages", () => {
   expect(values("Fog of war")).toEqual(["Yes", "Yes", "Yes"]);
 });
 
-it("shows matching source sprites beside native terminal characters", () => {
-  render(<RendererExamples />);
-  expect(screen.getByLabelText("ThreeJS sprite example")).toBeInTheDocument();
-  expect(screen.getByLabelText("HTML sprite example")).toBeInTheDocument();
-  const terminal = screen.getByLabelText("Terminal sprite example");
-  // Deep water uses only its navy background.
+it("puts one matching live renderer scene in the feature table's first row", () => {
+  render(<RendererComparison base="/alive/wiki/" />);
+  const example = screen.getByRole("rowheader", { name: "Example" });
   // eslint-disable-next-line testing-library/no-node-access
-  expect(terminal.querySelector('[data-glyph="≈"]')).not.toBeInTheDocument();
-  // eslint-disable-next-line testing-library/no-node-access
-  expect(terminal.querySelector('rect[fill="#000080"]')).toBeInTheDocument();
-  // Human actors keep the female symbol in the game's font encoding.
-  // eslint-disable-next-line testing-library/no-node-access
-  expect(terminal.querySelector('[data-glyph="ċ"]')).toBeInTheDocument();
+  const row = example.closest("tr")!;
+  expect(
+    within(row)
+      .getAllByRole("img")
+      .map((image) => image.getAttribute("data-renderer"))
+  ).toEqual(["three-js", "html", "terminal"]);
+  for (const image of within(row).getAllByRole("img"))
+    expect(image).toHaveAttribute("data-scene", "comparison");
 });

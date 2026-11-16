@@ -1,4 +1,5 @@
 import { openSpriteBuilder } from "../game/assets/spriteBuilder";
+import { rerenderEntity } from "../engine/systems/renderer";
 import { disposeSequence } from "../engine/systems/map";
 import { createItemAsDrop } from "../engine/systems/drop";
 import { getItemSprite } from "../game/assets/utils";
@@ -21,6 +22,7 @@ import { getClassData, ClassKey } from "../game/balancing/classes";
 import { SPRITE } from "../engine/components/sprite";
 import { STATS } from "../engine/components/stats";
 import { LIGHT } from "../engine/components/light";
+import { FOG } from "../engine/components/fog";
 import { SPAWNABLE } from "../engine/components/spawnable";
 import { VIEWABLE } from "../engine/components/viewable";
 import { calculateVision, getEntityVision } from "../engine/systems/visibility";
@@ -133,8 +135,58 @@ const createClientWorld = () => {
   return world;
 };
 
+const createComparisonWorld = () => {
+  const rows: string[][] = Array.from({ length: 7 }, (_, y) =>
+    Array.from({ length: 11 }, (_, x) =>
+      y === 6
+        ? "≈"
+        : y === 5
+        ? "~"
+        : y === 4
+        ? "B"
+        : x === 7
+        ? "W"
+        : x >= 5
+        ? "░"
+        : ","
+    )
+  );
+  rows[3][3] = "♀";
+  const world = createAreaWorld(
+    rows.map((row) => `|${row.join("")}|`).join("\n"),
+    { level: "LEVEL_ISLAND", size: 32, legend: { W: "mountain", B: "beach" } }
+  );
+  const hero = world.assertComponents(assertHero(world), [LIGHT, VIEWABLE]);
+  hero[LIGHT] = getEntityVision(world, hero);
+  createCell(world, { x: 4, y: 1 }, "woodChest", "hidden");
+  createItemAsDrop(
+    world,
+    { x: 5, y: 1 },
+    createItem,
+    {
+      ITEM: { stackable: "apple", amount: 4, bound: false },
+      SPRITE: getItemSprite({ stackable: "apple" }),
+    },
+    false
+  );
+  createViewpoint(world, {
+    POSITION: { x: 5, y: 3 },
+    VIEWABLE: { active: true, priority: 80, spring: { duration: 0 } },
+    RENDERABLE: { generation: 0 },
+  });
+  initializeArea(world, { x: 0, y: 0 }, { x: 10, y: 6 });
+  for (const entity of world.getEntities([FOG])) {
+    entity[FOG].visibility = "fog";
+    entity[FOG].fixed = false;
+  }
+  rerenderEntity(world, hero);
+  preloadLevel(world);
+  return world;
+};
+
 export const createPreviewWorld = (name: SceneName, option = "") => {
   if (name === "clients") return createClientWorld();
+  if (name === "comparison") return createComparisonWorld();
   const terrain =
     name === "movement"
       ? movementArea

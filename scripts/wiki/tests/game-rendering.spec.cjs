@@ -113,7 +113,7 @@ test("layered cells have no internal seams at fractional scale", async ({ page }
 });
 
 const featureScenes = require("../../../src/wiki/scenes.json").filter(
-  (scene) => !["game", "interface"].includes(scene)
+  (scene) => !["game", "interface", "comparison"].includes(scene)
 );
 
 for (const scene of featureScenes) {

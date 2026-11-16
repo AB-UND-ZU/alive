@@ -28,3 +28,7 @@
     gap: 32px;
   }
 }
+
+.PreviewCompact .PreviewLayout {
+  display: block;
+}

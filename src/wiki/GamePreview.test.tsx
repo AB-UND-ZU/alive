@@ -152,14 +152,14 @@ it("uses the native client variant and reloads readiness when the renderer chang
     )
   );
   const iframe = screen.getByTitle("Renderer") as HTMLIFrameElement;
-  expect(iframe.src).toBe("http://localhost/alive/terminal/?preview&test");
-  expect(iframe).toHaveStyle({ height: "480px" });
+  expect(iframe.src).toBe("http://localhost/alive/terminal/?preview");
+  expect(iframe).toHaveStyle({ height: "640px" });
   rerender(<GamePreview name="clients" renderer="html" base="/alive/wiki/" />);
   expect(screen.getByTitle("Renderer")).not.toBe(iframe);
   expect(screen.getByTitle("Renderer").getAttribute("src")).toContain(
-    "/alive/html/?preview&test"
+    "/alive/html/?preview"
   );
-  expect(screen.getByRole("status")).toBeInTheDocument();
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
 });
 
 it("loads feature scenes from the selected client bundle", () => {
@@ -185,4 +185,26 @@ it("does not enable test commands when the menu preview opts out", () => {
     "src",
     "http://localhost/alive/?preview"
   );
+});
+
+it("keeps a compact renderer example at eleven by seven ordinary32px cells", () => {
+  render(
+    <GamePreview
+      name="comparison"
+      renderer="terminal"
+      base="/alive/wiki/"
+      testMode={false}
+    />
+  );
+  visibility(true);
+  const iframe = screen.getByTitle("Renderer Example");
+  expect(iframe).toHaveAttribute(
+    "src",
+    "http://localhost/alive/terminal/preview.html#comparison"
+  );
+  expect(iframe).toHaveStyle({ width: "198px", height: "224px" });
+  expect(iframe).toHaveAttribute("tabindex", "-1");
+  expect(
+    screen.queryByText("Play using the normal game controls.")
+  ).not.toBeInTheDocument();
 });

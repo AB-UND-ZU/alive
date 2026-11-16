@@ -5,7 +5,3 @@
 ```widget
 renderer-comparison
 ```
-
-```widget
-renderer-examples
-```

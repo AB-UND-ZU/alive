@@ -1,4 +1,9 @@
 export const sceneDefinitions = {
+  comparison: {
+    title: "Renderer Example",
+    instruction: "",
+    keys: [],
+  },
   clients: {
     title: "Renderer",
     instruction:
@@ -141,6 +146,12 @@ export const sceneLayout = (name: SceneName) => {
       : name === "abilities" || name === "food"
       ? 1
       : 0;
-  const rows = name === "game" || name === "interface" ? 20 : 18 + topHudRows;
-  return { topHudRows, rows, height: rows * 32 };
+  const rows =
+    name === "comparison"
+      ? 7
+      : name === "game" || name === "interface"
+      ? 20
+      : 18 + topHudRows;
+  const columns = name === "comparison" ? 11 : 23;
+  return { topHudRows, rows, columns, height: rows * 32 };
 };

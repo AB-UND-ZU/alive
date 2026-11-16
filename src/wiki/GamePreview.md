@@ -6,7 +6,7 @@ Autoplay resumes when focus leaves. The red Reset button shares the game footer 
 
 The parent validates messages against the frame and page origin. Chat uses the game keyboard, command suggestions and submission directly inside the frame. The Sprite Builder reports its selected sprite through the same state channel, and SpriteCode renders it below the preview.
 
-Unloaded frames show the game's `Loading map...` dialog. Play can pass a level preset and Test Mode flag; ordinary snippets always use test controls.
+Loading messages are rendered inside the client frame, without a second wiki overlay. Play can pass a level preset and Test Mode flag; ordinary snippets always use test controls.
 
 The Chat frame fits narrow pages with CSS aspect ratio and maximum width. The game sizes its own cells to the available viewport, keeping the keyboard and Send button visible. Other feature previews keep their fixed scene height.
 
@@ -19,3 +19,5 @@ Visible autoplay is silent. A pointer, touch or keyboard interaction enables the
 The Light scene exposes a Shadows lever. It updates native lighting in the existing frame without resetting exploration or changing fog of war.
 
 Client scenes pass an explicit renderer type and load its deployed entry point with `?preview`, starting at the standard menu. The parent still controls visibility, focus and reset through messages. The terminal menu uses its own frame and chrome. Other feature scenes load `preview.html` from the selected client directory, so no renderer implementation is loaded by the parent wiki page. Client changes clear readiness before loading the next bundle.
+
+Renderer menu previews use normal game mode without test commands. Compact comparison frames show 11-by7 cells at the same 18-by32 pixel size as wiki text, without HUD or instruction text. They use the same visibility lifecycle as other previews. Terminal menu previews keep 32px text and scroll rather than shrinking it to fit.

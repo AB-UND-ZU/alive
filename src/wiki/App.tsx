@@ -70,7 +70,6 @@ import { Widget } from "./Widgets";
 import { GamePreview } from "./GamePreview";
 import { SceneName } from "./scenes";
 import { RendererComparison } from "./RendererComparison";
-import { RendererExamples } from "./RendererExamples";
 import { commandItems } from "../game/assets/commands";
 import {
   statConfig,
@@ -920,7 +919,9 @@ function Markdown({
                     | "terminal")
                 : undefined
             }
-            testMode={token.text!.trim().split("/")[0] !== "game"}
+            testMode={
+              !["game", "clients"].includes(token.text!.trim().split("/")[0])
+            }
             base={base}
           />
         );
@@ -928,9 +929,7 @@ function Markdown({
         token.lang === "widget" &&
         token.text!.trim() === "renderer-comparison"
       )
-        return <RendererComparison key={index} />;
-      if (token.lang === "widget" && token.text!.trim() === "renderer-examples")
-        return <RendererExamples key={index} />;
+        return <RendererComparison key={index} base={base} />;
       if (
         token.lang === "widget" &&
         ["text-callout", "palette", "font-characters"].includes(

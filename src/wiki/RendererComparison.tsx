@@ -4,12 +4,23 @@ import { capabilities as terminal } from "../renderers/terminal/capabilities";
 import { GridTable } from "./GridTable";
 import { ReferenceLink } from "./references";
 import { Text } from "./visuals";
+import { GamePreview } from "./GamePreview";
 
 const clients = [
-  { name: "ThreeJS", page: "threejs", capabilities: three },
-  { name: "HTML", page: "html", capabilities: html },
-  { name: "Terminal", page: "terminal", capabilities: terminal },
-];
+  {
+    name: "ThreeJS",
+    page: "threejs",
+    renderer: "three-js",
+    capabilities: three,
+  },
+  { name: "HTML", page: "html", renderer: "html", capabilities: html },
+  {
+    name: "Terminal",
+    page: "terminal",
+    renderer: "terminal",
+    capabilities: terminal,
+  },
+] as const;
 
 export const rendererHeaders = () =>
   clients.map((client) => (
@@ -18,13 +29,25 @@ export const rendererHeaders = () =>
     </ReferenceLink>
   ));
 
-export function RendererComparison() {
+export function RendererComparison({ base }: { base: string }) {
   const feature = (key: keyof typeof three) =>
     clients.map((client) => (client.capabilities[key] ? "Yes" : "No"));
   return (
     <GridTable
       headers={["Feature", ...rendererHeaders()]}
       rows={[
+        [
+          "Example",
+          ...clients.map((client) => (
+            <GamePreview
+              key={client.renderer}
+              name="comparison"
+              renderer={client.renderer}
+              base={base}
+              testMode={false}
+            />
+          )),
+        ],
         ["Runs in", "Browser", "Browser", "Browser / Terminal / SSH"],
         ["Display", "WebGL", "HTML / SVG", "ANSI"],
         ["Sprites", "Layered", "Layered", "One character"],

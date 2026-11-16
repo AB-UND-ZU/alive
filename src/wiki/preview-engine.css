@@ -137,5 +137,17 @@ body {
 }
 .ClientTerminal {
   position: relative;
-  height: 480px;
+  height: 100%;
+}
+
+.preview-comparison {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+}
+.ComparisonClient {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }

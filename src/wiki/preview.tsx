@@ -41,7 +41,8 @@ if (process.env.REACT_APP_RENDERER === "terminal") {
   PreviewClient = lazy(() => import("./BrowserPreviewClient"));
 }
 function DemoActions() {
-  if (name === "game" || name === "interface") return null;
+  if (name === "game" || name === "interface" || name === "comparison")
+    return null;
   return (
     <div className="DemoActions">
       <Button
@@ -347,7 +348,7 @@ function Preview() {
         name === "game" || name === "interface"
           ? undefined
           : {
-              visibleColumns: 23,
+              visibleColumns: sceneLayout(name).columns,
               visibleRows: sceneLayout(name).rows,
               topHudRows: sceneLayout(name).topHudRows,
             }

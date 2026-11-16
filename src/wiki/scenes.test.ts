@@ -343,3 +343,73 @@ it("gives renderer clients one playable arena with spell and crafting controls",
     world.assertByIdAndComponents(hero[PLAYER].popup, [POPUP])[POPUP].tabs
   ).toContain("craft");
 });
+
+it("builds matching terrain, visibility and loot for the compact renderer comparison", () => {
+  const world = createPreviewWorld("comparison");
+  const hero = assertHero(world);
+  advance(world, 5000);
+  const camera = world
+    .getEntities(["VIEWABLE", "POSITION"])
+    .find((entity) => entity.VIEWABLE.priority === 80)!;
+  expect(camera.POSITION).toEqual({ x: 5, y: 3 });
+  expect(hero.POSITION).toEqual({ x: 3, y: 3 });
+  expect(
+    getCellEntities(world, { x: 7, y: 3 }).some(
+      (entity) => entity.LIGHT?.darkness > 0
+    )
+  ).toBe(true);
+  const chest = getCellEntities(world, { x: 4, y: 1 }).find(
+    (entity) => entity.ATTACKABLE && entity.INVENTORY
+  )!;
+  expect(chest).toBeDefined();
+  const apple = world
+    .getEntities([ITEM])
+    .find(
+      (entity) => entity.ITEM.stackable === "apple" && entity.ITEM.amount === 4
+    )!;
+  const drop = world.assertByIdAndComponents(apple[ITEM].carrier, [POSITION]);
+  expect(drop[POSITION]).toEqual({ x: 5, y: 1 });
+  const size = world.metadata.gameEntity.LEVEL.size;
+  for (const [position, visibility] of [
+    [{ x: 0, y: 0 }, "visible"],
+    [{ x: 0, y: 6 }, "visible"],
+    [{ x: 3, y: 1 }, "visible"],
+    [{ x: 8, y: 1 }, "fog"],
+    [{ x: 10, y: 5 }, "fog"],
+    [{ x: 10, y: 6 }, "fog"],
+    [{ x: 3, y: 4 }, "visible"],
+    [{ x: 3, y: 5 }, "visible"],
+    [{ x: 3, y: 6 }, "visible"],
+  ] as const) {
+    expect({
+      [`${position.x},${position.y}`]: world.metadata.visibleCells.has(
+        position.x * size + position.y
+      ),
+    }).toEqual({ [`${position.x},${position.y}`]: visibility === "visible" });
+    const cells = getCellEntities(world, position).filter(
+      (entity) => entity.FOG
+    );
+    expect(cells.length).toBeGreaterThan(0);
+    for (const entity of cells) {
+      expect(entity.FOG.visibility).toBe(visibility);
+      expect(entity.FOG.fixed).toBe(false);
+    }
+  }
+  for (const x of [0, 10]) {
+    expect(
+      getCellEntities(world, { x, y: 4 }).some(
+        (entity) => entity.HARVESTABLE?.resource === "beach"
+      )
+    ).toBe(true);
+    expect(
+      getCellEntities(world, { x, y: 5 }).some(
+        (entity) => entity.IMMERSIBLE?.deep === false
+      )
+    ).toBe(true);
+    expect(
+      getCellEntities(world, { x, y: 6 }).some(
+        (entity) => entity.IMMERSIBLE?.deep === true
+      )
+    ).toBe(true);
+  }
+});
