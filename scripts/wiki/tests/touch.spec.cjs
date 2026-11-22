@@ -1,4 +1,4 @@
-const { test, expect } = require("./fixtures.cjs");
+const { test, expect, readyFrame } = require("./fixtures.cjs");
 
 test("Interface loads native controls after navigation from Welcome", async ({
   page,
@@ -92,9 +92,7 @@ async function touchScene(page) {
     `${process.env.WIKI_TEST_DEV === "true" ? "" : "/wiki"}/game-design/controls/touch.html`
   );
   const preview = page.locator('[data-scene="touch"]');
-  await preview.scrollIntoViewIfNeeded();
-  const iframe = preview.locator("iframe");
-  await expect(iframe).toHaveAttribute("data-x", /\d+/);
+  const iframe = await readyFrame(preview);
   const frame = await (await iframe.elementHandle()).contentFrame();
   await frame.evaluate(() => {
     window.touchInputs = [];
@@ -107,6 +105,7 @@ async function touchScene(page) {
 for (const ending of ["release", "leave", "blur"]) {
   test(`desktop touch stops on ${ending} and requires a fresh press`, async ({
     page,
+    freezeGameClock,
   }) => {
     const { iframe, frame, bounds } = await touchScene(page);
     await expect(frame.locator("style[data-touch-cursor]")).toHaveCount(1);
@@ -114,12 +113,14 @@ for (const ending of ["release", "leave", "blur"]) {
     const x = bounds.x + 170,
       y = bounds.y + 330;
     await page.mouse.move(x, y);
-    await page.waitForTimeout(250);
+    const clock = await freezeGameClock();
+    await clock.runFor(250);
     await expect(frame.locator(".Joystick")).toHaveCount(0);
     expect(Number(await iframe.getAttribute("data-x"))).toBe(initialX);
     await page.mouse.down();
     await page.mouse.move(x + 72, y, { steps: 5 });
     await expect(frame.locator(".Joystick")).toBeVisible();
+    await clock.runFor(450);
     const origin = await frame.locator(".Joystick").boundingBox();
     expect(Math.abs(origin.x + origin.width / 2 - bounds.x - 170)).toBeLessThan(
       1
@@ -138,10 +139,10 @@ for (const ending of ["release", "leave", "blur"]) {
       ending === "release" ? "touchend" : "touchcancel"
     );
     // Complete the native queued step before checking sustained idle movement.
-    await page.waitForTimeout(450);
+    await clock.runFor(450);
     const stopped = await iframe.getAttribute("data-x");
     await page.mouse.move(x + 54, y + 10);
-    await page.waitForTimeout(450);
+    await clock.runFor(450);
     await expect(frame.locator(".Joystick")).toHaveCount(0);
     expect(await iframe.getAttribute("data-x")).toBe(stopped);
     await page.mouse.up();
@@ -165,73 +166,68 @@ for (const ending of ["release", "leave", "blur"]) {
   });
 }
 
-test("native touch keeps real input and shows every reference direction", async ({
-  browser,
-}) => {
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    isMobile: true,
-    hasTouch: true,
+test.describe("native touch", () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  test("keeps real input and shows every reference direction", async ({ page, freezeGameClock }) => {
+    const { iframe, frame, bounds } = await touchScene(page);
+    await expect(frame.locator("style[data-touch-cursor]")).toHaveCount(0);
+    expect(await frame.evaluate(() => navigator.maxTouchPoints)).toBeGreaterThan(
+      0
+    );
+    const reference = page.locator(
+      '[aria-label="Touch joystick direction reference"]'
+    );
+    const chars = await reference.textContent();
+    for (const arrow of ["\u0117", "\u0118", "\u0119", "\u011a"])
+      expect(chars).toContain(arrow);
+    const initialX = Number(await iframe.getAttribute("data-x"));
+    const session = await page.context().newCDPSession(page);
+    const point = { x: bounds.x + 170, y: bounds.y + 330 };
+    await session.send("Input.dispatchTouchEvent", {
+      type: "touchStart",
+      touchPoints: [point],
+    });
+    await session.send("Input.dispatchTouchEvent", {
+      type: "touchMove",
+      touchPoints: [{ ...point, x: point.x + 72 }],
+    });
+    await expect(frame.locator(".Joystick")).toBeVisible();
+    await expect
+      .poll(async () => Number(await iframe.getAttribute("data-x")))
+      .toBeGreaterThan(initialX);
+    await expect(frame.locator("#interact")).toHaveCount(1);
+    await expect(frame.locator("#interact")).toBeHidden();
+    const clock = await freezeGameClock();
+    await session.send("Input.dispatchTouchEvent", {
+      type: "touchEnd",
+      touchPoints: [],
+    });
+    await expect(frame.locator(".Joystick")).toHaveCount(0);
+    await clock.runFor(450);
+    const stopped = await iframe.getAttribute("data-x");
+    await clock.runFor(450);
+    expect(await iframe.getAttribute("data-x")).toBe(stopped);
+    expect(
+      await frame.evaluate(
+        () => window.touchInputs.filter((t) => t === "touchstart").length
+      )
+    ).toBe(1);
+    await session.send("Input.dispatchTouchEvent", {
+      type: "touchStart",
+      touchPoints: [point],
+    });
+    await session.send("Input.dispatchTouchEvent", {
+      type: "touchMove",
+      touchPoints: [{ ...point, y: point.y + 64 }],
+    });
+    await expect(frame.locator(".Joystick")).toBeVisible();
+    await session.send("Input.dispatchTouchEvent", {
+      type: "touchCancel",
+      touchPoints: [],
+    });
+    await expect(frame.locator(".Joystick")).toHaveCount(0);
+    expect(await frame.evaluate(() => window.touchInputs)).toContain(
+      "touchcancel"
+    );
   });
-  const page = await context.newPage();
-  const { iframe, frame, bounds } = await touchScene(page);
-  await expect(frame.locator("style[data-touch-cursor]")).toHaveCount(0);
-  expect(await frame.evaluate(() => navigator.maxTouchPoints)).toBeGreaterThan(
-    0
-  );
-  const reference = page.locator(
-    '[aria-label="Touch joystick direction reference"]'
-  );
-  const chars = await reference.textContent();
-  for (const arrow of ["\u0117", "\u0118", "\u0119", "\u011a"])
-    expect(chars).toContain(arrow);
-  const initialX = Number(await iframe.getAttribute("data-x"));
-  const session = await context.newCDPSession(page);
-  const point = { x: bounds.x + 170, y: bounds.y + 330 };
-  await session.send("Input.dispatchTouchEvent", {
-    type: "touchStart",
-    touchPoints: [point],
-  });
-  await session.send("Input.dispatchTouchEvent", {
-    type: "touchMove",
-    touchPoints: [{ ...point, x: point.x + 72 }],
-  });
-  await expect(frame.locator(".Joystick")).toBeVisible();
-  await expect
-    .poll(async () => Number(await iframe.getAttribute("data-x")))
-    .toBeGreaterThan(initialX);
-  await expect(frame.locator("#interact")).toHaveCount(1);
-  await expect(frame.locator("#interact")).toBeHidden();
-  await session.send("Input.dispatchTouchEvent", {
-    type: "touchEnd",
-    touchPoints: [],
-  });
-  await expect(frame.locator(".Joystick")).toHaveCount(0);
-  await page.waitForTimeout(450);
-  const stopped = await iframe.getAttribute("data-x");
-  await page.waitForTimeout(450);
-  expect(await iframe.getAttribute("data-x")).toBe(stopped);
-  expect(
-    await frame.evaluate(
-      () => window.touchInputs.filter((t) => t === "touchstart").length
-    )
-  ).toBe(1);
-  await session.send("Input.dispatchTouchEvent", {
-    type: "touchStart",
-    touchPoints: [point],
-  });
-  await session.send("Input.dispatchTouchEvent", {
-    type: "touchMove",
-    touchPoints: [{ ...point, y: point.y + 64 }],
-  });
-  await expect(frame.locator(".Joystick")).toBeVisible();
-  await session.send("Input.dispatchTouchEvent", {
-    type: "touchCancel",
-    touchPoints: [],
-  });
-  await expect(frame.locator(".Joystick")).toHaveCount(0);
-  expect(await frame.evaluate(() => window.touchInputs)).toContain(
-    "touchcancel"
-  );
-  await context.close();
 });

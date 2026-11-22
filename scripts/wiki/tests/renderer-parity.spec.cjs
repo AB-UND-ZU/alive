@@ -1,4 +1,4 @@
-const { test, expect } = require("./fixtures.cjs");
+const { test, expect, playPreview } = require("./fixtures.cjs");
 
 const openScene = async (page, renderer, scene) => {
   await page.goto(
@@ -15,9 +15,8 @@ const openScene = async (page, renderer, scene) => {
       ];
     while (fiber && !fiber.memoizedProps?.value?.ecs) fiber = fiber.return;
     window.rendererWorld = fiber.memoizedProps.value.ecs;
-    window.postMessage({ type: "play" }, location.origin);
-    window.dispatchEvent(new Event("focus"));
   });
+  await playPreview(page);
 };
 
 for (const renderer of ["three-js", "html"]) {
@@ -69,7 +68,7 @@ test("HTML shows a viewpoint earthquake without hero damage and settles afterwar
   page,
 }) => {
   await openScene(page, "html", "combat");
-  await page.waitForTimeout(1400);
+  await page.waitForFunction(() => window.rendererWorld.metadata.elapsed > 0);
   const camera = page.locator(".HtmlRendererScene");
   const idle = await camera.getAttribute("style");
   await page.evaluate(() => {

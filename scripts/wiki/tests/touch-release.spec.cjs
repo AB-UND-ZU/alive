@@ -1,4 +1,4 @@
-const { test, expect } = require("./fixtures.cjs");
+const { test, expect, playPreview } = require("./fixtures.cjs");
 
 test.use({
   viewport: { width: 390, height: 844 },
@@ -37,10 +37,7 @@ const openGame = async (page, scene = "game") => {
       context.ecs.getEntities(["PLAYER"]).length > 0
     );
   });
-  await page.evaluate(() => {
-    window.postMessage({ type: "play" }, location.origin);
-    window.dispatchEvent(new Event("focus"));
-  });
+  await playPreview(page);
   await expect(page.locator(".Paused")).toHaveCount(0);
 };
 
@@ -98,10 +95,10 @@ test("closing a dialog with a held scrollbar cannot block a later pause tap", as
     quick.y + quick.height / 2
   );
   await expect(page.locator("#content")).toBeVisible();
-  await page.waitForTimeout(800);
+
   await page.keyboard.press("t");
   await expect(page.locator("#scroll")).toBeVisible();
-  await page.waitForTimeout(800);
+
   const rect = await page.locator("#scroll").boundingBox();
   const client = await page.context().newCDPSession(page);
   await client.send("Input.dispatchTouchEvent", {
@@ -124,6 +121,7 @@ test("closing a dialog with a held scrollbar cannot block a later pause tap", as
 
 test("swiping a dialog cancels its click even after returning to the starting point", async ({
   page,
+  freezeGameClock,
   browserName,
 }) => {
   test.skip(
@@ -149,6 +147,7 @@ test("swiping a dialog cancels its click even after returning to the starting po
       .getElementById("content")
       .addEventListener("click", () => window.contentClicks++);
   });
+  const clock = await freezeGameClock();
   const client = await page.context().newCDPSession(page);
   await client.send("Input.dispatchTouchEvent", {
     type: "touchStart",
@@ -158,7 +157,7 @@ test("swiping a dialog cancels its click even after returning to the starting po
     type: "touchMove",
     touchPoints: [{ ...point, y: point.y + 60 }],
   });
-  await page.waitForTimeout(250);
+  await clock.runFor(250);
   await client.send("Input.dispatchTouchEvent", {
     type: "touchMove",
     touchPoints: [point],
@@ -167,7 +166,7 @@ test("swiping a dialog cancels its click even after returning to the starting po
     type: "touchEnd",
     touchPoints: [],
   });
-  await page.waitForTimeout(250);
+  await clock.runFor(250);
   expect(await page.evaluate(() => window.contentClicks)).toBe(0);
   await page.evaluate(() => { window.dropGestureStarts = true; });
   await page.touchscreen.tap(point.x, point.y);
@@ -230,6 +229,7 @@ test("native steering stays passive and leaves pause usable", async ({
 
 test("a single-finger HUD drag cannot become native panning before steering starts", async ({
   page,
+  freezeGameClock,
   browserName,
 }) => {
   test.skip(
@@ -241,6 +241,7 @@ test("a single-finger HUD drag cannot become native panning before steering star
     window.canceledPointers = 0;
     window.addEventListener("pointercancel", () => window.canceledPointers++);
   });
+  const clock = await freezeGameClock();
   const client = await page.context().newCDPSession(page);
   await client.send("Emulation.setPageScaleFactor", { pageScaleFactor: 2 });
   const menu = await page.locator("#menu").boundingBox();
@@ -255,13 +256,14 @@ test("a single-finger HUD drag cannot become native panning before steering star
       type: "touchMove",
       touchPoints: [{ id: 1, x, y: y + step }],
     });
-    await page.waitForTimeout(16);
+    await clock.runFor(16);
   }
   await client.send("Input.dispatchTouchEvent", {
     type: "touchEnd",
     touchPoints: [],
   });
   expect(await page.evaluate(() => window.canceledPointers)).toBe(0);
+  await clock.resume();
   await client.send("Emulation.setPageScaleFactor", { pageScaleFactor: 1 });
   await page.touchscreen.tap(x, y);
   await expect(page.locator(".Paused")).toBeVisible();

@@ -49,11 +49,10 @@ for (const renderer of ["three-js", "html", "terminal"]) {
     expect((await session(page)).level).toBe("LEVEL_MENU");
     const before = (await session(page)).position;
     await page.keyboard.down("ArrowDown");
-    await page.waitForTimeout(450);
-    await page.keyboard.up("ArrowDown");
     await expect
       .poll(async () => (await session(page)).position)
       .not.toEqual(before);
+    await page.keyboard.up("ArrowDown");
     await page.keyboard.press("c");
     await expect.poll(async () => (await session(page)).dialog).toBe("chat");
     await page.keyboard.type("draft");

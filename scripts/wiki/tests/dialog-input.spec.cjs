@@ -1,4 +1,4 @@
-const { test, expect } = require("./fixtures.cjs");
+const { test, expect, playPreview } = require("./fixtures.cjs");
 
 const state = (page) =>
   page.evaluate(() => {
@@ -24,13 +24,8 @@ const state = (page) =>
 
 const open = async (page, scene) => {
   await page.goto(`/preview.html?test#${scene}`);
-  await expect(page.locator("canvas")).toBeVisible();
-  await page.evaluate(() => {
-    window.postMessage({ type: "play" }, location.origin);
-    window.dispatchEvent(new Event("focus"));
-  });
-  await expect(page.locator("#content")).toBeVisible();
-  await page.waitForTimeout(1000);
+  await playPreview(page);
+  await page.locator("#content").waitFor({ state: "visible" });
 };
 
 for (const mobile of [false, true]) {
@@ -45,7 +40,7 @@ for (const mobile of [false, true]) {
       mobile
         ? "dialog swipes cannot tap their release row"
         : "held keyboard navigation repeats once per tick",
-      async ({ page }, testInfo) => {
+      async ({ page, freezeGameClock }, testInfo) => {
         await page.addInitScript(() =>
           localStorage.setItem(
             "alive.sprites",
@@ -58,6 +53,8 @@ for (const mobile of [false, true]) {
           )
         );
         await open(page, "sprites");
+
+        const clock = await freezeGameClock();
         const before = await state(page);
         let client;
         let point;
@@ -74,7 +71,7 @@ for (const mobile of [false, true]) {
             touchPoints: [{ ...point, y: point.y + 22 }],
           });
         } else await page.keyboard.down("ArrowDown");
-        await page.waitForTimeout(650);
+        await clock.runFor(before.interval * 4);
         const during = await state(page);
         expect(during.row).toBeGreaterThanOrEqual(2);
         expect(during.interval).toBe(175);
@@ -87,34 +84,36 @@ for (const mobile of [false, true]) {
             touchPoints: [],
           });
         else await page.keyboard.up("ArrowDown");
-        await page.waitForTimeout(300);
+        await clock.runFor(during.interval * 2);
         const released = await state(page);
         expect(released.row).toBeGreaterThanOrEqual(during.row);
         expect(released.row).toBeLessThanOrEqual(during.row + 1);
-        await page.waitForTimeout(250);
+        await clock.runFor(during.interval * 2);
         expect((await state(page)).row).toBe(released.row);
         await page.screenshot({
           path: testInfo.outputPath("released-navigation.png"),
         });
         if (mobile) {
           await page.touchscreen.tap(point.x, point.y);
-          await expect
-            .poll(async () => (await state(page)).row)
-            .toBe(released.scroll);
+          await clock.runFor(during.interval);
+          expect((await state(page)).row).toBe(released.scroll);
         }
       }
     );
 
     test("walking after chat closes uses walking speed immediately", async ({
       page,
+      freezeGameClock,
     }, testInfo) => {
       await open(page, "chat");
       await page.keyboard.type("hello");
       await page.keyboard.press("Enter");
       await expect.poll(async () => (await state(page)).tab).toBeUndefined();
+
+      const clock = await freezeGameClock();
       const start = await state(page);
       await page.keyboard.down("ArrowRight");
-      await page.waitForTimeout(450);
+      await clock.runFor(start.interval * 2);
       const moved = await state(page);
       await page.keyboard.up("ArrowRight");
       expect(moved.interval).toBeGreaterThan(175);

@@ -1,4 +1,4 @@
-const { test, expect } = require("./fixtures.cjs");
+const { test, expect, readyFrame } = require("./fixtures.cjs");
 
 async function observeOutputGain(page) {
   await page.addInitScript(() => {
@@ -161,30 +161,25 @@ test("sound samples cannot enable audio in static wiki pages", async ({
 
 test("game-frame sound is silent for autoplay, audible during interaction and silent after blur", async ({
   page,
+  freezeGameClock,
 }) => {
   await observeOutputGain(page);
   await page.goto("/game-design/controls/keyboard-mouse.html");
   const preview = page.locator('[data-scene="movement"]');
-  await preview.scrollIntoViewIfNeeded();
-  const iframe = preview.locator("iframe");
-  await expect(iframe).toHaveAttribute("data-x", /\d+/);
+  const iframe = await readyFrame(preview);
   const frame = await (await iframe.elementHandle()).contentFrame();
   expect(await frame.evaluate(() => window.__audioOutput.gain.value)).toBe(0);
   expect(await frame.evaluate(() => window.soundStub.played.length)).toBe(0);
   await iframe.click();
-  let direction = 0;
-  await expect
-    .poll(
-      async () => {
-        await page.keyboard.press(
-          ["ArrowRight", "ArrowUp", "ArrowLeft", "ArrowDown"][direction++ % 4],
-          { delay: 350 }
-        );
-        return frame.evaluate(() => window.soundStub.played.length);
-      },
-      { timeout: 10000 }
-    )
-    .toBeGreaterThan(0);
+  const clock = await freezeGameClock();
+  for (const key of ["ArrowRight", "ArrowUp", "ArrowLeft", "ArrowDown"]) {
+    await page.keyboard.down(key);
+    await clock.runFor(350);
+    await page.keyboard.up(key);
+    if (await frame.evaluate(() => window.soundStub.played.length > 0)) break;
+  }
+  expect(await frame.evaluate(() => window.soundStub.played.length)).toBeGreaterThan(0);
+  await clock.resume();
   await page.locator("main h1").click();
   await expect
     .poll(() => frame.evaluate(() => window.__audioOutput.gain.value))

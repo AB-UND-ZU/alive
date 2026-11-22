@@ -1,10 +1,7 @@
-const { test, expect } = require("./fixtures.cjs");
+const { test, expect, playPreview } = require("./fixtures.cjs");
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
-    window.addEventListener("message", ({ data }) => {
-      if (data?.type === "preview-ready") window.previewReady = true;
-    });
     window.EventSource = class {
       close() {}
     };
@@ -128,11 +125,7 @@ for (const scene of featureScenes) {
       await page.setViewportSize({ width, height: 608 });
       await page.goto(`/preview.html?test#${scene}`);
       await expect(page.locator("canvas")).toBeVisible();
-      await page.waitForFunction(() => window.previewReady);
-      await page.evaluate(() => {
-        window.postMessage({ type: "play" }, location.origin);
-        window.dispatchEvent(new Event("focus"));
-      });
+      await playPreview(page);
       await expect(page.locator(".Paused")).toHaveCount(0);
       await expect(
         page.locator("footer > .Row").last().locator(".Cell")

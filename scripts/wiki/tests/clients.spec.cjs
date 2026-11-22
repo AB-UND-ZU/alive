@@ -1,4 +1,4 @@
-const { test, expect } = require("./fixtures.cjs");
+const { test, expect, readyFrame } = require("./fixtures.cjs");
 
 test("Clients lists renderer features and keeps the old ThreeJS route", async ({
   page,
@@ -25,8 +25,7 @@ test("Clients lists renderer features and keeps the old ThreeJS route", async ({
     const preview = page.locator(
       `[data-scene="comparison"][data-renderer="${renderer}"]`
     );
-    await preview.scrollIntoViewIfNeeded();
-    const iframe = preview.locator("iframe");
+    const iframe = await readyFrame(preview);
     await expect(iframe).toHaveAttribute("data-x", "3");
     await expect(iframe).toHaveCSS("width", "198px");
     await expect(iframe).toHaveCSS("height", "224px");
@@ -72,8 +71,7 @@ for (const width of [1440, 390]) {
         }.html`
       );
       const preview = page.locator('[data-scene="clients"]');
-      await preview.scrollIntoViewIfNeeded();
-      const iframe = preview.locator("iframe");
+      const iframe = await readyFrame(preview);
       await expect(iframe).toBeVisible();
       await expect(preview).toHaveAttribute("data-renderer", client);
       const clientPath = client === "three-js" ? "/" : `/${client}/`;
@@ -106,7 +104,6 @@ for (const width of [1440, 390]) {
         ).toBeVisible();
         await expect(frame.locator(".DemoFrame")).toHaveCount(0);
       }
-      await expect(iframe).toHaveAttribute("data-x", /\d+/);
       await frame
         .locator(
           client === "terminal" ? ".TerminalBrowserPreview" : ".Terminal"
@@ -131,9 +128,8 @@ for (const width of [1440, 390]) {
       expect(level).toBe("LEVEL_MENU");
       const initialX = await iframe.getAttribute("data-x");
       await page.keyboard.down("ArrowRight");
-      await page.waitForTimeout(350);
-      await page.keyboard.up("ArrowRight");
       await expect(iframe).not.toHaveAttribute("data-x", initialX);
+      await page.keyboard.up("ArrowRight");
       const cellHeight = await frame
         .locator(client === "terminal" ? ".TerminalBrowserPreview" : ".App")
         .evaluate((element) =>

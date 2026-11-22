@@ -1,4 +1,4 @@
-const { test, expect } = require("./fixtures.cjs");
+const { test, expect, readyFrame } = require("./fixtures.cjs");
 
 const fills = (locator) =>
   locator.evaluateAll((roots) => {
@@ -203,9 +203,7 @@ test("long commands wrap inside the native phone chat", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/game-design/interactions/chat.html");
   const preview = page.locator('[data-scene="chat"]');
-  await preview.scrollIntoViewIfNeeded();
-  const iframe = preview.locator("iframe");
-  await expect(iframe).toHaveAttribute("data-x", /\d+/);
+  const iframe = await readyFrame(preview);
   const frame = await (await iframe.elementHandle()).contentFrame();
   await frame.locator(".Terminal").click({ position: { x: 4, y: 4 } });
   await expect(preview).toHaveClass(/active/);

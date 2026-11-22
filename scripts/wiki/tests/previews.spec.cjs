@@ -1,13 +1,11 @@
-const { test, expect } = require("./fixtures.cjs");
+const { test, expect, readyFrame } = require("./fixtures.cjs");
 
 test("feature previews align 23 by 15 cells with the game camera and show an instruction", async ({
   page,
 }) => {
   await page.goto("/game-design/controls/keyboard-mouse.html");
   const preview = page.locator('[data-scene="movement"]');
-  await preview.scrollIntoViewIfNeeded();
-  const iframe = preview.locator("iframe");
-  await expect(iframe).toHaveAttribute("data-x", /\d+/);
+  const iframe = await readyFrame(preview);
   const frame = await (await iframe.elementHandle()).contentFrame();
   await expect(
     frame.locator('.DemoFrame[data-columns="23"][data-rows="15"]')
@@ -62,6 +60,7 @@ test("feature previews align 23 by 15 cells with the game camera and show an ins
 
 test("desktop touch emulation feeds the native joystick and releases movement", async ({
   page,
+  freezeGameClock,
 }) => {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
@@ -70,9 +69,7 @@ test("desktop touch emulation feeds the native joystick and releases movement", 
     page.locator('[aria-label="Touch joystick direction reference"] .Joystick')
   ).toHaveCount(1);
   const preview = page.locator('[data-scene="touch"]');
-  await preview.scrollIntoViewIfNeeded();
-  const iframe = preview.locator("iframe");
-  await expect(iframe).toHaveAttribute("data-x", /\d+/);
+  const iframe = await readyFrame(preview);
   const initialX = Number(await iframe.getAttribute("data-x"));
   const frame = await (await iframe.elementHandle()).contentFrame();
   await frame.locator("#interact").click();
@@ -113,6 +110,7 @@ test("desktop touch emulation feeds the native joystick and releases movement", 
   await expect
     .poll(async () => Number(await iframe.getAttribute("data-x")))
     .toBeGreaterThan(initialX);
+  const clock = await freezeGameClock();
   await page.mouse.up();
   await expect(frame.locator(".Joystick")).toHaveCount(0);
   const touches = await frame.evaluate(() => window.touchInputs);
@@ -120,9 +118,9 @@ test("desktop touch emulation feeds the native joystick and releases movement", 
   expect(touches).toContain("touchmove");
   expect(touches).toContain("touchend");
   // Let the native queued grid step finish and its position reach the parent.
-  await page.waitForTimeout(450);
+  await clock.runFor(450);
   const stoppedX = await iframe.getAttribute("data-x");
-  await page.waitForTimeout(450);
+  await clock.runFor(450);
   expect(await iframe.getAttribute("data-x")).toBe(stoppedX);
   expect(errors).toEqual([]);
 });
@@ -226,9 +224,7 @@ test("visible crafting autoplay waits for native interaction readiness", async (
 }) => {
   await page.goto("/game-design/interactions/crafting.html");
   const preview = page.locator('[data-scene="crafting"]');
-  await preview.scrollIntoViewIfNeeded();
-  const iframe = preview.locator("iframe");
-  await expect(iframe).toHaveAttribute("data-x", /\d+/);
+  const iframe = await readyFrame(preview);
   await iframe.scrollIntoViewIfNeeded();
   await expect(iframe).toHaveAttribute("data-dialog", "craft", {
     timeout: 10000,
@@ -243,8 +239,7 @@ test("Touch instructions remain outside the frame on the character-row grid when
 }) => {
   await page.goto("/game-design/controls/touch.html");
   const preview = page.locator('[data-scene="touch"]');
-  await preview.scrollIntoViewIfNeeded();
-  await expect(preview.locator("iframe")).toHaveAttribute("data-x", /\d+/);
+  await readyFrame(preview);
   for (const width of [1440, 1110, 1050, 768, 390, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     await expect
@@ -287,9 +282,7 @@ test("phone maze autoplay completes its path when one native direction is ignore
   });
   await page.goto("/game-design/controls/keyboard-mouse.html");
   const preview = page.locator('[data-scene="movement"]');
-  await preview.scrollIntoViewIfNeeded();
-  const iframe = preview.locator("iframe");
-  await expect(iframe).toHaveAttribute("data-x", /\d+/);
+  const iframe = await readyFrame(preview);
   await page.screenshot({
     path: testInfo.outputPath("maze-start.png"),
     fullPage: true,

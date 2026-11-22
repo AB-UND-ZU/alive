@@ -1,4 +1,4 @@
-const { test, expect } = require("./fixtures.cjs");
+const { test, expect, readyFrame } = require("./fixtures.cjs");
 const fs = require("node:fs");
 const path = require("node:path");
 const logicalText = (element) => {
@@ -164,10 +164,19 @@ test("Savegames documents local saves and Play is an Intro menu item", async ({
 test("scrolling remains native and only the page heading uses three rows", async ({
   page,
 }) => {
-  await page.goto("/game-design/items/gear.html");
-  await page.evaluate(() => window.scrollTo(0, 117));
-  await page.waitForTimeout(500);
-  expect(await page.evaluate(() => window.scrollY)).toBe(117);
+  await page.goto("/game-design/rendering/light.html");
+  const scrollY = await page.evaluate(() => {
+    const scrolled = new Promise((resolve) => {
+      window.addEventListener(
+        "scroll",
+        () => requestAnimationFrame(() => resolve(window.scrollY)),
+        { once: true }
+      );
+    });
+    window.scrollTo(0, 117);
+    return scrolled;
+  });
+  expect(scrollY).toBe(117);
   await expect(page.locator(".LineMask")).toHaveCount(0);
   expect((await page.locator(".WikiHeader").boundingBox()).y).toBe(0);
   await expect(page.locator(".WikiHeader")).toContainText(/ALIVE V\d+x\d+/);
@@ -186,13 +195,12 @@ test("scrolling remains native and only the page heading uses three rows", async
         es.every((e) => Math.round(e.getBoundingClientRect().height) === 32)
       )
   ).toBe(true);
-  await page.goto("/game-design/items/spells.html");
-  const direct = page.getByRole("heading", {
-    name: "Direct Casts",
+  const shadows = page.getByRole("heading", {
+    name: "Shadows",
     exact: true,
   });
-  await expect(direct).toBeVisible();
-  expect((await direct.boundingBox()).height).toBe(32);
+  await expect(shadows).toBeVisible();
+  expect((await shadows.boundingBox()).height).toBe(32);
 });
 
 test("CSS navigation hover keeps the current solid highlight and moves only the pointer", async ({
@@ -266,13 +274,12 @@ test("previews load on arrival, autoplay and pause the world offscreen", async (
 
 test("focused previews capture keys, release focus on Escape and reset", async ({
   page,
+  freezeGameClock,
 }) => {
   test.setTimeout(60000);
   await page.goto("/game-design/controls/keyboard-mouse.html");
-  const scene = page.locator("[data-scene=movement]"),
-    iframe = scene.locator("iframe");
-  await scene.scrollIntoViewIfNeeded();
-  await expect(iframe).toHaveAttribute("data-x", /\d+/);
+  const scene = page.locator("[data-scene=movement]");
+  const iframe = await readyFrame(scene);
   const frame = await (await iframe.elementHandle()).contentFrame();
   await frame.locator("canvas").click();
   await expect(scene).toHaveClass(/active/);
@@ -282,16 +289,20 @@ test("focused previews capture keys, release focus on Escape and reset", async (
     await iframe.getAttribute("data-x"),
     await iframe.getAttribute("data-y"),
   ];
+  const clock = await freezeGameClock();
   let position = start;
   for (const key of ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]) {
-    await page.keyboard.press(key, { delay: 350 });
-    await page.waitForTimeout(250);
+    await page.keyboard.down(key);
+    await clock.runFor(350);
+    await page.keyboard.up(key);
+    await clock.runFor(250);
     position = [
       await iframe.getAttribute("data-x"),
       await iframe.getAttribute("data-y"),
     ];
     if (position.join() !== start.join()) break;
   }
+  await clock.resume();
   expect(position).not.toEqual(start);
   expect(await page.evaluate(() => scrollY)).toBe(scroll);
   await expectColor(frame.locator(".DemoFrame"), "rgb(0, 255, 0)");
@@ -343,14 +354,7 @@ test("Escape closes a real dialog before releasing demo focus", async ({
   await iframe.focus();
   await expect(scene).toHaveClass(/active/);
   const frame = await (await iframe.elementHandle()).contentFrame();
-  for (
-    let attempt = 0;
-    attempt < 3 && (await frame.locator(".PopupClose").count());
-    attempt++
-  ) {
-    await page.keyboard.press("Escape");
-    await page.waitForTimeout(150);
-  }
+  await page.keyboard.press("Escape");
   await expect(frame.locator(".PopupClose")).toHaveCount(0);
   await expect(scene).toHaveClass(/active/);
   await page.keyboard.press("Escape");
@@ -362,9 +366,7 @@ test("feature previews do not write game saves when paused", async ({
 }) => {
   await page.goto("/game-design/controls/keyboard-mouse.html");
   const preview = page.locator("[data-scene=movement]");
-  await preview.scrollIntoViewIfNeeded();
-  const iframe = preview.locator("iframe");
-  await expect(iframe).toHaveAttribute("data-x", /\d+/);
+  const iframe = await readyFrame(preview);
   const frame = await (await iframe.elementHandle()).contentFrame();
   await expect(frame.locator(".Paused")).toHaveCount(0);
   await frame.evaluate(() =>
@@ -373,7 +375,6 @@ test("feature previews do not write game saves when paused", async ({
   await expect(frame.locator(".Paused")).toHaveCount(1);
   // Feature scenes hide the pause overlay, but its callbacks stay isolated too.
   await frame.locator("#pause-save").evaluate((button) => button.click());
-  await page.waitForTimeout(300);
   expect(
     await page.evaluate(async () =>
       (await indexedDB.databases()).map((database) => database.name)
@@ -692,6 +693,7 @@ test("index exposes the text callout, complete palette and ordered font atlas", 
 
 test("Play starts with the game and loads presets with optional Test Mode", async ({
   page,
+  freezeGameClock,
 }) => {
   await page.goto("/intro/play.html");
   await expect(page.locator("main h1")).toHaveCount(0);
@@ -722,9 +724,11 @@ test("Play starts with the game and loads presets with optional Test Mode", asyn
   await expect(frame.locator("canvas")).toBeVisible();
   await iframe.focus();
   const before = await page.evaluate(() => scrollY);
+  const clock = await freezeGameClock();
   await page.keyboard.down("ArrowDown");
-  await page.waitForTimeout(550);
+  await clock.runFor(550);
   await page.keyboard.up("ArrowDown");
+  await clock.resume();
   expect(await page.evaluate(() => scrollY)).toBe(before);
   await expect(frame.locator("canvas")).toBeVisible();
   await page

@@ -22,6 +22,8 @@ Production assets use `/alive/wiki/`. `scripts/wiki/routes.mjs` copies CRA's gen
 
 `wiki:test` serves the production build using the standard `serve` package and then checks live Markdown updates with CRA. `WIKI_PORT` selects the production test port; the reload test uses the next port. The test servers run sequentially and do not reuse other workspaces' servers.
 
+Browser tests use the shared fixtures in `scripts/wiki/tests/fixtures.cjs`. For standalone feature scenes, call `playPreview(page)` after navigation to wait for the scene's ready message. For timed input, request `freezeGameClock`, call `const clock = await freezeGameClock()` when the scene is ready, then use `await clock.runFor(milliseconds)` between press, observation and release. This drives the real renderer's animation frames and timers. For asynchronous loading or single actions, wait for the resulting UI state. Lint rejects fixed wall-clock sleeps in browser tests.
+
 | Markdown                   | Result                                  |
 | -------------------------- | --------------------------------------- |
 | `scene` fence              | Isolated game-engine preview            |

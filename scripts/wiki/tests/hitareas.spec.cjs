@@ -1,4 +1,4 @@
-const { test, expect } = require("./fixtures.cjs");
+const { test, expect, playPreview } = require("./fixtures.cjs");
 
 // Project native particle centers independently of the DOM hit areas.
 const nativePoint = (page, sequence, key) =>
@@ -12,13 +12,14 @@ const nativePoint = (page, sequence, key) =>
       while (fiber && !fiber.memoizedProps?.value?.ecs) fiber = fiber.return;
       const world = fiber.memoizedProps.value.ecs;
       const hero = world.getEntities(["PLAYER"])[0];
-      const owner = world.assertById(
+      const owner = world.getEntityById(
         sequence === "interact"
           ? world.metadata.interact.active
           : hero.PLAYER.popup
       );
-      const state = owner.SEQUENCABLE.states[sequence];
-      const particle = world.assertById(state.particles[key]);
+      const state = owner?.SEQUENCABLE.states[sequence];
+      const particle = state && world.getEntityById(state.particles[key]);
+      if (!particle) return null;
       const camera = world
         .getEntities(["VIEWABLE", "POSITION"])
         .filter((entity) => entity.VIEWABLE.active)
@@ -77,14 +78,20 @@ const open = async (page, scene) => {
   await page.goto("about:blank");
   await page.goto(`/preview.html?test#${scene}`);
   await expect(page.locator("canvas")).toBeVisible();
-  await page.evaluate(() => {
-    window.postMessage({ type: "play" }, location.origin);
-    window.dispatchEvent(new Event("focus"));
-  });
-  await page.waitForTimeout(1400);
+  await playPreview(page);
+  await page.locator(scene === "crafting" ? ".Interact" : "#content").waitFor();
+  if (scene === "sprites") await waitForParticle(page, "popup", "popup-next-3");
+};
+const waitForParticle = async (page, sequence, key) => {
+  let point;
+  await expect.poll(async () => {
+    point = await nativePoint(page, sequence, key);
+    return !!point;
+  }).toBe(true);
+  return point;
 };
 const clickParticle = async (page, sequence, key) => {
-  const point = await nativePoint(page, sequence, key);
+  const point = await waitForParticle(page, sequence, key);
   await page.mouse.click(point.x, point.y);
   return point;
 };
@@ -98,7 +105,6 @@ for (const width of [414, 390]) {
     await expect(page.locator(".Interact")).toBeVisible();
     await clickParticle(page, "interact", "cell-3");
     await expect.poll(async () => (await popupState(page)).tab).toBe("craft");
-    await page.waitForTimeout(1100);
     await clickParticle(page, "popup", "popup-close-1");
     await expect.poll(async () => (await popupState(page)).tab).toBeUndefined();
   });
@@ -110,7 +116,6 @@ for (const width of [414, 390]) {
     await open(page, "sprites");
     await clickParticle(page, "popup", "popup-next-3");
     await expect.poll(async () => (await popupState(page)).tab).toBe("sprite");
-    await page.waitForTimeout(1100);
     await clickParticle(page, "popup", "popup-next-3");
     await expect.poll(async () => (await popupState(page)).moving).toBe(true);
     await clickParticle(page, "popup", "popup-prev-3");
@@ -158,8 +163,7 @@ for (const width of [414, 390]) {
     expect(block.char).toBe("█");
     await page.mouse.click(block.x + block.cellWidth / 2 - 1, block.y);
     await expect.poll(async () => (await popupState(page)).tab).toBe("sprite");
-    await page.waitForTimeout(1100);
-    expect((await popupState(page)).layers.at(-1).char).toBe("█");
+    await expect.poll(async () => (await popupState(page)).layers.at(-1).char).toBe("█");
   });
 }
 
@@ -214,6 +218,7 @@ for (const viewport of [
 
     test("a dialog without a visible scrollbar has no scrolling hit areas", async ({
       page,
+      freezeGameClock,
     }, testInfo) => {
       await page.addInitScript(() =>
         localStorage.setItem(
@@ -228,12 +233,13 @@ for (const viewport of [
       await open(page, "sprites");
       await expect(page.locator("#content")).toBeVisible();
       await expect(page.locator("#scroll")).toHaveCount(0);
+      const clock = await freezeGameClock();
       const before = await popupState(page);
       for (const key of ["popup-right-1", "popup-right-6"]) {
         const point = await nativePoint(page, "popup", key);
         if (viewport.touch) await page.touchscreen.tap(point.x, point.y);
         else await page.mouse.click(point.x, point.y);
-        await page.waitForTimeout(250);
+        await clock.runFor(250);
         expect(await popupState(page)).toMatchObject({
           row: before.row,
           tab: before.tab,
@@ -318,6 +324,7 @@ for (const viewport of [
     ]) {
       test(`holding the ${direction} triangle steps through rows and stops on release`, async ({
         page,
+        freezeGameClock,
       }, testInfo) => {
         await openList(page);
         const track = await page.locator("#scroll").boundingBox();
@@ -338,6 +345,7 @@ for (const viewport of [
           "popup",
           `popup-right-${direction === "up" ? 0 : rows - 1}`
         );
+        const clock = await freezeGameClock();
         let client;
         if (viewport.touch) {
           client = await page.context().newCDPSession(page);
@@ -349,20 +357,19 @@ for (const viewport of [
           await page.mouse.move(point.x, point.y);
           await page.mouse.down();
         }
-        await expect
-          .poll(async () => delta * ((await popupState(page)).row - start))
-          .toBeGreaterThanOrEqual(2);
+        await clock.runFor(700);
+        expect(delta * ((await popupState(page)).row - start)).toBeGreaterThanOrEqual(2);
         if (viewport.touch)
           await client.send("Input.dispatchTouchEvent", {
             type: "touchEnd",
             touchPoints: [],
           });
         else await page.mouse.up();
-        await page.waitForTimeout(250);
+        await clock.runFor(250);
         const stopped = await popupState(page);
         expect(stopped.row).toBeGreaterThan(0);
         expect(stopped.row).toBeLessThan(maximum);
-        await page.waitForTimeout(350);
+        await clock.runFor(350);
         expect(await popupState(page)).toMatchObject({
           row: stopped.row,
           tab: "pack",
@@ -375,6 +382,7 @@ for (const viewport of [
 
     test("scrollbar taps and captured drags follow the content percentage", async ({
       page,
+      freezeGameClock,
     }, testInfo) => {
       await openList(page);
       const track = await page.locator("#scroll").boundingBox();
@@ -422,7 +430,8 @@ for (const viewport of [
           touchPoints: [],
         });
       else await page.mouse.up();
-      await page.waitForTimeout(250);
+      const clock = await freezeGameClock();
+      await clock.runFor(250);
       expect(await popupState(page)).toMatchObject({ row: 0, tab: "pack" });
       await page.screenshot({
         path: testInfo.outputPath("scrollbar-top-released.png"),
@@ -431,6 +440,7 @@ for (const viewport of [
 
     test("scrollbar gestures cannot jump rows, confirm rows or change tabs on release", async ({
       page,
+      freezeGameClock,
     }, testInfo) => {
       await openList(page);
       const point = await nativePoint(page, "popup", "popup-right-6");
@@ -459,6 +469,7 @@ for (const viewport of [
           { capture: true, once: true }
         );
       });
+      const clock = await freezeGameClock();
       let client;
       if (viewport.touch) {
         client = await page.context().newCDPSession(page);
@@ -470,9 +481,8 @@ for (const viewport of [
         await page.mouse.move(point.x, point.y);
         await page.mouse.down();
       }
-      await expect
-        .poll(async () => (await popupState(page)).row)
-        .toBeGreaterThanOrEqual(3);
+      await clock.runFor(700);
+      expect((await popupState(page)).row).toBeGreaterThanOrEqual(3);
       const held = await popupState(page);
       if (viewport.touch) {
         await client.send("Input.dispatchTouchEvent", {
@@ -487,14 +497,14 @@ for (const viewport of [
         await page.mouse.move(end.x, end.y);
         await page.mouse.up();
       }
-      await page.waitForTimeout(300);
+      await clock.runFor(300);
       const atRelease = await page.evaluate(() => window.popupAtRelease);
       const released = await popupState(page);
       expect(released.tab).toBe(held.tab);
       expect(released.tab).toBe(atRelease.tab);
       expect(released.row).toBeGreaterThanOrEqual(atRelease.row);
       expect(released.row).toBeLessThanOrEqual(atRelease.row + 1);
-      await page.waitForTimeout(250);
+      await clock.runFor(250);
       expect(await popupState(page)).toMatchObject({
         row: released.row,
         tab: released.tab,
@@ -506,11 +516,12 @@ for (const viewport of [
       };
       if (viewport.touch) await page.touchscreen.tap(center.x, center.y);
       else await page.mouse.click(center.x, center.y);
-      await page.waitForTimeout(250);
+      await clock.runFor(250);
       expect((await popupState(page)).tab).toBe(held.tab);
       await page.screenshot({
         path: testInfo.outputPath("scrollbar-release.png"),
       });
+      await clock.resume();
       const beforeTap = await popupState(page);
       const row = await nativePoint(page, "popup", "popup-content-0-3");
       if (viewport.touch) await page.touchscreen.tap(row.x, row.y);

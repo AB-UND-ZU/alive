@@ -1,0 +1,13 @@
+{
+  "root": true,
+  "parserOptions": { "ecmaVersion": "latest" },
+  "rules": {
+    "no-restricted-properties": [
+      "error",
+      {
+        "property": "waitForTimeout",
+        "message": "Wait for readiness or an observable outcome. Use freezeGameClock and runFor for timed game input."
+      }
+    ]
+  }
+}

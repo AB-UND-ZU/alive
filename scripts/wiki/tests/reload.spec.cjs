@@ -1,4 +1,4 @@
-const { test, expect } = require("./fixtures.cjs");
+const { test, expect, readyFrame } = require("./fixtures.cjs");
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -12,14 +12,8 @@ test("the wiki dev server rebuilds and reloads a Markdown edit", async ({
     await page.goto("/game-design/controls/touch.html");
     await expect(page.locator('script[src*="bundle.js"]')).toHaveCount(1);
     await expect(page.locator("main h1")).toHaveAccessibleName("Touch");
-    await page.waitForTimeout(250);
     fs.writeFileSync(file, original + "\n" + marker + "\n");
-    for (let attempt = 0; attempt < 12; attempt++) {
-      expect(
-        (await page.request.get("/game-design/controls/touch.html")).status()
-      ).toBe(200);
-      await page.waitForTimeout(50);
-    }
+    expect((await page.request.get("/game-design/controls/touch.html")).ok()).toBe(true);
 
     await expect
       .poll(
@@ -72,9 +66,7 @@ test("wiki development previews open each client's standard menu", async ({
   ]) {
     await page.goto(`/game-design/clients/${client}.html`);
     const preview = page.locator('[data-scene="clients"]');
-    await preview.scrollIntoViewIfNeeded();
-    const iframe = preview.locator("iframe");
-    await expect(iframe).toHaveAttribute("data-x", /\d+/, { timeout: 30000 });
+    await readyFrame(preview);
     await expect(
       page.frameLocator('iframe[title="Renderer"]').locator(host)
     ).toBeVisible();

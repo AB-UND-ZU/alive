@@ -44,7 +44,7 @@
     "test:generation": "CI=true react-scripts test --watchAll=false --testPathPattern='\\.generation\\.test\\.'",
     "test:ci": "CI=true react-scripts test --watchAll=false --coverage",
     "typecheck": "tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/tsbuildinfo",
-    "lint": "eslint src --max-warnings=0 --cache --cache-location node_modules/.cache/eslint/",
+    "lint": "eslint src \"scripts/wiki/tests/*.cjs\" --max-warnings=0 --cache --cache-location node_modules/.cache/eslint/",
     "check:fast": "npm run --silent typecheck && npm run --silent lint && npm run --silent test:fast",
     "eject": "react-scripts eject",
     "prepare": "git config core.hooksPath .githooks || true",

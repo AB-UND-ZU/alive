@@ -1,13 +1,11 @@
-const { test, expect } = require("./fixtures.cjs");
+const { test, expect, readyFrame } = require("./fixtures.cjs");
 
 test("touch frame edge keeps its appearance when the footer changes orientation", async ({
   page,
 }) => {
   await page.goto("/game-design/controls/touch.html");
   const preview = page.locator('[data-scene="touch"]');
-  await preview.scrollIntoViewIfNeeded();
-  const iframe = preview.locator("iframe");
-  await expect(iframe).toHaveAttribute("data-x", /\d+/);
+  const iframe = await readyFrame(preview);
   const frame = await (await iframe.elementHandle()).contentFrame();
   await iframe.click({ position: { x: 300, y: 250 } });
   const edge = frame.locator(".DemoFrame > .Row").last();
@@ -31,9 +29,7 @@ test("light lever preserves the running frame while removing circular shadows", 
 }) => {
   await page.goto("/game-design/rendering/light.html");
   const preview = page.locator('[data-scene="light"]');
-  await preview.scrollIntoViewIfNeeded();
-  const iframe = preview.locator("iframe");
-  await expect(iframe).toHaveAttribute("data-x", /\d+/);
+  const iframe = await readyFrame(preview);
   const original = await iframe.getAttribute("src");
   const frame = await (await iframe.elementHandle()).contentFrame();
   const lever = page.getByRole("button", { name: "Shadows", exact: true });

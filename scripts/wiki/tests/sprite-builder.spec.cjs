@@ -3,6 +3,7 @@ const { test, expect } = require("./fixtures.cjs");
 for (const width of [1214, 390]) {
   test(`sprite editor uses native tabs, character clicks and draft cancellation at ${width}px`, async ({
     page,
+    freezeGameClock,
   }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/game-design/rendering/sprites.html");
@@ -15,16 +16,22 @@ for (const width of [1214, 390]) {
     await expect(code).toContainText("colors.maroon");
     const frame = await (await iframe.elementHandle()).contentFrame();
     await expect(frame.locator("#content")).toHaveAttribute("data-rows", "9");
+    const editLayer = async () => {
+      const clock = await freezeGameClock();
+      await frame.locator("#right").click();
+      await clock.runFor(250);
+      await frame.locator("#right").click();
+      await clock.runFor(250);
+      await clock.resume();
+    };
     await frame.locator("#right").click();
     await expect(iframe).toHaveAttribute("data-dialog", "sprite");
-    await frame.locator("#right").click();
-    await frame.locator("#right").click({ delay: 250 });
+    await editLayer();
     await expect(iframe).toHaveAttribute("data-dialog", "layer");
     await frame.locator(".Terminal").click({ position: { x: 4, y: 4 } });
     await page.keyboard.press("Escape");
     await expect(iframe).toHaveAttribute("data-dialog", "sprite");
-    await frame.locator("#right").click();
-    await frame.locator("#right").click({ delay: 250 });
+    await editLayer();
     await expect(iframe).toHaveAttribute("data-dialog", "layer");
     const content = await frame.locator("#content").boundingBox();
     await frame.locator("#content").click({
