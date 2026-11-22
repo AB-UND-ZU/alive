@@ -13,15 +13,15 @@ test("Clients lists renderer features and keeps the old ThreeJS route", async ({
       .evaluateAll((links) =>
         links.map((link) => link.getAttribute("aria-label"))
       )
-  ).toEqual(["Renderers", "ThreeJS", "HTML", "Terminal"]);
+  ).toEqual(["Renderers", "Excalibur", "ThreeJS", "HTML", "Terminal"]);
   await expect(
     page.getByRole("rowheader", { name: "Lighting", exact: true })
   ).toBeVisible();
   await expect(
     page.getByRole("rowheader", { name: "Example", exact: true })
   ).toHaveCount(1);
-  await expect(page.locator('[data-scene="comparison"]')).toHaveCount(3);
-  for (const renderer of ["three-js", "html", "terminal"]) {
+  await expect(page.locator('[data-scene="comparison"]')).toHaveCount(4);
+  for (const renderer of ["excalibur", "three-js", "html", "terminal"]) {
     const preview = page.locator(
       `[data-scene="comparison"][data-renderer="${renderer}"]`
     );
@@ -53,13 +53,24 @@ test("Clients lists renderer features and keeps the old ThreeJS route", async ({
     "data-scene",
     "clients"
   );
-  await expect(page.locator("main")).toContainText("default browser client");
+  await expect(page.locator("main")).toContainText("draws the world with WebGL");
   await page.goto("/development/wiki/preview.html");
   await expect(page.locator("main h1")).toHaveAccessibleName("Game Frame");
 });
 
+test("wiki preview aliases route the requested renderer to its isolated bundle", async ({
+  page,
+}) => {
+  await page.goto("/wiki/preview.html?renderer=three-js&test#movement");
+  await expect(page).toHaveURL(/\/three-js\/preview\.html\?test=?#movement$/);
+  await expect(page.locator("canvas[data-engine^=three]")).toBeVisible();
+  await page.goto("/wiki/preview.html#clients/excalibur");
+  await expect(page).toHaveURL(/\/\?preview=?$/);
+  await expect(page.locator(".ExcaliburRenderer canvas")).toBeVisible();
+});
+
 for (const width of [1440, 390]) {
-  for (const client of ["three-js", "html", "terminal"]) {
+  for (const client of ["excalibur", "three-js", "html", "terminal"]) {
     test(`${client} runs a real client preview at ${width}px`, async ({
       page,
     }) => {
@@ -76,7 +87,7 @@ for (const width of [1440, 390]) {
       const iframe = preview.locator("iframe");
       await expect(iframe).toBeVisible();
       await expect(preview).toHaveAttribute("data-renderer", client);
-      const clientPath = client === "three-js" ? "/" : `/${client}/`;
+      const clientPath = client === "excalibur" ? "/" : `/${client}/`;
       await expect(iframe).toHaveAttribute(
         "src",
         new URL(`${clientPath}?preview`, page.url()).href
@@ -85,7 +96,9 @@ for (const width of [1440, 390]) {
         page.getByRole("link", {
           name: new RegExp(
             `^Play ${
-              client === "three-js"
+              client === "excalibur"
+                ? "Excalibur"
+                : client === "three-js"
                 ? "ThreeJS"
                 : client === "html"
                 ? "HTML"

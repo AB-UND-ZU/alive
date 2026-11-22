@@ -8,7 +8,7 @@
 ## RendererName
 
 ```ts src/renderers/interface/types.ts
-export type RendererName = "three-js" | "html" | "terminal";
+export type RendererName = "excalibur" | "three-js" | "html" | "terminal";
 ```
 
 ## RendererProps

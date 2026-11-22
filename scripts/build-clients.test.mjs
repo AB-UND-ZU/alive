@@ -7,7 +7,12 @@ import { clientBuilds, verifyClientBundle } from "./build-clients.mjs";
 
 test("each client keeps its own Pages URL and asset output", () => {
   assert.deepEqual(clientBuilds("build", "/alive/"), [
-    { renderer: "three-js", output: "build", publicUrl: "/alive" },
+    { renderer: "excalibur", output: "build", publicUrl: "/alive" },
+    {
+      renderer: "three-js",
+      output: "build/three-js",
+      publicUrl: "/alive/three-js",
+    },
     { renderer: "html", output: "build/html", publicUrl: "/alive/html" },
     {
       renderer: "terminal",
@@ -21,7 +26,7 @@ test("each client keeps its own Pages URL and asset output", () => {
   assert.throws(() => clientBuilds("build", "/alive", "unknown"));
 });
 
-test("emitted client bundles reject other renderers and ThreeJS runtime dependencies", async () => {
+test("emitted client bundles reject other renderers and engine dependencies", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "alive-client-bundle-"));
   const assets = path.join(directory, "static/js");
   await mkdir(assets, { recursive: true });
@@ -43,6 +48,13 @@ test("emitted client bundles reject other renderers and ThreeJS runtime dependen
     await assert.rejects(
       verifyClientBundle(directory, "html"),
       /ThreeJS dependencies/
+    );
+    sources.pop();
+    sources.push("../node_modules/excalibur/build/dist/excalibur.js");
+    await write();
+    await assert.rejects(
+      verifyClientBundle(directory, "html"),
+      /Excalibur dependencies/
     );
     sources.pop();
     sources.pop();
@@ -67,21 +79,21 @@ test("local directory entries serve clients without hiding missing script files"
     handler(request, response, { ...config, public: root })
   );
   try {
-    for (const folder of ["", "html", "terminal", "wiki"]) {
+    for (const folder of ["", "three-js", "html", "terminal", "wiki"]) {
       await mkdir(path.join(root, folder), { recursive: true });
       await writeFile(
         path.join(root, folder, "index.html"),
-        folder || "three-js"
+        folder || "excalibur"
       );
     }
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const base = `http://127.0.0.1:${server.address().port}`;
-    for (const folder of ["", "html", "terminal", "wiki"]) {
+    for (const folder of ["", "three-js", "html", "terminal", "wiki"]) {
       const response = await fetch(
         `${base}/${folder}${folder ? "/" : ""}?preview`
       );
       assert.equal(response.status, 200);
-      assert.equal(await response.text(), folder || "three-js");
+      assert.equal(await response.text(), folder || "excalibur");
     }
     assert.equal(
       (await fetch(`${base}/html/static/js/missing.js`)).status,

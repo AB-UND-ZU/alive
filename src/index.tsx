@@ -8,25 +8,22 @@ __webpack_public_path__ =
 const path = window.location.pathname;
 const query = new URLSearchParams(window.location.search);
 const clientBase = (process.env.PUBLIC_URL || "").replace(/\/$/, "") + "/";
+const localPath = path.startsWith(clientBase)
+  ? path.slice(clientBase.length)
+  : path.slice(1);
+const localEntry = localPath.replace(/^(three-js|html|terminal)(\/|$)/, "");
 const featurePreview =
   path === clientBase + "preview.html" ||
-  (process.env.NODE_ENV === "development" &&
-    ["/preview.html", "/html/preview.html", "/terminal/preview.html"].includes(
-      path
-    ));
+  (process.env.NODE_ENV === "development" && localEntry === "preview.html");
 const interfacePreview =
   path === clientBase + "interface-preview.html" ||
   (process.env.NODE_ENV === "development" &&
-    path === "/interface-preview.html");
+    localEntry === "interface-preview.html");
 const developmentClient =
   interfacePreview ||
   featurePreview ||
   query.has("preview") ||
-  ["/html", "/html/", "/terminal", "/terminal/"].some(
-    (prefix) =>
-      path === prefix ||
-      path.startsWith(prefix + (prefix.endsWith("/") ? "" : "/"))
-  );
+  localPath !== localEntry;
 
 if (
   process.env.REACT_APP_WIKI === "true" &&

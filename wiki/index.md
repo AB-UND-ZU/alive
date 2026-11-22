@@ -1,6 +1,6 @@
 # ALIVE
 
-ASCII-based 2D adventure game. Using React and Three.js (with react-three-fiber).
+ASCII-based 2D adventure game.
 
 ```widget
 text-callout

@@ -10,10 +10,10 @@ import { assertHero, step } from "../../testing/harness";
 import { MOVABLE } from "../../engine/components/movable";
 import { POSITION } from "../../engine/components/position";
 
-// WebGL is not available in jsdom, the scene is covered by Systems tests
-jest.mock("@react-three/fiber", () => ({
-  ...jest.requireActual("@react-three/fiber"),
-  Canvas: () => null,
+// The browser renderer runs in a real canvas in the client integration tests.
+jest.mock("../../renderers/browser", () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
 // capture the world created by the World component through its context

@@ -17,7 +17,7 @@ export function GamePreview({
   preset,
   testMode = name !== "clients",
   variant,
-  renderer = "three-js",
+  renderer = "excalibur",
 }: {
   name: SceneName;
   base: string;
@@ -51,7 +51,7 @@ export function GamePreview({
   const height = sceneLayout(name).height;
   const [width, setWidth] = useState(compact ? 198 : wide ? 576 : 414);
   const clientBase = new URL(
-    renderer === "three-js" ? "../" : `../${renderer}/`,
+    renderer === "excalibur" ? "../" : `../${renderer}/`,
     new URL(base, window.location.href)
   ).href;
   const source =

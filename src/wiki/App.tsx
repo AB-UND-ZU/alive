@@ -1,4 +1,5 @@
 import { getWikiUnitSprite, getWikiUnitName, displayName } from "./catalog";
+import type { RendererName } from "../renderers/interface/types";
 import { PresetName } from "./presets";
 import { muteAudio, setAudioActive } from "../game/sound/resumable";
 import { underlineImage } from "./underline";
@@ -913,10 +914,7 @@ function Markdown({
             }
             renderer={
               token.text!.trim().split("/")[0] === "clients"
-                ? (token.text!.trim().split("/")[1] as
-                    | "three-js"
-                    | "html"
-                    | "terminal")
+                ? (token.text!.trim().split("/")[1] as RendererName)
                 : undefined
             }
             testMode={

@@ -1,9 +1,8 @@
 const { test, expect } = require("./fixtures.cjs");
 
 const openScene = async (page, renderer, scene) => {
-  await page.goto(
-    `${renderer === "html" ? "/html" : ""}/preview.html?test#${scene}`
-  );
+  const base = renderer === "excalibur" ? "/" : `/${renderer}/`;
+  await page.goto(`${base}preview.html?test#${scene}`);
   await expect(
     page.locator(renderer === "html" ? ".HtmlRenderer" : "canvas")
   ).toBeVisible();
@@ -20,7 +19,7 @@ const openScene = async (page, renderer, scene) => {
   });
 };
 
-for (const renderer of ["three-js", "html"]) {
+for (const renderer of ["excalibur", "three-js", "html"]) {
   test(`${renderer} keeps momentum through an opened building door after key release`, async ({
     page,
   }) => {
@@ -96,4 +95,67 @@ test("HTML shows a viewpoint earthquake without hero damage and settles afterwar
       ).reduce((sum, value) => sum + value, 0)
     )
   ).toBe(0);
+});
+
+test("Excalibur advances the world in fixed turns and freezes its motion samples on pause", async ({
+  page,
+}) => {
+  await openScene(page, "excalibur", "clients");
+  const sample = () =>
+    page.evaluate(() => {
+      const { elapsed, renderTime } = window.rendererWorld.metadata;
+      return [elapsed, renderTime];
+    });
+  await page.evaluate(() => {
+    const world = window.rendererWorld;
+    const update = world.update;
+    window.turnDurations = [];
+    world.update = (delta) => {
+      window.turnDurations.push(delta);
+      update(delta);
+    };
+  });
+  await expect
+    .poll(() => page.evaluate(() => window.turnDurations.length))
+    .toBeGreaterThan(3);
+  expect(await page.evaluate(() => [...new Set(window.turnDurations)])).toEqual(
+    [1000 / 30]
+  );
+  await page.evaluate(() =>
+    window.postMessage({ type: "pause" }, location.origin)
+  );
+  await expect(page.locator("#resume")).toBeAttached();
+  const paused = await sample();
+  await page.waitForTimeout(250);
+  expect(await sample()).toEqual(paused);
+  await page.evaluate(() =>
+    window.postMessage({ type: "play" }, location.origin)
+  );
+  await expect.poll(async () => (await sample())[0]).toBeGreaterThan(paused[0]);
+  const [elapsed, renderTime] = await sample();
+  expect(renderTime).toBeGreaterThanOrEqual(elapsed);
+  expect(renderTime - elapsed).toBeLessThan(1000 / 30);
+});
+
+test("Excalibur keeps processing turns after a slow browser frame", async ({
+  page,
+}) => {
+  await openScene(page, "excalibur", "structures");
+  await page.waitForFunction(() => window.rendererWorld.metadata.elapsed > 300);
+  const advanced = await page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          const world = window.rendererWorld;
+          const before = world.metadata.elapsed;
+          const until = performance.now() + 260;
+          while (performance.now() < until) {
+            // Simulate a long layout or garbage collection in the browser.
+          }
+          requestAnimationFrame(() => resolve(world.metadata.elapsed - before));
+        });
+      })
+  );
+  expect(advanced).toBeGreaterThanOrEqual(200);
+  expect(advanced).toBeLessThanOrEqual(501);
 });

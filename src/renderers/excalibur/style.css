@@ -1,0 +1,13 @@
+.ExcaliburRenderer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: black;
+}
+
+.ExcaliburRenderer canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  outline: 0;
+}

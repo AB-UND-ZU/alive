@@ -7,25 +7,27 @@ const routes = new Set([
   ),
 ]);
 
+const wikiRoot = process.env.WIKI_TEST_DEV === "true" ? "" : "/wiki";
+
 const test = base.extend({
   page: async ({ page, baseURL }, use) => {
     const goto = page.goto.bind(page);
     page.goto = async (...args) => {
       const target = new URL(args[0], baseURL);
       if (
-        process.env.WIKI_TEST_DEV !== "true" &&
+        wikiRoot &&
         target.origin === new URL(baseURL).origin &&
         routes.has(target.pathname)
       ) {
-        target.pathname = "/wiki" + target.pathname;
+        target.pathname = wikiRoot + target.pathname;
         args[0] = target.href;
       }
       const response = await goto(...args);
-      const pathname = new URL(page.url()).pathname.replace(
-        /^\/wiki(?=\/)/,
-        ""
-      );
-      if (routes.has(pathname))
+      const pathname = new URL(page.url()).pathname;
+      if (
+        pathname.startsWith(wikiRoot + "/") &&
+        routes.has(pathname.slice(wikiRoot.length))
+      )
         await expect(page.locator("main")).toHaveAttribute(
           "aria-busy",
           "false",

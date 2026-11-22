@@ -1,6 +1,6 @@
 # Sprites
 
-A sprite is an ordered stack of colored characters. Facing replaces those layers for an orientation. Items can add quantity dots. HTML and Three.js use the same font and palette of [[data:16]] colors.
+A sprite is an ordered stack of colored characters. Facing replaces those layers for an orientation. Items can add quantity dots. Excalibur, HTML and Three.js use the same font and palette of [[data:16]] colors.
 
 ```widget
 sprite-layers

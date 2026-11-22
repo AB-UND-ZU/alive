@@ -73,7 +73,7 @@ test("prose uses continuous text and copies without letter breaks", async ({
   await page.goto("/index.html");
   const prose = page.locator("main > p").first();
   const expected =
-    "ASCII-based 2D adventure game. Using React and Three.js (with react-three-fiber).";
+    "ASCII-based 2D adventure game.";
   await expect(prose).toHaveText(expected);
   expect(await prose.locator("*").count()).toBeLessThan(12);
   await expect(prose.locator(".Row, .Cell, svg")).toHaveCount(0);

@@ -5,7 +5,7 @@ import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 
 const require = createRequire(import.meta.url);
-export const renderers = ["three-js", "html", "terminal"];
+export const renderers = ["excalibur", "three-js", "html", "terminal"];
 
 export const clientBuilds = (output, publicUrl, renderer) => {
   if (renderer && !renderers.includes(renderer))
@@ -14,7 +14,7 @@ export const clientBuilds = (output, publicUrl, renderer) => {
   return renderers
     .filter((name) => !renderer || name === renderer)
     .map((name) => {
-      const folder = name === "three-js" ? "" : name;
+      const folder = name === "excalibur" ? "" : name;
       return {
         renderer: name,
         output: path.join(output, folder),
@@ -57,6 +57,11 @@ export const verifyClientBundle = async (output, renderer) => {
     )
   )
     throw new Error(`${renderer} build includes ThreeJS dependencies`);
+  if (
+    renderer !== "excalibur" &&
+    sources.some((source) => /(^|\/)node_modules\/excalibur\//.test(source))
+  )
+    throw new Error(`${renderer} build includes Excalibur dependencies`);
 };
 
 export const buildClients = async () => {
@@ -64,7 +69,7 @@ export const buildClients = async () => {
   const renderer = args[args.indexOf("--renderer") + 1];
   const selected = args.includes("--renderer") ? renderer : undefined;
   if (args.includes("--renderer") && !renderer)
-    throw new Error("--renderer needs three-js, html or terminal");
+    throw new Error("--renderer needs excalibur, three-js, html or terminal");
   const { homepage } = JSON.parse(await readFile("package.json", "utf8"));
   const builds = clientBuilds(
     process.env.BUILD_PATH || "build",

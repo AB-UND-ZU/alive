@@ -85,16 +85,33 @@ export type SceneSprite = {
 
 export type SceneState = { stickyCastables: Record<number, Position> };
 
+const snapMotion = (value: number, pixels?: number) =>
+  pixels ? Math.round(value * pixels) / pixels : value;
+
 export const getSceneFrame = (
   world: World,
   columns: number,
   rows: number,
   state: SceneState = { stickyCastables: {} },
   {
+    onLight,
+    pixelsPerCell,
     includeHidden = false,
     instant = false,
     fogCells = false,
-  }: { includeHidden?: boolean; instant?: boolean; fogCells?: boolean } = {}
+  }: {
+    pixelsPerCell?: Position;
+    includeHidden?: boolean;
+    instant?: boolean;
+    fogCells?: boolean;
+    onLight?: (
+      entity: Entity,
+      x: number,
+      y: number,
+      inside: boolean,
+      key: string
+    ) => void;
+  } = {}
 ): SceneSprite[] => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const hero = world.getEntities([PLAYER, POSITION])[0];
@@ -124,7 +141,14 @@ export const getSceneFrame = (
         size +
       (viewable?.[VIEWABLE].fraction?.y || 0),
   };
-  const camera = !instant && cameraMotion ? sampledCamera : targetCamera;
+  const point = !instant && cameraMotion ? sampledCamera : targetCamera;
+  // Move the whole grid together so adjoining tiles share their edges.
+  const camera = pixelsPerCell
+    ? {
+        x: snapMotion(point.x, pixelsPerCell.x),
+        y: snapMotion(point.y, pixelsPerCell.y),
+      }
+    : point;
   const structure = hero?.[LAYER]?.structure;
   const scene: SceneSprite[] = [];
   if (fogCells) {
@@ -202,8 +226,8 @@ export const getSceneFrame = (
     let movingFacing: Orientation | undefined;
     if (motion) {
       const point = sampleMotion(motion, world.metadata.renderTime);
-      px += point.x - motion.x;
-      py += point.y - motion.y;
+      px += snapMotion(point.x - motion.x, pixelsPerCell?.x);
+      py += snapMotion(point.y - motion.y, pixelsPerCell?.y);
       if (entity[HOMING]) {
         const dx = motion.x - point.x;
         const dy = motion.y - point.y;
@@ -221,8 +245,8 @@ export const getSceneFrame = (
     const bump = animated && getBumpMotion(entity);
     if (bump) {
       const point = sampleMotion(bump, world.metadata.renderTime);
-      px += point.x;
-      py += point.y;
+      px += snapMotion(point.x, pixelsPerCell?.x);
+      py += snapMotion(point.y, pixelsPerCell?.y);
     }
     const origin = motion || entity[POSITION];
     const copyX = entity[STICKY]
@@ -235,6 +259,9 @@ export const getSceneFrame = (
       : Math.round(
           (y - camera.y - signedDistance(camera.y, origin.y, size)) / size
         );
+    if (onLight && (opaque || (entity[LIGHT]?.brightness || 0) > 0)) {
+      onLight(entity, px, py, inside, `${id}:${copyX}:${copyY}`);
+    }
     const add = (
       sprite: Sprite,
       key: string,
@@ -388,8 +415,8 @@ export const getSceneFrame = (
         particle[SPRITE],
         `particle${index}`,
         particle[PARTICLE].offsetZ,
-        particle[PARTICLE].offsetX + (motion ? point.x - motion.x : 0),
-        particle[PARTICLE].offsetY + (motion ? point.y - motion.y : 0),
+        particle[PARTICLE].offsetX + (motion ? snapMotion(point.x - motion.x, pixelsPerCell?.x) : 0),
+        particle[PARTICLE].offsetY + (motion ? snapMotion(point.y - motion.y, pixelsPerCell?.y) : 0),
         particle[PARTICLE].amount,
         particle[ORIENTABLE]?.facing
       );

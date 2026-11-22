@@ -1,4 +1,4 @@
-const { test, expect } = require("./fixtures.cjs");
+const { test, expect } = require("@playwright/test");
 const { build } = require("esbuild");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -540,4 +540,44 @@ test("a persistently closing database stops after one retry and allows a later s
     savedId: fixture.id,
     storedId: fixture.id,
   });
+});
+
+test("the Excalibur client restores a legacy dungeon save into a running scene", async ({
+  page,
+}) => {
+  await page.goto("/index.html");
+  await expect(page.locator(".ExcaliburRenderer canvas")).toBeVisible();
+  await page.locator("#resume").click();
+  const savedId = fixture.id;
+  await page.evaluate((id) => {
+    window.activeWorld = () => {
+      const terminal = document.querySelector(".Terminal");
+      if (!terminal) return;
+      let fiber =
+        terminal[
+          Object.keys(terminal).find((key) => key.startsWith("__reactFiber"))
+        ];
+      while (fiber && !fiber.memoizedProps?.value?.ecs) fiber = fiber.return;
+      return fiber?.memoizedProps.value.ecs;
+    };
+    window.menuCanvas = document.querySelector(".ExcaliburRenderer canvas");
+    window.activeWorld().metadata.loadGame(id);
+  }, savedId);
+  await expect
+    .poll(() => page.evaluate(() => window.activeWorld()?.metadata.saveId))
+    .toBe(savedId);
+  await expect(page.locator(".ExcaliburRenderer canvas")).toHaveCount(1);
+  const loaded = await page.evaluate(() => {
+    const { metadata } = window.activeWorld();
+    return {
+      level: metadata.gameEntity.LEVEL.name,
+      elapsed: metadata.elapsed,
+      oldCanvasRemoved: !window.menuCanvas.isConnected,
+    };
+  });
+  expect(loaded.level).toBe(fixture.level);
+  expect(loaded.oldCanvasRemoved).toBe(true);
+  await expect
+    .poll(() => page.evaluate(() => window.activeWorld().metadata.elapsed))
+    .toBeGreaterThan(loaded.elapsed);
 });

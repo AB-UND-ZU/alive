@@ -66,7 +66,8 @@ test("wiki development previews open each client's standard menu", async ({
 }) => {
   test.setTimeout(90000);
   for (const [client, host] of [
-    ["threejs", "canvas"],
+    ["excalibur", ".ExcaliburRenderer canvas"],
+    ["threejs", "canvas[data-engine^=three]"],
     ["html", ".HtmlRenderer"],
     ["terminal", ".TerminalBrowserPreview"],
   ]) {

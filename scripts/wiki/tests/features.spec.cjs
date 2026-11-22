@@ -87,7 +87,7 @@ test("Welcome is the index page and links use the credits underline", async ({
   await expect(page.locator("h1")).toHaveAccessibleName("ALIVE");
   await expectColor(page.locator("h1"), "rgb(128, 0, 0)");
   await expect(page.locator("main > p").first()).toHaveText(
-    "ASCII-based 2D adventure game. Using React and Three.js (with react-three-fiber)."
+    "ASCII-based 2D adventure game."
   );
   await expect(page.locator("main")).toContainText(
     "Only the [256] characters in code page 437"

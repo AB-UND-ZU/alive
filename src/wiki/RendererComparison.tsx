@@ -1,3 +1,4 @@
+import { capabilities as excalibur } from "../renderers/excalibur/capabilities";
 import { capabilities as three } from "../renderers/three-js/capabilities";
 import { capabilities as html } from "../renderers/html/capabilities";
 import { capabilities as terminal } from "../renderers/terminal/capabilities";
@@ -7,6 +8,12 @@ import { Text } from "./visuals";
 import { GamePreview } from "./GamePreview";
 
 const clients = [
+  {
+    name: "Excalibur",
+    page: "excalibur",
+    renderer: "excalibur",
+    capabilities: excalibur,
+  },
   {
     name: "ThreeJS",
     page: "threejs",
@@ -48,18 +55,25 @@ export function RendererComparison({ base }: { base: string }) {
             />
           )),
         ],
-        ["Runs in", "Browser", "Browser", "Browser / Terminal / SSH"],
-        ["Display", "WebGL", "HTML / SVG", "ANSI"],
-        ["Sprites", "Layered", "Layered", "One character"],
-        ["Palette", "16 colors", "16 colors", "16 colors"],
+        [
+          "Runs in",
+          "Browser",
+          "Browser",
+          "Browser",
+          "Browser / Terminal / SSH",
+        ],
+        ["Display", "Canvas", "WebGL", "HTML / SVG", "ANSI"],
+        ["Sprites", "Layered", "Layered", "Layered", "One character"],
+        ["Palette", "16 colors", "16 colors", "16 colors", "16 colors"],
         ["Lighting", ...feature("lighting")],
         ["Shadows", ...feature("shadows")],
-        ["Fog of war", "Yes", "Yes", "Yes"],
+        ["Fog of war", "Yes", "Yes", "Yes", "Yes"],
         ["Unit health bars", ...feature("healthBars")],
         ["Item stack dots", ...feature("stackDots")],
         ["Smooth movement", ...feature("smoothMovement")],
         [
           "Controls",
+          "Keyboard\nMouse\nTouch",
           "Keyboard\nMouse\nTouch",
           "Keyboard\nMouse\nTouch",
           "Keyboard",

@@ -38,7 +38,7 @@ jobs:
       # build type checks, but skips its own lint
       - name: Verify client build tooling
         run: npm run build:test
-      - name: Build ThreeJS, HTML and Terminal clients
+      - name: Build browser clients
         run: npm run build
         env:
           DISABLE_ESLINT_PLUGIN: true

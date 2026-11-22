@@ -29,7 +29,7 @@ it("compares the clients' visible features and links to their pages", () => {
       value={{
         entries: {},
         features: Object.fromEntries(
-          ["threejs", "html", "terminal"].map((client) => [
+          ["excalibur", "threejs", "html", "terminal"].map((client) => [
             client,
             { kind: "feature", href: `game-design/clients/${client}.html` },
           ])
@@ -53,10 +53,10 @@ it("compares the clients' visible features and links to their pages", () => {
       .getAllByRole("cell")
       .map((cell) => cell.textContent);
   };
-  expect(values("Lighting")).toEqual(["Yes", "No", "No"]);
-  expect(values("Unit health bars")).toEqual(["Yes", "Yes", "No"]);
-  expect(values("Smooth movement")).toEqual(["Yes", "Yes", "No"]);
-  expect(values("Fog of war")).toEqual(["Yes", "Yes", "Yes"]);
+  expect(values("Lighting")).toEqual(["Yes", "Yes", "No", "No"]);
+  expect(values("Unit health bars")).toEqual(["Yes", "Yes", "Yes", "No"]);
+  expect(values("Smooth movement")).toEqual(["Yes", "Yes", "Yes", "No"]);
+  expect(values("Fog of war")).toEqual(["Yes", "Yes", "Yes", "Yes"]);
 });
 
 it("puts one matching live renderer scene in the feature table's first row", () => {
@@ -68,7 +68,7 @@ it("puts one matching live renderer scene in the feature table's first row", () 
     within(row)
       .getAllByRole("img")
       .map((image) => image.getAttribute("data-renderer"))
-  ).toEqual(["three-js", "html", "terminal"]);
+  ).toEqual(["excalibur", "three-js", "html", "terminal"]);
   for (const image of within(row).getAllByRole("img"))
     expect(image).toHaveAttribute("data-scene", "comparison");
 });

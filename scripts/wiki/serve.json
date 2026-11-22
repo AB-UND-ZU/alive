@@ -3,6 +3,8 @@
   "directoryListing": false,
   "rewrites": [
     { "source": "/", "destination": "/index.html" },
+    { "source": "/three-js", "destination": "/three-js/index.html" },
+    { "source": "/three-js/", "destination": "/three-js/index.html" },
     { "source": "/html", "destination": "/html/index.html" },
     { "source": "/html/", "destination": "/html/index.html" },
     { "source": "/terminal", "destination": "/terminal/index.html" },

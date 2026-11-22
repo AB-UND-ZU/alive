@@ -1,6 +1,6 @@
 import type { World } from "../../engine";
 
-export type RendererName = "three-js" | "html" | "terminal";
+export type RendererName = "excalibur" | "three-js" | "html" | "terminal";
 
 export type RendererProps = {
   world: World;

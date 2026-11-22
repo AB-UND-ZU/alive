@@ -22,7 +22,7 @@ const session = (page) =>
     };
   });
 
-for (const renderer of ["three-js", "html", "terminal"]) {
+for (const renderer of ["excalibur", "three-js", "html", "terminal"]) {
   test(`${renderer} standalone entry plays the menu with only its own assets`, async ({
     page,
   }) => {
@@ -32,12 +32,14 @@ for (const renderer of ["three-js", "html", "terminal"]) {
     page.on("request", (request) => {
       if (request.resourceType() === "script") scripts.push(request.url());
     });
-    const base = renderer === "three-js" ? "/" : `/${renderer}/`;
+    const base = renderer === "excalibur" ? "/" : `/${renderer}/`;
     await page.goto(base + "?test");
     await expect(
       page.locator(
-        renderer === "three-js"
-          ? "canvas"
+        renderer === "excalibur"
+          ? ".ExcaliburRenderer canvas"
+          : renderer === "three-js"
+          ? "canvas[data-engine^=three]"
           : renderer === "html"
           ? ".HtmlRenderer"
           : ".TerminalBrowserPreview"

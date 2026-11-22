@@ -114,7 +114,7 @@ test("plain text fences remain literal even when words match source symbols", ()
   expect(tokens[0].syntax).toBeUndefined();
 });
 
-test.each(["three-js", "html", "terminal"])(
+test.each(["excalibur", "three-js", "html", "terminal"])(
   "accepts the %s client scene",
   (client) => {
     expect(
@@ -133,7 +133,7 @@ test("rejects an unknown renderer client", () => {
   ).toThrow("Unknown scene");
 });
 
-test.each(["../", "../html/", "../terminal/"])(
+test.each(["../", "../three-js/", "../html/", "../terminal/"])(
   "keeps the %s live client link relative to the wiki",
   (href) => {
     const tokens = parseMarkdown(`[Play](${href})`, page, [page], {});

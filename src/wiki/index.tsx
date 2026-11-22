@@ -7,7 +7,9 @@ if (window.location.pathname === new URL("preview.html", wikiBase).pathname) {
   const query = new URLSearchParams(window.location.search);
   const renderer = scene === "clients" ? variant : query.get("renderer");
   const suffix =
-    renderer === "html" || renderer === "terminal" ? renderer + "/" : "";
+    renderer === "three-js" || renderer === "html" || renderer === "terminal"
+      ? renderer + "/"
+      : "";
   const target = new URL("../" + suffix, wikiBase);
   query.delete("renderer");
   if (scene === "clients") query.set("preview", "");

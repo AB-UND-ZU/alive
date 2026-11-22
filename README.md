@@ -13,7 +13,7 @@ npm ci
 npm start
 ```
 
-The default renderer uses Three.js. Open `http://localhost:3000/alive/?renderer=html` for the HTML/SVG renderer, with the same controls and fog of war but no lighting or shadows.
+The default renderer uses Excalibur. Open `http://localhost:3000/alive/three-js/` for the Three.js reference renderer. Open `http://localhost:3000/alive/?renderer=html` for the HTML/SVG renderer, with the same controls and fog of war but no lighting or shadows.
 
 ```sh
 npm run terminal

@@ -1,5 +1,5 @@
 export const systemsFrame = 1000 / 30;
-const catchupFrames = 15;
+export const maxFrameDelta = systemsFrame * 15;
 
 export type FrameWorld = {
   metadata: { elapsed: number; renderTime: number };
@@ -21,7 +21,7 @@ export const createFrameClock = (world: FrameWorld) => {
       return world.metadata.renderTime;
     }
 
-    elapsed += Math.min(deltaMs, systemsFrame * catchupFrames);
+    elapsed += Math.min(deltaMs, maxFrameDelta);
     running = true;
     try {
       while (elapsed >= systemsFrame) {

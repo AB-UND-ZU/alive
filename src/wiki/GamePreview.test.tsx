@@ -183,7 +183,7 @@ it("does not enable test commands when the menu preview opts out", () => {
   visibility(true);
   expect(screen.getByTitle("Renderer")).toHaveAttribute(
     "src",
-    "http://localhost/alive/?preview"
+    "http://localhost/alive/three-js/?preview"
   );
 });
 

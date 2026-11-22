@@ -114,7 +114,7 @@ export function parseMarkdown(
     if (
       token.type === "link" &&
       !/^(?:[a-z][\w+.-]*:|\/\/|#)/i.test(token.href!) &&
-      !["../", "../html/", "../terminal/"].includes(token.href!)
+      !["../", "../three-js/", "../html/", "../terminal/"].includes(token.href!)
     ) {
       const target = new URL(token.href!, source);
       const name =
@@ -147,7 +147,7 @@ export function parseMarkdown(
         token.lang === "scene" &&
         !scenes.includes(token.text!.trim()) &&
         !/^game\/(menu|dungeon|island)$/.test(token.text!.trim()) &&
-        !/^clients\/(three-js|html|terminal)$/.test(token.text!.trim())
+        !/^clients\/(excalibur|three-js|html|terminal)$/.test(token.text!.trim())
       )
         throw new Error("Unknown scene " + token.text);
       token.syntax = syntax(
