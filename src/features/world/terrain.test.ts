@@ -12,9 +12,17 @@ import { COVERABLE } from "../../engine/components/coverable";
 import { MOVABLE } from "../../engine/components/movable";
 import { POSITION } from "../../engine/components/position";
 import { SWIMMABLE } from "../../engine/components/swimmable";
+import { moveEntity } from "../../engine/systems/map";
+import { NPC } from "../../engine/components/npc";
+import { LIGHT } from "../../engine/components/light";
 import { getHasteInterval } from "../../engine/systems/movement";
 import { IMMERSIBLE } from "../../engine/components/immersible";
-import { freezeTerrain, thawTerrain } from "../../engine/systems/freeze";
+import {
+  coverSnow,
+  isSnowy,
+  freezeTerrain,
+  thawTerrain,
+} from "../../engine/systems/freeze";
 import { isImmersible } from "../../engine/systems/immersion";
 import { sum } from "../../game/math/std";
 import { assertUnit, hold, measureSteps } from "./helpers";
@@ -144,6 +152,25 @@ describe("terrain", () => {
 
     expect(hero[SWIMMABLE].swimming).toBe(true);
     expect(findEntityAt(world, hero[POSITION], [SWIMMABLE])).toBe(hero);
+  });
+
+  it("keeps water open under units and opaque walls", () => {
+    const layout = `| ♀≈≈≈█0 |`;
+    const world = createAreaWorld(layout);
+    const hero = assertUnit(world);
+    const wall = findEntityAt(world, { x: 5, y: 0 }, [LIGHT])!;
+    const eye = findEntityAt(world, { x: 6, y: 0 }, [NPC, POSITION])!;
+    coverSnow(world, eye[POSITION]);
+    expect(isSnowy(world, eye[POSITION])).toBe(false);
+    for (const [index, occupant] of [hero, wall, eye].entries()) {
+      const position = { x: 2 + index, y: 0 };
+      const water = findEntityAt(world, position, [IMMERSIBLE])!;
+      moveEntity(world, occupant, position);
+      freezeTerrain(world, water);
+      coverSnow(world, position);
+      expect(water[IMMERSIBLE]).toBeDefined();
+      expect(isSnowy(world, position)).toBe(false);
+    }
   });
 
   it("walks over frozen water and swims again once it thaws", () => {

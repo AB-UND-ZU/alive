@@ -72,7 +72,7 @@ import {
 } from "../engine/systems/drop";
 import { getEnterable } from "../engine/systems/enter";
 import { createHero } from "../engine/systems/fate";
-import { applySnow } from "../engine/systems/freeze";
+import { blocksIce, applySnow } from "../engine/systems/freeze";
 import { boatHaste, getHasteInterval } from "../engine/systems/movement";
 import { createPopup, removePopup } from "../engine/systems/popup";
 import { createSequence } from "../engine/systems/sequence";
@@ -1420,6 +1420,11 @@ export const createCell = (
     });
     all.push(waterEntity);
     return { cell: waterEntity, all };
+  } else if (
+    (cell === "ice" || cell === "snow") &&
+    blocksIce(world, position)
+  ) {
+    return { cell: all[0], all };
   } else if (cell === "ice") {
     const iceEntity = entities.createIce(world, {
       [FOG]: { visibility, type: "terrain" },

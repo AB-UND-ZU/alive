@@ -8,6 +8,7 @@ import {
   step,
 } from "../../testing/harness";
 import { getBumpMotion, sampleMotion } from "../../engine/motion";
+import { isSnowy } from "../../engine/systems/freeze";
 import { playedSounds } from "../../testing/env";
 import { ACTIONABLE } from "../../engine/components/actionable";
 import { CONDITIONABLE } from "../../engine/components/conditionable";
@@ -35,6 +36,16 @@ const sword = { weapon: "sword", material: "wood", amount: 1 } as const;
 const woodAxe = { tool: "axe", material: "wood", amount: 1 } as const;
 
 describe("axe", () => {
+  it("uncovers snow while the axe is active", () => {
+    const { world, hero } = setupTools(area.replace("#", "+"), [woodAxe]);
+    act(world, "skill");
+    expect(hero[CONDITIONABLE].axe).toBeDefined();
+    expect(isSnowy(world, tree)).toBe(true);
+    holdMove(world, ["right"]);
+    advanceUntil(world, () => !isSnowy(world, tree));
+    expect(hero[POSITION]).toEqual(findInArea(area, "♀"));
+  });
+
   it("bumps a tree immediately when an axe hit lands", () => {
     const { world } = setupTools(area, [sword, woodAxe]);
     const treeEntity = getResource(world, tree)!;

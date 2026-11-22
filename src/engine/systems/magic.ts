@@ -38,7 +38,7 @@ import { relativeOrientations } from "../../game/math/path";
 import { BURNABLE } from "../components/burnable";
 import { emptyReceivedStats, Player, PLAYER } from "../components/player";
 import { extinguishEntity, getBurnables } from "./burn";
-import { freezeTerrain, getFreezables, isFrozen, thawTerrain } from "./freeze";
+import { freezeTerrain, getFreezables, meltCell } from "./freeze";
 import { BELONGABLE } from "../components/belongable";
 import {
   ORIENTABLE,
@@ -695,17 +695,11 @@ export default function setupMagic(world: World) {
         }
       }
 
-      // freeze or thaw terrain
-      for (const freezableEntity of getFreezables(world, entity[POSITION])) {
-        if (
-          castableEntity[CASTABLE].caster === world.getEntityId(freezableEntity)
-        )
-          continue;
-
-        if (!isFrozen(world, freezableEntity) && targetFreeze > 0) {
-          freezeTerrain(world, freezableEntity);
-        } else if (isFrozen(world, freezableEntity) && targetBurn > 0) {
-          thawTerrain(world, freezableEntity);
+      if (targetBurn > 0 && !casterEntity?.[BURNABLE]?.eternal) {
+        meltCell(world, entity[POSITION]);
+      } else if (targetFreeze > 0) {
+        for (const terrain of getFreezables(world, entity[POSITION])) {
+          if (terrain !== casterEntity) freezeTerrain(world, terrain);
         }
       }
     }

@@ -32,7 +32,7 @@ import { colors } from "../../game/assets/colors";
 import { getLockable } from "./action";
 import { LOCKABLE } from "../components/lockable";
 import { CLICKABLE } from "../components/clickable";
-import { getFragment, getOpaque } from "./enter";
+import { getFragment, isOpaque } from "./enter";
 import { entities } from "..";
 import { FOG } from "../components/fog";
 import { getLiquids, updateWaterCell } from "./water";
@@ -44,6 +44,15 @@ import { isMounting } from "./vessel";
 import { play } from "../../game/sound";
 import { DISPLACABLE } from "../components/displacable";
 import { createText } from "../../game/assets/ui";
+import { NPC } from "../components/npc";
+import { BURNABLE } from "../components/burnable";
+import { aspectRatio } from "../../renderers/interface/dimensions";
+
+export const blocksIce = (world: World, position: Position) =>
+  getCellEntities(world, position).some(
+    (entity) =>
+      NPC in entity || PLAYER in entity || isOpaque(world, entity)
+  );
 
 export const isFreezable = (world: World, entity: Entity) =>
   FREEZABLE in entity;
@@ -88,7 +97,8 @@ const frozenSprites: Record<Immersible["type"], Sprite> = {
 
 // swap sprites when freezing
 export const freezeTerrain = (world: World, entity: Entity) => {
-  if (isFrozen(world, entity)) return entity;
+  if (isFrozen(world, entity) || blocksIce(world, entity[POSITION]))
+    return entity;
 
   entity[FREEZABLE].frozen = true;
   entity[SPRITE] = frozenSprites[(entity[IMMERSIBLE] as Immersible).type];
@@ -220,6 +230,42 @@ export const isSnowy = (world: World, position: Position) =>
     (entity) => entity[COVERABLE]?.type === "snow"
   );
 
+// Visit cell centers nearest the fire first, using the displayed character proportions.
+const heatOffsets: Position[] = [];
+const heatRadius = 5;
+const width = Math.floor(heatRadius / aspectRatio);
+const distance = ({ x, y }: Position) => Math.hypot(x * aspectRatio, y);
+for (let y = -heatRadius; y <= heatRadius; y++) {
+  for (let x = -width; x <= width; x++) {
+    if (distance({ x, y }) <= heatRadius) heatOffsets.push({ x, y });
+  }
+}
+heatOffsets.sort((a, b) => distance(a) - distance(b));
+
+export const isCampfireWarm = (world: World, position: Position) =>
+  heatOffsets.some((offset) =>
+    getCellEntities(world, add(position, offset)).some(
+      (entity) =>
+        entity[BURNABLE]?.eternal &&
+        entity[BURNABLE].burning &&
+        !entity[BURNABLE].simmer
+    )
+  );
+
+export const meltCell = (world: World, position: Position) => {
+  let melted = false;
+  for (const entity of getCellEntities(world, position)) {
+    if (entity[COVERABLE]?.type === "snow") disposeEntity(world, entity);
+    else if (entity[FREEZABLE]?.frozen) thawTerrain(world, entity);
+    else continue;
+    melted = true;
+  }
+  return melted;
+};
+
+export const meltNearCampfire = (world: World, position: Position) =>
+  heatOffsets.some((offset) => meltCell(world, add(position, offset)));
+
 export const snowFill = 0.4;
 export const coverSnow = (
   world: World,
@@ -231,7 +277,8 @@ export const coverSnow = (
   if (
     isSnowy(world, position) ||
     (getTempo(world, position) !== 0 && !willFreeze) ||
-    getOpaque(world, position) ||
+    blocksIce(world, position) ||
+    isCampfireWarm(world, position) ||
     getLockable(world, position) ||
     getFragment(world, position)
   )

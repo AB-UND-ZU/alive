@@ -235,8 +235,33 @@ describe("weather", () => {
     expect(world.getEntities([LIQUID])).toHaveLength(0);
   });
 
+  it("keeps falling and newly landing snow out of a lit campfire's warmth", () => {
+    // This small wrapped map fits entirely within the fire's radius.
+    const layout = `|♀ *≈  |`;
+    const world = createAreaWorld(layout);
+    const fire = findEntityAt(world, findInArea(layout, "*"), [BURNABLE])!;
+    const lake = findInArea(layout, "≈");
+    const weather = addStorm(world, "snow")[SEQUENCABLE].states.weather!;
+    weather.args.start = -200;
+    advance(world, 800);
+    expect(weather.args.drops).toHaveLength(0);
+    fire[BURNABLE].burning = false;
+    advance(world, 800);
+    expect(weather.args.drops.length).toBeGreaterThan(0);
+    weather.args.drops.forEach((drop) => {
+      drop.position = lake;
+    });
+    weather.args.end = 0;
+    fire[BURNABLE].burning = true;
+    advance(world, 7200);
+    expect(findEntityAt(world, lake, [FREEZABLE])![FREEZABLE].frozen).toBe(
+      false
+    );
+    expect(world.getEntities([COVERABLE])).toHaveLength(0);
+  });
+
   it("snow covers open ground in a loose layer", () => {
-    const world = createAreaWorld(meadow, { size: 16 });
+    const world = createAreaWorld(meadow.replace("*", " "), { size: 16 });
     addStorm(world, "snow");
 
     advance(world, 60000);
@@ -248,11 +273,21 @@ describe("weather", () => {
   });
 
   it("snow freezes water into ice covered by snow", () => {
-    const world = createAreaWorld(meadow, { size: 16 });
+    const world = createAreaWorld(meadow.replace("*", " "), { size: 16 });
     const lake = findAllInArea(meadow, "≈");
-    addStorm(world, "snow");
-
-    advance(world, 90000);
+    // Land two successive flurries on the lake: first ice, then snow cover.
+    for (let pass = 0; pass < 2; pass++) {
+      const storm = addStorm(world, "snow");
+      const sequence = storm[SEQUENCABLE].states.weather!;
+      sequence.args.start = -200;
+      world.update(0);
+      expect(sequence.args.drops.length).toBeGreaterThanOrEqual(lake.length);
+      sequence.args.drops.forEach((drop, index) => {
+        drop.position = lake[index % lake.length];
+      });
+      sequence.args.end = 0;
+      advance(world, 7200);
+    }
 
     lake.forEach((position) => {
       const water = findEntityAt(world, position, [FREEZABLE])!;

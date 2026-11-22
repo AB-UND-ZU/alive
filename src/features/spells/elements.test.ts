@@ -6,7 +6,7 @@ import { IMMERSIBLE } from "../../engine/components/immersible";
 import { Spell } from "../../engine/components/item";
 import { STATS } from "../../engine/components/stats";
 import { getEntityStats } from "../../engine/systems/damage";
-import { isFrozen } from "../../engine/systems/freeze";
+import { applySnow, isSnowy, isFrozen } from "../../engine/systems/freeze";
 import { isWalkable } from "../../engine/systems/movement";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { findEntityAt, findInArea, step, walk } from "../../testing/harness";
@@ -64,16 +64,21 @@ describe("fire spells", () => {
     expect(tree[BURNABLE].burning).toBe(true);
   });
 
-  it("thaw ice into water", () => {
+  it("clear snow and thaw the ice underneath in one cast", () => {
     const item = { spell: "beam", material: "wood", element: "fire" } as const;
     const { world, hero } = createSpellWorld(line, item, { size: 30 });
     const ice = getTerrain(world, "%", FREEZABLE);
 
+    const position = findInArea(line, "%");
+    applySnow(world, position);
+    step(world);
+    expect(isSnowy(world, position)).toBe(true);
     expect(isFrozen(world, ice)).toBe(true);
 
     cast(world, "right");
     waitForSpell(world, hero);
 
+    expect(isSnowy(world, position)).toBe(false);
     expect(isFrozen(world, ice)).toBe(false);
     expect(ice[IMMERSIBLE]).toMatchObject({ type: "water" });
   });

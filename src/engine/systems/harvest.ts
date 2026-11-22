@@ -974,6 +974,7 @@ export default function setupHarvest(world: World) {
       entity[ORIENTABLE].facing = targetOrientation;
       const delta = orientationPoints[targetOrientation];
       const targetPosition = add(entity[POSITION], delta);
+      if (isSnowy(world, targetPosition)) continue;
       const targetEntity = getHarvestTarget(
         world,
         entity,

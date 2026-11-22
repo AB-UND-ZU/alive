@@ -441,7 +441,11 @@ import {
   weatherIntensity,
 } from "../../engine/systems/water";
 import { LIQUID } from "../../engine/components/liquid";
-import { coverSnow } from "../../engine/systems/freeze";
+import {
+  coverSnow,
+  isCampfireWarm,
+  meltNearCampfire,
+} from "../../engine/systems/freeze";
 import { aspectRatio } from "../../renderers/interface/dimensions";
 import { Harvestable, HARVESTABLE } from "../../engine/components/harvestable";
 import {
@@ -3593,6 +3597,7 @@ export const weatherStorm: Sequence<WeatherSequence> = (
       };
       const fast = offset.y > 0;
       const target = combine(size, viewable[POSITION], offset);
+      if (state.args.type === "snow" && isCampfireWarm(world, target)) continue;
       const dropName = `drop-${generation}-${index}`;
       state.args.drops.push({
         position: target,
@@ -7726,7 +7731,6 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
   const burnGeneration = Math.ceil(state.elapsed / fireTick);
   const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
   const worldDelta = world.metadata.gameEntity[REFERENCE].delta;
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
   const size = world.metadata.gameEntity[LEVEL].size;
   const entityId = world.getEntityId(entity);
 
@@ -7825,6 +7829,10 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
   // animate particle
   if (generation && isBurning && generation !== state.args.generation) {
     state.args.generation = generation;
+
+    if (isEternalFire && isTerrainBurning && generation % 3 === 0) {
+      meltNearCampfire(world, entity[POSITION]);
+    }
 
     // remove previous crackles
     if (state.particles.crackle) {
@@ -7938,9 +7946,12 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
     }
 
     // play sounds
-    const distance = heroEntity
-      ? getDistance(heroEntity[POSITION], entity[POSITION], size) + 1
-      : 3;
+    const listener =
+      world.getEntity([PLAYER, SOUL, POSITION]) ||
+      world.getEntity([PLAYER, POSITION]);
+    const distance = listener
+      ? getDistance(listener[POSITION], entity[POSITION], size) + 1
+      : Infinity;
     if (distance < 10) {
       const proximity = 1 / distance;
 
