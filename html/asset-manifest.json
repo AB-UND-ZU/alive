@@ -1,6 +1,6 @@
 {
   "files": {
-    "main.js": "/alive/html/static/js/main.9e8fd1d9.js",
+    "main.js": "/alive/html/static/js/main.1bf6a5fa.js",
     "static/css/153.4715334f.chunk.css": "/alive/html/static/css/153.4715334f.chunk.css",
     "static/js/153.631343f1.chunk.js": "/alive/html/static/js/153.631343f1.chunk.js",
     "static/css/212.008fae90.chunk.css": "/alive/html/static/css/212.008fae90.chunk.css",
@@ -14,13 +14,13 @@
     "static/js/887.029a68d7.chunk.js": "/alive/html/static/js/887.029a68d7.chunk.js",
     "static/js/918.92c83454.chunk.js": "/alive/html/static/js/918.92c83454.chunk.js",
     "static/js/943.7dac7c96.chunk.js": "/alive/html/static/js/943.7dac7c96.chunk.js",
-    "static/js/307.e5edbab3.chunk.js": "/alive/html/static/js/307.e5edbab3.chunk.js",
+    "static/js/307.224c345c.chunk.js": "/alive/html/static/js/307.224c345c.chunk.js",
     "static/js/288.0015d156.chunk.js": "/alive/html/static/js/288.0015d156.chunk.js",
     "static/js/802.2b95dd3a.chunk.js": "/alive/html/static/js/802.2b95dd3a.chunk.js",
     "static/media/MostPerfectDOSVGA.woff": "/alive/html/static/media/MostPerfectDOSVGA.ff65b94f203e7b207f3c.woff",
     "static/media/MostPerfectDOSVGA.woff2": "/alive/html/static/media/MostPerfectDOSVGA.d0760396b796111f4b25.woff2",
     "index.html": "/alive/html/index.html",
-    "main.9e8fd1d9.js.map": "/alive/html/static/js/main.9e8fd1d9.js.map",
+    "main.1bf6a5fa.js.map": "/alive/html/static/js/main.1bf6a5fa.js.map",
     "153.4715334f.chunk.css.map": "/alive/html/static/css/153.4715334f.chunk.css.map",
     "153.631343f1.chunk.js.map": "/alive/html/static/js/153.631343f1.chunk.js.map",
     "212.008fae90.chunk.css.map": "/alive/html/static/css/212.008fae90.chunk.css.map",
@@ -34,11 +34,11 @@
     "887.029a68d7.chunk.js.map": "/alive/html/static/js/887.029a68d7.chunk.js.map",
     "918.92c83454.chunk.js.map": "/alive/html/static/js/918.92c83454.chunk.js.map",
     "943.7dac7c96.chunk.js.map": "/alive/html/static/js/943.7dac7c96.chunk.js.map",
-    "307.e5edbab3.chunk.js.map": "/alive/html/static/js/307.e5edbab3.chunk.js.map",
+    "307.224c345c.chunk.js.map": "/alive/html/static/js/307.224c345c.chunk.js.map",
     "288.0015d156.chunk.js.map": "/alive/html/static/js/288.0015d156.chunk.js.map",
     "802.2b95dd3a.chunk.js.map": "/alive/html/static/js/802.2b95dd3a.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/main.9e8fd1d9.js"
+    "static/js/main.1bf6a5fa.js"
   ]
 }

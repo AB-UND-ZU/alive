@@ -1,9 +1,9 @@
 {
   "files": {
-    "main.js": "/alive/wiki/static/js/main.8d541cae.js",
+    "main.js": "/alive/wiki/static/js/main.7f7e7732.js",
     "static/js/669.d45b2a53.chunk.js": "/alive/wiki/static/js/669.d45b2a53.chunk.js",
     "static/css/647.e5f5b269.chunk.css": "/alive/wiki/static/css/647.e5f5b269.chunk.css",
-    "static/js/647.ed6dc3ab.chunk.js": "/alive/wiki/static/js/647.ed6dc3ab.chunk.js",
+    "static/js/647.16b156ba.chunk.js": "/alive/wiki/static/js/647.16b156ba.chunk.js",
     "static/js/582.ecb27c7d.chunk.js": "/alive/wiki/static/js/582.ecb27c7d.chunk.js",
     "static/media/types.md": "/alive/wiki/static/media/types.3cc4d7bea4f6c56262f8.md",
     "static/media/MostPerfectDOSVGA.woff": "/alive/wiki/static/media/MostPerfectDOSVGA.ff65b94f203e7b207f3c.woff",
@@ -286,13 +286,13 @@
     "static/media/resources.md": "/alive/wiki/static/media/resources.4d0ff883aecb25156f3e.md",
     "static/media/slots.md": "/alive/wiki/static/media/slots.e1a5535eb873fbf594c1.md",
     "static/media/play.md": "/alive/wiki/static/media/play.c478ffcd7be9b508d981.md",
-    "main.8d541cae.js.map": "/alive/wiki/static/js/main.8d541cae.js.map",
+    "main.7f7e7732.js.map": "/alive/wiki/static/js/main.7f7e7732.js.map",
     "669.d45b2a53.chunk.js.map": "/alive/wiki/static/js/669.d45b2a53.chunk.js.map",
     "647.e5f5b269.chunk.css.map": "/alive/wiki/static/css/647.e5f5b269.chunk.css.map",
-    "647.ed6dc3ab.chunk.js.map": "/alive/wiki/static/js/647.ed6dc3ab.chunk.js.map",
+    "647.16b156ba.chunk.js.map": "/alive/wiki/static/js/647.16b156ba.chunk.js.map",
     "582.ecb27c7d.chunk.js.map": "/alive/wiki/static/js/582.ecb27c7d.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/main.8d541cae.js"
+    "static/js/main.7f7e7732.js"
   ]
 }
