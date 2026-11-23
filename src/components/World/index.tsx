@@ -27,6 +27,7 @@ import {
 import { TEST_MODE } from "../../engine/utils";
 import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
+import { isDead } from "../../engine/systems/damage";
 import { submitChat } from "../../engine/systems/popup";
 
 declare global {
@@ -242,7 +243,7 @@ export default function World({
     if (!TEST_MODE) return;
     const aliveChat = (line = "") => {
       const hero = ecs.getEntities([PLAYER, POSITION])[0];
-      if (hero) return submitChat(ecs, hero, line);
+      if (hero && !isDead(ecs, hero)) return submitChat(ecs, hero, line);
     };
     window.aliveChat = aliveChat;
     return () => {

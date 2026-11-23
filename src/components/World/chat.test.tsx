@@ -1,7 +1,9 @@
 import { render } from "@testing-library/react";
 import World from ".";
-import { createAreaWorld } from "../../testing/harness";
+import { advanceUntil, createAreaWorld } from "../../testing/harness";
 import { getDialog, setupHero } from "../../features/chat/helpers";
+import { PLAYER } from "../../engine/components/player";
+import { SOUL } from "../../engine/components/soul";
 import { STATS } from "../../engine/components/stats";
 
 jest.mock("../../engine/utils", () => ({
@@ -20,6 +22,20 @@ it("binds test-mode chat to the mounted world and removes it on unmount", () => 
   expect(hero[STATS].hp).toBe(12);
   unmount();
   expect(window.aliveChat).toBeUndefined();
+});
+
+it("ignores test-mode chat commands after death", () => {
+  const world = createAreaWorld("|  ♀  |");
+  const hero = setupHero(world);
+  hero[STATS].hp = 0;
+  advanceUntil(world, () => !!world.getEntity([PLAYER, SOUL]));
+  const ghost = world.getEntity([PLAYER, SOUL])!;
+  const position = { ...ghost.POSITION };
+
+  render(<World createInitialWorld={() => world} />);
+  window.aliveChat!("/tp 1,1");
+  expect(ghost.POSITION).toEqual(position);
+  expect(ghost.PLAYER.chatHistory).toHaveLength(0);
 });
 
 it.each([undefined, ""])("clears speech with %p without adding history", (line) => {
