@@ -91,7 +91,9 @@ export const unitPage = (key: string, unit: UnitDefinition) =>
 export const getWikiUnitName = (key: UnitKey, full = false) =>
   key === "tumbleweed"
     ? "Tumbleweed"
-    : full || unitPage(key, unitDefinitions[key]) === "npcs"
+    : full ||
+      unitDefinitions[key].patternNames.includes("bandit_camp") ||
+      unitPage(key, unitDefinitions[key]) === "npcs"
     ? key === "tutorialBoss"
       ? "Bandit Boss"
       : displayName(key)

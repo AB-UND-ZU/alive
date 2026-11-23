@@ -12,7 +12,10 @@ import {
   getItemSellPrice,
 } from "../game/balancing/trading";
 import { fishingDistributionLevels } from "../game/balancing/fishing";
-import { islandNpcDistribution } from "../game/levels/island/units";
+import {
+  banditCampLetter,
+  islandNpcDistribution,
+} from "../game/levels/island/units";
 import { LevelName, BiomeName } from "../engine/components/level";
 import minimap from "./minimap.json";
 import { getForgeOptions } from "../game/balancing/forging";
@@ -46,6 +49,7 @@ export type Acquisition = {
     | "world"
     | "shopNpc";
   key?: string;
+  location?: string;
   chance?: number;
   parts?: Partial<Item>[];
   level?: LevelName;
@@ -105,6 +109,11 @@ function buildSources() {
                 )
                 .reduce((sum, bundle) => sum + bundle.chance, 0),
             });
+  add(banditCampLetter, {
+    kind: "drop",
+    key: "goldChest",
+    location: "Bandit Camp",
+  });
   for (const recipe of craftingIngredients) {
     add(recipe.item, { kind: "crafting", parts: recipe.parts });
   }

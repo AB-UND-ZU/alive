@@ -8,6 +8,8 @@ import { seedRandom } from "./env";
 import { pixelCircle } from "../game/math/tracing";
 import { wormRadius } from "../game/levels/island/areas";
 import { islandNpcDistribution } from "../game/levels/island/units";
+import { grass } from "../game/assets/sprites";
+import { unitDefinitions } from "../game/balancing/units";
 import { World } from "../engine";
 import { LEVEL } from "../engine/components/level";
 import { Position, POSITION } from "../engine/components/position";
@@ -25,7 +27,12 @@ import { executeCommand } from "../game/assets/commands";
 import { MAX_DROP_RADIUS } from "../engine/systems/drop";
 import { isWalkable } from "../engine/systems/movement";
 import { isImmersible } from "../engine/systems/immersion";
-import { createMatrix, getOverlappingCell, setPath } from "../game/math/matrix";
+import {
+  createMatrix,
+  getOverlappingCell,
+  iterateMatrix,
+  setPath,
+} from "../game/math/matrix";
 
 const waypoints = [
   "spawn_sign",
@@ -132,6 +139,13 @@ export const describeIslandSeeds = (seeds: number[]) =>
       expect(guard[POSITION]).toEqual({ x: level.size / 2, y: level.size / 2 });
       expect(guard.BELONGABLE.faction).toBe("water");
       expect(isImmersible(world, guard[POSITION])).toBe(false);
+      for (const dx of [-1, 0, 1]) {
+        for (const dy of [-1, 0, 1]) {
+          expect(
+            level.cells[guard[POSITION].x + dx][guard[POSITION].y + dy]
+          ).toBe("snow");
+        }
+      }
       const jettyGuard = assertIdentifierAndComponents(
         world,
         "fireJettyGuard",
@@ -179,6 +193,122 @@ export const describeIslandSeeds = (seeds: number[]) =>
         expect(isWalkable(world, hero[POSITION], hero)).toBe(true);
       }
       moveEntity(world, hero, origin);
+    });
+
+    it("splits glacier rock into separate mineable walls with iron and occasional gold", () => {
+      const level = world.metadata.gameEntity[LEVEL];
+      const walls = new Set<number>();
+      const samples = new Map<string, Position>();
+      let iron = 0;
+      let gold = 0;
+      iterateMatrix(level.cells, (x, y, cell) => {
+        if (level.biomes[x][y] !== "glacier") return;
+        if (cell !== "mountain" && cell !== "iron" && cell !== "gold") return;
+        walls.add(x * level.size + y);
+        samples.set(cell, { x, y });
+        if (cell === "mountain") return;
+        if (cell === "iron") iron++;
+        else gold++;
+        for (let dx = -1; dx <= 1; dx++)
+          for (let dy = -1; dy <= 1; dy++) {
+            if (dx === 0 && dy === 0) continue;
+            const neighbor = combine(level.size, { x, y }, { x: dx, y: dy });
+            expect(level.cells[neighbor.x][neighbor.y]).toBe("mountain");
+          }
+      });
+
+      const wallCount = walls.size;
+      const groups: number[] = [];
+      for (const first of walls) {
+        const pending = [first];
+        walls.delete(first);
+        let count = 0;
+        while (pending.length) {
+          const cell = pending.pop()!;
+          count++;
+          const position = {
+            x: Math.floor(cell / level.size),
+            y: cell % level.size,
+          };
+          for (const offset of Object.values(orientationPoints)) {
+            const { x, y } = combine(level.size, position, offset);
+            const neighbor = x * level.size + y;
+            if (walls.delete(neighbor)) pending.push(neighbor);
+          }
+        }
+        groups.push(count);
+      }
+      expect(groups.length).toBeGreaterThan(1);
+      expect(Math.max(...groups)).toBeLessThan(wallCount / 2);
+      expect(iron).toBeGreaterThan(gold);
+
+      for (const [resource, position] of samples) {
+        initializeCell(world, position.x, position.y);
+        expect(getCellEntities(world, position)).toContainEqual(
+          expect.objectContaining({
+            COLLIDABLE: {},
+            HARVESTABLE: expect.objectContaining({ resource }),
+          })
+        );
+      }
+    });
+
+    it("places defended gold chests in clearings on the glacier", () => {
+      const level = world.metadata.gameEntity[LEVEL];
+      const camps = level.objects.flatMap((column, x) =>
+        column.flatMap((objects, y) =>
+          objects?.includes("bandit_camp") ? [{ x, y }] : []
+        )
+      );
+      expect(camps).toHaveLength(6);
+      for (const camp of camps) {
+        initializeCell(world, camp.x, camp.y);
+        const fire = getCellEntities(world, camp).find(
+          (entity) => entity.BURNABLE?.burning
+        );
+        expect(fire).toBeDefined();
+        const campId = world.getEntityId(fire!);
+        const members = world
+          .getEntities(["NPC", "POSITION", "BELONGABLE"])
+          .filter((entity) => entity.BELONGABLE.group === campId);
+        expect(members.length).toBeGreaterThanOrEqual(2);
+        expect(members.length).toBeLessThanOrEqual(3);
+        expect(new Set(members.map((member) => member.NPC.type)).size).toBe(
+          members.length
+        );
+        for (const member of members) {
+          expect(getDistance(camp, member.POSITION, level.size, 1)).toBe(1);
+        }
+        let chests = 0;
+        let extras = 0;
+        for (const dx of [-1, 0, 1]) {
+          for (const dy of [-1, 0, 1]) {
+            const { x, y } = combine(level.size, camp, { x: dx, y: dy });
+            expect(level.biomes[x][y]).toBe("glacier");
+            expect(level.cells[x][y]).toBe("air");
+            const entities = getCellEntities(world, { x, y });
+            expect(entities.some((entity) => entity.SPRITE === grass)).toBe(
+              !!(dx || dy)
+            );
+            if (dx && dy) {
+              const containers = entities.filter((entity) => entity.INVENTORY);
+              expect(containers.length).toBeLessThanOrEqual(1);
+              extras += containers.filter((entity) =>
+                (["box", "pot", "woodChest", "ironChest"] as const).some(
+                  (type) => entity.SPRITE === unitDefinitions[type].sprite
+                )
+              ).length;
+              chests += containers.filter(
+                (entity) =>
+                  entity.SPRITE === unitDefinitions.goldChest.sprite &&
+                  entity.INVENTORY?.items.length
+              ).length;
+            }
+          }
+        }
+        expect(chests).toBe(1);
+        expect(extras).toBeLessThanOrEqual(2);
+      }
     });
 
     it("places one walkable jetty cell in the cave's lower lake", () => {

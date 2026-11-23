@@ -9,8 +9,6 @@ import {
 } from "../../engine/components/item";
 import { NpcType } from "../../engine/components/npc";
 
-export const trapActivation = { delay: 500, duration: 500 };
-
 export const abilityStats: Partial<
   Record<
     NpcType | "default",
@@ -153,6 +151,8 @@ export const abilityStats: Partial<
       // set default spell attributes
       default: {
         default: {
+          range: 1,
+          delay: 5,
           duration: 100,
         },
       },
@@ -375,6 +375,21 @@ export const abilityStats: Partial<
     beam: {
       gold: { default: { magic: 3 } },
     },
+  },
+
+  diamondOrb: {
+    beam: { diamond: { default: { magic: 5 } } },
+  },
+
+  banditPriest: {
+    wave: { default: { earth: { heal: 2 } } },
+  },
+  banditMage: {
+    wand: { iron: { default: { magic: 3 } } },
+    trap: { iron: { water: { magic: 3, freeze: 3, delay: 10 } } },
+  },
+  banditRogue: {
+    bow: { iron: { default: { melee: 4 } } },
   },
 
   violet: {

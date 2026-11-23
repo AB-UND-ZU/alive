@@ -7,7 +7,7 @@ export type Tooltip = {
   dialogs: Sprite[][];
   nextDialog: number;
   persistent: boolean;
-  override?: "visible" | "hidden";
+  override?: "visible" | "hidden" | "idle";
   changed?: boolean;
   enemy?: boolean;
   lastTooltip?: number;

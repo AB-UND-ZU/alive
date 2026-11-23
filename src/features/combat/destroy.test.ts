@@ -7,10 +7,13 @@ import {
   step,
   walk,
 } from "../../testing/harness";
+import { SPRITE } from "../../engine/components/sprite";
 import { STATS } from "../../engine/components/stats";
 import { POSITION } from "../../engine/components/position";
 import { HARVESTABLE } from "../../engine/components/harvestable";
 import { isDead } from "../../engine/systems/damage";
+import { getItemBuyPrice } from "../../game/balancing/trading";
+import { unitDefinitions } from "../../game/balancing/units";
 import {
   attackUntil,
   createCombatWorld,
@@ -42,6 +45,40 @@ const destroy = (unit: string, map = area) => {
 };
 
 describe("destroying objects", () => {
+  it("rolls one gold chest reward stack as close to 100 coins as its price allows", () => {
+    const { drops } = unitDefinitions.goldChest;
+    expect(drops.reduce((total, drop) => total + drop.chance, 0)).toBe(100);
+    expect(drops.map((drop) => drop.items)).toContainEqual([
+      { stackable: "resource", material: "iron", amount: 5 },
+    ]);
+    for (const { items } of drops) {
+      expect(items).toHaveLength(1);
+      const [item] = items;
+      const price = getItemBuyPrice(item)[0].amount;
+      expect(price).toBeGreaterThan(0);
+      expect(item.amount).toBe(Math.floor(100 / price));
+    }
+  });
+
+  it("drops a letter in addition to the normal gold chest reward at a bandit camp", () => {
+    const { world } = createCombatWorld("|♀     C     |", { C: "bandit_camp" });
+    const chest = world
+      .getEntities([STATS, SPRITE])
+      .find((entity) => entity[SPRITE] === unitDefinitions.goldChest.sprite)!;
+    chest[STATS].hp = 0;
+    step(world, 120);
+    const items = getDrops(world).map(({ item }) => item);
+    const letters = items.filter((item) => item.stackable === "letter");
+    expect(letters).toHaveLength(1);
+    expect(letters[0].amount).toBe(1);
+    const reward = items
+      .filter((item) => item.stackable !== "letter")
+      .map(({ carrier, bound, ...item }) => item);
+    expect(
+      unitDefinitions.goldChest.drops.map((drop) => drop.items)
+    ).toContainEqual(reward);
+  });
+
   it.each(["pot", "woodChest", "ironChest", "tumbleweed", "hedge"])(
     "breaks a %s and drops its content",
     (unit) => {

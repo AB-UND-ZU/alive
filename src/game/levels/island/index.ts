@@ -142,6 +142,13 @@ import { createText, mergeSprites } from "../../assets/ui";
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
 
+const isMountainInterior = (cells: Matrix<CellType>, x: number, y: number) => {
+  for (let dx = -1; dx <= 1; dx++)
+    for (let dy = -1; dy <= 1; dy++)
+      if (getOverlappingCell(cells, x + dx, y + dy) !== "mountain") return false;
+  return true;
+};
+
 export const generateIsland = (world: World) => {
   /* MAP GENERATION: Island
 
@@ -194,7 +201,7 @@ export const generateIsland = (world: World) => {
   const rockDepth = 20;
   const palmDepth = 8;
   const palmChance = 0.3;
-  const desertDepth = 60;
+  const wallDepth = 60;
   const ironDepth = 100;
   const hedgeDepth = 55;
   const treeDepth = 60;
@@ -602,7 +609,8 @@ export const generateIsland = (world: World) => {
 
         if (elevation < sandDepth) cell = "water_deep";
         else if (elevation < airDepth) cell = "sand";
-        else if (elevation > mountainDepth) cell = "mountain";
+        else if (biome !== "glacier" && elevation > mountainDepth)
+          cell = "mountain";
 
         // process biomes
         if (biome === "ocean") {
@@ -640,6 +648,9 @@ export const generateIsland = (world: World) => {
       const elevationMap = smoothenWater(smoothenSand(rawMap, biomeMap));
 
       // fourth pass: process terrain based on biomes and spawn mobs or items
+      const campCandidates: Position[] = [];
+      const glacierDeposits: Position[] = [];
+      const glacierCenter = { x: size / 2, y: size / 2 };
       const terrainMap = mapMatrix(elevationMap, (x, y, cell, matrix) => {
         const biome = biomeMap[x][y];
         const flattened = flattenedMatrix[x][y];
@@ -699,9 +710,7 @@ export const generateIsland = (world: World) => {
             ) {
               matrix[x][y - 1] = "leaves";
               cell = "stem";
-            } else {
-              cell = "tree";
-            }
+            } else cell = "tree";
           } else if (terrain > hedgeDepth) {
             if (spawn > 95) cell = "fruit";
             else if (spawn > 80) cell = "wood";
@@ -732,7 +741,7 @@ export const generateIsland = (world: World) => {
           else if (mobSpawn < -95) objects.push(generateNpcKey(distribution));
         } else if (biome === "desert") {
           // place mountains first
-          if (terrain > desertDepth) cell = "mountain";
+          if (terrain > wallDepth) cell = "mountain";
 
           // then process ores for previous cells
           matrix[x][y] = cell;
@@ -754,10 +763,7 @@ export const generateIsland = (world: World) => {
               ((elevation < ironDepth && Math.random() < ironChance) ||
                 (elevation > ironDepth &&
                   Math.random() < mountainIronChance)) &&
-              smallSquareDeltas.every(
-                ([deltaX, deltaY]) =>
-                  matrix[x + deltaX][y + deltaY] === "mountain"
-              )
+              isMountainInterior(matrix, x - 1, y - 1)
             ) {
               // spawn iron only fully inside mountain
               matrix[x + targetDelta[0]][y + targetDelta[1]] = "iron";
@@ -771,7 +777,7 @@ export const generateIsland = (world: World) => {
               // spawn ore in mountain only if accessible from outside
               matrix[x + targetDelta[0]][y + targetDelta[1]] = "ore";
             } else if (
-              mobSpawn > 93 &&
+              mobSpawn > 96 &&
               largeSquareDeltas.every(
                 ([deltaX, deltaY]) => matrix[x + deltaX][y + deltaY] === "sand"
               )
@@ -791,7 +797,7 @@ export const generateIsland = (world: World) => {
           }
 
           if (
-            terrain <= desertDepth &&
+            terrain <= wallDepth &&
             terrain > rockDepth &&
             terrain < rockDepth + 5
           ) {
@@ -812,8 +818,20 @@ export const generateIsland = (world: World) => {
           } else if (cell === "sand" && mobSpawn < -97)
             objects.push(generateNpcKey(distribution));
           else if (cell === "sand" && spawn > 97) objects.push("tumbleweed");
-        } else if (biome === "glacier") {
-          // TODO: add terrain to glacier
+        } else if (biome === "glacier" && cell === "air") {
+          // Opposite ends of the terrain noise leave open ground between trees and walls.
+          const outsideClearing =
+            getDistance({ x, y }, glacierCenter, size, 1, false) > 2;
+          const rock =
+            (100 - terrainMatrix[x][y]) * sigmoid(elevation, terrainDepth);
+          if (rock > wallDepth + 2 && outsideClearing) {
+            cell = "mountain";
+            if (spawnMatrix[x][y] > 60) glacierDeposits.push({ x, y });
+            objects.length = 0;
+          } else if (terrain > treeDepth + 8)
+            cell = Math.random() < treeChance ? "birch" : "glacier_tree";
+          else if (mobSpawn < -97) objects.push(generateNpcKey(distribution));
+          else if (outsideClearing) campCandidates.push({ x, y });
         }
 
         // set path weight
@@ -826,9 +844,38 @@ export const generateIsland = (world: World) => {
         return cell;
       });
 
+      for (const { x, y } of glacierDeposits) {
+        if (isMountainInterior(terrainMap, x, y))
+          terrainMap[x][y] = spawnMatrix[x][y] > 96 ? "gold" : "iron";
+      }
+
+      const camps: Position[] = [];
+      campCandidates.sort(
+        (a, b) => spawnMatrix[b.x][b.y] - spawnMatrix[a.x][a.y]
+      );
+      for (const center of campCandidates) {
+        if (
+          camps.some((camp) => getDistance(camp, center, size, 1, false) < 10)
+        )
+          continue;
+        const free = [-1, 0, 1].every((dx) =>
+          [-1, 0, 1].every((dy) => {
+            const { x, y } = combine(size, center, { x: dx, y: dy });
+            return (
+              biomeMap[x][y] === "glacier" &&
+              terrainMap[x][y] === "air" &&
+              objectsMap[x][y].every((object) => object === "snow")
+            );
+          })
+        );
+        if (!free) continue;
+        objectsMap[center.x][center.y].push("bandit_camp");
+        camps.push(center);
+        if (camps.length === 6) break;
+      }
+
       // persist pre-processed matrizes for lazy initialization
       const worldMap = terrainMap;
-
       world.metadata.gameEntity[LEVEL].initialized = createMatrix(
         size,
         size,
@@ -1694,7 +1741,6 @@ export const generateIsland = (world: World) => {
         });
       }
 
-      const glacierCenter = { x: size / 2, y: size / 2 };
       for (let dx = -1; dx <= 1; dx++)
         for (let dy = -1; dy <= 1; dy++) {
           const position = combine(size, glacierCenter, { x: dx, y: dy });
@@ -2337,12 +2383,14 @@ export const stringifyMap = (
       else if (cell === "grass") row += ",";
       else if (cell === "bush") row += "τ";
       else if (cell === "hedge") row += "ß";
-      else if (cell === "tree") row += "#";
+      else if (cell === "tree" || cell === "glacier_tree" || cell === "birch")
+        row += "#";
       else if (cell === "apple" || cell === "fruit") row += ".";
       else if (cell === "cactus" || objects.includes("cactus")) row += "¥";
       else if (cell === "mountain") row += "█";
       else if (cell === "ore") row += "◘";
       else if (cell === "iron") row += "+";
+      else if (cell === "gold") row += "÷";
       else if (cell === "golem") row += "G";
       else if (cell === "stone") row += "∙";
       else if (objects.includes("rock")) row += "^";

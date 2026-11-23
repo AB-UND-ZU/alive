@@ -174,9 +174,10 @@ test("catalog comparisons show supported variants with their real stats", async 
   );
   await expect(page.locator("main .CatalogVariant")).toHaveCount(0);
   await page.goto("/game-design/characters/enemies.html#prism");
-  await expect(
-    page.locator('[data-catalog-family="prism"] [data-unit]')
-  ).toHaveCount(2);
+  const prisms = page.locator('[data-catalog-family="prism"] [data-unit]');
+  await expect(prisms).toHaveCount(3);
+  expect(await prisms.evaluateAll((units) => units.map((unit) => unit.dataset.unit)))
+    .toEqual(["prism", "goldPrism", "diamondPrism"]);
 });
 
 test("category indexes link to canonical plant and element entries without duplicate catalogs", async ({

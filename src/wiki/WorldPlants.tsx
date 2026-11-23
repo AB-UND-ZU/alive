@@ -1,7 +1,7 @@
 import { ReferenceContext, MentionStyle } from "./references";
 import { useState, useContext } from "react";
 import { worldRows } from "./WorldDiagram";
-import { createCell } from "../bindings/creation";
+import { createCell, glacierStumps, glacierTrees } from "../bindings/creation";
 import { createAreaWorld } from "../testing/harness";
 import { disposeEntity, getCellEntities } from "../engine/systems/map";
 import { Item } from "../engine/components/item";
@@ -30,15 +30,40 @@ import { mergeSprites, slotShadow, getFacingLayers } from "../game/assets/ui";
 const families = [
   {
     name: "Tree",
-    cells: ["tree", "tree", "apple", "stump", "stump"],
+    cells: [
+      "tree",
+      "tree",
+      "apple",
+      "stump",
+      "stump",
+      "glacier_tree",
+      "glacier_tree",
+      "birch",
+      "glacier_stump",
+      "glacier_stump",
+    ],
     variants: [
       tree1,
       tree2,
       undefined,
       mergeSprites(slotShadow, treeBurnt1),
       mergeSprites(slotShadow, treeBurnt2),
+      ...glacierTrees,
+      undefined,
+      ...glacierStumps.map((stump) => mergeSprites(slotShadow, stump)),
     ],
-    titles: ["Tree 1", "Tree 2", "Apple", "Stump 1", "Stump 2"],
+    titles: [
+      "Tree 1",
+      "Tree 2",
+      "Apple",
+      "Stump 1",
+      "Stump 2",
+      "Glacier Tree 1",
+      "Glacier Tree 2",
+      "Birch",
+      "Glacier Stump 1",
+      "Glacier Stump 2",
+    ],
   },
   {
     name: "Palm",

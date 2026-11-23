@@ -47,11 +47,13 @@ const firstBeamDamage = (type: NpcType) => {
 };
 
 describe("material variants", () => {
-  it("takes longer to defeat a gold prism than an iron prism", () => {
+  it("takes longer to defeat a prism at each material tier", () => {
     const iron = fightPrism("prism");
     const gold = fightPrism("goldPrism");
+    const diamond = fightPrism("diamondPrism");
 
     expect(gold.frames).toBeGreaterThan(iron.frames);
+    expect(diamond.frames).toBeGreaterThan(gold.frames);
   });
 
   it("rewards a gold prism with three coins and two xp", () => {
@@ -63,25 +65,26 @@ describe("material variants", () => {
     expect(countDrops(world, { stat: "xp" })).toBe(2);
   });
 
-  it("hits harder with a diamond orb beam than with an iron orb beam", () => {
-    expect(firstBeamDamage("diamondOrb")).toBeGreaterThan(
-      firstBeamDamage("orb")
-    );
+  it("hits for five damage with a diamond orb beam", () => {
+    expect(firstBeamDamage("diamondOrb")).toBe(5);
   });
 
-  it("lets a gold eye chase the hero like an iron eye", () => {
-    const { world, hero } = createCreatureWorld(
-      `
+  it.each(["goldEye", "diamondEye"] as const)(
+    "lets %s chase the hero",
+    (type) => {
+      const { world, hero } = createCreatureWorld(
+        `
 |♀    E|
 `,
-      { E: "goldEye" }
-    );
-    toughen(hero);
-    const eye = getCreature(world, "goldEye");
-    const distances = trace(world, 4, () =>
-      distanceBetween(world, eye[POSITION], hero[POSITION])
-    );
+        { E: type }
+      );
+      toughen(hero);
+      const eye = getCreature(world, type);
+      const distances = trace(world, 4, () =>
+        distanceBetween(world, eye[POSITION], hero[POSITION])
+      );
 
-    expect(distances[distances.length - 1]).toBeLessThan(distances[0]);
-  });
+      expect(distances[distances.length - 1]).toBeLessThan(distances[0]);
+    }
+  );
 });

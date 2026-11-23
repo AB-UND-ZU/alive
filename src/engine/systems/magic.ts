@@ -7,10 +7,16 @@ import {
   AuraSequence,
   MeleeSequence,
   SEQUENCABLE,
+  SequenceState,
   SlashSequence,
 } from "../components/sequencable";
-import { disposeEntity, disposeFrame, getCellEntities } from "./map";
-import { createSequence, getSequences } from "./sequence";
+import {
+  disposeEntity,
+  disposeFrame,
+  getCellEntities,
+  isDisposed,
+} from "./map";
+import { createSequence, getSequence, getSequences } from "./sequence";
 import { Castable, CASTABLE, getEmptyCastable } from "../components/castable";
 import { EXERTABLE } from "../components/exertable";
 import { Entity } from "ecs";
@@ -314,6 +320,7 @@ export const summonTotem = (world: World, entity: Entity, totem: Entity) => {
       progress: 0,
       range: totemStats.range,
       duration: totemStats.duration,
+      delay: totemStats.delay,
       areas: [],
       material: totem[ITEM].material,
       element: totem[ITEM].element,
@@ -339,20 +346,16 @@ export const hasTriggered = (
   );
 };
 
-export const getTriggerElapsed = (
-  world: World,
-  trigger: Castable["trigger"]
-) => {
-  if (trigger?.frame === undefined) return 0;
-  const frame = world.assertByIdAndComponents(trigger.frame, [
-    REFERENCE,
-    RENDERABLE,
-  ]);
-  return (
-    (frame[RENDERABLE].generation - 1) * frame[REFERENCE].tick +
-    frame[REFERENCE].delta
-  );
-};
+export const trapWarningStep = 100;
+export const trapBurstDuration = 500;
+
+export const getTrapBurstTime = (
+  state: SequenceState<AuraSequence>,
+  delta = 0
+) =>
+  state.args.memory?.triggered
+    ? state.elapsed + delta - state.args.delay * trapWarningStep
+    : -Infinity;
 
 export default function setupMagic(world: World) {
   let referenceGenerations = -1;
@@ -445,17 +448,18 @@ export default function setupMagic(world: World) {
       );
 
       // clean up orphaned AoE
-      if (!castableEntity) {
+      if (!castableEntity || isDisposed(castableEntity)) {
         disposeEntity(world, entity);
         continue;
       }
 
       const casterEntity = world.getEntityById(castableEntity[CASTABLE].caster);
-      const trigger = castableEntity[CASTABLE].trigger;
-      const triggerElapsed = getTriggerElapsed(world, trigger);
-      if (trigger && triggerElapsed >= trigger.delay + trigger.duration)
-        continue;
-      const pendingTrigger = trigger && triggerElapsed < trigger.delay;
+      const aura = getSequence(world, castableEntity, "aura");
+      const trap = aura?.name === "trapAura" ? aura : undefined;
+      // Magic runs before sequences advance by this update's delta.
+      const burstTime = trap && getTrapBurstTime(trap, delta);
+      if (burstTime !== undefined && burstTime >= trapBurstDuration) continue;
+      const waiting = burstTime !== undefined && burstTime < 0;
 
       const targetEntities = castableEntity[CASTABLE].melee
         ? getAttackables(world, entity[POSITION])
@@ -488,10 +492,10 @@ export default function setupMagic(world: World) {
         )
           continue;
 
-        if (pendingTrigger) {
+        if (trap && waiting) {
           const friendly = isFriendlyFire(world, castableEntity, targetEntity);
           if (
-            trigger.frame === undefined &&
+            !trap.args.memory?.triggered &&
             (!friendly ||
               (entity[POSITION].x === castableEntity[POSITION].x &&
                 entity[POSITION].y === castableEntity[POSITION].y &&
@@ -501,16 +505,14 @@ export default function setupMagic(world: World) {
                   castableEntity[CASTABLE].heal
                 ).healing > 0))
           ) {
-            const frame = entities.createFrame(world, {
-              [REFERENCE]: {
-                tick: trigger.delay,
-                delta: 0,
-                suspended: false,
-                suspensionCounter: -1,
-              },
-              [RENDERABLE]: { generation: 1 },
-            });
-            trigger.frame = world.getEntityId(frame);
+            trap.args.memory = { triggered: true };
+            trap.elapsed = -delta; // The sequence starts its warning at zero this update.
+            // Wake magic at detonation even when nothing else is moving.
+            const clock = world.assertByIdAndComponents(trap.reference, [
+              REFERENCE,
+            ])[REFERENCE];
+            clock.tick = trap.args.delay * trapWarningStep;
+            clock.delta = 0;
           }
           continue;
         }
@@ -665,7 +667,7 @@ export default function setupMagic(world: World) {
         rerenderEntity(world, targetEntity);
       }
 
-      if (pendingTrigger) continue;
+      if (waiting) continue;
 
       // prevent cascades from affecting terrain
       if (castableEntity[CASTABLE].cascade) continue;

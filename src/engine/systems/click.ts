@@ -13,6 +13,7 @@ import {
   orientationPoints,
 } from "../components/orientable";
 import { isControllable } from "./freeze";
+import { COVERABLE } from "../components/coverable";
 import { CLICKABLE } from "../components/clickable";
 import { PLAYER } from "../components/player";
 import { rerenderEntity } from "./renderer";
@@ -39,9 +40,15 @@ export const getClickables = (world: World, position: Position) =>
     })
     .filter(Boolean) as Entity[];
 
-export const getClickable = (world: World, position: Position) =>
+export const getClickable = (
+  world: World,
+  position: Position,
+  ignoreSnow = false
+) =>
   getClickables(world, position).find(
-    (clickable) => !clickable[CLICKABLE].clicked
+    (clickable) =>
+      !clickable[CLICKABLE].clicked &&
+      !(ignoreSnow && clickable[COVERABLE]?.type === "snow")
   );
 
 export const clickEntity = (

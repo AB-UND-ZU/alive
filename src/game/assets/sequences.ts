@@ -4,7 +4,6 @@ import type { SequenceState } from "../../engine/components/sequencable";
 import { getPopupInputs, isPopupViewCurrent, PopupView } from "./popupView";
 import { RESTORABLE } from "../../engine/components/restorable";
 import { bumpEntity } from "../../engine/motion";
-import { trapActivation } from "../balancing/abilities";
 import { warnOn, warnOff } from "./sprites/particles";
 import { setParticleMotion } from "../../engine/motion";
 import { displaySpriteBuilder } from "./spriteBuilder";
@@ -347,7 +346,9 @@ import {
 import { BURNABLE } from "../../engine/components/burnable";
 import { AFFECTABLE } from "../../engine/components/affectable";
 import {
-  getTriggerElapsed,
+  getTrapBurstTime,
+  trapBurstDuration,
+  trapWarningStep,
   getExertables,
   getParticleAmount,
   hasTriggered,
@@ -2261,13 +2262,11 @@ export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
   );
   const material = state.args.material || "default";
   const element = state.args.element || "default";
-  const triggerState = (entity[CASTABLE].trigger ||= { ...trapActivation });
-  const triggerElapsed = getTriggerElapsed(world, triggerState);
-  const active = triggerElapsed >= triggerState.delay;
-  const finished =
-    triggerState.frame === undefined
-      ? progress > state.args.duration
-      : triggerElapsed >= triggerState.delay + triggerState.duration;
+  const triggered = state.args.memory?.triggered;
+  const burstTime = getTrapBurstTime(state);
+  const finished = triggered
+    ? burstTime >= trapBurstDuration
+    : progress > state.args.duration;
   state.args.progress = progress;
   if (finished) {
     disposeParticles(world, state);
@@ -2303,8 +2302,9 @@ export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
     (!caster || getDistance(entity[POSITION], caster[POSITION], size) !== 0)
   ) {
     place("trap", trigger[material][element]);
-    for (let y = -1; y <= 1; y += 1) {
-      for (let x = -1; x <= 1; x += 1) {
+    const range = state.args.range;
+    for (let y = -range; y <= range; y += 1) {
+      for (let x = -range; x <= range; x += 1) {
         const area = entities.createAoe(world, {
           [EXERTABLE]: { castable: world.getEntityId(entity) },
           [POSITION]: combine(size, entity[POSITION], { x, y }),
@@ -2315,7 +2315,7 @@ export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
     }
   }
 
-  if (active && state.particles.trap) {
+  if (burstTime >= 0 && state.particles.trap) {
     disposeParticles(world, state);
     trapBorder.forEach((sprite, index) => {
       const iteration = iterations[Math.floor(index / 2)];
@@ -2328,7 +2328,7 @@ export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
           offsetX: 0,
           offsetY: 0,
           offsetZ: particleHeight,
-          duration: triggerState.duration,
+          duration: trapBurstDuration,
           animatedOrigin: origin,
         },
         [RENDERABLE]: { generation: 1 },
@@ -2338,7 +2338,7 @@ export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
     });
     play("trap", { intensity: 2, notes: 2, spacing: 0 });
     updated = true;
-  } else if (triggerState.frame !== undefined && !active) {
+  } else if (triggered && burstTime < 0) {
     if (!state.particles.warning) {
       place("warning", none, { x: 0, y: 0 }, particleHeight);
       for (const { orientation, direction, normal } of iterations) {
@@ -2361,7 +2361,8 @@ export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
     const warning = world.assertByIdAndComponents(state.particles.warning, [
       SPRITE,
     ]);
-    const sprite = Math.floor(triggerElapsed / 100) % 2 ? warnOff : warnOn;
+    const sprite =
+      Math.floor(state.elapsed / trapWarningStep) % 2 ? warnOff : warnOn;
     if (warning[SPRITE] !== sprite) {
       warning[SPRITE] = sprite;
       rerenderEntity(world, warning);
@@ -4895,8 +4896,12 @@ const cellColorWeights: Partial<Record<CellType, [string, number]>> = {
   // path: [colors.white, 5],
   mountain: [colors.silver, 4],
   ore: [colors.silver, 4],
+  iron: [colors.silver, 4],
+  gold: [colors.silver, 4],
   rock: [colors.silver, 3],
   tree: [colors.green, 1],
+  glacier_tree: [colors.green, 1],
+  birch: [colors.green, 1],
   hedge: [colors.green, 1],
   cactus: [colors.green, 3],
   ice: [colors.aqua, 1],

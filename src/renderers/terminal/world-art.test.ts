@@ -68,7 +68,11 @@ it("grows Flower stacks through tiny, small and large middle dots", () => {
     ).toEqual(["·", "∙", "•"]);
   }
   for (const variant of [undefined, "resource"] as const)
-    for (const [amount, char] of [[1, "·"], [2, "∙"], [3, "•"]] as const)
+    for (const [amount, char] of [
+      [1, "·"],
+      [2, "∙"],
+      [3, "•"],
+    ] as const)
       expect(
         projectSprite(getItemSprite({ stackable: "flower", amount }, variant))
       ).toMatchObject({ char, foreground: colors.teal });
@@ -95,6 +99,7 @@ it("uses commas for every burnt tree and palm stump", () => {
 
 it.each([
   "stump",
+  "glacier_stump",
   "husk",
   "desert_husk",
   "post",
@@ -118,5 +123,13 @@ it.each([
     (entry) => entry.entity === entity && /body\d+$/.test(entry.key)
   )!;
   const frame = createTerminalFrame(collectTerminalSprites(scene), 15, 11);
-  expect(frame[Math.ceil(body.y)][Math.ceil(body.x)].char).toBe(",");
+  expect(frame[Math.ceil(body.y)][Math.ceil(body.x)]).toMatchObject({
+    char: ",",
+    foreground:
+      cell === "glacier_stump"
+        ? colors.silver
+        : cell === "rubble"
+        ? colors.grey
+        : colors.maroon,
+  });
 });

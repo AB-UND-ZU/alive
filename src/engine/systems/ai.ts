@@ -5,11 +5,12 @@ import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
 import { rerenderEntity } from "./renderer";
 import { MOVABLE } from "../components/movable";
-import { Behaviour, BEHAVIOUR } from "../components/behaviour";
+import { Behaviour, BEHAVIOUR, Pattern } from "../components/behaviour";
 import {
   getBiome,
   getTempo,
   isMovable,
+  isPathable,
   isRoamable,
   isWalkable,
 } from "./movement";
@@ -94,6 +95,7 @@ import { getProjectiles, shootArrow } from "./ballistics";
 import { canCast } from "./magic";
 import {
   disposeEntity,
+  disposeSequence,
   getCell,
   getCellEntities,
   moveEntity,
@@ -105,7 +107,7 @@ import { STATS } from "../components/stats";
 import { EXERTABLE } from "../components/exertable";
 import { CASTABLE, getEmptyCastable } from "../components/castable";
 import { createPopup } from "./popup";
-import { isControllable } from "./freeze";
+import { isControllable, isSnowy } from "./freeze";
 import {
   getIdentifier,
   getIdentifierAndComponents,
@@ -161,6 +163,8 @@ import {
   confused,
   sleep1,
   sleep2,
+  whistle1,
+  whistle2,
   createShout,
   createText,
   rage2,
@@ -173,9 +177,49 @@ import { PARTICLE } from "../components/particle";
 import { REFERENCE } from "../components/reference";
 import { particleHeight } from "../../renderers/interface/segments";
 import { BURNABLE } from "../components/burnable";
+import { getBurning } from "./burn";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { evaporate } from "../../game/assets/templates/particles";
 import { FARMABLE } from "../components/farmable";
+import { CONDITIONABLE } from "../components/conditionable";
+
+const approachCamp = (world: World, position: Position, target: Position) => {
+  const directions = relativeOrientations(world, position, target, 1);
+  if (
+    getDistance(position, target, world.metadata.gameEntity[LEVEL].size, 1) ===
+    1
+  )
+    return directions;
+  const direct = directions.filter((direction) =>
+    isPathable(world, add(position, orientationPoints[direction]))
+  );
+  if (direct.length) return direct;
+
+  const step = findPath(
+    world.metadata.gameEntity[LEVEL].walkable,
+    position,
+    target,
+    true
+  )[0];
+  return step ? relativeOrientations(world, position, step, 1) : [];
+};
+
+const retreatFrom = (world: World, position: Position, target: Position) => {
+  const away = relativeOrientations(world, target, position, 1);
+  if (away.length === 1) {
+    away.push(rotateOrientation(away[0], 1), rotateOrientation(away[0], -1));
+  }
+  return away.filter((direction) => {
+    const next = add(position, orientationPoints[direction]);
+    return isPathable(world, next) && !getBurning(world, next);
+  });
+};
+
+const banditWarning = (idle: typeof rage, ticks: number): Pattern[] => [
+  { name: "dialog", memory: { idle, override: "idle" } },
+  { name: "wait", memory: { ticks } },
+  { name: "dialog", memory: { idle: undefined, override: undefined } },
+];
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -186,6 +230,7 @@ export default function setupAi(world: World) {
 
     lastGeneration = generation;
     const rageHero = world.getEntity([PLAYER, POSITION]);
+    let bandits: TypedEntity<"POSITION" | "STATS" | "BELONGABLE">[] | undefined;
 
     for (const entity of world.getEntities([POSITION, MOVABLE, BEHAVIOUR])) {
       const patterns = (entity[BEHAVIOUR] as Behaviour).patterns;
@@ -231,6 +276,232 @@ export default function setupAi(world: World) {
       }
 
       for (const pattern of [...patterns]) {
+        let movement = pattern.name;
+        if (pattern.name === "bandit_camp") {
+          if (!entity[STATS]) break;
+          const group = entity[BELONGABLE]?.group;
+          const priest = patterns.find(({ name }) => name === "bandit_priest");
+          bandits ??= world
+            .getEntities([BELONGABLE, STATS, POSITION, BEHAVIOUR])
+            .filter((member) => member[BELONGABLE].group !== undefined);
+          const groupMates =
+            group === undefined
+              ? []
+              : bandits.filter(
+                  (member) =>
+                    member !== entity && member[BELONGABLE].group === group
+                );
+          const mates = groupMates.filter((mate) => !isDead(world, mate));
+          const distance = (position: Position) =>
+            rageHero
+              ? getDistance(position, rageHero[POSITION], size, 1, false)
+              : Infinity;
+          const fire = world.getEntityByIdAndComponents(group, [POSITION]);
+          const home =
+            fire?.[POSITION] ||
+            mates[0]?.[POSITION] ||
+            (pattern.memory.home ??= copy(entity[POSITION]));
+          const closest = Math.min(
+            distance(entity[POSITION]),
+            ...mates.map((mate) => distance(mate[POSITION]))
+          );
+          const wounds = groupMates.reduce(
+            (total, mate) => total + (mate[STATS].maxHp - mate[STATS].hp),
+            entity[STATS].maxHp - entity[STATS].hp
+          );
+          const attacked = wounds > (pattern.memory.wounds || 0);
+          pattern.memory.wounds = wounds;
+          const seesHero = (position: Position) =>
+            world.metadata.visibleCells.has(position.x * size + position.y) &&
+            distance(position) <= 15;
+          const inSight =
+            seesHero(entity[POSITION]) ||
+            mates.some((mate) => seesHero(mate[POSITION]));
+          const previouslyEngaged = pattern.memory.engaged;
+          const engaged =
+            closest <= 2 ||
+            (distance(home) <= 15 &&
+              (attacked || (wounds ? inSight : previouslyEngaged)));
+          pattern.memory.engaged = !!engaged;
+          if (engaged && !previouslyEngaged) {
+            patterns.unshift(...banditWarning(rage, 1));
+            break;
+          }
+          const tooltip = entity[TOOLTIP];
+          if (tooltip && !engaged) {
+            const lookout = !mates.some(
+              (mate) => world.getEntityId(mate) < entityId
+            );
+            const idle =
+              !lookout || wounds
+                ? undefined
+                : closest === 3
+                ? confused
+                : [whistle1, whistle2][generation % 2];
+            if (tooltip.idle !== idle) {
+              tooltip.idle = idle;
+              tooltip.changed = true;
+            }
+          }
+          if (priest) {
+            const tendSelf =
+              !engaged &&
+              mates.length > 0 &&
+              entity[STATS].hp < entity[STATS].maxHp;
+            const patient =
+              mates
+                .filter((mate) => mate[STATS].hp < mate[STATS].maxHp)
+                .sort(
+                  (first, second) => first[STATS].hp - second[STATS].hp
+                )[0] || (tendSelf ? entity : undefined);
+            const ally = patient || mates[0];
+            priest.memory.ally = ally && world.getEntityId(ally);
+            if (
+              patient &&
+              getDistance(patient[POSITION], home, size, 1, false) <= 2
+            )
+              continue;
+          }
+          if (engaged) continue;
+          if (getDistance(entity[POSITION], home, size, 1, false) > 1) {
+            entity[MOVABLE].orientations = approachCamp(
+              world,
+              entity[POSITION],
+              home
+            );
+          }
+          break;
+        } else if (pattern.name === "bandit_priest") {
+          if (!entity[STATS] || !entity[ACTIONABLE]) break;
+          const memory = pattern.memory;
+          const position = entity[POSITION];
+          const ally = world.getEntityByIdAndComponents(memory.ally, [
+            POSITION,
+            STATS,
+          ]);
+          const canUseMagic = entity[STATS].hp >= entity[STATS].maxHp * 0.15;
+          const now = world.metadata.playtime;
+          if (!ally) {
+            if (!rageHero) break;
+            if (
+              canUseMagic &&
+              !entity[CONDITIONABLE]?.block &&
+              now >= (memory.nextBubble || 0)
+            ) {
+              entity[ACTIONABLE].skillTriggered = true;
+              memory.nextBubble = now + 3000;
+            } else {
+              const fire = world.getEntityByIdAndComponents(
+                entity[BELONGABLE]?.group,
+                [POSITION]
+              );
+              const nearFire = (point: Position) =>
+                !fire ||
+                getDistance(point, fire[POSITION], size, 1, false) <= 6;
+              entity[MOVABLE].orientations =
+                fire && !nearFire(position)
+                  ? approachCamp(world, position, fire[POSITION])
+                  : retreatFrom(world, position, rageHero[POSITION]).filter(
+                      (direction) =>
+                        nearFire(add(position, orientationPoints[direction]))
+                    );
+            }
+            break;
+          }
+
+          const target = ally[POSITION];
+          const distance = getDistance(position, target, size, 1);
+          if (ally[STATS].hp >= ally[STATS].maxHp) {
+            delete memory.meleeUntil;
+            delete memory.waves;
+            if (distance > 2)
+              entity[MOVABLE].orientations = approachCamp(
+                world,
+                position,
+                target
+              );
+            break;
+          }
+          memory.meleeUntil ??= now + 3000;
+          if (ally !== entity && (!canUseMagic || now < memory.meleeUntil)) {
+            entity[MOVABLE].orientations = approachCamp(
+              world,
+              position,
+              target
+            );
+            break;
+          }
+          const wave = world.getEntityByIdAndComponents(
+            entity[EQUIPPABLE]?.spell,
+            [ITEM]
+          );
+          if (!wave) break;
+          const range = getAbilityStats(wave[ITEM], entity[NPC]?.type).range;
+          const retreat =
+            ally !== entity && distance < 2
+              ? retreatFrom(world, position, target)
+              : [];
+          if (distance > range) {
+            entity[MOVABLE].orientations = approachCamp(
+              world,
+              position,
+              target
+            );
+          } else if (retreat.length) {
+            entity[MOVABLE].orientations = retreat;
+          } else if (canCast(world, entity, wave)) {
+            memory.waves ??= random(1, 2);
+            entity[ACTIONABLE].spellTriggered = true;
+            if (--memory.waves === 0) {
+              delete memory.waves;
+              memory.meleeUntil = now + 3000;
+            }
+          }
+          break;
+        } else if (pattern.name === "bandit_rogue") {
+          if (!entity[STATS]) break;
+          movement =
+            entity[STATS].hp < entity[STATS].maxHp / 2 ? "archer" : "chase";
+          if (movement === "chase" && entity[TOOLTIP]?.idle) {
+            entity[TOOLTIP].idle = undefined;
+            entity[TOOLTIP].changed = true;
+          }
+        } else if (
+          pattern.name === "bandit_knight" ||
+          pattern.name === "bandit_mage"
+        ) {
+          if (!rageHero || !entity[ACTIONABLE]) break;
+          const mage = pattern.name === "bandit_mage";
+          const nearby =
+            getDistance(entity[POSITION], rageHero[POSITION], size, 1, false) <=
+            (mage ? 2 : 1);
+          if (
+            nearby &&
+            !entity[TOOLTIP]?.idle &&
+            world.metadata.playtime >= (pattern.memory.ready || 0) &&
+            !(
+              mage &&
+              getCellEntities(world, entity[POSITION]).some(
+                (effect) =>
+                  effect[CASTABLE]?.caster === entityId &&
+                  getSequence(world, effect, "aura")?.name === "trapAura"
+              )
+            )
+          ) {
+            pattern.memory.ready =
+              world.metadata.playtime + (mage ? 4000 : 3000);
+            if (mage) {
+              entity[ACTIONABLE].spellTriggered = true;
+            } else {
+              patterns.unshift(...banditWarning(rage2, 2), {
+                name: "action",
+                memory: { skill: true },
+              });
+            }
+            break;
+          }
+          movement = mage ? "archer" : "chase";
+        }
         if (pattern.name === "wait") {
           if (pattern.memory.ticks === 0) {
             patterns.splice(patterns.indexOf(pattern), 1);
@@ -853,7 +1124,7 @@ export default function setupAi(world: World) {
             entity[TOOLTIP].idle = rage;
             entity[TOOLTIP].changed = true;
           }
-        } else if (pattern.name === "chase" || pattern.name === "chase_slow") {
+        } else if (movement === "chase" || movement === "chase_slow") {
           const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
           ]);
@@ -867,7 +1138,7 @@ export default function setupAi(world: World) {
             0.69
           );
 
-          if (distance > 7) break;
+          if (movement === pattern.name && distance > 7) break;
 
           const halfStep = pattern.name === "chase_slow";
           const attackingOrientations = relativeOrientations(
@@ -952,7 +1223,7 @@ export default function setupAi(world: World) {
           }
         } else if (
           pattern.name === "orb" ||
-          pattern.name === "archer" ||
+          movement === "archer" ||
           pattern.name === "violet"
         ) {
           if (!entity[TOOLTIP]) continue;
@@ -960,8 +1231,15 @@ export default function setupAi(world: World) {
           const isSpell = pattern.name === "orb" || pattern.name === "violet";
           const halfStep = isSpell;
           const canReposition =
-            pattern.name === "archer" || pattern.name === "violet";
-          const range = pattern.name === "violet" ? 6 : 9;
+            movement === "archer" || pattern.name === "violet";
+          const wand =
+            pattern.name === "bandit_mage" &&
+            world.getEntityByIdAndComponents(entity[EQUIPPABLE]?.skill, [ITEM]);
+          const range = wand
+            ? getAbilityStats(wand[ITEM], entity[NPC]?.type).range
+            : pattern.name === "violet"
+            ? 6
+            : 9;
           const gap = pattern.name === "violet" ? 1 : 2;
 
           const heroEntity = getIdentifierAndComponents(world, "hero", [
@@ -1146,6 +1424,12 @@ export default function setupAi(world: World) {
             }
 
             movements = repositionOrientations;
+          } else if ((wand || pattern.name === "bandit_rogue") && heroEntity) {
+            movements = relativeOrientations(
+              world,
+              entity[POSITION],
+              heroEntity[POSITION]
+            );
           }
 
           // casters only walk every second tick
@@ -1285,6 +1569,13 @@ export default function setupAi(world: World) {
             });
           }
 
+          if (
+            (memory.override === "idle" ||
+              entity[TOOLTIP].override === "idle") &&
+            getSequence(world, entity, "dialog")
+          ) {
+            disposeSequence(world, entity, "dialog");
+          }
           for (const [key, value] of Object.entries(memory)) {
             // TODO: find a better way to infer types
             (entity[TOOLTIP] as any)[key] = value;
@@ -1603,7 +1894,7 @@ export default function setupAi(world: World) {
 
           // recalculate path if route changed or path obstructed
           let pathObstructed =
-            attemptedPosition && !isWalkable(world, attemptedPosition);
+            attemptedPosition && !isPathable(world, attemptedPosition);
           const remainingPath =
             !uninitialized && !hasArrived && memory.path.length === 0;
           const originChanged =
@@ -1633,7 +1924,7 @@ export default function setupAi(world: World) {
           }
 
           if (attemptedPosition && !pathObstructed) {
-            memory.path.shift();
+            if (!isSnowy(world, attemptedPosition)) memory.path.shift();
 
             const targetOrientation = relativeOrientations(
               world,
@@ -1826,7 +2117,7 @@ export default function setupAi(world: World) {
           let pathObstructed =
             !hasArrived &&
             attemptedPosition &&
-            !isWalkable(world, attemptedPosition);
+            !isPathable(world, attemptedPosition);
           const remainingPath =
             !uninitialized && !hasArrived && memory.path.length === 0;
           const originChanged =
@@ -6329,6 +6620,31 @@ export default function setupAi(world: World) {
         } else {
           console.error(Date.now(), "Unhandled pattern", pattern);
           patterns.splice(patterns.indexOf(pattern), 1);
+        }
+      }
+
+      const steps = entity[MOVABLE].orientations;
+      if (steps.length && rageType.startsWith("bandit")) {
+        const safe = (direction: Orientation) =>
+          !getBurning(
+            world,
+            add(entity[POSITION], orientationPoints[direction])
+          );
+        if (steps.length === 1 && !safe(steps[0])) {
+          const turn = steps[0];
+          entity[MOVABLE].orientations = [
+            rotateOrientation(turn, 1),
+            rotateOrientation(turn, -1),
+          ].filter(
+            (direction) =>
+              safe(direction) &&
+              isPathable(
+                world,
+                add(entity[POSITION], orientationPoints[direction])
+              )
+          );
+        } else {
+          entity[MOVABLE].orientations = steps.filter(safe);
         }
       }
     }

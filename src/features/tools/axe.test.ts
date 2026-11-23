@@ -14,6 +14,7 @@ import { CONDITIONABLE } from "../../engine/components/conditionable";
 import { HARVESTABLE } from "../../engine/components/harvestable";
 import { POSITION } from "../../engine/components/position";
 import { getHarvestConfig } from "../../game/balancing/harvesting";
+import { colors } from "../../game/assets/colors";
 import { getEquipmentStats } from "../../game/balancing/equipment";
 import {
   collectLoot,
@@ -112,6 +113,28 @@ describe("axe", () => {
     expect(countItems(world, hero, { stackable: "stick" })).toBe(1);
   });
 
+  it.each([
+    ["glacier_tree", 16, { stackable: "stick", amount: 3 }],
+    ["birch", 31, { stackable: "resource", material: "wood", amount: 3 }],
+  ] as const)("chops %s for its glacier timber", (cell, effort, yieldItem) => {
+    const { world } = setupTools(area, [sword, woodAxe], { "#": cell });
+    act(world, "skill");
+    expect(workUntilDepleted(world, "right", getResource(world, tree)!)).toBe(
+      effort
+    );
+    step(world, 60);
+    expect(getLootItems(world, tree)).toEqual([yieldItem]);
+    const stump = world.assertComponents(getResource(world, tree)!, ["SPRITE"]);
+    expect(stump.HARVESTABLE?.resource).toBe("stump");
+    expect(stump.SPRITE.layers).toContainEqual({
+      char: "│",
+      color: colors.silver,
+    });
+    expect(stump.SPRITE.layers).toEqual(
+      expect.arrayContaining([expect.objectContaining({ color: colors.grey })])
+    );
+  });
+
   it("turns the first stick into a wooden sword when unarmed", () => {
     const { world, hero } = setupTools(area, [woodAxe]);
 
@@ -137,9 +160,7 @@ describe("axe", () => {
 
     act(world, "skill");
 
-    expect(workUntilDepleted(world, "right", palmEntity)).toBe(
-      getHarvestConfig("palm").harvestable.maximum
-    );
+    expect(workUntilDepleted(world, "right", palmEntity)).toBe(11);
     step(world, 60);
     expect(getLootItems(world, palm)).toEqual([
       { stackable: "stick", amount: 2 },

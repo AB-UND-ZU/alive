@@ -1148,6 +1148,10 @@ export const statConfig: Record<
     color: colors.olive,
     sprite: absorb,
   },
+  delay: {
+    color: colors.olive,
+    sprite: delay,
+  },
   duration: {
     color: colors.purple,
     sprite: time,

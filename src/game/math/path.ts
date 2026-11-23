@@ -5,7 +5,7 @@ import { World } from "../../engine";
 import { Position } from "../../engine/components/position";
 import { LEVEL } from "../../engine/components/level";
 import { Matrix, matrixFactory } from "./matrix";
-import { isWalkable } from "../../engine/systems/movement";
+import { isPathable } from "../../engine/systems/movement";
 import { add, getDistance, normalize, signedDistance } from "./std";
 import { degreesToOrientations, pointToDegree } from "./tracing";
 import { aspectRatio } from "../../renderers/interface/dimensions";
@@ -15,7 +15,7 @@ export const getWalkableMatrix = (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
 
   return matrixFactory(size * 2, size * 2, (x, y) =>
-    isWalkable(world, { x, y }) ? 1 : 0
+    isPathable(world, { x, y }) ? 1 : 0
   );
 };
 

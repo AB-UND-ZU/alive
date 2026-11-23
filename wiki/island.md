@@ -31,3 +31,7 @@ fire-haven-map
 Fire Haven is the desert settlement, with stone buildings, workshops, guards and the Fire Chief. The cutout includes the jetty and its harbor guard. Visit the chief for the town's story and use the workstations to prepare your equipment. Buildings are shown from inside to reveal their contents.
 
 See [Quests](quests.md#fire-haven) for the settlements' progression and [Trading](shops.md) for buying and selling.
+
+## Glacier
+
+Sail to the glacier and meet the [[unit:waterGuard]] at its center. [[unit:diamondPrism]], [[unit:diamondEye]] and [[unit:diamondOrb]] roam the snow. Mine through the mountain walls to uncover [[item:iron]] and occasional [[item:gold]] deposits. Each [bandit camp](enemies.md#bandit-camps) has a campfire and a [[unit:goldChest]].

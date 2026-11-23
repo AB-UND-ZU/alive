@@ -18,16 +18,16 @@ import {
   moveEntity,
   registerEntity,
 } from "../../engine/systems/map";
-import { getTriggerElapsed } from "../../engine/systems/magic";
 import { createBubble } from "../../engine/systems/water";
 import { createCell } from "../../bindings/creation";
 import { rain, warnOn, warnOff } from "../../game/assets/sprites";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { combine } from "../../game/math/std";
 import { playedSounds } from "../../testing/env";
-import { advance, FRAME, step, walk } from "../../testing/harness";
+import { advance, advanceUntil, FRAME, step, walk } from "../../testing/harness";
 import {
   cast,
+  castAs,
   createArea,
   createSpellWorld,
   getUnit,
@@ -89,14 +89,45 @@ const advanceTo = (world: World, time: number) => {
 };
 
 const advanceTriggerTo = (world: World, spell: TrapEntity, time: number) => {
-  const trigger = spell[CASTABLE].trigger;
-  if (!trigger?.frame) throw new Error("Trap has not triggered");
-  while (getTriggerElapsed(world, trigger) + FRAME < time) step(world);
-  const remaining = time - getTriggerElapsed(world, trigger);
-  if (remaining > 0) world.update(remaining);
+  const state = spell[SEQUENCABLE].states.aura!;
+  if (!state.args.memory?.triggered) throw new Error("Trap has not triggered");
+  while (state.elapsed + FRAME < time) step(world);
+  if (state.elapsed < time) world.update(time - state.elapsed);
 };
 
 describe("trap spell", () => {
+  it("gives a player one second to escape a Bandit Mage trap, then bursts for half a second", () => {
+    const area = "|♀ M    |";
+    const { world, hero } = createSpellWorld(area, undefined, {
+      size: 32,
+      legend: { M: "banditMage" },
+    });
+    const caster = getUnit(world, area, "M");
+    if (caster.BEHAVIOUR) caster.BEHAVIOUR.patterns = [];
+    const center = { ...caster[POSITION] };
+    const spell = castAs(
+      world,
+      caster,
+      { spell: "trap", material: "iron", element: "water" },
+      "left"
+    );
+    moveEntity(world, caster, { x: center.x + 3, y: center.y });
+    moveEntity(world, hero, center);
+    advanceUntil(
+      world,
+      () => !!spell[SEQUENCABLE].states.aura?.particles.warning
+    );
+    const hp = hero[STATS].hp;
+    advanceTriggerTo(world, spell, 999);
+    expect(hero[STATS].hp).toBe(hp);
+    advanceTriggerTo(world, spell, 1000);
+    expect(hero[STATS].hp).toBeLessThan(hp);
+    advanceTriggerTo(world, spell, 1499);
+    expect(getTrapAreas(world, spell)).toHaveLength(9);
+    advanceTriggerTo(world, spell, 1500);
+    expect(getTrapAreas(world, spell)).toHaveLength(0);
+  });
+
   it("arms all nine cells only after its caster leaves the cast cell", () => {
     const { world, hero, spell, center } = setup();
     step(world, 10);
@@ -186,7 +217,6 @@ describe("trap spell", () => {
     moveEntity(world, second, { x: center.x + 1, y: center.y + 1 });
     step(world);
 
-    const frame = spell[CASTABLE].trigger!.frame!;
     advanceTriggerTo(world, spell, 500);
     const damage = getAbilityStats(trap).magic;
     expect(enemies.map((enemy) => enemy[STATS].hp)).toEqual([
@@ -207,7 +237,6 @@ describe("trap spell", () => {
     step(world);
     expect(getTrapAreas(world, spell)).toEqual([]);
     expect(isCasting(world, hero)).toBe(false);
-    expect(world.getEntityById(frame)).toBeUndefined();
     expect(recordHits(world, enemies, 40)).toEqual([[], [], []]);
     expect(playedSounds.filter((sound) => sound === "trap")).toHaveLength(2);
   });
@@ -273,16 +302,16 @@ describe("trap spell", () => {
     expect(getTrapAreas(world, spell)).toEqual([]);
   });
 
-  it("cleans up its timer and areas when a triggered trap is removed", () => {
+  it("removes the warning without hitting anyone when a triggered trap is removed", () => {
     const { world, spell, center, enemies, arm } = setup();
     arm();
     moveEntity(world, enemies[0], center);
     step(world);
-    const frame = spell[CASTABLE].trigger?.frame;
-    expect(frame).toBeDefined();
+    const warning = spell[SEQUENCABLE].states.aura!.particles.warning;
+    expect(warning).toBeDefined();
     disposeEntity(world, spell);
     step(world);
-    expect(world.getEntityById(frame!)).toBeUndefined();
+    expect(world.getEntityById(warning)).toBeUndefined();
     expect(getTrapAreas(world, spell)).toEqual([]);
     advance(world, 2000);
     expect(enemies[0][STATS].hp).toBe(99);
@@ -307,7 +336,7 @@ describe("trap spell", () => {
     moveEntity(world, hero, center);
     moveEntity(world, allies[0], { x: center.x + 1, y: center.y });
     advance(world, 1000);
-    expect(spell[CASTABLE].trigger?.frame).toBeUndefined();
+    expect(spell[SEQUENCABLE].states.aura!.particles.warning).toBeUndefined();
     expect(getTrapAreas(world, spell)).toHaveLength(9);
     expect(allies[0][STATS].hp).toBe(99);
   });
@@ -319,7 +348,7 @@ describe("trap spell", () => {
     arm();
     moveEntity(world, ally, { x: center.x - 1, y: center.y - 1 });
     advance(world, 700);
-    expect(spell[CASTABLE].trigger?.frame).toBeUndefined();
+    expect(spell[SEQUENCABLE].states.aura!.particles.warning).toBeUndefined();
     expect(ally[STATS].hp).toBe(10);
     moveEntity(world, ally, center);
     step(world);
@@ -335,7 +364,7 @@ describe("trap spell", () => {
     arm();
     moveEntity(world, allies[0], center);
     advance(world, 700);
-    expect(spell[CASTABLE].trigger?.frame).toBeUndefined();
+    expect(spell[SEQUENCABLE].states.aura!.particles.warning).toBeUndefined();
     expect(getTrapAreas(world, spell)).toHaveLength(9);
   });
 
@@ -408,7 +437,7 @@ describe("trap spell", () => {
     });
     createBubble(world, center, "rain", false);
     advance(world, 1000);
-    expect(spell[CASTABLE].trigger?.frame).toBeUndefined();
+    expect(spell[SEQUENCABLE].states.aura!.particles.warning).toBeUndefined();
     expect(getTrapAreas(world, spell)).toHaveLength(9);
   });
 

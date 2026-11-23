@@ -3,7 +3,7 @@ import {
   createSpellWorld,
   cast,
 } from "../../features/spells/helpers";
-import { FRAME, step } from "../../testing/harness";
+import { advanceUntil, step } from "../../testing/harness";
 import { orientations } from "../../engine/components/orientable";
 import { materials, elements } from "../../engine/components/item";
 import { colors } from "../../game/assets/colors";
@@ -11,7 +11,6 @@ import { getSceneFrame } from "../interface/frame";
 import { CASTABLE } from "../../engine/components/castable";
 import { POSITION } from "../../engine/components/position";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
-import { getTriggerElapsed } from "../../engine/systems/magic";
 import { moveEntity } from "../../engine/systems/map";
 import {
   collectTerminalSprites,
@@ -60,12 +59,13 @@ it("draws a complete terminal frame when a trap activates before it implodes", (
     .find((entity) => entity.NPC?.type === "dummy");
   if (!dummy) throw new Error("Missing trap target");
   moveEntity(world, dummy, center);
-  step(world);
-  const trigger = spell[CASTABLE].trigger!;
-  while (getTriggerElapsed(world, trigger) + FRAME < trigger.delay) step(world);
-  world.update(trigger.delay - getTriggerElapsed(world, trigger));
+  advanceUntil(
+    world,
+    () => !!spell[SEQUENCABLE].states.aura?.particles["border-0"]
+  );
+  const burstStart = world.metadata.elapsed;
   for (const elapsed of [0, 50, 150, 300, 450]) {
-    world.update(trigger.delay + elapsed - getTriggerElapsed(world, trigger));
+    world.update(burstStart + elapsed - world.metadata.elapsed);
     const scene = getSceneFrame(world, 33, 21, undefined, { instant: true });
     const border = collectTerminalSprites(scene).filter(
       (entry) => entry.sprite.name === "trap_border"

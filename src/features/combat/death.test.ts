@@ -14,7 +14,7 @@ import { INVENTORY } from "../../engine/components/inventory";
 import { SPRITE } from "../../engine/components/sprite";
 import { POSITION } from "../../engine/components/position";
 import { isDead } from "../../engine/systems/damage";
-import { tombstone1 } from "../../game/assets/sprites";
+import { tombstone1, tombstone2 } from "../../game/assets/sprites";
 import {
   attackUntil,
   createCombatWorld,
@@ -36,7 +36,7 @@ const slay = (mob: string, map = area) => {
   const { world, hero } = createCombatWorld(map, { U: mob });
   const unit = getUnit(world, map, "U");
   walk(world, "right");
-  giveItems(world, hero, [{ weapon: "sword", material: "iron", amount: 1 }]);
+  giveItems(world, hero, [{ weapon: "sword", material: "diamond", amount: 1 }]);
   const loot = getLoot(world, unit);
 
   attackUntil(world, "right", () => isDead(world, unit));
@@ -78,20 +78,65 @@ describe("defeating mobs", () => {
     );
   });
 
-  it("leaves a tombstone and no drops from a bandit with bound gear", () => {
-    const { world, unit, loot } = slay("banditKnight");
+  it.each([
+    ["banditPriest", "mp"],
+    ["banditMage", "mp"],
+    ["banditKnight", "hp"],
+    ["banditRogue", "hp"],
+  ])(
+    "%s drops coins, XP and an iron potion without leaving a tombstone",
+    (mob, stat) => {
+      const { world, unit, loot } = slay(mob);
+      expect(unit[STATS]).toMatchObject({ maxHp: 40, armor: 1 });
+      advanceUntil(world, () =>
+        getDrops(world).some(({ item }) => item.stat === "xp")
+      );
+      const drops = getDrops(world).map(({ item }) => item);
+      expect(drops).toHaveLength(3);
+      for (const item of [
+        { stat: "xp", amount: 3 },
+        { stackable: "coin", amount: 3 },
+        { consume: "potion", material: "iron", stat, amount: 1 },
+      ])
+        expect(drops).toContainEqual(expect.objectContaining(item));
+      step(world, 120);
+      const sprites = getEntitiesAt(world, target).map(
+        (entity) => entity[SPRITE]
+      );
+      expect(sprites).not.toContain(tombstone1);
+      expect(sprites).not.toContain(tombstone2);
+      expect(
+        world.assertComponents(unit, [INVENTORY])[INVENTORY].items
+      ).toHaveLength(loot.filter((item) => item.bound).length);
+    }
+  );
 
-    step(world, 120);
-
-    expect(loot.map((item) => item.bound)).toEqual([true, true]);
-    expect(getDrops(world)).toEqual([]);
-    expect(
-      getEntitiesAt(world, target).map((entity) => entity[SPRITE])
-    ).toContain(tombstone1);
-    expect(
-      world.assertComponents(unit, [INVENTORY])[INVENTORY].items
-    ).toHaveLength(2);
-  });
+  it.each([
+    ["diamondPrism", ["mp"]],
+    ["diamondEye", ["hp"]],
+    ["diamondOrb", ["hp", "mp"]],
+  ] as const)(
+    "%s drops one nugget, three XP and a recovery stat",
+    (mob, stats) => {
+      const { world } = slay(mob);
+      advanceUntil(world, () =>
+        getDrops(world).some(({ item }) => item.stat === "xp")
+      );
+      const drops = getDrops(world).map(({ item }) => item);
+      expect(drops).toHaveLength(3);
+      expect(drops).toContainEqual(
+        expect.objectContaining({ stackable: "nugget", amount: 1 })
+      );
+      expect(drops).toContainEqual(
+        expect.objectContaining({ stat: "xp", amount: 3 })
+      );
+      const recovery = drops.find(
+        (item) => item.stat === "hp" || item.stat === "mp"
+      );
+      expect(recovery?.amount).toBe(1);
+      expect(stats).toContain(recovery?.stat);
+    }
+  );
 
   it("turns a dropped wood sword into a stick", () => {
     const { world, hero } = createCombatWorld(area, { U: "prism" });

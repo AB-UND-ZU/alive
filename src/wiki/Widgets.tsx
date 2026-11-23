@@ -122,6 +122,7 @@ const equipmentStatDescriptions: Record<
   heal: "Health restored to a friendly target, increased by Wisdom.",
   drain: "Health restored to the attacker when the effect hits.",
   absorb: "Strength of the defensive block.",
+  delay: "Time between contact and detonation, in tenths of a second.",
   duration: "Effect duration; each ability uses its own sequence timing.",
   range: "Reach or target count, depending on the spell, skill or tool.",
   retrigger: "Gap before the next activation or repeated hit.",

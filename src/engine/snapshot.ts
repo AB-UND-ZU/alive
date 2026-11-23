@@ -4,6 +4,11 @@ import { Sprite } from "./components/sprite";
 import { INVENTORY } from "./components/inventory";
 import { ITEM } from "./components/item";
 import { TypedEntity } from "./entities";
+import { CASTABLE } from "./components/castable";
+import { REFERENCE } from "./components/reference";
+import { RENDERABLE } from "./components/renderable";
+import { SEQUENCABLE } from "./components/sequencable";
+import { disposeFrame } from "./systems/map";
 
 /**
  * Plain copy of all entities of a world. Shared objects stay shared within a
@@ -163,6 +168,36 @@ export const restoreSnapshot = (snapshot: WorldSnapshot) => {
   world.metadata.renderEntity = world.assertById(
     snapshot.render
   ) as World["metadata"]["renderEntity"];
+
+  // Older traps counted their warning time on a separate reference frame.
+  for (const entity of world.getEntities([CASTABLE, SEQUENCABLE])) {
+    const aura = entity[SEQUENCABLE].states.aura;
+    if (aura?.name !== "trapAura") continue;
+
+    const castable = entity[CASTABLE] as {
+      trigger?: { delay: number; frame?: number };
+    };
+    const timer = castable.trigger;
+    if (!timer && aura.args.range && aura.args.delay !== undefined) continue;
+    aura.args.range ||= 1;
+    aura.args.delay ??= (timer?.delay ?? 500) / 100;
+    if (timer?.frame !== undefined) {
+      const frame = world.assertByIdAndComponents(timer.frame, [
+        REFERENCE,
+        RENDERABLE,
+      ]);
+      aura.elapsed =
+        (frame[RENDERABLE].generation - 1) * frame[REFERENCE].tick +
+        frame[REFERENCE].delta;
+      aura.args.memory = { triggered: true };
+      Object.assign(
+        world.assertByIdAndComponents(aura.reference, [REFERENCE])[REFERENCE],
+        frame[REFERENCE]
+      );
+      disposeFrame(world, frame);
+    }
+    delete castable.trigger;
+  }
 
   return world;
 };

@@ -12,6 +12,8 @@ import { ItemView, Pixels, Text } from "./visuals";
 
 const cells: Record<string, { name: string; page: string; anchor?: string }> = {
   tree: { name: "Tree", page: "plants", anchor: "world-tree" },
+  glacier_tree: { name: "Glacier Tree", page: "plants", anchor: "world-tree" },
+  birch: { name: "Birch", page: "plants", anchor: "world-tree" },
   apple: { name: "Apple Tree", page: "plants", anchor: "world-tree" },
   palm: { name: "Palm", page: "plants", anchor: "world-palm" },
   banana: { name: "Banana Palm", page: "plants", anchor: "world-palm" },

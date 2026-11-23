@@ -155,6 +155,17 @@ export type NpcData = UnitData & {
   type: NpcType;
 };
 
+const banditDrops = (stat: "hp" | "mp"): UnitDefinition["drops"] => [
+  {
+    chance: 100,
+    items: [
+      { stackable: "coin", amount: 3 },
+      { stat: "xp", amount: 3 },
+      { consume: "potion", material: "iron", stat, amount: 1 },
+    ],
+  },
+];
+
 export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   guide: {
     faction: "nomad",
@@ -581,12 +592,50 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     remains: "tombstone2",
     evaporate: { sprite: ghost, fast: false },
   },
+  banditPriest: {
+    faction: "wild",
+    scratch: colors.silver,
+    stats: { hp: 40, mp: 1, armor: 1 },
+    equipments: [
+      { weapon: "sword", element: "earth", amount: 1, bound: true },
+      { spell: "wave", element: "earth", amount: 1, bound: true },
+      { skill: "block", material: "wood", amount: 1, bound: true },
+      { stackable: "charge", amount: Infinity, bound: true },
+    ],
+    drops: banditDrops("mp"),
+    patternNames: ["bandit_camp", "bandit_priest"],
+    sprite: bandit,
+    evaporate: { sprite: ghost, fast: false },
+  },
+  banditMage: {
+    faction: "wild",
+    scratch: colors.silver,
+    stats: { hp: 40, mp: 1, armor: 1 },
+    equipments: [
+      {
+        weapon: "wand",
+        skill: "wand",
+        material: "iron",
+        amount: 1,
+        bound: true,
+      },
+      {
+        spell: "trap",
+        material: "iron",
+        element: "water",
+        amount: 1,
+        bound: true,
+      },
+    ],
+    drops: banditDrops("mp"),
+    patternNames: ["bandit_camp", "bandit_mage"],
+    sprite: bandit,
+    evaporate: { sprite: ghost, fast: false },
+  },
   banditKnight: {
     faction: "wild",
     scratch: colors.silver,
-    stats: {
-      hp: 20,
-    },
+    stats: { hp: 40, armor: 1 },
     equipments: [
       {
         weapon: "sword",
@@ -596,15 +645,36 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
       {
         offhand: "shield",
-        material: "wood",
+        material: "gold",
         amount: 1,
         bound: true,
       },
+      { skill: "slash", material: "iron", amount: 1, bound: true },
+      { stackable: "charge", amount: Infinity, bound: true },
     ],
-    drops: [],
-    patternNames: [],
-    sprite: { ...bandit, name: "Bandit" },
-    remains: "tombstone1",
+    drops: banditDrops("hp"),
+    patternNames: ["bandit_camp", "bandit_knight"],
+    sprite: bandit,
+    evaporate: { sprite: ghost, fast: false },
+  },
+  banditRogue: {
+    faction: "wild",
+    scratch: colors.silver,
+    stats: { hp: 40, armor: 1 },
+    equipments: [
+      {
+        weapon: "sword",
+        material: "iron",
+        element: "water",
+        amount: 1,
+        bound: true,
+      },
+      { skill: "bow", material: "iron", amount: 1, bound: true },
+      { stackable: "arrow", amount: Infinity, bound: true },
+    ],
+    drops: banditDrops("hp"),
+    patternNames: ["bandit_camp", "bandit_rogue"],
+    sprite: bandit,
     evaporate: { sprite: ghost, fast: false },
   },
   banditArcher: {
@@ -781,7 +851,29 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       armor: 3,
     },
     equipments: [],
-    drops: [],
+    drops: [
+      { chance: 20, items: [{ stackable: "nugget", amount: 10 }] },
+      {
+        chance: 10,
+        items: [{ stackable: "resource", material: "iron", amount: 5 }],
+      },
+      {
+        chance: 10,
+        items: [{ stackable: "resource", material: "gold", amount: 1 }],
+      },
+      { chance: 10, items: [{ stackable: "pearl", amount: 2 }] },
+      { chance: 10, items: [{ stackable: "plank", amount: 1 }] },
+      { chance: 10, items: [{ stackable: "toast", amount: 3 }] },
+      { chance: 10, items: [{ stackable: "soup", amount: 3 }] },
+      {
+        chance: 10,
+        items: [{ consume: "potion", material: "gold", stat: "hp", amount: 8 }],
+      },
+      {
+        chance: 10,
+        items: [{ consume: "potion", material: "gold", stat: "mp", amount: 8 }],
+      },
+    ],
     patternNames: [],
     sprite: mergeSprites(slotShadow, goldChest),
   },
@@ -1312,6 +1404,27 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: prism.gold.default,
     evaporate: { sprite: evaporate.gold.default, fast: true },
   },
+  diamondPrism: {
+    faction: "wild",
+    scratch: colors.aqua,
+    stats: { hp: 24, armor: 2 },
+    equipments: [
+      { weapon: "sword", material: "diamond", amount: 0, bound: true },
+    ],
+    drops: [
+      {
+        chance: 100,
+        items: [
+          { stackable: "nugget", amount: 1 },
+          { stat: "xp", amount: 3 },
+          { stat: "mp", amount: 1 },
+        ],
+      },
+    ],
+    patternNames: ["prism"],
+    sprite: prism.diamond.default,
+    evaporate: { sprite: evaporate.diamond.default, fast: true },
+  },
   eye: {
     faction: "wild",
     scratch: colors.grey,
@@ -1375,6 +1488,27 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     patternNames: ["eye", "chase"],
     sprite: eye.gold.default,
     evaporate: { sprite: evaporate.gold.default, fast: true },
+  },
+  diamondEye: {
+    faction: "wild",
+    scratch: colors.aqua,
+    stats: { hp: 3, armor: 2 },
+    equipments: [
+      { weapon: "sword", material: "diamond", amount: 0, bound: true },
+    ],
+    drops: [
+      {
+        chance: 100,
+        items: [
+          { stackable: "nugget", amount: 1 },
+          { stat: "xp", amount: 3 },
+          { stat: "hp", amount: 1 },
+        ],
+      },
+    ],
+    patternNames: ["eye", "chase"],
+    sprite: eye.diamond.default,
+    evaporate: { sprite: evaporate.diamond.default, fast: true },
   },
   orb: {
     faction: "wild",
@@ -1480,17 +1614,17 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       {
         chance: 50,
         items: [
-          { stackable: "coin", amount: 3 },
+          { stackable: "nugget", amount: 1 },
           { stat: "hp", amount: 1 },
-          { stat: "xp", amount: 2 },
+          { stat: "xp", amount: 3 },
         ],
       },
       {
         chance: 50,
         items: [
-          { stackable: "coin", amount: 3 },
+          { stackable: "nugget", amount: 1 },
           { stat: "mp", amount: 1 },
-          { stat: "xp", amount: 2 },
+          { stat: "xp", amount: 3 },
         ],
       },
     ],

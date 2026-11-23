@@ -141,7 +141,7 @@ export type SpellSequence = {
   range: number;
   areas: number[];
 };
-export type AuraSequence = SpellSequence;
+export type AuraSequence = SpellSequence & { delay: number };
 export type ArrowSequence = { origin: Position; range: number; caster: number };
 export type SlashSequence = {
   material: Material;

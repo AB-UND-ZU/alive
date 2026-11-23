@@ -153,7 +153,8 @@ export const isCollision = (world: World, position: Position) =>
 export const isPassable = (
   world: World,
   position: Position,
-  exclude?: Entity
+  exclude?: Entity,
+  ignoreSnow = false
 ) => {
   if (
     !getOverlappingCell(
@@ -174,7 +175,7 @@ export const isPassable = (
     !(lockable && isLocked(world, lockable)) &&
     !getLootable(world, position) &&
     !getCollecting(world, position) &&
-    !getClickable(world, position)
+    !getClickable(world, position, ignoreSnow)
   );
 };
 
@@ -189,6 +190,10 @@ export const isWalkable = (
   position: Position,
   exclude?: Entity
 ) => isPassable(world, position, exclude) && !isSubmerged(world, position);
+
+// Planning can cross snow; the click system still spends a turn clearing it.
+export const isPathable = (world: World, position: Position) =>
+  isPassable(world, position, undefined, true) && !isSubmerged(world, position);
 
 export const isRoamable = (
   world: World,

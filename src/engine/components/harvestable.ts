@@ -6,6 +6,8 @@ export type Resource =
   | "hedge"
   | "plant"
   | "tree"
+  | "glacier_tree"
+  | "birch"
   | "oak"
   | "palm"
   | "cactus"

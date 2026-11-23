@@ -1,6 +1,8 @@
 import { BiomeName } from "../../../engine/components/level";
 import { NpcDistribution } from "../../balancing/units";
 
+export const banditCampLetter = { stackable: "letter", amount: 1 } as const;
+
 export const islandNpcDistribution: Record<BiomeName, NpcDistribution> = {
   ocean: {},
   jungle: {
@@ -18,5 +20,10 @@ export const islandNpcDistribution: Record<BiomeName, NpcDistribution> = {
     goldOrb: 25,
     fairy: 2,
   },
-  glacier: {},
+  glacier: {
+    diamondPrism: 43,
+    diamondEye: 30,
+    diamondOrb: 25,
+    fairy: 2,
+  },
 };

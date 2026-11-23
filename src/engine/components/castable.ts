@@ -13,6 +13,7 @@ export type BuffStats = {
   addResist: number;
 };
 export type AbilityStats = {
+  delay: number;
   duration: number;
   range: number;
   retrigger: number;
@@ -28,6 +29,7 @@ export const emptyBuffStats = {
   addResist: 0,
 };
 export const emptyAbilityStats = {
+  delay: 0,
   duration: 0,
   range: 0,
   retrigger: 0,
@@ -45,7 +47,6 @@ export type Castable = {
     retrigger: number;
     reproc: number;
     forceAffecting: boolean;
-    trigger?: { delay: number; duration: number; frame?: number };
     affected: Record<
       string,
       { generation: number; delta: number; frame?: number }

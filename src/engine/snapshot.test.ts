@@ -1,5 +1,7 @@
 import { deserialize, serialize } from "v8";
 import {
+  advance,
+  advanceUntil,
   assertHero,
   createAreaWorld,
   createTestWorld,
@@ -13,14 +15,17 @@ import { SPRITE } from "./components/sprite";
 import { SEQUENCABLE } from "./components/sequencable";
 import { STATS } from "./components/stats";
 import { LEVEL } from "./components/level";
-import { getCellEntities } from "./systems/map";
+import { getCellEntities, moveEntity, registerEntity } from "./systems/map";
 import { World } from "./ecs";
 import { entities } from ".";
 import { createItemAsDrop, createItemInInventory } from "./systems/drop";
 import { INVENTORY } from "./components/inventory";
 import { ITEM } from "./components/item";
 import { FOG } from "./components/fog";
-import { registerEntity } from "./systems/map";
+import { CASTABLE } from "./components/castable";
+import { REFERENCE } from "./components/reference";
+import { RENDERABLE } from "./components/renderable";
+import { castAs, createSpellWorld, getUnit } from "../features/spells/helpers";
 import { none } from "../game/assets/sprites";
 
 // IndexedDB stores values with the same structured clone algorithm
@@ -83,6 +88,98 @@ describe("world snapshot", () => {
     walk(loaded, "right");
     expect(assertHero(loaded)[POSITION]).toEqual({ x: 2, y: 0 });
   });
+
+  it("arms an older unplaced trap on all sides when its caster moves", () => {
+    const area = "|  ♀   D|";
+    const { world, hero } = createSpellWorld(area, undefined, { size: 32 });
+    const target = getUnit(world, area, "D");
+    if (target.BEHAVIOUR) target.BEHAVIOUR.patterns = [];
+    const spell = castAs(
+      world,
+      hero,
+      { spell: "trap", material: "wood" },
+      "right"
+    );
+    const args = spell[SEQUENCABLE].states.aura!.args;
+    Reflect.deleteProperty(args, "delay");
+    args.range = 0;
+    const loaded = storeAndLoad(world);
+    const victim = loaded.assertByIdAndComponents(world.getEntityId(target), [
+      POSITION,
+      STATS,
+    ]);
+    moveEntity(loaded, victim, { x: 3, y: 1 });
+    const hp = victim[STATS].hp;
+    advance(loaded, 600);
+    expect(victim[STATS].hp).toBe(hp);
+    moveEntity(loaded, assertHero(loaded), { x: 12, y: 0 });
+    advanceUntil(loaded, () => victim[STATS].hp < hp, 1500);
+  });
+
+  it.each([250, 750])(
+    "resumes a saved trap %i ms into its warning and burst",
+    (elapsed) => {
+      const area = "|  ♀   D|";
+      const { world, hero } = createSpellWorld(area, undefined, { size: 32 });
+      const target = getUnit(world, area, "D");
+      const spell = castAs(
+        world,
+        hero,
+        { spell: "trap", material: "wood" },
+        "right"
+      );
+      const aura = spell[SEQUENCABLE].states.aura!;
+      moveEntity(world, hero, { x: 12, y: 0 });
+      moveEntity(world, target, { x: 3, y: 0 });
+      if (target.BEHAVIOUR) target.BEHAVIOUR.patterns = [];
+      const hp = target[STATS].hp;
+      if (elapsed < 500) {
+        advanceUntil(world, () => !!aura.particles.warning);
+      } else {
+        advanceUntil(world, () => target[STATS].hp < hp);
+      }
+      const savedHp = target[STATS].hp;
+
+      // This is the saved clock format before traps shared their aura reference.
+      const frame = entities.createFrame(world, {
+        [REFERENCE]: {
+          tick: 500,
+          delta: 250,
+          suspended: false,
+          suspensionCounter: -1,
+        },
+        [RENDERABLE]: { generation: elapsed < 500 ? 1 : 2 },
+      });
+      Object.assign(spell[CASTABLE], {
+        trigger: {
+          delay: 500,
+          duration: 500,
+          frame: world.getEntityId(frame),
+        },
+      });
+      delete aura.args.memory;
+      Reflect.deleteProperty(aura.args, "delay");
+      aura.args.range = 0;
+      const oldClock = world.assertByIdAndComponents(aura.reference, [
+        REFERENCE,
+      ])[REFERENCE];
+      oldClock.tick = -1;
+      oldClock.delta = 0;
+      const loaded = storeAndLoad(world);
+      const victim = loaded.assertByIdAndComponents(world.getEntityId(target), [
+        STATS,
+      ]);
+      const trapId = world.getEntityId(spell);
+      advance(loaded, 200);
+      expect(victim[STATS].hp).toBe(savedHp);
+      expect(loaded.getEntityById(trapId)).toBeDefined();
+      advance(loaded, 100);
+      expect(victim[STATS].hp).toBe(hp - spell[CASTABLE].magic);
+      expect(!!loaded.getEntityById(trapId)).toBe(elapsed < 500);
+      advance(loaded, 600);
+      expect(loaded.getEntityById(trapId)).toBeUndefined();
+    }
+  );
 
   it("restores all entities with their IDs and level", () => {
     const world = createTestWorld();

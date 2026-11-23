@@ -12,7 +12,7 @@ Each cast requires mana.
 
 A cast can hit several targets. [[item:beam]] can hit the same target repeatedly while it lasts. Friendly relationships and immunity can prevent an effect.
 
-[[item:trap]] arms after you leave its cell. Enemies anywhere in its [[data:3x3]] area trigger a blinking [[data:0.5 s]] warning, followed by a [[data:0.5 s]] blast. Each enemy is hit once, including enemies that enter after activation.
+[[item:trap]] arms after its caster leaves the cell. An enemy anywhere in the [[data:3x3]] area triggers the warning. Your trap flashes for [[data:0.5 s]]. A [[unit:banditMage]] trap flashes for [[data:1 s]]. Both stay active for [[data:0.5 s]] and hit each target once, including anyone who enters during that time.
 
 With [[item:earth]], an injured ally triggers it only from the center. The active area heals allies once while damaging enemies.
 

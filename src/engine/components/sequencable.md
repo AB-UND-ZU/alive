@@ -268,7 +268,7 @@ export type SpellSequence = {
 ## AuraSequence
 
 ```ts src/engine/components/sequencable.ts
-export type AuraSequence = SpellSequence;
+export type AuraSequence = SpellSequence & { delay: number };
 ```
 
 ## ArrowSequence

@@ -63,6 +63,16 @@ test("one Drop frame lists coin sources with bosses owning their reward chests",
   expect(frame).not.toHaveTextContent("Most enemies");
   expect(frame).not.toHaveTextContent("%");
 });
+test("the letter's chest drop is specific to bandit camps", () => {
+  renderSources({ stackable: "letter" });
+  const frame = screen.getByLabelText("Drop");
+  expect(within(frame).getByRole("link")).toHaveAttribute(
+    "href",
+    "/units.html#goldChest"
+  );
+  expect(frame).toHaveTextContent("(Bandit Camp)");
+});
+
 test("Shops show both native prices and Fishing shows every supported level chance", () => {
   renderSources({ stackable: "ore" });
   const shops = within(screen.getByLabelText("Shops"));

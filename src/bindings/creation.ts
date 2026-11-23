@@ -14,6 +14,7 @@ import { BELONGABLE } from "../engine/components/belongable";
 import { BURNABLE } from "../engine/components/burnable";
 import { COLLECTABLE } from "../engine/components/collectable";
 import { COLLIDABLE } from "../engine/components/collidable";
+import { CONDITIONABLE } from "../engine/components/conditionable";
 import { DISPLACABLE } from "../engine/components/displacable";
 import { DROPPABLE } from "../engine/components/droppable";
 import { ENTERABLE } from "../engine/components/enterable";
@@ -85,6 +86,7 @@ import { colors } from "../game/assets/colors";
 import {
   apple,
   banana,
+  birch,
   blockDown,
   blockUp,
   bush,
@@ -260,11 +262,14 @@ import {
   random,
   repeat,
   reversed,
+  shuffle,
   signedDistance,
 } from "../game/math/std";
+import { iterations } from "../game/math/tracing";
 import { CLICKABLE } from "../engine/components/clickable";
 import { centerLayer, centerSprites, overlay } from "../game/assets/pixels";
 import { levelConfig } from "../game/levels";
+import { banditCampLetter } from "../game/levels/island/units";
 import { Popup, POPUP } from "../engine/components/popup";
 import { openDoor } from "../engine/systems/trigger";
 import { craftingIngredients } from "../game/balancing/crafting";
@@ -325,6 +330,7 @@ export const cellNames = [
   "beach",
   "path",
   "campfire",
+  "bandit_camp",
   "jetty_horizontal",
   "jetty_vertical",
   "kettle",
@@ -357,9 +363,12 @@ export const cellNames = [
   "mountain",
   "ore",
   "iron",
+  "gold",
   "stone",
   "rock",
   "tree",
+  "glacier_tree",
+  "birch",
   "apple",
   "leaves",
   "stem",
@@ -404,6 +413,7 @@ export const cellNames = [
   "soil",
   "soil_wet",
   "stump",
+  "glacier_stump",
   "post",
   "husk",
   "desert_husk",
@@ -417,6 +427,17 @@ export const cellNames = [
   ...npcTypes,
 ] as const;
 export type CellType = (typeof cellNames)[number];
+
+const glacierBark = { [colors.maroon]: colors.silver };
+const trees = [tree1, tree2];
+export const glacierTrees = trees.map((tree) =>
+  recolorSprite(tree, glacierBark)
+);
+
+const stumps = [treeBurnt1, treeBurnt2];
+export const glacierStumps = stumps.map((stump) =>
+  recolorSprite(stump, glacierBark)
+);
 
 export const populateItems = (
   world: World,
@@ -1600,8 +1621,9 @@ export const createCell = (
       all.push(rottenEntity);
     });
     return { cell: all[0], all };
-  } else if (cell === "tree") {
-    const { harvestable } = getHarvestConfig("tree");
+  } else if (cell === "tree" || cell === "glacier_tree" || cell === "birch") {
+    const variants = cell === "glacier_tree" ? glacierTrees : trees;
+    const { harvestable } = getHarvestConfig(cell);
     const treeEntity = entities.createOrganic(world, {
       [BUMPABLE]: { generation: 0 },
       [BURNABLE]: {
@@ -1616,8 +1638,8 @@ export const createCell = (
       [FOG]: { visibility, type: "object" },
       [HARVESTABLE]: harvestable,
       [POSITION]: { x, y },
-      [SPRITE]: [tree1, tree2][distribution(50, 50)],
-      [REMAINABLE]: { cell: "stump" },
+      [SPRITE]: cell === "birch" ? birch : variants[distribution(50, 50)],
+      [REMAINABLE]: { cell: cell === "tree" ? "stump" : "glacier_stump" },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
     });
@@ -1879,6 +1901,7 @@ export const createCell = (
     return { cell: remainsEntity, all };
   } else if (
     cell === "stump" ||
+    cell === "glacier_stump" ||
     cell === "husk" ||
     cell === "desert_husk" ||
     cell === "post" ||
@@ -1888,11 +1911,12 @@ export const createCell = (
     cell === "fence_hinge" ||
     cell === "palisade_hinge"
   ) {
+    const kind = cell === "glacier_stump" ? "stump" : cell;
     const { harvestable } = getHarvestConfig(
-      cell === "fence_hinge" || cell === "palisade_hinge" ? "hinge" : cell
+      kind === "fence_hinge" || kind === "palisade_hinge" ? "hinge" : kind
     );
-    const remainsSprite: Record<typeof cell, Sprite> = {
-      stump: choice(treeBurnt1, treeBurnt2),
+    const remainsSprite: Record<typeof kind, Sprite> = {
+      stump: choice(...(cell === "glacier_stump" ? glacierStumps : stumps)),
       husk: choice(palmBurnt1, palmBurnt2),
       desert_husk: choice(desertPalmBurnt1, desertPalmBurnt2),
       post: choice(fenceBurnt1, fenceBurnt2),
@@ -1907,7 +1931,7 @@ export const createCell = (
       [FOG]: { visibility, type: "object" },
       [HARVESTABLE]: harvestable,
       [POSITION]: { x, y },
-      [SPRITE]: mergeSprites(slotShadow, remainsSprite[cell]),
+      [SPRITE]: mergeSprites(slotShadow, remainsSprite[kind]),
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
     });
@@ -2663,10 +2687,14 @@ export const createCell = (
     }
 
     return { cell: cellEntity!, all };
-  } else if (cell === "campfire" || cell === "fireplace") {
+  } else if (
+    cell === "campfire" ||
+    cell === "fireplace" ||
+    cell === "bandit_camp"
+  ) {
     const fireEntity = entities.createFire(world, {
       [BURNABLE]: {
-        burning: cell === "campfire",
+        burning: cell !== "fireplace",
         eternal: true,
         simmer: false,
         combusted: false,
@@ -2679,6 +2707,65 @@ export const createCell = (
       [SPRITE]: campfire,
     });
     all.push(fireEntity);
+    if (cell === "bandit_camp") {
+      const positions = shuffle(Object.values(orientationPoints));
+      const corners = shuffle(
+        iterations.map(({ direction, normal }) => add(direction, normal))
+      );
+      for (const offset of [...positions, ...corners]) {
+        all.push(
+          ...createCell(
+            world,
+            combine(size, position, offset),
+            "grass",
+            visibility,
+            false
+          ).all
+        );
+      }
+      const roles = shuffle<NpcType>([
+        "banditPriest",
+        "banditMage",
+        "banditKnight",
+        "banditRogue",
+      ]).slice(0, random(2, 3));
+      const group = world.getEntityId(fireEntity);
+      roles.forEach((role, index) => {
+        const member = createCell(
+          world,
+          combine(size, { x, y }, positions[index]),
+          role,
+          visibility,
+          false
+        );
+        world.assertComponents(member.cell, [BELONGABLE])[BELONGABLE].group =
+          group;
+        all.push(...member.all);
+      });
+      corners.slice(0, random(1, 3)).forEach((corner, index) => {
+        const container =
+          index === 0
+            ? "goldChest"
+            : ["box", "pot", "woodChest", "ironChest"][
+                distribution(40, 10, 30, 20)
+              ];
+        const chest = createCell(
+          world,
+          combine(size, position, corner),
+          container,
+          visibility,
+          false
+        );
+        if (container === "goldChest") {
+          populateInventory(
+            world,
+            world.assertComponents(chest.cell, [INVENTORY, POSITION]),
+            [banditCampLetter]
+          );
+        }
+        all.push(...chest.all);
+      });
+    }
     return { cell: fireEntity, all };
   } else if (
     cell === "desert_pot" ||
@@ -3391,6 +3478,9 @@ export const createCell = (
 
     if (mobUnit.faction === "unit") {
       mobEntity[FOG].type = "object";
+    }
+    if (cell === "banditPriest") {
+      world.addComponentToEntity(mobEntity, CONDITIONABLE, {});
     }
     if (cell === "dummy" || cell === "ilexTulip") {
       setIdentifier(world, mobEntity, cell);

@@ -127,7 +127,12 @@ export function AcquisitionSources({ item }: { item: Partial<Item> }) {
                     ) : source.kind === "drop" ||
                       source.kind === "quest" ||
                       source.kind === "naturalUnit" ? (
-                      <UnitView unit={source.key as UnitKey} />
+                      <>
+                        <UnitView unit={source.key as UnitKey} />
+                        {source.location && (
+                          <Text>{` (${source.location})`}</Text>
+                        )}
+                      </>
                     ) : source.kind === "harvest" ? (
                       <HarvestTarget resource={source.key as Resource} />
                     ) : source.kind === "natural" ? (

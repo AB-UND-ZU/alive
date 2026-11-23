@@ -24,6 +24,8 @@ The result must be stored with structured cloning, as IndexedDB does, to keep sh
 
 Older saves can contain inventory IDs for loot that was already removed by arena cleanup. Restoration removes these missing item references while keeping all remaining items and IDs.
 
+Traps saved during their warning or burst resume with the time remaining. Restoration moves the old trigger timer onto the spell’s own clock and keeps its targets and area.
+
 Renaming or removing an exported sprite makes older snapshots fail to load unless a save upgrade maps the name.
 <!-- source-types -->
 

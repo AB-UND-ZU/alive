@@ -12,6 +12,7 @@ export type Faction =
 
 export type Belongable = {
   faction: Faction;
+  group?: number;
 };
 
 export const BELONGABLE = "BELONGABLE";

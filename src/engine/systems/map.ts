@@ -5,7 +5,7 @@ import { Position, POSITION } from "../components/position";
 import { LEVEL } from "../components/level";
 import { LIGHT } from "../components/light";
 import { add, normalize } from "../../game/math/std";
-import { isWalkable } from "./movement";
+import { isPathable } from "./movement";
 import {
   getOverlappingCell,
   iterateMatrixFromCenter,
@@ -20,7 +20,6 @@ import {
 } from "../components/sequencable";
 import { RENDERABLE } from "../components/renderable";
 import { MOVABLE } from "../components/movable";
-import { CASTABLE } from "../components/castable";
 import { POPUP } from "../components/popup";
 import { removePopup } from "./popup";
 
@@ -37,7 +36,7 @@ export const updateWalkable = (world: World, position: Position) => {
       for (let y = -1; y <= 1; y += 1) {
         const target = add(position, { x, y });
         const walkable = getOverlappingCell(level.walkable, target.x, target.y);
-        const newWalkable = isWalkable(world, target) ? 1 : 0;
+        const newWalkable = isPathable(world, target) ? 1 : 0;
 
         // update duplicated values
         if (walkable !== newWalkable) {
@@ -173,6 +172,7 @@ export const disposeSequence = (
 
 // Owned entities can also occur later in a bulk cleanup snapshot.
 const disposedEntities = new WeakSet<Entity>();
+export const isDisposed = (entity: Entity) => disposedEntities.has(entity);
 
 export const disposeEntity = (
   world: World,
@@ -180,7 +180,7 @@ export const disposeEntity = (
   deferredRemoval?: boolean,
   removeItems = true
 ) => {
-  if (disposedEntities.has(entity)) return;
+  if (isDisposed(entity)) return;
   disposedEntities.add(entity);
 
   if (POSITION in entity) {
@@ -221,11 +221,6 @@ export const disposeEntity = (
   ) {
     const referenceEntity = world.assertById(movableReference);
     disposeFrame(world, referenceEntity, true);
-  }
-
-  const triggerFrame = entity[CASTABLE]?.trigger?.frame;
-  if (triggerFrame !== undefined) {
-    disposeFrame(world, world.assertById(triggerFrame), deferredRemoval);
   }
 
   world.removeEntity(entity, deferredRemoval);

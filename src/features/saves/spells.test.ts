@@ -8,7 +8,7 @@ import {
 import { saveAndLoad } from "../../testing/saves";
 import { playedSounds } from "../../testing/env";
 import { World } from "../../engine";
-import { CASTABLE } from "../../engine/components/castable";
+import { SEQUENCABLE } from "../../engine/components/sequencable";
 import { moveEntity } from "../../engine/systems/map";
 import { EXERTABLE } from "../../engine/components/exertable";
 import { NPC } from "../../engine/components/npc";
@@ -158,8 +158,8 @@ describe("saved spells", () => {
       moveEntity(world, enemy, center);
       advanceUntil(world, () =>
         world
-          .getEntities([CASTABLE])
-          .some((entity) => entity[CASTABLE].trigger?.frame !== undefined)
+          .getEntities([SEQUENCABLE])
+          .some((entity) => !!entity[SEQUENCABLE].states.aura?.particles.warning)
       );
       advance(world, elapsed);
       const hp = enemy[STATS].hp;

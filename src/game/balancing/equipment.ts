@@ -269,6 +269,9 @@ export const gearStats: Partial<
       gold: { default: { melee: 2 } },
     },
   },
+  diamondPrism: {
+    sword: { diamond: { default: { melee: 3 } } },
+  },
   eye: {
     sword: {
       iron: { default: { melee: 1 } },
@@ -276,8 +279,20 @@ export const gearStats: Partial<
   },
   goldEye: {
     sword: {
-      gold: { default: { melee: 5 } },
+      gold: { default: { melee: 4 } },
     },
+  },
+  diamondEye: {
+    sword: { diamond: { default: { melee: 7 } } },
+  },
+  banditPriest: {
+    sword: { default: { earth: { heal: 3 } } },
+  },
+  banditKnight: {
+    sword: { wood: { default: { melee: 3 } } },
+  },
+  banditRogue: {
+    sword: { iron: { water: { melee: 4, freeze: 2 } } },
   },
   clover: {
     sword: {

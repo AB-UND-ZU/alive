@@ -251,7 +251,6 @@ export const collectTerminalSprites = (
       const resource = entry.entity[HARVESTABLE]?.resource;
       if (
         [
-          "stump",
           "husk",
           "desert_husk",
           "post",

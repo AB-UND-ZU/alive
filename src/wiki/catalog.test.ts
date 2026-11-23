@@ -285,6 +285,11 @@ describe("world flora", () => {
       "Apple",
       "Stump 1",
       "Stump 2",
+      "Glacier Tree 1",
+      "Glacier Tree 2",
+      "Birch",
+      "Glacier Stump 1",
+      "Glacier Stump 2",
     ]);
     expect(groups[1].titles).toEqual([
       "Palm 1",
@@ -355,6 +360,8 @@ test("every native tree and palm remains choice keeps its harvest resource and l
   for (const [family, index, resource] of [
     [0, 3, "stump"],
     [0, 4, "stump"],
+    [0, 8, "stump"],
+    [0, 9, "stump"],
     [1, 4, "husk"],
     [1, 5, "husk"],
     [1, 6, "desert_husk"],
