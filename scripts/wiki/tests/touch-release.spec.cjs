@@ -244,6 +244,7 @@ test("a single-finger HUD drag cannot become native panning before steering star
   const clock = await freezeGameClock();
   const client = await page.context().newCDPSession(page);
   await client.send("Emulation.setPageScaleFactor", { pageScaleFactor: 2 });
+  await expect.poll(() => page.evaluate(() => visualViewport.scale)).toBe(2);
   const menu = await page.locator("#menu").boundingBox();
   const x = menu.x + menu.width / 2;
   const y = menu.y + menu.height / 2;
@@ -264,7 +265,7 @@ test("a single-finger HUD drag cannot become native panning before steering star
   });
   expect(await page.evaluate(() => window.canceledPointers)).toBe(0);
   await clock.resume();
-  await client.send("Emulation.setPageScaleFactor", { pageScaleFactor: 1 });
-  await page.touchscreen.tap(x, y);
+  await expect(page.locator(".Paused")).toHaveCount(0);
+  await page.locator("#menu").tap();
   await expect(page.locator(".Paused")).toBeVisible();
 });
