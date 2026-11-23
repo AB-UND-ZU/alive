@@ -4,6 +4,7 @@ import { getIdentifierAndComponents } from "../engine/utils";
 import { getDistance } from "../game/math/std";
 import { ITEM } from "../engine/components/item";
 import { LEVEL } from "../engine/components/level";
+
 for (const name of [
   "island",
   "earth",
@@ -20,12 +21,14 @@ for (const name of [
     expect(hero.STATS?.hp).toBeGreaterThan(0);
     expect(hero.POSITION.x).toBeGreaterThanOrEqual(0);
     expect(hero.POSITION.y).toBeGreaterThanOrEqual(0);
+    if (name === "island" || name === "oak") expectProgression(world, name);
   }, 120000);
 }
 
 test("Worm Boss preset equips the hero beside the bait and starts the encounter", () => {
   const world = createPresetWorld("worm");
   const hero = assertHero(world);
+  expectProgression(world, "worm");
 
   const bait = getIdentifierAndComponents(world, "worm_bait", [
     "POSITION",
@@ -74,57 +77,53 @@ test("Dungeon begins empty-handed at level one", () => {
   expect(assertHero(world).STATS?.level).toBe(1);
   expect(carried(world)).toEqual([]);
 }, 120000);
-test.each([
-  ["island", 2],
-  ["oak", 4],
-  ["worm", 6],
-] as const)(
-  "%s has its progression equipment and full mana at level %s",
-  (name, level) => {
-    const world = createPresetWorld(name);
-    const hero = assertHero(world);
-    expect(hero.STATS?.level).toBe(level);
-    expect(hero.STATS?.mp).toBe(hero.STATS?.maxMp);
-    const items = carried(world);
-    const worm = name === "worm";
-    expect(items).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          weapon: "sword",
-          material: name === "island" ? "wood" : worm ? "gold" : "iron",
-        }),
-        expect.objectContaining({
-          consume: "potion",
-          stat: "hp",
-          material: worm ? "iron" : "wood",
-          amount: name === "island" ? 10 : worm ? 30 : 20,
-        }),
-      ])
-    );
-    if (name === "island") return;
-    expect(items).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          spell: "beam",
-          material: worm ? "iron" : "wood",
-          ...(worm ? { element: "earth" } : {}),
-        }),
-        expect.objectContaining({
-          skill: worm ? "block" : "slash",
-          material: worm ? "iron" : "wood",
-        }),
-        expect.objectContaining({
-          stackable: "charge",
-          amount: worm ? 20 : 10,
-        }),
-        expect.objectContaining({
-          consume: "potion",
-          stat: "mp",
-          amount: worm ? 20 : 10,
-          material: worm ? "iron" : "wood",
-        }),
-      ])
-    );
-  },
-  120000
-);
+
+function expectProgression(
+  world: ReturnType<typeof createPresetWorld>,
+  name: "island" | "oak" | "worm"
+) {
+  const level = { island: 2, oak: 4, worm: 6 }[name];
+  const hero = assertHero(world);
+  expect(hero.STATS?.level).toBe(level);
+  expect(hero.STATS?.mp).toBe(hero.STATS?.maxMp);
+  const items = carried(world);
+  const worm = name === "worm";
+  expect(items).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        weapon: "sword",
+        material: name === "island" ? "wood" : worm ? "gold" : "iron",
+      }),
+      expect.objectContaining({
+        consume: "potion",
+        stat: "hp",
+        material: worm ? "iron" : "wood",
+        amount: name === "island" ? 10 : worm ? 30 : 20,
+      }),
+    ])
+  );
+  if (name === "island") return;
+  expect(items).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        spell: "beam",
+        material: worm ? "iron" : "wood",
+        ...(worm ? { element: "earth" } : {}),
+      }),
+      expect.objectContaining({
+        skill: worm ? "block" : "slash",
+        material: worm ? "iron" : "wood",
+      }),
+      expect.objectContaining({
+        stackable: "charge",
+        amount: worm ? 20 : 10,
+      }),
+      expect.objectContaining({
+        consume: "potion",
+        stat: "mp",
+        amount: worm ? 20 : 10,
+        material: worm ? "iron" : "wood",
+      }),
+    ])
+  );
+}
