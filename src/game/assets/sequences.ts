@@ -311,6 +311,7 @@ import {
   relativeOrientations,
   rotateOrientation,
 } from "../math/path";
+import { TEMPO } from "../../engine/components/tempo";
 import { EXERTABLE } from "../../engine/components/exertable";
 import {
   consumptionConfigs,
@@ -420,7 +421,9 @@ import {
   getForgeStatus,
   hittingWidth,
   forgingCompleted,
+  forgingFailed,
   forgeTicks,
+  chooseForgeTarget,
   performForgeHit,
 } from "../balancing/forging";
 import { getItemDiff, getItemStats } from "../balancing/equipment";
@@ -1615,7 +1618,8 @@ export const tornadoSpin: Sequence<TornadoSequence> = (
     material
   ][element];
   const tornadoGeneration = Math.floor(state.elapsed / tornadoSpeed);
-  const ringSize = state.args.radius * 8;
+  const radius = state.args.radius;
+  const areaCount = radius > 0 ? (radius * 2 + 1) ** 2 - 4 : 0;
   const targetKnock = Math.min(state.args.radius, 2);
   const nextGeneration = Math.floor(tornadoGeneration / tornadoTicks);
 
@@ -1645,8 +1649,7 @@ export const tornadoSpin: Sequence<TornadoSequence> = (
     updated = true;
   }
 
-  // create exertables on sides only
-  if (state.args.exertables.length !== ringSize - 4) {
+  if (state.args.exertables.length !== areaCount) {
     // clear previous exertables first
     for (const exertableId of state.args.exertables) {
       const exertableEntity = world.assertById(exertableId);
@@ -1654,27 +1657,32 @@ export const tornadoSpin: Sequence<TornadoSequence> = (
     }
     state.args.exertables = [];
 
-    // create sides
-    const sideLength = (state.args.radius - 1) * 2 + 1;
-
-    for (const iteration of iterations) {
-      for (let sideIndex = 0; sideIndex < sideLength; sideIndex += 1) {
-        const invertedOrientation = invertOrientation(iteration.orientation);
-        const offset = {
-          x:
-            iteration.direction.x * state.args.radius +
-            iteration.normal.x * (state.args.radius - sideLength + sideIndex),
-          y:
-            iteration.direction.y * state.args.radius +
-            iteration.normal.y * (state.args.radius - sideLength + sideIndex),
-        };
-        const effectEntity = entities.createEffect(world, {
-          [EXERTABLE]: { castable: entityId },
-          [ORIENTABLE]: { facing: invertedOrientation },
-          [POSITION]: combine(size, entity[POSITION], offset),
-        });
-        state.args.exertables.push(world.getEntityId(effectEntity));
-        registerEntity(world, effectEntity);
+    for (let x = -radius; x <= radius; x++) {
+      for (let y = -radius; y <= radius; y++) {
+        if (Math.abs(x) === radius && Math.abs(y) === radius) continue;
+        const facing =
+          x === -radius
+            ? "right"
+            : x === radius
+            ? "left"
+            : y === -radius
+            ? "down"
+            : y === radius
+            ? "up"
+            : undefined;
+        const position = combine(size, state.args.position, { x, y });
+        const area = facing
+          ? entities.createEffect(world, {
+              [POSITION]: position,
+              [EXERTABLE]: { castable: entityId },
+              [ORIENTABLE]: { facing },
+            })
+          : entities.createArea(world, {
+              [POSITION]: position,
+              [TEMPO]: { amount: -2 },
+            });
+        registerEntity(world, area);
+        state.args.exertables.push(world.getEntityId(area));
       }
     }
     updated = true;
@@ -2538,43 +2546,32 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
     updated = true;
   }
 
-  // reactivate movement and disable damage
-  if (casterEntity && progress > teleportTicks && !casterEntity[MOVABLE]) {
-    for (const aoeId of state.args.areas) {
-      const aoeEntity = world.assertById(aoeId);
-      disposeEntity(world, aoeEntity);
-    }
+  if ((progress > teleportTicks || finished) && state.args.areas.length) {
+    for (const id of state.args.areas) disposeEntity(world, world.assertById(id));
     state.args.areas = [];
-
-    world.addComponentToEntity(
-      casterEntity,
-      MOVABLE,
-      state.args.memory.movable
-    );
     updated = true;
   }
 
-  // dispose particles and areas
   if (finished) {
-    for (const particleName in state.particles) {
-      const particleEntity = world.assertById(state.particles[particleName]);
-      disposeEntity(world, particleEntity);
-      delete state.particles[particleName];
+    if (state.particles["dash-0"]) {
+      disposeParticles(world, state);
+      updated = true;
     }
+    const teleport = world.getEntityById(state.args.memory?.teleport);
+    if (teleport) disposeEntity(world, teleport);
 
-    for (const aoeId of state.args.areas) {
-      const aoeEntity = world.assertById(aoeId);
-      disposeEntity(world, aoeEntity);
+    // Movement resumes one caster tick after the tick containing arrival.
+    const movable = state.args.memory?.movable;
+    if (movable && casterEntity) {
+      const reference = casterEntity[PLAYER]
+        ? world.assertByIdAndComponents(movable.reference, [REFERENCE])
+        : world.metadata.gameEntity;
+      const tick = reference[REFERENCE].tick;
+      const release = (Math.ceil(teleportTicks * dashTime / tick) + 1) * tick;
+      // Compare whole milliseconds so fractional frames cannot miss the release tick.
+      finished = Math.round(state.elapsed) >= release || isDead(world, casterEntity);
+      if (finished) world.addComponentToEntity(casterEntity, MOVABLE, movable);
     }
-    state.args.areas = [];
-
-    const teleportEntity = world.getEntityById(state.args.memory?.teleport);
-    if (teleportEntity) {
-      disposeEntity(world, teleportEntity);
-      delete state.args.memory?.teleport;
-    }
-
-    updated = true;
   }
 
   state.args.progress = progress;
@@ -6007,55 +6004,32 @@ const updateForgeAnimation = (
     x: hammerRight,
     y: -8,
   };
-  if (!state.particles.hammer) {
-    const hammerParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: hammerStart.x,
-        offsetY: hammerStart.y,
-        offsetZ: selectionHeight,
-        animatedOrigin: copy(hammerStart),
-        amount: -1,
-        duration: tick,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: none,
-    });
-    state.particles.hammer = world.getEntityId(hammerParticle);
-    const handleParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: hammerStart.x + 1,
-        offsetY: hammerStart.y,
-        offsetZ: selectionHeight,
-        animatedOrigin: add(hammerStart, { x: 1, y: 0 }),
-        duration: tick,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: none,
-    });
-    state.particles.handle = world.getEntityId(handleParticle);
-    const endParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: hammerStart.x + 2,
-        offsetY: hammerStart.y,
-        offsetZ: selectionHeight,
-        animatedOrigin: add(hammerStart, { x: 2, y: 0 }),
-        duration: tick,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: none,
-    });
-    state.particles.end = world.getEntityId(endParticle);
-  }
-
-  const hammerParticle = world.assertByIdAndComponents(state.particles.hammer, [
-    PARTICLE,
-  ]);
-  const handleParticle = world.assertByIdAndComponents(state.particles.handle, [
-    PARTICLE,
-  ]);
-  const endParticle = world.assertByIdAndComponents(state.particles.end, [
-    PARTICLE,
-  ]);
+  const particles = [forgeHammer, forgeHandle, forgeHandle].map(
+    (sprite, index) => {
+      const key = ["hammer", "handle", "end"][index];
+      if (!state.particles[key]) {
+        const origin = add(hammerStart, { x: index, y: 0 });
+        const part = entities.createParticle(world, {
+          [PARTICLE]: {
+            offsetX: origin.x,
+            offsetY: origin.y,
+            offsetZ: selectionHeight,
+            animatedOrigin: origin,
+            amount: -1,
+            duration: tick,
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: none,
+        });
+        state.particles[key] = world.getEntityId(part);
+      }
+      return [
+        world.assertByIdAndComponents(state.particles[key], [PARTICLE]),
+        sprite,
+      ] as const;
+    }
+  );
+  const hammerParticle = particles[0][0];
   const lastHammerGeneration = hammerParticle[PARTICLE].amount;
   const isAnimating = hammerParticle[PARTICLE].duration !== tick;
   const animateHammer =
@@ -6063,17 +6037,16 @@ const updateForgeAnimation = (
 
   // rerender content on blinking
   if (
-    (animateHammer && lastHammerGeneration !== hammerGeneration) ||
-    (!animateHammer && isAnimating)
+    (animateHammer &&
+      (lastHammerGeneration !== hammerGeneration ||
+        (entity[FORGABLE].lastAction === "swing") !==
+          (hammerParticle[PARTICLE].duration === tick * forgeTicks))) ||
+    (!animateHammer &&
+      (isAnimating || (!isHitting && hammerParticle[SPRITE] !== none)))
   ) {
     updated = true;
     hammerParticle[PARTICLE].amount = hammerGeneration;
 
-    const particles: [TypedEntity<"PARTICLE">, Sprite][] = [
-      [hammerParticle, forgeHammer],
-      [handleParticle, forgeHandle],
-      [endParticle, forgeHandle],
-    ];
     if (animateHammer && entity[FORGABLE].lastAction === "swing") {
       particles.forEach(([particleEntity, sprite], index) => {
         particleEntity[SPRITE] = sprite;
@@ -6081,6 +6054,7 @@ const updateForgeAnimation = (
           hammerGeneration % (forgeTicks * 2) < forgeTicks
             ? hammerLeft + index
             : hammerRight + index;
+        particleEntity[PARTICLE].offsetY = hammerStart.y;
         particleEntity[PARTICLE].duration = tick * forgeTicks;
         const duration = tick * forgeTicks;
         const offset =
@@ -6101,17 +6075,24 @@ const updateForgeAnimation = (
       });
     } else if (
       animateHammer &&
-      ["trigger", "hit", "miss"].includes(entity[FORGABLE].lastAction)
+      ["trigger", "hit", "miss", "ouch"].includes(entity[FORGABLE].lastAction)
     ) {
+      if (hammerGeneration >= 3) performForgeHit(world, entity);
       if (hammerGeneration >= 5) {
         entity[FORGABLE].lastElapsed = state.elapsed;
         if (entity[FORGABLE].lastAction === "hit") {
           entity[FORGABLE].progress += 1;
         }
-        entity[FORGABLE].lastAction = "swing";
+        const forge: Forgable = entity[FORGABLE];
+        const next = forge.steps[forge.progress];
+        if (next?.result === "failed") {
+          forge.lastAction = undefined;
+        } else {
+          if (next) forge.target = chooseForgeTarget(next, forge.target);
+          forge.lastAction = "swing";
+        }
         rerenderEntity(world, entity);
       } else {
-        const trigger = entity[FORGABLE].lastAction === "trigger";
         particles.forEach(([particleEntity], index) => {
           if (hammerGeneration < 2) {
             particleEntity[PARTICLE].offsetX =
@@ -6119,8 +6100,7 @@ const updateForgeAnimation = (
             particleEntity[PARTICLE].duration = tick / 2;
           } else if (hammerGeneration < 3) {
             particleEntity[PARTICLE].offsetY = -6;
-          } else if (hammerGeneration < 4 && trigger) {
-            performForgeHit(world, entity);
+          } else if (hammerGeneration < 4) {
             particleEntity[PARTICLE].offsetY = -8;
           } else if (hammerGeneration < 5) {
             particleEntity[PARTICLE].offsetX = hammerStart.x + index;
@@ -6128,10 +6108,10 @@ const updateForgeAnimation = (
           rerenderEntity(world, particleEntity);
         });
       }
-    } else if (!animateHammer && isAnimating) {
-      particles.forEach(([particleEntity], index) => {
-        particleEntity[SPRITE] = none;
-        particleEntity[PARTICLE].offsetX = hammerLeft + index;
+    } else {
+      particles.forEach(([particleEntity, sprite], index) => {
+        particleEntity[SPRITE] = isHitting ? sprite : none;
+        particleEntity[PARTICLE].offsetX = hammerRight + index;
         particleEntity[PARTICLE].duration = tick;
         rerenderEntity(world, particleEntity);
       });
@@ -6174,8 +6154,10 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
 
     const { isHitting } = animation;
     const hittingDone = isHitting && forgingCompleted(entity);
-    const steps = (entity[FORGABLE] as Forgable).steps;
-    const step = steps[entity[FORGABLE].progress];
+    const forgeState: Forgable = entity[FORGABLE];
+    const { steps, progress, lastAction } = forgeState;
+    const step = steps[progress];
+    const failed = forgingFailed(entity);
     const isCompleted = selections.length === 4;
     const firstItem = inventoryItems[firstIndex];
     const secondItem = inventoryItems[secondIndex];
@@ -6325,21 +6307,24 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
     let content: Sprite[][] = [createText("Nothing to forge.", colors.grey)];
     let details: Sprite[][] | undefined = undefined;
 
+    const xp = forgeState.xp
+      ? [
+          ...createText("+", colors.lime),
+          ...createCountable({ xp: forgeState.xp }, "xp", "display"),
+        ]
+      : [];
     if (isCompleted) {
+      const reward = [createItemName(entity[FORGABLE].completed)];
+      if (xp.length) reward.push(xp);
       content = centerLayer(
         [
           [],
           ...pixelFrame(
             rewardWidth,
-            3,
+            reward.length + 2,
             colors.lime,
             "solid",
-            [
-              centerSprites(
-                createItemName(entity[FORGABLE].completed),
-                rewardWidth - 2
-              ),
-            ],
+            centerLayer(reward, rewardWidth - 2),
             createText("Result", colors.lime)
           ),
         ],
@@ -6347,30 +6332,41 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
       );
       details = getItemDescription(entity[FORGABLE].completed);
     } else if (isHitting && addItem && entity[FORGABLE]) {
+      const feedback =
+        lastAction === "hit"
+          ? createText(step?.result === "ace" ? "Ace!" : "Hit.", colors.lime)
+          : lastAction === "ouch"
+          ? createText("Ouch!", colors.red)
+          : lastAction === "miss"
+          ? createText("Miss.", colors.yellow)
+          : failed
+          ? createText("Lost!", colors.red)
+          : hittingDone
+          ? createText("Done!")
+          : [
+              ...createText((progress + 1).toString()),
+              ...createText("/", colors.grey),
+              ...createText(steps.length.toString()),
+            ];
       const hittingPreview = [
-        hittingDone
-          ? centerSprites([forgeHammer, forgeHandle, forgeHandle], 7)
-          : [],
-        ...pixelFrame(7, 3, colors.grey, undefined, [
-          centerSprites(
-            hittingDone
-              ? createText("Done!")
-              : [
-                  ...createText((entity[FORGABLE].progress + 1).toString()),
-                  ...createText("/", colors.grey),
-                  ...createText(entity[FORGABLE].steps.length.toString()),
-                ],
-            5
-          ),
+        [...repeat(none, forgeWidth - 1 - xp.length), ...xp],
+        ...pixelFrame(forgeWidth, 3, colors.grey, undefined, [
+          centerSprites(feedback, forgeWidth - 2),
         ]),
       ];
-      const hitBox = step
+      const itemOffset = step
+        ? (entity[FORGABLE].target ?? step.offset) - step.offset
+        : 0;
+      const lostMark = createText("_", colors.red)[0];
+      const hitBox = failed
+        ? [...repeat(none, hittingOffset), ...repeat(lostMark, hittingArea)]
+        : step
         ? [
             ...repeat(none, hittingOffset),
             ...repeat(forgeMiss, step.offset),
-            ...repeat(forgeHit, Math.floor((step.width - 1) / 2)),
+            ...repeat(forgeHit, itemOffset),
             mergeSprites(getItemSprite(step.item), forgeHit),
-            ...repeat(forgeHit, Math.ceil((step.width - 1) / 2)),
+            ...repeat(forgeHit, step.width - itemOffset - 1),
             ...repeat(forgeMiss, hittingArea - step.offset - step.width),
           ]
         : resultItem
@@ -6379,13 +6375,31 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
             getItemSprite(resultItem),
           ]
         : [];
+      const stepBar = createText("Steps: ");
+      const ouchMark = recolorSprite(getStatSprite("xp"), colors.red);
+      steps.forEach((recipeStep, index) => {
+        for (const miss of recipeStep.misses ?? []) {
+          stepBar.push(
+            miss === "ouch" ? mergeSprites(forgeMiss, ouchMark) : forgeMiss
+          );
+        }
+        const item = getItemSprite(recipeStep.item);
+        if (recipeStep.result === "failed") {
+          stepBar.push(mergeSprites(item, lostMark));
+        } else if (index < progress || recipeStep.result) {
+          const marked =
+            recipeStep.result === "ace"
+              ? mergeSprites(item, createText("+", colors.lime)[0])
+              : item;
+          stepBar.push(...underline([marked], colors.lime));
+        } else {
+          stepBar.push(
+            index === progress ? underline([item], colors.grey)[0] : item
+          );
+        }
+      });
       content = [
-        [
-          ...(hittingDone ? [] : createText("Steps: ")),
-          ...steps
-            .slice(entity[FORGABLE].progress)
-            .map((step) => getItemSprite(step.item)),
-        ],
+        stepBar,
         createText("─".repeat(frameWidth - 2), colors.silver),
         [],
         [],
@@ -6506,10 +6520,10 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
       details,
       rightButton: hittingDone
         ? createButton("YIELD", 7, false, false, false, "lime")
+        : isHitting && failed
+        ? createButton("RETRY", 7, false, false, false, "lime")
         : isHitting
-        ? entity[FORGABLE].hitGeneration
-          ? createButton("NEXT", 6, false, false, false, "lime")
-          : createButton("HIT", 5, false, false, false, "lime")
+        ? createButton("HIT", 5, false, false, false, "lime")
         : resultItem
         ? createButton("START", 7, !selectedForgeable, false, false, "lime")
         : hasItems && !isCompleted

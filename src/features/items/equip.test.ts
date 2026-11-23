@@ -98,7 +98,7 @@ describe("equipment pickup", () => {
 
     const sword = findItem(world, hero, { weapon: "sword" })!;
     expect(hero[EQUIPPABLE].weapon).toBe(world.getEntityId(sword));
-    expect(messages).toContainEqual(expect.stringMatching(/^Equipped /));
+    expect(messages).toContainEqual(expect.stringMatching(/^Equipped: .Sword$/));
     expect(playedSounds).toContain("equip");
   });
 
@@ -196,6 +196,7 @@ describe("equipping items", () => {
     const unequipped = equipItem(world, hero, axe);
 
     expect(unequipped).toBe(bow);
+    expect(Object.values(hero[PLAYER].quickItems)).toContainEqual({ skill: "bow", material: "wood" });
     expect(hero[EQUIPPABLE].skill).toBe(world.getEntityId(bow));
     expect(hero[EQUIPPABLE].tool).toBe(world.getEntityId(axe));
     expect(hero[ACTIONABLE].toolEquipped).toBe(true);
@@ -214,6 +215,7 @@ describe("equipping items", () => {
     const unequipped = equipItem(world, hero, bow);
 
     expect(unequipped).toBe(axe);
+    expect(Object.values(hero[PLAYER].quickItems)).toContainEqual({ tool: "axe", material: "wood" });
     expect(hero[EQUIPPABLE].skill).toBe(world.getEntityId(bow));
     expect(hero[ACTIONABLE].toolEquipped).toBe(false);
   });

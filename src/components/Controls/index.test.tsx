@@ -197,6 +197,20 @@ describe("keyboard movement", () => {
     expect(hero[POSITION]).toEqual({ x: x + deltaX, y: y + deltaY });
   });
 
+  it("continues in the direction first held during a dash", () => {
+    const { world, hero } = setup([
+      { spell: "dash", material: "wood", amount: 1 },
+    ]);
+    press(" ");
+    runUntil(world, () => !hero[MOVABLE]);
+    press("ArrowRight");
+    runUntil(world, () => !!hero[MOVABLE], 2000);
+    const landing = { ...hero[POSITION] };
+    runUntil(world, () => hero[POSITION].x === landing.x + 1);
+    runUntil(world, () => hero[POSITION].x === landing.x + 2);
+    release("ArrowRight");
+  });
+
   it("stops walking when releasing the key", () => {
     const { world, hero, tick } = setup();
     const { x } = hero[POSITION];
@@ -921,6 +935,22 @@ describe("touch controls", () => {
       ],
     });
   };
+
+  it("walks in the latest swipe direction after dash without another touchmove", () => {
+    const { world, hero } = setup([
+      { spell: "dash", material: "wood", amount: 1 },
+    ]);
+    press(" ");
+    runUntil(world, () => !hero[MOVABLE]);
+    touch("touchStart", [[100, 100]]);
+    touch("touchMove", [[150, 100]]);
+    touch("touchMove", [[100, 150]]);
+    runUntil(world, () => !!hero[MOVABLE], 2000);
+    const landing = { ...hero[POSITION] };
+    runUntil(world, () => hero[POSITION].y === landing.y + 1);
+    expect(hero[POSITION].x).toBe(landing.x);
+    touch("touchEnd", []);
+  });
 
   const releasePointer = (
     target: Element,

@@ -74,7 +74,7 @@ export const createTerminalInput = (
 ) => {
   let release: ReturnType<typeof setTimeout> | undefined;
   let movementKey: string | undefined;
-  const getHero = () => world.getEntities([PLAYER, MOVABLE, ACTIONABLE])[0];
+  const getHero = () => world.getEntities([PLAYER, ACTIONABLE])[0];
   const stop = () => {
     clearTimeout(release);
     movementKey = undefined;
@@ -115,9 +115,6 @@ export const createTerminalInput = (
         return;
       }
     }
-    const reference = world.assertByIdAndComponents(hero[MOVABLE].reference, [
-      REFERENCE,
-    ])[REFERENCE];
     const direction = directions[name];
     if (direction && !key.ctrl && !isDead(world, hero)) {
       setMovementOrientations(world, hero, [direction]);
@@ -126,6 +123,10 @@ export const createTerminalInput = (
       if (releaseOnTimeout) release = setTimeout(stop, 100);
       return;
     }
+    if (!hero[MOVABLE]) return;
+    const reference = world.assertByIdAndComponents(hero[MOVABLE].reference, [
+      REFERENCE,
+    ])[REFERENCE];
     let action: Action | undefined =
       key.shift && name === "tab" ? "backtab" : actions[name];
     if (name === "space") action = key.shift ? "skill" : "spell";

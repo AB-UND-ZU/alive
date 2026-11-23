@@ -1,9 +1,12 @@
 import { MOVABLE } from "../../engine/components/movable";
+import { REFERENCE } from "../../engine/components/reference";
 import { POSITION } from "../../engine/components/position";
+import { setMovementOrientations } from "../../engine/systems/movement";
 import { getAbilityStats } from "../../game/balancing/abilities";
-import { findInArea, step } from "../../testing/harness";
+import { advanceUntil, FRAME, step } from "../../testing/harness";
 import {
   cast,
+  castAs,
   createArea,
   createSpellWorld,
   getUnit,
@@ -40,22 +43,23 @@ describe("dash spell", () => {
     expect(hero[POSITION]).toEqual({ x: 20 + 1 - range, y: 1 });
   });
 
-  it("holds the caster in place until the dash completes", () => {
-    const area = `
-|          |
-| ♀        |
-|          |
-`;
+  it("keeps the hero frozen for a movement tick after arriving", () => {
+    const area = createArea(range + 4, 3, { "♀": { x: 1, y: 1 } });
     const { world, hero } = createSpellWorld(area, dash, { size: 30 });
-
-    cast(world, "right");
-
+    const tick = world.assertByIdAndComponents(hero[MOVABLE]!.reference, [
+      REFERENCE,
+    ])[REFERENCE].tick;
+    const start = world.metadata.elapsed;
+    castAs(world, hero, dash, "right");
+    advanceUntil(world, () => hero[POSITION].x === 1 + range);
     expect(hero[MOVABLE]).toBeUndefined();
-    expect(hero[POSITION]).toEqual(findInArea(area, "♀"));
-
-    waitForSpell(world, hero);
-
-    expect(hero[MOVABLE]).toBeDefined();
+    const release = (Math.ceil(500 / tick) + 1) * tick;
+    setMovementOrientations(world, hero, ["down"]);
+    advanceUntil(world, () => !!hero[MOVABLE]);
+    expect(hero[POSITION]).toEqual({ x: 1 + range, y: 1 });
+    const elapsed = world.metadata.elapsed - start;
+    expect(elapsed).toBeGreaterThanOrEqual(release);
+    expect(elapsed).toBeLessThan(release + FRAME + 1);
   });
 
   it("passes through hostile units and hits each once", () => {

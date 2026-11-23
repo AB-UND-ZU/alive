@@ -3,10 +3,13 @@ import { SPRITE } from "../../engine/components/sprite";
 import { composeCharacterPixels } from "../../components/Row/characters";
 import { forgeHit, forgeMiss } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
+import { getItemSprite } from "../../game/assets/utils";
+import { projectSprite } from "../../renderers/terminal/sprites";
 import { getMotion, sampleMotion } from "../../engine/motion";
 import { getSequence } from "../../engine/systems/sequence";
 import {
   act,
+  advanceUntil,
   countItems,
   createAreaWorld,
   findEntityAt,
@@ -19,12 +22,16 @@ import {
 import { playedSounds } from "../../testing/env";
 import { World } from "../../engine";
 import { ACTIONABLE } from "../../engine/components/actionable";
+import { PARTICLE } from "../../engine/components/particle";
+import { PLAYER } from "../../engine/components/player";
+import { INVENTORY } from "../../engine/components/inventory";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { FORGABLE } from "../../engine/components/forgable";
 import { ITEM } from "../../engine/components/item";
 import { POPUP } from "../../engine/components/popup";
 import { STATS } from "../../engine/components/stats";
 import {
+  assignQuickItem,
   getTab,
   getTabSelections,
   getVerticalIndex,
@@ -40,6 +47,7 @@ import {
 import {
   AnvilEntity,
   closeStation,
+  getHammerIndex,
   getShopper,
   hitAt,
   hitStep,
@@ -95,6 +103,267 @@ const hitAllSteps = (world: World, anvil: AnvilEntity) => {
 };
 
 describe("forging at an anvil", () => {
+  it.each(["axe", "hook", "shovel", "pickaxe", "hammer"] as const)(
+    "upgrades a wood %s for five iron",
+    (tool) => {
+      const option = getOption(
+        { tool, material: "wood", amount: 1 },
+        () => true
+      );
+      expect(option.add).toEqual({
+        stackable: "resource",
+        material: "iron",
+        amount: 5,
+      });
+      expect(option.result).toEqual({ tool, material: "iron", amount: 1 });
+    }
+  );
+
+  it("releases perfect-hit and bonus XP only after Yield, keeping both spear slots and its key", () => {
+    const spear = {
+      weapon: "spear",
+      skill: "spear",
+      material: "wood",
+      amount: 1,
+    } as const;
+    const { world, hero, anvil } = setup([spear, fireUpgrade.add]);
+    const id = hero[INVENTORY].items[0];
+    assignQuickItem(world, hero, spear, 0);
+    const before = hero[STATS].xp;
+    openStation(world);
+    selectItems(world, anvil, [0, 1]);
+    act(world, "right");
+    const forge = anvil[FORGABLE];
+    expect(forge.xp).toBe(0);
+    forge.steps.forEach(() =>
+      hitAt(world, anvil, [hittingOffset + forge.target!])
+    );
+    expect(forge.xp).toBe(3);
+    expect(hero[STATS].xp).toBe(before);
+    advanceUntil(
+      world,
+      () => hero[ACTIONABLE].trade === world.getEntityId(anvil)
+    );
+    act(world, "right");
+    expect(hero[EQUIPPABLE]).toMatchObject({ weapon: id, skill: id });
+    expect(hero[PLAYER].quickItems[0]).toMatchObject({
+      weapon: "spear",
+      element: "fire",
+    });
+    advanceUntil(world, () => hero[STATS].xp === before + 3);
+  });
+
+  it("shows strike feedback at impact until the hammer resets", () => {
+    const { world, anvil } = setup([ironSword, materialUpgrade.add]);
+    openStation(world);
+    selectItems(world, anvil, [0, 1]);
+    act(world, "right");
+    const forge = anvil[FORGABLE];
+    const particles = getSequence(world, anvil, "popup")!.particles;
+    const feedback = (color: string) =>
+      Array.from({ length: 5 }, (_, i) => {
+        const cell = world.assertByIdAndComponents(
+          particles[`popup-content-7-${11 + i}`],
+          [SPRITE]
+        );
+        return cell[SPRITE].layers.find((layer) => layer.color === color)?.char;
+      }).join("");
+    for (const [text, color] of [
+      ["Ouch!", colors.red],
+      ["Miss.", colors.yellow],
+      ["Hit.", colors.lime],
+      ["Ace!", colors.lime],
+    ]) {
+      const current = forge.steps[forge.progress];
+      const cell = Array.from({ length: hittingArea }, (_, i) => i).find((i) =>
+        text === "Miss."
+          ? i < current.offset || i >= current.offset + current.width
+          : i >= current.offset &&
+            i < current.offset + current.width &&
+            i !== forge.target
+      )!;
+      const target =
+        text === "Ouch!"
+          ? 0
+          : hittingOffset + (text === "Ace!" ? forge.target! : cell);
+      advanceUntil(world, () => getHammerIndex(world, anvil) === target);
+      act(world, "right");
+      expect(feedback(color)).not.toBe(text);
+      advanceUntil(world, () => feedback(color) === text);
+      step(world, 4);
+      expect(feedback(color)).toBe(text);
+      advanceUntil(world, () => forge.lastAction === "swing");
+      expect(feedback(color)).not.toBe(text);
+    }
+    const ouch = world.assertByIdAndComponents(particles["popup-content-0-7"], [
+      SPRITE,
+    ]);
+    expect(projectSprite(ouch[SPRITE])).toMatchObject({
+      char: "x",
+      foreground: colors.red,
+    });
+    for (const [stepIndex, color] of [
+      colors.lime,
+      colors.lime,
+      colors.grey,
+    ].entries()) {
+      const cell = world.assertByIdAndComponents(
+        particles[`popup-content-0-${9 + stepIndex}`],
+        [SPRITE]
+      );
+      const expected = [
+        { char: "_", color },
+        ...getItemSprite(forge.steps[stepIndex].item).layers,
+      ];
+      if (stepIndex === 1) expected.push({ char: "+", color: colors.lime });
+      expect(cell[SPRITE].layers.slice(-expected.length)).toEqual(expected);
+    }
+  });
+
+  const fillTenSlots = () => {
+    const { world, hero, anvil } = setup([ironSword, materialUpgrade.add]);
+    openStation(world);
+    selectItems(world, anvil, [0, 1]);
+    act(world, "right");
+    const forge = anvil[FORGABLE];
+    while (forge.progress < forge.steps.length - 1) hitStep(world, anvil);
+    const extraSlots = 10 - forge.steps.length;
+    for (let i = 0; i < extraSlots; i++) hitAt(world, anvil, [0]);
+    const finalStep = forge.steps[forge.progress];
+    expect(finalStep.misses).toHaveLength(extraSlots);
+    return { world, hero, anvil, forge, finalStep, extraSlots };
+  };
+
+  it("can yield a run that succeeds on the tenth strike", () => {
+    const { world, hero, anvil, forge } = fillTenSlots();
+    hitAt(world, anvil, [hittingOffset + forge.target!]);
+    expect(forgingCompleted(anvil)).toBe(true);
+    act(world, "right");
+    expect(getItems(world, hero)).toEqual([
+      expect.objectContaining(materialUpgrade.result),
+    ]);
+  });
+
+  it("fails without adding an eleventh slot and retries the same recipe on an empty anvil", () => {
+    const { world, hero, anvil, forge, finalStep, extraSlots } = fillTenSlots();
+    hitAt(world, anvil, [0]);
+    expect(finalStep.result).toBe("failed");
+    expect(finalStep.misses).toHaveLength(extraSlots);
+    const particles = getSequence(world, anvil, "popup")!.particles;
+    const layersAt = (row: number, col: number) =>
+      world.assertByIdAndComponents(particles[`popup-content-${row}-${col}`], [
+        SPRITE,
+      ])[SPRITE].layers;
+    for (let i = 0; i < hittingArea; i++) {
+      expect(layersAt(4, hittingOffset + i)).toEqual([
+        ...layersAt(4, 0),
+        { char: "_", color: colors.red },
+      ]);
+    }
+    const label = Array.from(
+      { length: 5 },
+      (_, i) =>
+        layersAt(7, 11 + i).find((layer) => layer.color === colors.red)?.char
+    ).join("");
+    expect(label).toBe("Lost!");
+    expect(hero[ACTIONABLE].trade).toBeUndefined();
+    const before = getItems(world, hero);
+    act(world, "right");
+    expect(getItems(world, hero)).toEqual(before);
+    expect(getTabSelections(world, anvil)).toHaveLength(3);
+    expect(forge.xp).toBe(0);
+    expect(forge.hitIndex).toBeUndefined();
+    expect(forge.steps.every((step) => !step.misses && !step.result)).toBe(true);
+    expect(forge.lastAction).toBe("swing");
+    expect(forge.progress).toBe(0);
+    expect(hero[ACTIONABLE].use).toBe(world.getEntityId(anvil));
+    hitAt(world, anvil, [hittingOffset + forge.target!]);
+    expect(forge.xp).toBe(1);
+  });
+
+  it("moves the item after a miss while keeping the hot band, and floors the score at zero", () => {
+    const { world, anvil } = setup([ironSword, materialUpgrade.add]);
+    openStation(world);
+    selectItems(world, anvil, [0, 1]);
+    act(world, "right");
+    const forge = anvil[FORGABLE];
+    const band = forge.steps[0].offset;
+    const first = forge.target;
+    hitAt(world, anvil, [0, 1]);
+    expect(forge.xp).toBe(0);
+    expect(forge.progress).toBe(0);
+    expect(forge.steps[0].offset).toBe(band);
+    expect(forge.target).not.toBe(first);
+    hitAt(world, anvil, [hittingOffset + forge.target!]);
+    expect(forge.xp).toBe(1);
+    const next = forge.steps[1];
+    const red = Array.from({ length: hittingArea }, (_, i) => i).filter(
+      (i) => i < next.offset || i >= next.offset + next.width
+    );
+    hitAt(
+      world,
+      anvil,
+      red.map((i) => i + hittingOffset)
+    );
+    expect(forge.xp).toBe(0);
+    const ordinary = Array.from(
+      { length: next.width },
+      (_, i) => next.offset + i
+    ).filter((i) => i !== forge.target);
+    hitAt(
+      world,
+      anvil,
+      ordinary.map((i) => i + hittingOffset)
+    );
+    expect(forge.progress).toBe(2);
+    expect(forge.xp).toBe(0);
+  });
+
+  it("upgrades a stowed hammer in its assigned slot without replacing the active tool", () => {
+    const hammer = { tool: "hammer", material: "wood", amount: 1 } as const;
+    const { world, hero, anvil } = setup([
+      { tool: "axe", material: "wood", amount: 1 },
+      hammer,
+      getOption(hammer, () => true).add,
+    ]);
+    const [axe, stowed] = hero[INVENTORY].items;
+    assignQuickItem(world, hero, hammer, 4);
+    openStation(world);
+    selectItems(world, anvil, [1, 2]);
+    act(world, "right");
+    hitAllSteps(world, anvil);
+    act(world, "right");
+    expect(hero[EQUIPPABLE].tool).toBe(axe);
+    expect(hero[INVENTORY].items).toContain(stowed);
+    expect(hero[PLAYER].quickItems[4]).toEqual({
+      tool: "hammer",
+      material: "iron",
+    });
+  });
+
+  it("swings horizontally after aborting a downstroke and restarting", () => {
+    const { world, anvil } = setup([ironSword, materialUpgrade.add]);
+    openStation(world);
+    selectItems(world, anvil, [0, 1]);
+    act(world, "right");
+    const hammer = world.assertByIdAndComponents(
+      getSequence(world, anvil, "popup")!.particles.hammer,
+      [PARTICLE]
+    );
+    const swingHeight = hammer[PARTICLE].offsetY;
+    act(world, "right");
+    advanceUntil(world, () => hammer[PARTICLE].offsetY > swingHeight);
+    act(world, "left");
+    expect(getTabSelections(world, anvil)).toHaveLength(2);
+    act(world, "right");
+    const position = () =>
+      sampleMotion(getMotion(hammer)!, world.metadata.elapsed);
+    const start = position();
+    step(world, 5);
+    expect(position().x).toBeLessThan(start.x);
+    expect(position().y).toBe(swingHeight);
+  });
+
   it("returns the hammer to the next swing's starting edge without a jump", () => {
     const { world, anvil } = setup([ironSword, materialUpgrade.add]);
     openStation(world);

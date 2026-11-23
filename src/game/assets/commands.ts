@@ -73,7 +73,7 @@ import { cellNames, CellType, createCell } from "../../bindings/creation";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { ENTERABLE } from "../../engine/components/enterable";
 import { createText } from "./ui";
-import { updateSandCell, updateWaterCell } from "../../engine/systems/water";
+import { updateShoreline } from "../../engine/systems/water";
 import { isCell } from "../../engine/systems/harvest";
 
 export type CommandCall = {
@@ -590,8 +590,7 @@ const executeNew = (
     }
 
     updateWalkable(world, target);
-    updateWaterCell(world, target);
-    updateSandCell(world, target);
+    updateShoreline(world, target);
   }
 };
 

@@ -1,7 +1,7 @@
 import { bumpEntity } from "../motion";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
-import { MOVABLE } from "../components/movable";
+import { Movable, MOVABLE } from "../components/movable";
 import { World } from "../ecs";
 import { REFERENCE } from "../components/reference";
 import { getCellEntities, moveEntity } from "./map";
@@ -48,7 +48,7 @@ import { FRAGMENT } from "../components/fragment";
 import { BUMPABLE } from "../components/bumpable";
 import { MOUNTABLE } from "../components/mountable";
 import { isMounting, stopVessel } from "./vessel";
-import { getExertables } from "./magic";
+import { getActiveSpell, getExertables } from "./magic";
 import { EXERTABLE } from "../components/exertable";
 import { CASTABLE } from "../components/castable";
 import { DISPLACABLE } from "../components/displacable";
@@ -83,28 +83,32 @@ export const setMovementOrientations = (
   entity: Entity,
   orientations: Orientation[]
 ) => {
-  if (!entity[MOVABLE]) return;
-  const reference = world.assertByIdAndComponents(entity[MOVABLE].reference, [
+  // Dash keeps the movement component on the spell until recovery finishes.
+  const movable: Movable | undefined =
+    entity[MOVABLE] ??
+    getActiveSpell(world, entity, "castDash")?.args.memory?.movable;
+  if (!movable) return;
+  const reference = world.assertByIdAndComponents(movable.reference, [
     REFERENCE,
   ])[REFERENCE];
 
   // A new dialog press steps immediately, then uses the normal repeat clock.
   if (
     orientations.length &&
-    !entity[MOVABLE].orientations.length &&
+    !movable.orientations.length &&
     isInPopup(world, entity)
   ) {
     reference.delta = reference.tick;
   }
-  entity[MOVABLE].orientations = orientations;
-  if (orientations[0]) entity[MOVABLE].pendingOrientation = orientations[0];
+  movable.orientations = orientations;
+  if (!entity[MOVABLE]) movable.pendingOrientation = undefined;
+  else if (orientations[0]) movable.pendingOrientation = orientations[0];
 
-  if (orientations.length === 0 && !entity[MOVABLE].momentum) {
+  if (orientations.length === 0 && !movable.momentum) {
     reference.suspensionCounter = 0;
     // Keep late direction taps and queued actions for the next tick.
     if (
-      (reference.tick - reference.delta < 50 &&
-        entity[MOVABLE].pendingOrientation) ||
+      (reference.tick - reference.delta < 50 && movable.pendingOrientation) ||
       entity[ACTIONABLE]?.spellTriggered ||
       entity[ACTIONABLE]?.skillTriggered ||
       entity[ACTIONABLE]?.interactTriggered ||

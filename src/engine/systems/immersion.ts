@@ -28,31 +28,21 @@ export const getSwimmables = (world: World, position: Position) =>
     isSwimmable(world, entity)
   );
 
-export const isSubmerged = (world: World, position: Position) =>
-  isImmersible(world, position) &&
-  [-1, 0, 1]
-    .map((xOffset) =>
-      [-1, 0, 1].map((yOffset) => {
-        const x = position.x + xOffset;
-        const y = position.y + yOffset;
-        return (
-          (!getOverlappingCell(
-            world.metadata.gameEntity[LEVEL].initialized,
-            x,
-            y
-          ) &&
-            ["water_shallow", "water_deep"].includes(
-              getOverlappingCell(world.metadata.gameEntity[LEVEL].cells, x, y)
-            )) ||
-          isImmersible(world, {
-            x,
-            y,
-          })
-        );
-      })
+export const hasWater = (world: World, position: Position) => {
+  const level = world.metadata.gameEntity[LEVEL];
+  return isImmersible(world, position) || (
+    !getOverlappingCell(level.initialized, position.x, position.y) &&
+    ["water", "water_shallow", "water_deep"].includes(
+      getOverlappingCell(level.cells, position.x, position.y)
     )
-    .flat()
-    .every(Boolean);
+  );
+};
+
+export const isSubmerged = (world: World, position: Position) =>
+  hasWater(world, position) &&
+  [-1, 0, 1].every((x) => [-1, 0, 1].every((y) =>
+    hasWater(world, { x: position.x + x, y: position.y + y })
+  ));
 
 export default function setupImmersion(world: World) {
   let referencesGeneration = -1;

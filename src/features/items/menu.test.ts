@@ -171,6 +171,7 @@ describe("equip tab", () => {
     act(world, "right");
 
     expect(hero[EQUIPPABLE].weapon).toBe(world.getEntityId(ironSword));
+    expect(hero[PLAYER].quickItems[2]).toEqual({ weapon: "sword", material: "wood" });
     expect(isInPopup(world, hero)).toBeFalsy();
   });
 
@@ -209,9 +210,11 @@ describe("equip tab", () => {
     equipItem(world, hero, bow);
     expect(hero[ACTIONABLE].toolEquipped).toBe(false);
 
+    resetPlayedSounds();
     act(world, "equip");
     act(world, "right");
 
+    expect(playedSounds).toContain("equip");
     expect(hero[EQUIPPABLE].tool).toBe(world.getEntityId(axe));
     expect(hero[ACTIONABLE].toolEquipped).toBe(true);
   });
@@ -227,9 +230,11 @@ describe("equip tab", () => {
     equipItem(world, hero, axe);
     expect(hero[ACTIONABLE].toolEquipped).toBe(true);
 
+    resetPlayedSounds();
     act(world, "equip");
     act(world, "right");
 
+    expect(playedSounds).toContain("equip");
     expect(hero[EQUIPPABLE].skill).toBe(world.getEntityId(bow));
     expect(hero[ACTIONABLE].toolEquipped).toBe(false);
   });

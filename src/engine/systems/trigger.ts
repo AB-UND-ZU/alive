@@ -78,7 +78,6 @@ import { isDead, isEnemy, isNpc, triggerSpear } from "./damage";
 import { canCast, chargeSlash, summonTotem } from "./magic";
 import { EQUIPPABLE, slots } from "../components/equippable";
 import {
-  assignQuickItem,
   closePopup,
   existingItem,
   getDeal,
@@ -615,7 +614,8 @@ export const performTrade = (
 export const spendItem = (
   world: World,
   entity: Entity,
-  item: Omit<Item, "bound" | "carrier">
+  item: Omit<Item, "bound" | "carrier">,
+  selected?: Entity
 ) => {
   if (item.stat && !item.material) {
     if (!entity[STATS] || entity[STATS][item.stat] < item.amount) {
@@ -631,7 +631,7 @@ export const spendItem = (
     (entity[INVENTORY] as Inventory)?.items.map((itemId) =>
       world.assertByIdAndComponents(itemId, [ITEM])
     ) || [];
-  const itemEntity = inventoryItems.findLast((itemEntity) =>
+  const itemEntity = selected ?? inventoryItems.findLast((itemEntity) =>
     matchesItem(world, item, itemEntity[ITEM])
   );
 
@@ -1426,10 +1426,7 @@ export default function setupTrigger(world: World) {
           if (consumption) {
             consumeItem(world, entity, consumption);
           } else if (inventoryItem) {
-            const unequippedItem = equipItem(world, entity, inventoryItem);
-            if (unequippedItem) {
-              assignQuickItem(world, entity, unequippedItem[ITEM], hotKey);
-            }
+            equipItem(world, entity, inventoryItem);
           }
           rerenderEntity(world, useEntity);
           continue;

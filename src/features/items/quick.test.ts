@@ -99,9 +99,9 @@ describe("quick slot keys", () => {
     expect(hero[STATS].hp).toBe(10);
   });
 
-  it("equips the assigned item and puts the old one on that key", () => {
+  it("keeps the equipped item on its key and puts displaced gear on the next free key", () => {
     const { world, hero } = setup();
-    const [woodSword] = giveItems(world, hero, [
+    giveItems(world, hero, [
       { weapon: "sword", material: "wood", amount: 1 },
     ]);
     const [ironSword] = giveItems(world, hero, [
@@ -109,17 +109,19 @@ describe("quick slot keys", () => {
     ]);
     assignQuickItem(world, hero, { weapon: "sword", material: "iron" }, 3);
 
+    assignQuickItem(world, hero, { stackable: "apple" }, 1);
     pressQuickKey(world, 3);
 
+    expect(hero[PLAYER].quickItems[2]).toEqual({ weapon: "sword", material: "wood" });
     expect(hero[EQUIPPABLE].weapon).toBe(world.getEntityId(ironSword));
     expect(hero[PLAYER].quickItems[3]).toEqual({
       weapon: "sword",
-      material: "wood",
+      material: "iron",
     });
 
     pressQuickKey(world, 3);
 
-    expect(hero[EQUIPPABLE].weapon).toBe(world.getEntityId(woodSword));
+    expect(hero[EQUIPPABLE].weapon).toBe(world.getEntityId(ironSword));
   });
 
   it("works while the inventory menu is open", () => {

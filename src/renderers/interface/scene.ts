@@ -5,6 +5,7 @@ import { MOVABLE } from "../../engine/components/movable";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { SPRITE } from "../../engine/components/sprite";
 import { CASTABLE } from "../../engine/components/castable";
+import { DISPLACABLE } from "../../engine/components/displacable";
 import { HOMING } from "../../engine/components/homing";
 import { STICKY } from "../../engine/components/sticky";
 import { FRAGMENT } from "../../engine/components/fragment";
@@ -31,6 +32,12 @@ export type SceneViewport = {
   viewable?: { MOVABLE?: { flying?: boolean } } | null;
   structure?: number;
 };
+
+const isAnchoredSpell = (entity: TypedEntity, id: number) =>
+  !!entity[CASTABLE] &&
+  !entity[HOMING] &&
+  !entity[DISPLACABLE] &&
+  entity[CASTABLE].caster !== id;
 
 export const collectScene = (
   world: World,
@@ -95,9 +102,7 @@ export const collectScene = (
         if (
           !(RENDERABLE in entity) ||
           !(SPRITE in entity) ||
-          (CASTABLE in entity &&
-            !(HOMING in entity) &&
-            entity[CASTABLE]?.caster !== parseInt(entityId)) ||
+          isAnchoredSpell(entity, Number(entityId)) ||
           STICKY in entity
         )
           continue;
@@ -119,7 +124,7 @@ export const collectScene = (
   for (const entity of castableEntities) {
     const entityId = world.getEntityId(entity);
 
-    if (HOMING in entity || entity[CASTABLE].caster === entityId) continue;
+    if (!isAnchoredSpell(entity, entityId)) continue;
 
     let castableQuadrant = stickyCastables[entityId];
 

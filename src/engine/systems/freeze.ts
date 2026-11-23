@@ -35,7 +35,7 @@ import { CLICKABLE } from "../components/clickable";
 import { getFragment, isOpaque } from "./enter";
 import { entities } from "..";
 import { FOG } from "../components/fog";
-import { getLiquids, updateWaterCell } from "./water";
+import { getLiquids, updateShoreline } from "./water";
 import { matrixFactory } from "../../game/math/matrix";
 import { LEVEL } from "../components/level";
 import { COVERABLE } from "../components/coverable";
@@ -112,8 +112,10 @@ export const freezeTerrain = (world: World, entity: Entity) => {
       IMMERSIBLE,
       false
     );
+    const { x, y } = entity[POSITION];
+    world.metadata.gameEntity[LEVEL].cells[x][y] = "ice";
     updateWalkable(world, entity[POSITION]);
-    updateWaterCell(world, entity[POSITION]);
+    updateShoreline(world, entity[POSITION]);
 
     // delete any liquids
     const liquids = getLiquids(world, entity[POSITION]);
@@ -145,8 +147,10 @@ export const thawTerrain = (world: World, entity: Entity) => {
     entity[TEMPO].amount = -2;
 
     addImmersible(world, entity, { type: "water", deep: true });
+    const { x, y } = entity[POSITION];
+    world.metadata.gameEntity[LEVEL].cells[x][y] = "water_deep";
     updateWalkable(world, entity[POSITION]);
-    updateWaterCell(world, entity[POSITION]);
+    updateShoreline(world, entity[POSITION]);
 
     // lift up immersed units
     const swimmables = getSwimmables(world, entity[POSITION]);

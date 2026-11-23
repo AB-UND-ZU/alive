@@ -1,8 +1,16 @@
 import { collectScene, SceneViewport } from "./scene";
-import { assertHero, createAreaWorld } from "../../testing/harness";
+import {
+  act,
+  assertHero,
+  createAreaWorld,
+  face,
+  giveItems,
+  walk,
+} from "../../testing/harness";
 import { entities } from "../../engine";
 import { POSITION, Position } from "../../engine/components/position";
 import { emptyCastable } from "../../engine/components/castable";
+import { DISPLACABLE } from "../../engine/components/displacable";
 import { none } from "../../game/assets/sprites";
 
 const createWorld = () =>
@@ -80,3 +88,33 @@ it("centers sticky effects on the viewpoint and retains projectile wrap quadrant
     8, 1,
   ]);
 });
+
+it.each(["left", "up"] as const)(
+  "keeps a summoned totem visible when pushed %s across a map seam",
+  (direction) => {
+    const world = createAreaWorld("|    |\n| ♀  |\n|    |", { size: 32 });
+    const hero = world.assertComponents(assertHero(world), ["INVENTORY", POSITION]);
+    giveItems(world, hero, [
+      { skill: "totem", material: "iron", amount: 1 },
+      { stackable: "charge", amount: 1 },
+    ]);
+    face(world, direction);
+    act(world, "skill");
+    const totem = world.getEntity([DISPLACABLE, POSITION])!;
+    const quadrants = {};
+    const rendered = () =>
+      collectScene(
+        world,
+        { ...viewport, columns: 7, position: { x: 1, y: 1 } },
+        quadrants
+      )
+        .filter((entry) => entry[4] === totem)
+        .map((entry) => entry.slice(0, 2));
+    expect(rendered()).toEqual([direction === "left" ? [0, 1] : [1, 0]]);
+    walk(world, direction);
+    expect(totem[POSITION]).toEqual(
+      direction === "left" ? { x: 31, y: 1 } : { x: 1, y: 31 }
+    );
+    expect(rendered()).toEqual([direction === "left" ? [-1, 1] : [1, -1]]);
+  }
+);

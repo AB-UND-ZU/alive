@@ -43,6 +43,7 @@ import { TypedEntity } from "../entities";
 import { isDead, isEnemy, isNeutral } from "./damage";
 import {
   createItemName,
+  getItemSprite,
   frameHeight,
   popupDelay,
   questSequence,
@@ -50,7 +51,10 @@ import {
 } from "../../game/assets/utils";
 import { getItemSellPrice } from "../../game/balancing/trading";
 import {
+  chooseForgeTarget,
   forgeTicks,
+  forgingCompleted,
+  forgingFailed,
   getForgeStatus,
   getForgingSteps,
   hittingWidth,
@@ -74,6 +78,7 @@ import {
   initiateLoad,
   initiateWarp,
   performTrade,
+  spendItem,
   castConditionable,
 } from "./trigger";
 import { colors } from "../../game/assets/colors";
@@ -113,6 +118,8 @@ import { equipItem } from "./collect";
 import { buildConstructions } from "../../game/balancing/building";
 import { canBuild, canConstruct, getBuildingDeal } from "./build";
 import { FOG } from "../components/fog";
+import { SPRITE } from "../components/sprite";
+import { createItemAsDrop } from "./drop";
 import { play } from "../../game/sound";
 
 export const isInPopup = (world: World, entity: Entity) =>
@@ -898,7 +905,11 @@ export const assignQuickItem = (
     }
   }
 
-  if (assignedSlot === undefined) return;
+  if (
+    assignedSlot === undefined ||
+    (hotKey === undefined && existingSlot !== undefined)
+  )
+    return;
 
   const { amount, carrier, bound, ...quickItem } = item;
   entity[PLAYER].quickItems[assignedSlot] = quickItem;
@@ -1085,7 +1096,15 @@ export default function setupPopup(world: World) {
     const referenceGeneration = heroReference[RENDERABLE].generation;
     const generation = referenceGeneration + heroEntity[RENDERABLE].generation;
 
-    if (heroGeneration === generation) return;
+    // Sample an anvil strike on the input frame so every hammer position is reachable.
+    const anvil =
+      heroEntity[PLAYER].actionTriggered === "right" &&
+      world.getEntityByIdAndComponents(heroEntity[ACTIONABLE].use, [FORGABLE]);
+    const striking =
+      anvil &&
+      anvil[FORGABLE].lastAction === "swing" &&
+      !forgingCompleted(anvil);
+    if (!striking && heroGeneration === generation) return;
 
     heroGeneration = generation;
 
@@ -1097,7 +1116,11 @@ export default function setupPopup(world: World) {
     // skip if player is not in popup
     if (!popupEntity) return;
 
-    if (heroEntity[MOVABLE].lastInteraction === referenceGeneration) return;
+    if (
+      !striking &&
+      heroEntity[MOVABLE].lastInteraction === referenceGeneration
+    )
+      return;
 
     // capture movements while popup is open
     const targetOrientation: Orientation | undefined =
@@ -1408,7 +1431,6 @@ export default function setupPopup(world: World) {
           }
         }
       } else if (tab === "forge") {
-        const deal = tradeEntity && getDeal(world, heroEntity, tradeEntity);
         const [firstIndex, secondIndex] = selections;
         const forgeStatus = getForgeStatus(
           world,
@@ -1417,18 +1439,79 @@ export default function setupPopup(world: World) {
           secondIndex,
           verticalIndex
         );
-        if (deal && tradeEntity[FORGABLE] && canShop(world, heroEntity, deal)) {
+        const { forgeable, baseItem, addItem, resultItem } = forgeStatus;
+        if (
+          tradeEntity?.[FORGABLE] &&
+          forgeable &&
+          addItem &&
+          resultItem &&
+          selections.length === 3 &&
+          forgingCompleted(tradeEntity)
+        ) {
           tradeEntity[FORGABLE].steps = [];
           tradeEntity[FORGABLE].progress = 0;
-          tradeEntity[FORGABLE].completed = deal.item;
+          tradeEntity[FORGABLE].completed = resultItem;
           tradeEntity[FORGABLE].lastElapsed = 0;
           tradeEntity[FORGABLE].lastAction = undefined;
           tradeEntity[FORGABLE].hitIndex = undefined;
+          const items = heroEntity[INVENTORY].items;
+          const base = world.assertByIdAndComponents(items[firstIndex], [
+            ITEM,
+            SPRITE,
+          ]);
+          const ingredient = world.assertByIdAndComponents(items[secondIndex], [
+            ITEM,
+          ]);
+          const hotKey = Object.keys(heroEntity[PLAYER].quickItems).find(
+            (key) => {
+              const item = heroEntity[PLAYER].quickItems[Number(key)];
+              return item && matchesItem(world, item, base[ITEM]);
+            }
+          );
           pushTabSelection(world, tradeEntity);
-          performTrade(world, heroEntity, tradeEntity);
+          spendItem(world, heroEntity, addItem, ingredient);
+          Object.assign(base[ITEM], resultItem);
+          base[SPRITE] = getItemSprite(base[ITEM]);
+          if (hotKey !== undefined)
+            assignQuickItem(world, heroEntity, base[ITEM], Number(hotKey));
+          const xp = tradeEntity[FORGABLE].xp ?? 0;
+          if (xp > 0) {
+            createItemAsDrop(
+              world,
+              { ...tradeEntity[POSITION] },
+              entities.createItem,
+              {
+                [ITEM]: { stat: "xp", amount: xp, bound: false },
+                [SPRITE]: none,
+              },
+              false
+            );
+          }
+          rerenderEntity(world, base);
+          rerenderEntity(world, heroEntity);
+          play("pickup");
+        } else if (
+          ((addEntity && selections.length === 2) ||
+            (useEntity && forgingFailed(useEntity))) &&
+          popupEntity[FORGABLE] &&
+          forgeable &&
+          resultItem &&
+          popupSequence
+        ) {
+          const forge = popupEntity[FORGABLE];
+          forge.steps = getForgingSteps(forgeStatus);
+          forge.progress = 0;
+          forge.xp = 0;
+          forge.imperfect = false;
+          forge.target = chooseForgeTarget(forge.steps[0]);
+          forge.completed = undefined;
+          forge.hitIndex = undefined;
+          forge.lastElapsed = popupSequence.elapsed;
+          forge.lastAction = "swing";
+          if (selections.length === 2) pushTabSelection(world, popupEntity);
+          else rerenderEntity(world, popupEntity);
+          play("confirm");
         } else if (addEntity) {
-          const popupSequence = getSequence(world, addEntity, "popup");
-          const { forgeable, addItem, baseItem, resultItem } = forgeStatus;
           const nextItem = addItem || baseItem;
 
           if (forgeable && selections.length < 2) {
@@ -1439,22 +1522,6 @@ export default function setupPopup(world: World) {
             if (selections.length === 2) {
               setVerticalIndex(world, addEntity, 0);
             }
-          } else if (
-            selections.length === 2 &&
-            forgeable &&
-            addEntity[FORGABLE] &&
-            baseItem &&
-            addItem &&
-            resultItem &&
-            popupSequence
-          ) {
-            addEntity[FORGABLE].steps = getForgingSteps(forgeStatus);
-            addEntity[FORGABLE].progress = 0;
-            addEntity[FORGABLE].completed = undefined;
-            addEntity[FORGABLE].lastElapsed = popupSequence.elapsed;
-            addEntity[FORGABLE].lastAction = "swing";
-            pushTabSelection(world, addEntity);
-            play("confirm");
           } else {
             play("deny");
             queueMessage(world, heroEntity, {
@@ -1487,8 +1554,8 @@ export default function setupPopup(world: World) {
               Math.floor(delta / tick) % (forgeTicks * 2) < forgeTicks
                 ? tick * forgeTicks - offset
                 : offset;
-            useEntity[FORGABLE].hitIndex = Math.floor(
-              (distance / (tick * forgeTicks)) * hittingWidth
+            useEntity[FORGABLE].hitIndex = Math.round(
+              (distance / (tick * forgeTicks)) * (hittingWidth - 1)
             );
             rerenderEntity(world, useEntity);
           }
@@ -1662,21 +1729,6 @@ export default function setupPopup(world: World) {
         const targetItem = useEntity && equipItems[verticalIndex];
 
         if (useEntity && targetItem) {
-          // check if tool should be swapped with skill
-          if (
-            heroEntity[ACTIONABLE].toolEquipped &&
-            heroEntity[EQUIPPABLE].skill &&
-            targetItem[ITEM].skill
-          ) {
-            heroEntity[ACTIONABLE].toolEquipped = false;
-          } else if (
-            !heroEntity[ACTIONABLE].toolEquipped &&
-            heroEntity[EQUIPPABLE].tool &&
-            targetItem[ITEM].tool
-          ) {
-            heroEntity[ACTIONABLE].toolEquipped = true;
-          }
-
           equipItem(world, heroEntity, targetItem);
           closePopup(world, heroEntity, useEntity);
           rerenderEntity(world, heroEntity);

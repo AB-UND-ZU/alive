@@ -1208,6 +1208,10 @@ export default function setupAi(world: World) {
             castableSpell(world, entity as TypedEntity<"INVENTORY">, spellItem)
           ) {
             pattern.memory.percentage -= 20;
+            if (entity[TOOLTIP]?.idle) {
+              entity[TOOLTIP].idle = undefined;
+              entity[TOOLTIP].changed = true;
+            }
             const viewables = world.getEntities([VIEWABLE, POSITION]);
             const viewable = getActiveViewable(viewables);
             const orientations = relativeOrientations(

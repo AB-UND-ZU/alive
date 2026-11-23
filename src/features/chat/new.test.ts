@@ -61,12 +61,13 @@ describe("new command", () => {
     );
   });
 
-  it("turns water into deep water", () => {
+  it("places shallow water and a beach on the edge of a new pool", () => {
     const { world } = setup();
 
     say(world, "/new water 1 left");
 
-    expect(getCell(world, 0, 1)).toBe("water_deep");
+    expect(getCell(world, 0, 1)).toBe("water_shallow");
+    expect(getCell(world, 7, 1)).toBe("beach");
   });
 
   it("clears the facing cell", () => {

@@ -253,7 +253,8 @@ export const equipItem = (
   const itemId = world.getEntityId(itemEntity);
 
   let unequippedId: number | undefined;
-  let toolSwapped = false;
+  let inactiveId: number | undefined;
+  let changed = false;
   for (const equipment of equipments) {
     if (
       itemEntity[ITEM].accessory !== equipment &&
@@ -263,39 +264,34 @@ export const equipItem = (
 
     const existingId = entity[EQUIPPABLE][equipment];
 
-    // add existing render count if item is replaced
-    if (existingId) {
-      if (!unequippedId) {
-        unequippedId = existingId;
-      }
-
-      if (existingId !== itemId) {
+    if (existingId !== itemId) {
+      changed = true;
+      if (existingId) {
+        unequippedId ??= existingId;
         const existingItem = world.assertByIdAndComponents(existingId, [ITEM]);
         itemEntity[RENDERABLE].generation += getEntityGeneration(
           world,
           existingItem
         );
-
         unequipItem(world, entity, existingItem);
       }
+      entity[EQUIPPABLE][equipment] = itemId;
     }
-
-    entity[EQUIPPABLE][equipment] = itemId;
 
     // swap tool if needed
     if (equipment === "tool" && !entity[ACTIONABLE].toolEquipped) {
       entity[ACTIONABLE].toolEquipped = true;
-      unequippedId = entity[EQUIPPABLE].skill;
-      toolSwapped = true;
+      inactiveId = entity[EQUIPPABLE].skill;
+      changed = true;
     } else if (equipment === "skill" && entity[ACTIONABLE].toolEquipped) {
       entity[ACTIONABLE].toolEquipped = false;
-      unequippedId = entity[EQUIPPABLE].tool;
-      toolSwapped = true;
+      inactiveId = entity[EQUIPPABLE].tool;
+      changed = true;
     }
   }
 
   if (!isNpc(world, entity)) {
-    if (unequippedId === itemId && !toolSwapped) {
+    if (!changed) {
       queueMessage(world, entity, {
         line: addBackground(
           [
@@ -312,13 +308,13 @@ export const equipItem = (
     } else {
       play("equip", { notes: 4, spacing: 45, delay });
       queueMessage(world, entity, {
-        line: addBackground(
-          [
-            ...createText("Equipped ", colors.silver),
-            ...createItemName(itemEntity[ITEM]),
-          ],
-          colors.black
-        ),
+        line: [
+          ...createText("Equipped:", colors.black, colors.yellow),
+          ...addBackground(
+            [...createText(" "), ...createItemName(itemEntity[ITEM])],
+            colors.black
+          ),
+        ],
         orientation: "up",
         fast: false,
         delay,
@@ -326,7 +322,9 @@ export const equipItem = (
     }
   }
 
-  return world.getEntityByIdAndComponents(unequippedId, [ITEM]);
+  const inactive = world.getEntityByIdAndComponents(inactiveId, [ITEM]);
+  if (inactive && entity[PLAYER]) assignQuickItem(world, entity, inactive[ITEM]);
+  return inactive ?? world.getEntityByIdAndComponents(unequippedId, [ITEM]);
 };
 
 export const unequipItem = (
@@ -336,14 +334,13 @@ export const unequipItem = (
 ) => {
   if (!entity[EQUIPPABLE]) return;
 
+  const itemId = world.getEntityId(itemEntity);
+  if (!Object.values(entity[EQUIPPABLE]).includes(itemId)) return;
+  if (entity[PLAYER]) assignQuickItem(world, entity, itemEntity[ITEM]);
   resetConditionables(world, entity, true);
 
-  for (const slot of slots) {
-    if (itemEntity[ITEM][slot]) {
-      entity[EQUIPPABLE][
-        slot === "accessory" ? itemEntity[ITEM].accessory! : slot
-      ] = undefined;
-    }
+  for (const slot of equipments) {
+    if (entity[EQUIPPABLE][slot] === itemId) entity[EQUIPPABLE][slot] = undefined;
   }
 };
 

@@ -45,6 +45,7 @@ import { PLAYER } from "../components/player";
 import { NPC } from "../components/npc";
 import { play } from "../../game/sound";
 import { STATS } from "../components/stats";
+import { updateShoreline } from "./water";
 import { isImmersible } from "./immersion";
 import { POPUP } from "../components/popup";
 import { createPopup } from "./popup";
@@ -61,6 +62,8 @@ import { STRUCTURABLE } from "../components/structurable";
 import {
   getHarvestConfig,
   harvestTools,
+  pavingResources,
+  trenchResources,
 } from "../../game/balancing/harvesting";
 import { iterateMatrixFromCenter } from "../../game/math/matrix";
 import { REMAINABLE } from "../components/remainable";
@@ -542,6 +545,14 @@ export default function setupDrop(world: World) {
           limbs.forEach((limb) => {
             disposeEntity(world, limb, undefined, false);
           });
+          if (
+            pavingResources.includes(harvestable.resource) ||
+            trenchResources.includes(harvestable.resource)
+          ) {
+            const { x, y } = entity[POSITION];
+            world.metadata.gameEntity[LEVEL].cells[x][y] = "air";
+            updateShoreline(world, entity[POSITION]);
+          }
         } else {
           play("harvest", { variant: 4 });
           const limbs = getLimbs(world, entity);

@@ -1,13 +1,14 @@
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
-import { getCellEntities, registerEntity } from "./map";
+import { disposeEntity, getCellEntities, registerEntity } from "./map";
 import { Liquid, LIQUID } from "../components/liquid";
 import { entities } from "..";
 import { FOG } from "../components/fog";
 import { SPRITE } from "../components/sprite";
 import {
   bubble,
+  shadow,
   waterShallow,
   waterDeep,
   sand,
@@ -19,12 +20,19 @@ import { play } from "../../game/sound";
 import { PLAYER } from "../components/player";
 import { LAYER } from "../components/layer";
 import { LEVEL } from "../components/level";
-import { getImmersible, isImmersible, isSubmerged } from "./immersion";
+import { getImmersible, hasWater, isImmersible, isSubmerged } from "./immersion";
 import { getEnterable } from "./enter";
 import { rerenderEntity } from "./renderer";
 import { SEQUENCABLE } from "../components/sequencable";
 import { IMMERSIBLE } from "../components/immersible";
-import { getOverlappingCell } from "../../game/math/matrix";
+import { createCell } from "../../bindings/creation";
+import { ENTERABLE } from "../components/enterable";
+import { LOCKABLE } from "../components/lockable";
+import { TEMPO } from "../components/tempo";
+import { REFILLABLE } from "../components/refillable";
+import { MOVABLE } from "../components/movable";
+import { mergeSprites } from "../../game/assets/ui";
+import { COLLIDABLE } from "../components/collidable";
 import { trenchResources } from "../../game/balancing/harvesting";
 import { HARVESTABLE } from "../components/harvestable";
 import { getFarmable } from "./harvest";
@@ -155,26 +163,20 @@ export const createBubble = (
 };
 
 export const applyWaterCell = (world: World, position: Position) => {
-  const waterEntity = getImmersible(world, position);
-  if (!waterEntity) return;
-
-  if (isSubmerged(world, position) && !waterEntity[IMMERSIBLE].deep) {
-    waterEntity[IMMERSIBLE].deep = true;
-    waterEntity[SPRITE] = waterDeep;
-    rerenderEntity(world, waterEntity);
-  } else if (!isSubmerged(world, position) && waterEntity[IMMERSIBLE].deep) {
-    waterEntity[IMMERSIBLE].deep = false;
-    waterEntity[SPRITE] = waterShallow;
-    rerenderEntity(world, waterEntity);
+  if (!hasWater(world, position)) return false;
+  const { x, y } = position;
+  const cells = world.metadata.gameEntity[LEVEL].cells;
+  const deep = isSubmerged(world, position);
+  if (["water", "water_shallow", "water_deep"].includes(cells[x][y])) {
+    cells[x][y] = deep ? "water_deep" : "water_shallow";
   }
-};
-
-export const updateWaterCell = (world: World, position: Position) => {
-  for (let x = -1; x <= 1; x += 1) {
-    for (let y = -1; y <= 1; y += 1) {
-      applyWaterCell(world, add(position, { x, y }));
-    }
+  const water = getImmersible(world, position);
+  if (water && water[IMMERSIBLE].deep !== deep) {
+    water[IMMERSIBLE].deep = deep;
+    water[SPRITE] = deep ? waterDeep : waterShallow;
+    rerenderEntity(world, water);
   }
+  return true;
 };
 
 export const applyWaterMap = (world: World) => {
@@ -184,73 +186,76 @@ export const applyWaterMap = (world: World) => {
     }
   );
 };
-export const applySandCell = (world: World, position: Position) => {
-  const size = world.metadata.gameEntity[LEVEL].size;
-  for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
-    for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
-      const target = combine(size, position, { x: offsetX, y: offsetY });
-      const neighbour = getOverlappingCell(
-        world.metadata.gameEntity[LEVEL].cells,
-        target.x,
-        target.y
+
+export const updateShoreline = (world: World, position: Position) => {
+  const level = world.metadata.gameEntity[LEVEL];
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -1; dy <= 1; dy++) {
+      const target = combine(level.size, position, { x: dx, y: dy });
+      const { x, y } = target;
+      const kind = level.cells[x][y];
+      if (applyWaterCell(world, target)) continue;
+
+      const nearbyWater = [-1, 0, 1].some((x) =>
+        [-1, 0, 1].some((y) => hasWater(world, add(target, { x, y })))
       );
-
-      if (!trenchResources.includes(neighbour)) continue;
-
-      let nearbyWater = false;
-      for (let neighbourX = -1; neighbourX <= 1; neighbourX += 1) {
-        for (let neighbourY = -1; neighbourY <= 1; neighbourY += 1) {
-          const neighbourTarget = combine(size, target, {
-            x: neighbourX,
-            y: neighbourY,
-          });
-          const neighbourCell = getOverlappingCell(
-            world.metadata.gameEntity[LEVEL].cells,
-            neighbourTarget.x,
-            neighbourTarget.y
+      const ground = nearbyWater ? "beach" : "sand";
+      const cells = getCellEntities(world, target);
+      const paving = cells.find((cell) =>
+        trenchResources.includes(cell[HARVESTABLE]?.resource)
+      );
+      if (paving) {
+        if (paving[HARVESTABLE].resource !== ground) {
+          paving[HARVESTABLE].resource = ground;
+          paving[SPRITE] = nearbyWater ? beach : sand;
+          rerenderEntity(world, paving);
+        }
+      } else if (!level.initialized[x][y]) {
+        if (
+          !(trenchResources.includes(kind) || (nearbyWater && kind === "air"))
+        )
+          continue;
+      } else {
+        if (
+          !nearbyWater ||
+          cells.some(
+            (cell) =>
+              (TEMPO in cell && SPRITE in cell) ||
+              REFILLABLE in cell ||
+              ENTERABLE in cell ||
+              LOCKABLE in cell ||
+              COLLIDABLE in cell
+          )
+        )
+          continue;
+        const soil = getFarmable(world, target);
+        if (soil) {
+          const plant = world.getEntityByIdAndComponents(
+            soil[FARMABLE].sapling,
+            [HARVESTABLE]
           );
-          if (["water_shallow", "water_deep"].includes(neighbourCell)) {
-            nearbyWater = true;
+          if (plant) {
+            plant[HARVESTABLE].amount = 0;
+            rerenderEntity(world, plant);
+          }
+          disposeEntity(world, soil);
+        }
+        for (const cell of cells) {
+          if (
+            cell[FOG]?.type === "object" &&
+            !(MOVABLE in cell) &&
+            cell[SPRITE]
+          ) {
+            cell[SPRITE] = mergeSprites(shadow, cell[SPRITE]);
+            rerenderEntity(world, cell);
           }
         }
+        registerEntity(
+          world,
+          createCell(world, target, ground, "hidden", false).cell
+        );
       }
-
-      if (
-        nearbyWater &&
-        world.metadata.gameEntity[LEVEL].cells[target.x][target.y] === "sand"
-      ) {
-        const cells = getCellEntities(world, target);
-        cells.forEach((cell) => {
-          if (trenchResources.includes(cell[HARVESTABLE]?.resource)) {
-            world.metadata.gameEntity[LEVEL].cells[target.x][target.y] =
-              "beach";
-            cell[SPRITE] = beach;
-            cell[HARVESTABLE].resource = "beach";
-            rerenderEntity(world, cell);
-          }
-        });
-      } else if (
-        !nearbyWater &&
-        world.metadata.gameEntity[LEVEL].cells[target.x][target.y] === "beach"
-      ) {
-        const cells = getCellEntities(world, target);
-        cells.forEach((cell) => {
-          if (trenchResources.includes(cell[HARVESTABLE]?.resource)) {
-            world.metadata.gameEntity[LEVEL].cells[target.x][target.y] = "sand";
-            cell[SPRITE] = sand;
-            cell[HARVESTABLE].resource = "sand";
-            rerenderEntity(world, cell);
-          }
-        });
-      }
-    }
-  }
-};
-
-export const updateSandCell = (world: World, position: Position) => {
-  for (let x = -1; x <= 1; x += 1) {
-    for (let y = -1; y <= 1; y += 1) {
-      applySandCell(world, add(position, { x, y }));
+      level.cells[x][y] = ground;
     }
   }
 };

@@ -145,27 +145,33 @@ const forgableConfigs: {
     elements: [],
   },
   {
+    item: { tool: "hammer" },
+    materials: ["wood"],
+    materialCost: 5,
+    elements: [],
+  },
+  {
     item: { tool: "axe" },
     materials: harvestMaterials,
-    materialCost: 4,
+    materialCost: 5,
     elements: [],
   },
   {
     item: { tool: "shovel" },
     materials: harvestMaterials,
-    materialCost: 4,
+    materialCost: 5,
     elements: [],
   },
   {
     item: { tool: "pickaxe" },
     materials: harvestMaterials,
-    materialCost: 4,
+    materialCost: 5,
     elements: [],
   },
   {
     item: { tool: "hook" },
     materials: harvestMaterials,
-    materialCost: 4,
+    materialCost: 5,
     elements: [],
   },
 ];
@@ -366,6 +372,7 @@ export const getForgeStatus = (
   };
 };
 
+const forgeSlots = 10;
 export const forgeTicks = 3;
 export const hittingOffset = 2;
 export const hittingWidth = 15;
@@ -387,6 +394,11 @@ export const forgingCompleted = (entity: Entity) =>
   entity[FORGABLE] &&
   entity[FORGABLE].steps.length === entity[FORGABLE].progress;
 
+export const forgingFailed = (entity: Entity) => {
+  const forge: Forgable = entity[FORGABLE];
+  return forge?.steps[forge.progress]?.result === "failed" && !forge.lastAction;
+};
+
 export const getForgingSteps = (forgeStatus: ForgeStatus) => {
   const { forgeable, addItem, resultItem } = forgeStatus;
   if (!forgeable || !addItem || !resultItem) return [];
@@ -401,7 +413,7 @@ export const getForgingSteps = (forgeStatus: ForgeStatus) => {
     const gap = hittingArea - width;
     let newOffset = random(0, gap);
     if (newOffset === offset) {
-      newOffset = normalize(newOffset + choice(-1, 1), gap);
+      newOffset = normalize(newOffset + choice(-1, 1), gap + 1);
     }
     offset = newOffset;
     steps.push({
@@ -413,25 +425,32 @@ export const getForgingSteps = (forgeStatus: ForgeStatus) => {
   return steps;
 };
 
+export const chooseForgeTarget = (step: ForgeStep, previous?: number) => {
+  const cells = Array.from({ length: step.width }, (_, i) => step.offset + i);
+  return step.width === 1
+    ? step.offset
+    : choice(...cells.filter((cell) => cell !== previous));
+};
+
 export const performForgeHit = (world: World, entity: Entity) => {
   const popupSequence = getSequence(world, entity, "popup");
-  const steps = (entity[FORGABLE] as Forgable).steps;
-  const step = steps[entity[FORGABLE].progress];
+  const forge: Forgable = entity[FORGABLE];
+  const step = forge.steps[forge.progress];
   const heroEntity = world.getEntity([PLAYER, STATS]);
-  const hitIndex = entity[FORGABLE].hitIndex;
+  const hitIndex = forge.hitIndex;
 
   if (
     !popupSequence ||
     !step ||
     !heroEntity ||
     hitIndex === undefined ||
-    entity[FORGABLE].lastAction !== "trigger"
+    forge.lastAction !== "trigger"
   )
     return;
 
   if (hitIndex < hittingOffset || hitIndex >= hittingArea + hittingOffset) {
     // outside of anvil, hit self
-    entity[FORGABLE].lastAction = "miss";
+    forge.lastAction = "ouch";
 
     const { damage, hp } = calculateDamage(world, { true: 1 }, {}, heroEntity);
     heroEntity[STATS].hp = hp;
@@ -445,12 +464,30 @@ export const performForgeHit = (world: World, entity: Entity) => {
     hitIndex >= hittingOffset + step.offset + step.width
   ) {
     // miss
-    entity[FORGABLE].lastAction = "miss";
+    forge.lastAction = "miss";
     play("anvil");
     play("cling");
-    rerenderEntity(world, entity);
   } else {
-    entity[FORGABLE].lastAction = "hit";
+    forge.lastAction = "hit";
     play("anvil");
   }
+
+  const perfect = hitIndex === hittingOffset + (forge.target ?? step.offset);
+  if (forge.lastAction === "hit") {
+    step.result = perfect ? "ace" : "hit";
+  } else {
+    const occupied = forge.steps.reduce(
+      (slots, step) => slots + 1 + (step.misses?.length ?? 0),
+      0
+    );
+    if (occupied >= forgeSlots) step.result = "failed";
+    else (step.misses ??= []).push(forge.lastAction);
+  }
+  if (!perfect) forge.imperfect = true;
+  forge.xp = Math.max(
+    0,
+    (forge.xp ?? 0) + (perfect ? 1 : forge.lastAction === "hit" ? 0 : -1)
+  );
+  if (!forge.imperfect && forge.xp === forge.steps.length) forge.xp += 1;
+  rerenderEntity(world, entity);
 };

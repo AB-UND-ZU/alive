@@ -15,4 +15,4 @@ Displaced units and mobs are processed before the player. [Push](push.md), [Spik
 
 `updateMovementInterval` applies the current player speed while preserving elapsed tick progress. Popups call it when opening, closing or changing tabs so chat and dialog repeat intervals cannot carry into walking. Consume uses it for ordinary haste changes.
 
-`setMovementOrientations` applies directional input for browser, terminal and test clients. Releasing input clears held directions without stopping momentum through doors or across ice. On ordinary ground it suspends the movement reference, preserving late taps and pending actions for the next tick.
+`setMovementOrientations` applies directional input for browser, terminal and test clients. During a dash, direction changes update the movement component held by the spell so that recovery resumes with the current input. Releasing input clears held directions without stopping momentum through doors or across ice. On ordinary ground it suspends the movement reference, preserving late taps and pending actions for the next tick.

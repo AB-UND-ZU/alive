@@ -1,3 +1,5 @@
+import { MOVABLE } from "../../engine/components/movable";
+import { REFERENCE } from "../../engine/components/reference";
 import { BEHAVIOUR } from "../../engine/components/behaviour";
 import { BELONGABLE } from "../../engine/components/belongable";
 import { BURNABLE } from "../../engine/components/burnable";
@@ -20,7 +22,11 @@ import {
   whistle1,
   whistle2,
 } from "../../game/assets/ui";
-import { advance, advanceUntil, findEntityAt } from "../../testing/harness";
+import {
+  advance,
+  advanceUntil,
+  findEntityAt,
+} from "../../testing/harness";
 import { isSnowy } from "../../engine/systems/freeze";
 import { moveEntity } from "../../engine/systems/map";
 import { castAs } from "../spells/helpers";
@@ -29,6 +35,7 @@ import {
   createCreatureWorld,
   distanceBetween,
   getCreature,
+  getGeneration,
   getSpells,
   toughen,
   trace,
@@ -63,6 +70,26 @@ describe("tutorial boss", () => {
     ).toBeLessThan(start - 3);
   });
 
+  it("holds movement through the third world tick and releases it on the fourth", () => {
+    const { world, bandit } = setup("tutorialBoss");
+    world.metadata.gameEntity[REFERENCE].tick = 350;
+    advanceUntil(world, () => getSpells(world, bandit).length > 0);
+    const state = getSpells(world, bandit)[0][SEQUENCABLE].states.spell!;
+    const castTick = getGeneration(world);
+    const start = { ...bandit[POSITION] };
+    advanceUntil(world, () => state.elapsed > 1050);
+    expect(bandit[POSITION]).not.toEqual(start);
+    const destination = { x: bandit[POSITION].x, y: bandit[POSITION].y - 1 };
+    bandit[BEHAVIOUR].patterns = [
+      { name: "move", memory: { targetPosition: destination } },
+    ];
+    expect(bandit[MOVABLE]).toBeUndefined();
+    advanceUntil(world, () => !!bandit[MOVABLE]);
+    expect(state.elapsed).toBeCloseTo(1400);
+    advanceUntil(world, () => getGeneration(world) >= castTick + 4);
+    expect(bandit[POSITION]).toEqual(destination);
+  });
+
   it("lines up with the hero and shoots arrows at it", () => {
     const { world, hero, bandit } = setup("tutorialBoss");
 
@@ -70,6 +97,20 @@ describe("tutorial boss", () => {
     advanceUntil(world, () => hero[STATS].hp < hero[STATS].maxHp, 3000);
 
     expect(bandit[POSITION].y).toBe(hero[POSITION].y);
+  });
+
+  it("turns to shoot back at the hero after dashing through them mid-aim", () => {
+    const { world, hero, bandit } = setup("tutorialBoss", "|      ♀        B|");
+    advanceUntil(world, () => bandit[TOOLTIP].idle === rage);
+    expect(bandit[ORIENTABLE].facing).toBe("left");
+
+    bandit[STATS].hp = bandit[STATS].maxHp * 0.8;
+    advanceUntil(world, () => bandit[POSITION].x < hero[POSITION].x);
+    advanceUntil(world, () => world.getEntities([PROJECTILE]).length > 0);
+    const arrow = world.getEntity([PROJECTILE, ORIENTABLE])!;
+    expect(arrow[ORIENTABLE].facing).toBe("right");
+    const hp = hero[STATS].hp;
+    advanceUntil(world, () => hero[STATS].hp < hp);
   });
 
   it("dashes again each time it loses a fifth of its health", () => {

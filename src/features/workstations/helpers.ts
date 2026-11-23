@@ -8,7 +8,7 @@ import { Deal, Popup, POPUP } from "../../engine/components/popup";
 import { MOVABLE } from "../../engine/components/movable";
 import { PLAYER } from "../../engine/components/player";
 import { Position, POSITION } from "../../engine/components/position";
-import { REFERENCE } from "../../engine/components/reference";
+import { getMotion, sampleMotion } from "../../engine/motion";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
 import { STATS } from "../../engine/components/stats";
 import { TypedEntity } from "../../engine/entities";
@@ -20,7 +20,6 @@ import {
 import { getSequence } from "../../engine/systems/sequence";
 import { createNpc } from "../../bindings/creation";
 import {
-  forgeTicks,
   hittingOffset,
   hittingWidth,
 } from "../../game/balancing/forging";
@@ -29,7 +28,6 @@ import {
   act,
   advanceUntil,
   assertHero,
-  FRAME,
   step,
   trigger,
 } from "../../testing/harness";
@@ -101,40 +99,19 @@ export const closeStation = (world: World) => {
   advanceUntil(world, () => !isInPopup(world, hero), 1000);
 };
 
-/**
- * Hammer position when a hit triggered now is handled, which waits for the
- * hero's next reference frame like the popup system does.
- */
+/** Hammer position when striking on this frame. */
 export const getHammerIndex = (world: World, anvil: AnvilEntity) => {
   const popupSequence = getSequence(world, anvil, "popup");
   if (!popupSequence) throw new Error("Anvil popup not shown");
 
-  const hero = getShopper(world);
-  const heroReference = world.assertByIdAndComponents(hero[MOVABLE].reference, [
-    REFERENCE,
-  ])[REFERENCE];
-  const pendingFrames = heroReference.suspended
-    ? 0
-    : Math.max(
-        0,
-        Math.ceil((heroReference.tick - heroReference.delta) / FRAME) - 1
-      );
-
-  const tick = world.metadata.gameEntity[REFERENCE].tick;
-  const delta =
-    popupSequence.elapsed + pendingFrames * FRAME - anvil[FORGABLE].lastElapsed;
-  const offset = delta % (tick * forgeTicks);
-  const distance =
-    Math.floor(delta / tick) % (forgeTicks * 2) < forgeTicks
-      ? tick * forgeTicks - offset
-      : offset;
-  return Math.floor((distance / (tick * forgeTicks)) * hittingWidth);
+  const hammer = world.assertById(popupSequence.particles.hammer);
+  const position = sampleMotion(getMotion(hammer)!, world.metadata.elapsed);
+  return Math.round(position.x + (hittingWidth + 1) / 2);
 };
 
 /**
  * Swing the hammer once it is above one of `hitIndexes` and wait for the next
- * swing. Hits are handled on the hero's reference frames, so not every index
- * can be reached on every swing.
+ * swing.
  */
 export const hitAt = (
   world: World,
@@ -150,7 +127,11 @@ export const hitAt = (
   );
   act(world, "right");
   const actualIndex = anvil[FORGABLE].hitIndex;
-  advanceUntil(world, () => anvil[FORGABLE].lastAction === "swing", 5000);
+  advanceUntil(
+    world,
+    () => !anvil[FORGABLE].lastAction || anvil[FORGABLE].lastAction === "swing",
+    5000
+  );
   return actualIndex;
 };
 

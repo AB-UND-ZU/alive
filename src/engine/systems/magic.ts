@@ -130,19 +130,21 @@ export const getExertables = (world: World, position: Position) =>
     isExertable(world, target)
   ) as Entity[];
 
-// check if spell not currently active or in popup
-export const canCast = (world: World, entity: Entity, item: Entity) => {
-  if (isInPopup(world, entity)) return false;
-
-  const entityId = world.getEntityId(entity);
-  return !world
-    .getEntities([CASTABLE, SEQUENCABLE])
-    .some(
-      (castable) =>
-        castable[CASTABLE].caster === entityId &&
-        castable[SEQUENCABLE].states.spell
-    );
+export const getActiveSpell = (
+  world: World,
+  caster: Entity,
+  name?: SequenceState<unknown>["name"]
+) => {
+  const casterId = world.getEntityId(caster);
+  for (const entity of world.getEntities([CASTABLE, SEQUENCABLE])) {
+    if (entity[CASTABLE].caster !== casterId) continue;
+    const spell = entity[SEQUENCABLE].states.spell;
+    if (spell && (!name || spell.name === name)) return spell;
+  }
 };
+
+export const canCast = (world: World, entity: Entity, item: Entity) =>
+  !isInPopup(world, entity) && !getActiveSpell(world, entity);
 
 // normalize particle amounts to spell damage
 export const getParticleAmount = (world: World, amount: number) => {

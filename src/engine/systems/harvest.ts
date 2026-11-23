@@ -51,7 +51,6 @@ import {
   sapling3,
   sapling4,
   sapling5,
-  shadow,
   soil,
   soilWet,
 } from "../../game/assets/sprites";
@@ -69,23 +68,21 @@ import { DROPPABLE } from "../components/droppable";
 import { FOG } from "../components/fog";
 import { createItemAsDrop } from "./drop";
 import { PLAYER } from "../components/player";
+import { FREEZABLE } from "../components/freezable";
+import { IMMERSIBLE } from "../components/immersible";
 import { REFILLABLE } from "../components/refillable";
 import { createCell } from "../../bindings/creation";
 import { getImmersible, isImmersible } from "./immersion";
-import { TEMPO } from "../components/tempo";
 import { LEVEL } from "../components/level";
 import { iterateMatrixFromCenter } from "../../game/math/matrix";
-import { updateSandCell, updateWaterCell } from "./water";
-import { ENTERABLE } from "../components/enterable";
-import { LOCKABLE } from "../components/lockable";
+import { updateShoreline } from "./water";
 import { Recipe } from "../components/popup";
 import { Brewable, BREWABLE } from "../components/brewable";
 import {
   brewingDurationFactor,
   getBrewingDeal,
 } from "../../game/balancing/brewing";
-import { iterations } from "../../game/math/tracing";
-import { mergeSprites, createText } from "../../game/assets/ui";
+import { createText } from "../../game/assets/ui";
 import { BUILDABLE } from "../components/buildable";
 import { STATS } from "../components/stats";
 
@@ -251,15 +248,6 @@ export const performDig = (
     .some((delta) =>
       getImmersible(world, combine(size, entity[POSITION], delta))
     );
-  const nearbyWater =
-    adjacentWater ||
-    iterations.some((iteration) =>
-      getImmersible(
-        world,
-        combine(size, entity[POSITION], iteration.direction, iteration.normal)
-      )
-    );
-
   if (immersible) {
     performFill(world, entity, entity[POSITION]);
   } else if (
@@ -268,23 +256,6 @@ export const performDig = (
       !trenchResources.includes(harvestable[HARVESTABLE].resource))
   ) {
     performHarvest(world, entity, toolEntity, harvestable, "down");
-
-    // refill beach if path next to water
-    if (
-      pavingResources.includes(harvestable[HARVESTABLE].resource) &&
-      nearbyWater
-    ) {
-      world.metadata.gameEntity[LEVEL].cells[entity[POSITION].x][
-        entity[POSITION].y
-      ] = "beach";
-      const sandEntity = createCell(
-        world,
-        copy(entity[POSITION]),
-        "beach",
-        "hidden"
-      ).cell;
-      registerEntity(world, sandEntity);
-    }
   } else if (harvestable && adjacentWater) {
     performTrench(world, entity, toolEntity, entity[POSITION]);
   } else {
@@ -369,10 +340,13 @@ export const getFarmable = (world: World, position: Position) =>
     | Entity
     | undefined;
 
-export const getRefillable = (world: World, position: Position) =>
-  getCellEntities(world, position).find((entity) => REFILLABLE in entity) as
-    | Entity
-    | undefined;
+const getRefillElement = (world: World, position: Position) => {
+  for (const cell of getCellEntities(world, position)) {
+    if (cell[IMMERSIBLE]) return cell[IMMERSIBLE].type;
+    if (cell[REFILLABLE] && !cell[FREEZABLE]?.frozen)
+      return cell[REFILLABLE].element;
+  }
+};
 
 export const canPlant = (world: World, entity: Entity) => {
   const farmable = getFarmable(world, entity[POSITION]);
@@ -493,12 +467,17 @@ export const performFill = (
 
   // place cell
   world.metadata.gameEntity[LEVEL].cells[position.x][position.y] = "beach";
-  const fillEntity = createCell(world, copy(position), "beach", "hidden").cell;
+  const fillEntity = createCell(
+    world,
+    copy(position),
+    "beach",
+    "hidden",
+    false
+  ).cell;
   registerEntity(world, fillEntity);
 
   // update surrounding beaches and water
-  updateWaterCell(world, position);
-  updateSandCell(world, position);
+  updateShoreline(world, position);
 };
 
 export const performTrench = (
@@ -524,80 +503,13 @@ export const performTrench = (
     world,
     copy(position),
     "water_shallow",
-    "hidden"
+    "hidden",
+    false
   ).cell;
   registerEntity(world, waterEntity);
 
-  // place beach around water
-  const size = world.metadata.gameEntity[LEVEL].size;
-  for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
-    for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
-      const target = combine(size, position, { x: offsetX, y: offsetY });
-      let cells = getCellEntities(world, target);
-
-      // destroy soil, sand and saplings
-      cells.forEach((cell) => {
-        if (FARMABLE in cell) {
-          const saplingEntity = world.getEntityByIdAndComponents(
-            cell[FARMABLE].sapling,
-            [HARVESTABLE]
-          );
-          if (saplingEntity) {
-            saplingEntity[HARVESTABLE].amount = 0;
-            rerenderEntity(world, saplingEntity);
-            cell[FARMABLE].planted = undefined;
-            cell[FARMABLE].progress = undefined;
-            cell[FARMABLE].sapling = undefined;
-            cell[FARMABLE].nextGeneration = undefined;
-          }
-        } else if (cell[HARVESTABLE]?.resource !== "sand") return;
-
-        disposeEntity(world, cell);
-      });
-
-      cells = getCellEntities(world, target);
-
-      // don't place beach under fixed tiles
-      if (
-        cells.some(
-          (cell) =>
-            trenchResources.includes(cell[HARVESTABLE]?.resource) ||
-            REFILLABLE in cell ||
-            TEMPO in cell ||
-            LOCKABLE in cell ||
-            ENTERABLE in cell
-        )
-      )
-        continue;
-
-      // add shadow to objects
-      cells.forEach((cell) => {
-        if (
-          MOVABLE in cell ||
-          TEMPO in cell ||
-          !(SPRITE in cell) ||
-          !(RENDERABLE in cell)
-        )
-          return;
-
-        cell[SPRITE] = mergeSprites(shadow, cell[SPRITE]);
-        rerenderEntity(world, cell);
-      });
-
-      world.metadata.gameEntity[LEVEL].cells[target.x][target.y] = "beach";
-      const beachEntity = createCell(
-        world,
-        copy(target),
-        "beach",
-        "hidden"
-      ).cell;
-      registerEntity(world, beachEntity);
-    }
-  }
-
   // update surrounding beaches and water
-  updateWaterCell(world, position);
-  updateSandCell(world, position);
+  updateShoreline(world, position);
 };
 
 export const plantSoil = (world: World, position: Position) => {
@@ -752,9 +664,9 @@ export default function setupHarvest(world: World) {
       SEQUENCABLE,
       SPRITE,
     ])) {
-      const refillable = getRefillable(world, entity[POSITION]);
-      if (refillable && canRefill(world, entity)) {
-        refillWater(world, entity, refillable[REFILLABLE].element);
+      const element = getRefillElement(world, entity[POSITION]);
+      if (element && canRefill(world, entity)) {
+        refillWater(world, entity, element);
       }
     }
 

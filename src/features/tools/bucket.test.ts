@@ -5,6 +5,10 @@ import {
   step,
   walk,
 } from "../../testing/harness";
+import { FREEZABLE } from "../../engine/components/freezable";
+import { IMMERSIBLE } from "../../engine/components/immersible";
+import { HARVESTABLE } from "../../engine/components/harvestable";
+import { freezeTerrain, thawTerrain } from "../../engine/systems/freeze";
 import { FARMABLE } from "../../engine/components/farmable";
 import { soilWet } from "../../game/assets/sprites";
 import { SPRITE } from "../../engine/components/sprite";
@@ -30,6 +34,32 @@ describe("bucket", () => {
 
     expect(countItems(world, hero, waterBucket)).toBe(2);
     expect(countItems(world, hero, onlyEmpty)).toBe(0);
+  });
+
+  it("fills buckets from melted natural ice and updates the surrounding shoreline", () => {
+    const area = `
+|    ~~~ |
+| ♀I ~I~ |
+|    ~~~ |
+`;
+    const { world, hero } = setupTools(area, [{ ...emptyBucket, amount: 1 }], {
+      I: "ice",
+    });
+    const position = findInArea(area, "I");
+    const ice = findEntityAt(world, position, [FREEZABLE])!;
+    const lakeIce = findEntityAt(world, { x: 5, y: 1 }, [FREEZABLE])!;
+    thawTerrain(world, lakeIce);
+    expect(lakeIce[IMMERSIBLE]?.deep).toBe(true);
+    thawTerrain(world, ice);
+    expect(ice[IMMERSIBLE]?.deep).toBe(false);
+    const shore = findEntityAt(world, { x: position.x, y: 0 }, [HARVESTABLE])!;
+    expect(shore[HARVESTABLE].resource).toBe("beach");
+    freezeTerrain(world, ice);
+    expect(shore[HARVESTABLE].resource).toBe("sand");
+    thawTerrain(world, ice);
+    walk(world, "right");
+    step(world, 10);
+    expect(countItems(world, hero, waterBucket)).toBe(1);
   });
 
   it("fills buckets at the pond of a fountain", () => {

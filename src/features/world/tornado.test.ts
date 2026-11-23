@@ -12,7 +12,8 @@ import {
 } from "../../engine/components/sequencable";
 import { SPRITE } from "../../engine/components/sprite";
 import { STATS } from "../../engine/components/stats";
-import { registerEntity } from "../../engine/systems/map";
+import { getTempo } from "../../engine/systems/movement";
+import { moveEntity, registerEntity } from "../../engine/systems/map";
 import { createSequence } from "../../engine/systems/sequence";
 import { none } from "../../game/assets/sprites";
 import { copy } from "../../game/math/std";
@@ -96,6 +97,20 @@ describe("tornado", () => {
     advance(world, 3000);
 
     expect(hero[POSITION]).toEqual(start);
+  });
+
+  it("moves its slow interior with the eye and leaves the knock ring at normal speed", () => {
+    const world = createAreaWorld(area, { size: 24 });
+    const eye = { x: 3, y: 3 };
+    const storm = addTornado(world, eye, 2);
+    advance(world, 100);
+    expect(getTempo(world, eye)).toBe(-2);
+    expect(getTempo(world, { x: 4, y: 4 })).toBe(-2);
+    expect(getTempo(world, { x: 5, y: 3 })).toBe(0);
+    moveEntity(world, storm, { x: 7, y: 3 });
+    advance(world, 100);
+    expect(getTempo(world, eye)).toBe(0);
+    expect(getTempo(world, storm[POSITION])).toBe(-2);
   });
 
   it("stays calm without a radius", () => {
