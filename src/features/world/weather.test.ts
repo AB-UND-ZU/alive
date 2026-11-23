@@ -237,7 +237,7 @@ describe("weather", () => {
 
   it("keeps falling and newly landing snow out of a lit campfire's warmth", () => {
     // This small wrapped map fits entirely within the fire's radius.
-    const layout = `|♀ *≈  |`;
+    const layout = `|♀ *≈ |`;
     const world = createAreaWorld(layout);
     const fire = findEntityAt(world, findInArea(layout, "*"), [BURNABLE])!;
     const lake = findInArea(layout, "≈");

@@ -232,13 +232,11 @@ export const isSnowy = (world: World, position: Position) =>
 
 // Visit cell centers nearest the fire first, using the displayed character proportions.
 const heatOffsets: Position[] = [];
-const heatRadius = 5;
-const width = Math.floor(heatRadius / aspectRatio);
+const heatHalfWidths = [5, 5, 3, 1];
 const distance = ({ x, y }: Position) => Math.hypot(x * aspectRatio, y);
-for (let y = -heatRadius; y <= heatRadius; y++) {
-  for (let x = -width; x <= width; x++) {
-    if (distance({ x, y }) <= heatRadius) heatOffsets.push({ x, y });
-  }
+for (let y = 1 - heatHalfWidths.length; y < heatHalfWidths.length; y++) {
+  const halfWidth = heatHalfWidths[Math.abs(y)];
+  for (let x = -halfWidth; x <= halfWidth; x++) heatOffsets.push({ x, y });
 }
 heatOffsets.sort((a, b) => distance(a) - distance(b));
 
@@ -254,9 +252,15 @@ export const isCampfireWarm = (world: World, position: Position) =>
 
 export const meltCell = (world: World, position: Position) => {
   let melted = false;
-  for (const entity of getCellEntities(world, position)) {
-    if (entity[COVERABLE]?.type === "snow") disposeEntity(world, entity);
-    else if (entity[FREEZABLE]?.frozen) thawTerrain(world, entity);
+  const cell = getCellEntities(world, position);
+  for (const entity of cell) {
+    if (entity[COVERABLE]?.type === "snow") {
+      // Thawing the ice beneath snow already emits smoke.
+      if (!melted && !cell.some((terrain) => terrain[FREEZABLE]?.frozen)) {
+        extinguishEntity(world, entity);
+      }
+      disposeEntity(world, entity);
+    } else if (entity[FREEZABLE]?.frozen) thawTerrain(world, entity);
     else continue;
     melted = true;
   }

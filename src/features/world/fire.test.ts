@@ -21,6 +21,7 @@ import {
   createAreaWorld,
   findEntityAt,
   findInArea,
+  getEntitiesAt,
 } from "../../testing/harness";
 
 // ♀ hero, * campfire
@@ -58,12 +59,18 @@ describe("fire", () => {
   });
 
   it("melts one cell every three ticks and shields nearby water across the map edge", () => {
-    const layout = `|*%%%    ≈≈  ♀|`;
+    const layout = `|*%%% ≈≈  ♀|`;
     const world = createAreaWorld(layout, { size: 32 });
-    const near = { x: 8, y: 0 };
-    const far = { x: 9, y: 0 };
+    const near = { x: 5, y: 0 };
+    const far = { x: 6, y: 0 };
     expect(isCampfireWarm(world, { x: 31, y: 0 })).toBe(true);
-    expect(isCampfireWarm(world, { x: 0, y: 6 })).toBe(false);
+    for (const sign of [-1, 1]) {
+      expect(isCampfireWarm(world, { x: 0, y: sign * 3 })).toBe(true);
+      expect(isCampfireWarm(world, { x: 0, y: sign * 4 })).toBe(false);
+      expect(isCampfireWarm(world, { x: sign * 5, y: 0 })).toBe(true);
+      expect(isCampfireWarm(world, { x: sign * 6, y: 0 })).toBe(false);
+    }
+    expect(isCampfireWarm(world, { x: 4, y: 2 })).toBe(false);
     const getIce = () =>
       world.getEntities([FREEZABLE]).filter((e) => e[FREEZABLE].frozen).length;
     expect(getIce()).toBe(3);
@@ -85,6 +92,46 @@ describe("fire", () => {
     expect(findEntityAt(world, near, [FREEZABLE])![FREEZABLE].frozen).toBe(
       true
     );
+  });
+
+  it("melts and protects exactly three cells on both outer rows", () => {
+    const world = createAreaWorld(
+      `
+| ≈%%%≈ |
+|       |
+|       |
+|   *  ♀|
+|       |
+|       |
+| ≈%%%≈ |
+`,
+      { size: 32 }
+    );
+    advance(world, 21 * world.metadata.gameEntity[REFERENCE].tick);
+    for (const y of [0, 6]) {
+      for (let x = 1; x <= 5; x++) {
+        const position = { x, y };
+        const water = findEntityAt(world, position, [FREEZABLE])!;
+        expect(water[FREEZABLE].frozen).toBe(false);
+        coverSnow(world, position);
+        expect(water[FREEZABLE].frozen).toBe(x === 1 || x === 5);
+      }
+    }
+  });
+
+  it("raises extinguish smoke on the snow a campfire melts at its boundary", () => {
+    const layout = `|*    ++ ♀|`;
+    const world = createAreaWorld(layout, { size: 32 });
+    const near = findInArea(layout, "+");
+    const far = { x: near.x + 1, y: near.y };
+    advanceUntil(world, () => !isSnowy(world, near));
+    const smoke = getEntitiesAt(world, near).filter((entity) =>
+      getSequence(world, entity, "smoke")
+    );
+    expect(smoke).toHaveLength(1);
+    advanceUntil(world, () => getSmokeOffsets(world, smoke[0]).length > 0);
+    advance(world, 6 * world.metadata.gameEntity[REFERENCE].tick);
+    expect(isSnowy(world, far)).toBe(true);
   });
 
   it("leaves snow and ice beside an ordinary burning tree", () => {
