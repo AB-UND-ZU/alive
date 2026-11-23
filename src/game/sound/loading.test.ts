@@ -62,7 +62,7 @@ it.each(["unavailable", "blocked", "error", "messageerror", "clone"])(
       );
     const samples = await result;
     expect(samples).toHaveLength(pending.length);
-    samples.forEach((sound) => expect(sound.length).toBeGreaterThan(0));
+    samples.forEach((sound) => expect(sound).toEqual(Float32Array.of(0.25)));
     expect(worker.terminate).toHaveBeenCalledTimes(
       ["unavailable", "blocked"].includes(failure) ? 0 : 1
     );
@@ -80,6 +80,6 @@ it("falls back to local synthesis when the worker cannot produce samples", async
     new MessageEvent("message", { data: null })
   );
   const [sound] = await result;
-  expect(sound.length).toBeGreaterThan(0);
+  expect(sound).toEqual(Float32Array.of(0.25));
   expect(worker.terminate).toHaveBeenCalledTimes(1);
 });

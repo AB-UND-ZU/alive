@@ -1,9 +1,9 @@
-import { SoundEffect } from "jsfxr";
+import * as synthesis from "./synthesis";
 import { ensureAudio } from "./resumable";
 
 jest.mock("./createWorker", () => ({ createSoundWorker: () => undefined }));
 
-// render real sounds, the global test setup only records played names
+// Exercise playback and preset selection with one sample per synthesized sound.
 const { play, loadSounds } = jest.requireActual<typeof import(".")>(".");
 
 const AudioContext = (window as any).AudioContext;
@@ -21,7 +21,7 @@ describe("sound", () => {
   beforeAll(() => ensureAudio());
 
   beforeEach(() => {
-    synthesized = jest.spyOn(SoundEffect.prototype, "getRawBuffer");
+    synthesized = jest.spyOn(synthesis, "synthesizeSound");
     buffers = jest.spyOn(AudioContext.prototype, "createBuffer");
     starts = [];
     const createBufferSource = AudioContext.prototype.createBufferSource;
@@ -85,30 +85,6 @@ describe("sound", () => {
 
     expect(synthesized).toHaveBeenCalledTimes(3);
     expect(starts).toEqual([0, 0.05, 0.1, 0, 0.1]);
-  });
-
-  it("keeps the original sample rate without silent tails", () => {
-    play("wave", { seed: 2 });
-
-    const rendered = synthesized.mock.results[0].value.normalized;
-    const [, length, sampleRate] = buffers.mock.calls[0];
-    expect(sampleRate).toBe(44100);
-    expect(length).toBeLessThan(rendered.length);
-    const peak = Math.max(...rendered.map(Math.abs));
-    expect(Math.abs(rendered[length - 1])).toBeGreaterThan(peak / 1000);
-  });
-
-  it("keeps the prompt cue shorter and quieter than a danger warning", () => {
-    play("prompt", { seed: 3 });
-    play("danger", { seed: 3 });
-
-    const [prompt, danger] = synthesized.mock.results.map(
-      ({ value }) => value.normalized as number[]
-    );
-    const peak = (samples: number[]) =>
-      samples.reduce((value, sample) => Math.max(value, Math.abs(sample)), 0);
-    expect(buffers.mock.calls[0][1]).toBeLessThan(buffers.mock.calls[1][1]);
-    expect(peak(prompt)).toBeLessThan(peak(danger) / 2);
   });
 
   it("attenuates distant prompts without changing the default UI volume or buffer", () => {

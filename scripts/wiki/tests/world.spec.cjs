@@ -1,24 +1,11 @@
 const { test, expect } = require("./fixtures.cjs");
 
-async function observeAudio(page) {
+async function observeOutputGain(page) {
   await page.addInitScript(() => {
-    window.__audioGains = [];
-    window.__audioStarts = 0;
-    const gain = AudioContext.prototype.createGain;
-    AudioContext.prototype.createGain = function (...args) {
-      const node = gain.apply(this, args);
-      window.__audioGains.push(node);
-      return node;
-    };
     const connect = GainNode.prototype.connect;
     GainNode.prototype.connect = function (target, ...args) {
       if (target === this.context.destination) window.__audioOutput = this;
       return connect.call(this, target, ...args);
-    };
-    const start = AudioBufferSourceNode.prototype.start;
-    AudioBufferSourceNode.prototype.start = function (...args) {
-      window.__audioStarts++;
-      return start.apply(this, args);
     };
   });
 }
@@ -151,7 +138,7 @@ test("old level and level-section links open Portals or the dedicated level", as
 test("sound samples cannot enable audio in static wiki pages", async ({
   page,
 }) => {
-  await observeAudio(page);
+  await observeOutputGain(page);
   await page.goto("/game-design/world/sounds.html");
   await page.evaluate(() => (window.navigationMarker = 42));
   await page
@@ -160,14 +147,14 @@ test("sound samples cannot enable audio in static wiki pages", async ({
     .first()
     .click();
   await expect
-    .poll(() => page.evaluate(() => window.__audioStarts))
+    .poll(() => page.evaluate(() => window.soundStub.played.length))
     .toBeGreaterThan(0);
-  const played = await page.evaluate(() => window.__audioStarts);
+  const played = await page.evaluate(() => window.soundStub.played.length);
   for (const title of ["Portals", "Savegames"]) {
     await page.locator(`nav a[aria-label="${title}"]`).click();
     await expect(page.locator("h1")).toHaveAccessibleName(title);
     expect(await page.evaluate(() => window.__audioOutput.gain.value)).toBe(0);
-    expect(await page.evaluate(() => window.__audioStarts)).toBe(played);
+    expect(await page.evaluate(() => window.soundStub.played.length)).toBe(played);
     expect(await page.evaluate(() => window.navigationMarker)).toBe(42);
   }
 });
@@ -175,7 +162,7 @@ test("sound samples cannot enable audio in static wiki pages", async ({
 test("game-frame sound is silent for autoplay, audible during interaction and silent after blur", async ({
   page,
 }) => {
-  await observeAudio(page);
+  await observeOutputGain(page);
   await page.goto("/game-design/controls/keyboard-mouse.html");
   const preview = page.locator('[data-scene="movement"]');
   await preview.scrollIntoViewIfNeeded();
@@ -183,7 +170,7 @@ test("game-frame sound is silent for autoplay, audible during interaction and si
   await expect(iframe).toHaveAttribute("data-x", /\d+/);
   const frame = await (await iframe.elementHandle()).contentFrame();
   expect(await frame.evaluate(() => window.__audioOutput.gain.value)).toBe(0);
-  expect(await frame.evaluate(() => window.__audioStarts)).toBe(0);
+  expect(await frame.evaluate(() => window.soundStub.played.length)).toBe(0);
   await iframe.click();
   let direction = 0;
   await expect
@@ -193,7 +180,7 @@ test("game-frame sound is silent for autoplay, audible during interaction and si
           ["ArrowRight", "ArrowUp", "ArrowLeft", "ArrowDown"][direction++ % 4],
           { delay: 350 }
         );
-        return frame.evaluate(() => window.__audioStarts);
+        return frame.evaluate(() => window.soundStub.played.length);
       },
       { timeout: 10000 }
     )
@@ -207,7 +194,7 @@ test("game-frame sound is silent for autoplay, audible during interaction and si
 test("a sound sample replayed during a pending navigation cannot leak into the next page", async ({
   page,
 }) => {
-  await observeAudio(page);
+  await observeOutputGain(page);
   await page.goto("/game-design/world/sounds.html");
   let release;
   const response = new Promise((resolve) => {
@@ -228,13 +215,13 @@ test("a sound sample replayed during a pending navigation cannot leak into the n
       .first()
       .click();
     await expect
-      .poll(() => page.evaluate(() => window.__audioStarts))
+      .poll(() => page.evaluate(() => window.soundStub.played.length))
       .toBeGreaterThan(0);
-    const samples = await page.evaluate(() => window.__audioStarts);
+    const samples = await page.evaluate(() => window.soundStub.played.length);
     release();
     await expect(page.locator("h1")).toHaveAccessibleName("Savegames");
     expect(await page.evaluate(() => window.__audioOutput.gain.value)).toBe(0);
-    expect(await page.evaluate(() => window.__audioStarts)).toBe(samples);
+    expect(await page.evaluate(() => window.soundStub.played.length)).toBe(samples);
   } finally {
     release();
   }

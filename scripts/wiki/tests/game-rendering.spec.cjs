@@ -90,7 +90,11 @@ test("layered cells have no internal seams at fractional scale", async ({ page }
     ` },
     bundle: true, write: false, outdir: "out", jsx: "automatic",
     loader: { ".woff": "dataurl", ".woff2": "dataurl" },
-    define: { "process.env.NODE_ENV": '"production"', "process.env.PUBLIC_URL": '""' },
+    define: {
+      "process.env.NODE_ENV": '"production"',
+      "process.env.PUBLIC_URL": '""',
+      "process.env.REACT_APP_STUB_SOUND": '"true"',
+    },
     logLevel: "silent",
   });
   await page.route("**/rendering.html", route => route.fulfill({

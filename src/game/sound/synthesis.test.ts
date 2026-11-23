@@ -1,6 +1,9 @@
 import { Params, SoundEffect } from "jsfxr";
 import { seedRandom } from "../../testing/env";
+import { ensureAudio } from "./resumable";
 import { synthesizeSound } from "./synthesis";
+
+jest.unmock("./synthesis");
 
 it.each([0, 1, 2, 3])(
   "preserves every stored PCM sample and tail boundary for waveform %s",
@@ -43,4 +46,41 @@ it("preserves high frequencies above the half-rate Nyquist limit", () => {
   const frequency = (crossings * params.sample_rate) / (2 * samples.length);
   expect(frequency).toBeGreaterThan(13000);
   expect(frequency).toBeLessThan(15000);
+});
+
+describe("preset waveforms", () => {
+  const { play } = jest.requireActual<typeof import(".")>(".");
+  let synthesized: jest.SpyInstance;
+  let buffers: jest.SpyInstance;
+
+  beforeAll(() => ensureAudio());
+  beforeEach(() => {
+    synthesized = jest.spyOn(SoundEffect.prototype, "getRawBuffer");
+    buffers = jest.spyOn(window.AudioContext.prototype, "createBuffer");
+  });
+  afterEach(() => jest.restoreAllMocks());
+
+  it("keeps the original sample rate without silent tails", () => {
+    play("wave", { seed: 2 });
+
+    const rendered = synthesized.mock.results[0].value.normalized;
+    const [, length, sampleRate] = buffers.mock.calls[0];
+    expect(sampleRate).toBe(44100);
+    expect(length).toBeLessThan(rendered.length);
+    const peak = Math.max(...rendered.map(Math.abs));
+    expect(Math.abs(rendered[length - 1])).toBeGreaterThan(peak / 1000);
+  });
+
+  it("keeps the prompt cue shorter and quieter than a danger warning", () => {
+    play("prompt", { seed: 3 });
+    play("danger", { seed: 3 });
+
+    const [prompt, danger] = synthesized.mock.results.map(
+      ({ value }) => value.normalized as number[]
+    );
+    const peak = (samples: number[]) =>
+      samples.reduce((value, sample) => Math.max(value, Math.abs(sample)), 0);
+    expect(buffers.mock.calls[0][1]).toBeLessThan(buffers.mock.calls[1][1]);
+    expect(peak(prompt)).toBeLessThan(peak(danger) / 2);
+  });
 });

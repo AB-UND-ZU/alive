@@ -4,6 +4,7 @@ test("game startup restores the same sound samples from browser storage after re
   page,
 }) => {
   await page.addInitScript(() => {
+    window.soundStub = { played: [], loadCatalog: true };
     const NativeWorker = window.Worker;
     window.soundWorkers = [];
     window.Worker = class extends NativeWorker {

@@ -34,6 +34,7 @@ test.beforeAll(async () => {
     globalName: "SaveMigration",
     loader: { ".css": "empty" },
     define: {
+      "process.env.REACT_APP_STUB_SOUND": '"true"',
       "process.env.NODE_ENV": '"production"',
       "process.env.PUBLIC_URL": '""',
     },

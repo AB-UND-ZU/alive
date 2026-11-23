@@ -1426,11 +1426,18 @@ const getSound = (params: Params) => {
   return cached;
 };
 
+// Only Playwright builds record playback requests in the current page or iframe.
+const soundStub =
+  process.env.REACT_APP_STUB_SOUND === "true"
+    ? (window.soundStub ??= { played: [] })
+    : undefined;
+
 let loading: Promise<void> | undefined;
 
 export const loadSounds = (
   intensities: Partial<Record<SoundPreset, number[]>> = {}
 ) => {
+  if (soundStub && !soundStub.loadCatalog) return Promise.resolve();
   if (loading) return loading;
   loading = (async () => {
     const catalog = new Map<string, Params>();
@@ -1469,6 +1476,10 @@ export const play = <P extends SoundPreset>(
   { delay = 0, notes = 1, spacing = 0, pattern, ...options }: SfxOptions<P> = {}
 ) => {
   if (!isPlaying()) return;
+  if (soundStub) {
+    soundStub.played.push(preset);
+    return;
+  }
 
   for (let note = 1; note <= notes; note += 1) {
     // leave out rests, e.g. empty chars

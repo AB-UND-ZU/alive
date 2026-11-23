@@ -92,5 +92,6 @@ test("Sounds lists native effects and starts playback from a play button", async
     .first()
     .click();
   await expect(sounds).toHaveAttribute("data-last-sound", "move");
+  expect(await page.evaluate(() => window.soundStub.played)).toContain("move");
   expect(errors).toEqual([]);
 });

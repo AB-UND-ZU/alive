@@ -22,7 +22,7 @@ module.exports = defineConfig({
     command: development
       ? "npm run wiki:dev"
       : `PUBLIC_URL=/ npm run build && PUBLIC_URL=/wiki BUILD_PATH=build/wiki npm run wiki:build && npx --no-install serve build --config ../scripts/wiki/serve.json --no-clipboard --no-port-switching --listen tcp://127.0.0.1:${port}`,
-    env: { PORT: String(port) },
+    env: { PORT: String(port), REACT_APP_STUB_SOUND: "true" },
     timeout: 600000,
     url: `http://127.0.0.1:${port}/${development ? "" : "wiki/"}`,
     reuseExistingServer: false,

@@ -74,6 +74,12 @@ jest.mock("./game/sound/createWorker", () => ({
   createSoundWorker: jest.fn(() => undefined),
 }));
 
+// Playback and loading tests can exercise the real catalog with one sample per cue.
+jest.mock("./game/sound/synthesis", () => ({
+  __esModule: true,
+  synthesizeSound: () => Float32Array.of(0.25),
+}));
+
 jest.mock("./game/sound", () => {
   const actual = jest.requireActual("./game/sound");
   const env = jest.requireActual("./testing/env");
