@@ -24,7 +24,7 @@ Synthesizes sound effects from named presets. `play` does nothing until the game
 
 With multiple notes, the note index selects each variant. Every note is scheduled on the audio clock, so melodies keep their timing when frames lag. Use the existing preset and options rather than encoding new audio in a UI component.
 
-`loadSounds` prepares every listed variant with each seed before the menu is generated. The loading overlay shows "Loading game..." until all playable buffers are cached. The catalog is deduplicated and synthesized in a [single worker batch](loading.md), with a main-thread fallback if workers are unavailable or fail. Repeated calls reuse the same promise and buffers. `play` does not launch background work.
+`loadSounds` prepares every listed variant with each seed before the menu is generated. The loading overlay shows "Loading game..." until all playable buffers are cached. A [dedicated worker](loading.md) restores the deduplicated catalog from browser storage or synthesizes it on a cache miss. Unavailable or failed workers fall back to main-thread synthesis. Repeated calls reuse the same promise and buffers. `play` does not launch background work.
 
 `variant` only accepts the values listed for its preset, so new values need to be added to that list. A sound with additional synthesis parameters, such as a new `intensity`, is synthesized when played and kept.
 

@@ -1,9 +1,13 @@
 import { Params } from "jsfxr";
-import { synthesizeSound } from "./synthesis";
+import { loadSoundCatalog } from "./catalog";
 
-globalThis.onmessage = ({ data }: MessageEvent<Params[]>) => {
-  const samples = data.map(synthesizeSound);
-  globalThis.postMessage(samples, {
-    transfer: samples.map((sound) => sound.buffer),
-  });
+globalThis.onmessage = async ({ data }: MessageEvent<Params[]>) => {
+  try {
+    const samples = await loadSoundCatalog(data);
+    globalThis.postMessage(samples, {
+      transfer: Array.from(new Set(samples.map((sound) => sound.buffer))),
+    });
+  } catch {
+    globalThis.postMessage(null);
+  }
 };

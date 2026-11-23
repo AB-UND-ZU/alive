@@ -9,7 +9,7 @@ export const synthesizeSounds = async (pending: Params[]) => {
     worker = instance;
     if (instance) {
       return await new Promise<Float32Array[]>((resolve, reject) => {
-        instance.onmessage = ({ data }) => resolve(data);
+        instance.onmessage = ({ data }) => (data ? resolve(data) : reject());
         instance.onerror = (event) => {
           event.preventDefault();
           reject();

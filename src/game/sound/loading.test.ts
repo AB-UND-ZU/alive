@@ -71,3 +71,15 @@ it.each(["unavailable", "blocked", "error", "messageerror", "clone"])(
     );
   }
 );
+
+it("falls back to local synthesis when the worker cannot produce samples", async () => {
+  const worker = mockWorker();
+  const result = synthesizeSounds([new Params()]);
+  worker.onmessage!.call(
+    worker as unknown as Worker,
+    new MessageEvent("message", { data: null })
+  );
+  const [sound] = await result;
+  expect(sound.length).toBeGreaterThan(0);
+  expect(worker.terminate).toHaveBeenCalledTimes(1);
+});
