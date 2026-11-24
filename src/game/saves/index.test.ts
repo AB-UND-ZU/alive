@@ -140,7 +140,7 @@ describe("save games", () => {
 });
 
 describe("save upgrades", () => {
-  it.each(["0.5.0", "0.6.0"])(
+  it.each(["0.5.0", "0.6.0", "0.7.0"])(
     "upgrades %s saves without changing their world",
     (version) => {
       const previous = {

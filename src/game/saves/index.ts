@@ -48,6 +48,7 @@ export const saveUpgrades: {
   { version: "0.5.0", upgrade: (save) => save },
   { version: "0.6.0", upgrade: (save) => save },
   { version: "0.7.0", upgrade: (save) => save },
+  { version: "0.8.0", upgrade: (save) => save },
 ];
 
 export const compareVersions = (left: string, right: string) => {
