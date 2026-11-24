@@ -1,0 +1,7 @@
+# Level generation
+
+Menu, dungeon and island generators yield complete rows of stacked text sprites. Each generator owns the colors, icon and wording of its progress row. The island checks progress at column boundaries, including both water passes, and emits at pass boundaries and at most once every 32 ms within a pass. “Loading jungle...” starts at spawn placement and includes the town’s wave function collapse generator. “Loading desert...” starts at the desert entrance and covers the haven’s wave function collapse generator and the remaining island setup. Both rows omit percentages. When generation finishes, “Loading map...” covers the snapshot handoff and the first island frame.
+
+The browser and native terminal run the same generator in a worker. A portal supplies the departing snapshot and any class or style choices. Generation carries the hero, inventory and their entity references into the destination, then returns a snapshot. The session restores that snapshot, attaches systems, preloads the world and reuses the snapshot when saving a persistent non-menu arrival.
+
+During departure, the portal sequence holds the traveler’s movement component and destination while the hero’s vision closes. Its timer and input lock survive a snapshot. When the timer finishes, the portal restores movement and requests the destination. The session suspends during generation or save loading and resumes when it installs the world.

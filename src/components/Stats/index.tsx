@@ -140,7 +140,13 @@ function StatsInner({
 
   return (
     <header className={flipped ? "StatsFlipped" : "Stats"}>
-      {menuOnly ? (
+      {initial ? (
+        <>
+          <Row />
+          <Row />
+          <Row />
+        </>
+      ) : menuOnly ? (
         <>
           <Row />
           <Row />
@@ -151,12 +157,6 @@ function StatsInner({
                 : [...pauseButton, ...repeat(none, progressWidth + useWidth)]
             }
           />
-        </>
-      ) : hidden || initial ? (
-        <>
-          <Row />
-          <Row />
-          <Row />
         </>
       ) : (
         <>

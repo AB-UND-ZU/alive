@@ -1,3 +1,5 @@
+import { levelConfig } from "..";
+import { worldLoading } from "../../assets/loading";
 import { entities, World } from "../../../engine";
 import { Position, POSITION } from "../../../engine/components/position";
 import { BiomeName, LEVEL, LevelName } from "../../../engine/components/level";
@@ -34,7 +36,8 @@ import { COLLIDABLE } from "../../../engine/components/collidable";
 export const tutorialSize = 72;
 export const tutorialName: LevelName = "LEVEL_TUTORIAL";
 
-export const generateTutorial = async (world: World) => {
+export function* generateTutorial(world: World) {
+  yield worldLoading(levelConfig.LEVEL_TUTORIAL.name);
   const size = world.metadata.gameEntity[LEVEL].size;
   const worldMap = createMatrix<CellType>(size, size, "mountain");
   world.metadata.gameEntity[LEVEL].cells = worldMap;
@@ -182,4 +185,4 @@ export const generateTutorial = async (world: World) => {
   // add lever to cycle back to fountain room
   const unlockLever = createCell(world, leverPosition, "lever", "hidden").cell;
   setIdentifier(world, unlockLever, "unlock_lever");
-};
+}

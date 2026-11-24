@@ -288,6 +288,29 @@ describe("World", () => {
     expect(context.saveStatus).toBeUndefined();
   });
 
+  it("autosaves the generated destination in the active slot and restores a movable hero", async () => {
+    renderWorld();
+    await generateMenu();
+    const menu = ecs();
+    menu.metadata.saveId = "journey";
+    act(() => menu.metadata.generateLevel({ level: "LEVEL_TUTORIAL" }));
+    expect(context.suspended).toBe(true);
+    await flush();
+    expect(context.suspended).toBe(false);
+    expect(levelName()).toBe("LEVEL_TUTORIAL");
+    expect(readSaves().map((save) => [save.id, save.level])).toEqual([
+      ["journey", "LEVEL_TUTORIAL"],
+    ]);
+    const arrival = ecs();
+    const position = { ...assertHero(arrival)[POSITION] };
+    await act(async () => {
+      await arrival.metadata.loadGame("journey");
+    });
+    expect(ecs()).not.toBe(arrival);
+    expect(assertHero(ecs())[POSITION]).toEqual(position);
+    expect(assertHero(ecs())[MOVABLE].orientations).toEqual([]);
+  });
+
   it("doesn't read or write saves in wiki scenes", async () => {
     await storeGame(createAreaWorld(area));
     setSaveSummaries([]);
@@ -328,11 +351,12 @@ describe("World", () => {
     renderWorld();
     await generateMenu();
     const menu = ecs();
+    const menuMounts = mounts;
 
-    act(() => menu.metadata.suspend());
     act(() => {
       menu.metadata.loadGame(save.id);
     });
+    expect(context.suspended).toBe(true);
     await flush();
 
     const loaded = ecs();
@@ -341,7 +365,7 @@ describe("World", () => {
     expect(loaded.metadata.initial).toBe(false);
     expect(levelName()).toBe("LEVEL_TUTORIAL");
     expect(context.suspended).toBe(false);
-    expect(mounts).toBe(2);
+    expect(mounts).toBe(menuMounts + 1);
 
     const hero = assertHero(loaded);
     expect(hero[POSITION]).toEqual({ x, y });

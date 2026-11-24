@@ -59,7 +59,8 @@ export const createTestWorld = ({
 
   createLevel(world, level, levelConfig[level].size);
   createSystems(world);
-  levelConfig[level].generator(world);
+  const generation = levelConfig[level].generator(world);
+  while (!generation.next().done) { /* synchronous fixture */ }
   preloadLevel(world);
 
   return world;

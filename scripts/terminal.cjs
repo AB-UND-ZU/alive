@@ -8,8 +8,15 @@ const directory = mkdtempSync(join(tmpdir(), "alive-terminal-"));
 try {
   const outfile = join(directory, "alive.cjs");
   buildSync({
-    entryPoints: [join(__dirname, "../src/renderers/terminal/cli.tsx")],
-    outfile,
+    entryPoints: {
+      alive: join(__dirname, "../src/renderers/terminal/cli.tsx"),
+      generation: join(
+        __dirname,
+        "../src/renderers/terminal/generation.worker.ts"
+      ),
+    },
+    outdir: directory,
+    outExtension: { ".js": ".cjs" },
     bundle: true,
     platform: "node",
     format: "cjs",

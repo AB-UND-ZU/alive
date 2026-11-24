@@ -124,7 +124,11 @@ const getEquippedItems = (world: World, player: Entity): SaveItem[] =>
     return [item];
   });
 
-export const createSave = (world: World, date = new Date()): SaveGame => {
+export const createSave = (
+  world: World,
+  date = new Date(),
+  snapshot?: WorldSnapshot
+): SaveGame => {
   const player = getPlayer(world);
   if (!player) throw new Error("Unable to save without a player!");
 
@@ -143,7 +147,7 @@ export const createSave = (world: World, date = new Date()): SaveGame => {
     playtime: world.metadata.playtime,
     kills: player[PLAYER].kills,
     deaths: player[PLAYER].deaths,
-    snapshot: createSnapshot(world),
+    snapshot: snapshot ?? createSnapshot(world),
   };
 };
 

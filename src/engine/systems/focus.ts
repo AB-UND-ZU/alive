@@ -15,17 +15,21 @@ export default function setupFocus(world: World) {
   let referenceGenerations = -1;
 
   const onUpdate = (delta: number) => {
-    const heroEntity = world.getEntity([PLAYER]);
+    const heroEntity = world.getEntity([PLAYER, POSITION]);
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
       .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
 
     if (referenceGenerations === generation) return;
 
+    const firstUpdate = referenceGenerations === -1;
     referenceGenerations = generation;
 
     // handle focus highlights and trigger on any reference frame changes for simplicity
     for (const entity of world.getEntities([FOCUSABLE, RENDERABLE, POSITION])) {
+      if (firstUpdate && heroEntity) {
+        moveEntity(world, entity, heroEntity[POSITION], false);
+      }
       let targetId = entity[FOCUSABLE].target;
       let pendingId = entity[FOCUSABLE].pendingTarget;
 

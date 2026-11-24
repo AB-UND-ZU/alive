@@ -19,6 +19,7 @@ export default function ThreeJsRenderer({
   cellHeight,
   paused,
   shadows = true,
+  onReady,
 }: RendererProps) {
   const context = useWorld();
   const aspectRatio = cellWidth / cellHeight;
@@ -42,7 +43,7 @@ export default function ThreeJsRenderer({
             <ShadowCache />
             <ambientLight intensity={shadows ? Math.PI / 8 : Math.PI} />
             <Camera />
-            <Systems />
+            <Systems onReady={onReady} />
           </LightingContext.Provider>
         </Canvas>
       </DimensionsContext.Provider>

@@ -1,5 +1,5 @@
 import { World } from "../../engine";
-import { restoreSnapshot } from "../../engine/snapshot";
+import { restoreSnapshot, WorldSnapshot } from "../../engine/snapshot";
 import {
   compareVersions,
   createSave,
@@ -129,8 +129,8 @@ export const loadSaveSummaries = async () => {
   setSaveSummaries(summaries || []);
 };
 
-export const storeGame = async (world: World) => {
-  const save = createSave(world);
+export const storeGame = async (world: World, snapshot?: WorldSnapshot) => {
+  const save = createSave(world, undefined, snapshot);
   world.metadata.saveId = save.id;
 
   // ask browsers not to evict saves when storage runs low

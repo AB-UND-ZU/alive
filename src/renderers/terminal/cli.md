@@ -1,7 +1,6 @@
 # Native terminal entry point
 
-`createTerminalWorld(level)` boots an existing level with the normal engine
-systems and generator. `runTerminal` connects stdin, stdout, resize events,
+A Node worker runs the shared level generator and sends the completed snapshot to the terminal session. `runTerminal` connects stdin, stdout, resize events,
 the fixed-step clock and filesystem saves to the terminal React renderer.
 See [Terminal renderer](./index.md) for commands and keys.
 
@@ -24,4 +23,4 @@ can load its platform binary.
 
 Before opening the interactive screen, the client preloads the same sound catalog as the browser, including class movement speeds and popup timing. First-use playback does not need to synthesize these sounds.
 
-Sound preparation draws `Loading game...` inside the native frame before input starts. It does not print a separate line into the terminal scrollback.
+Sound preparation draws the music-note glyph and catalog progress inside the native frame before input starts. It does not print a separate line into the terminal scrollback.

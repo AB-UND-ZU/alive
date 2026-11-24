@@ -85,7 +85,7 @@ it("waits for sound loading, generates the standard menu and starts the terminal
   const world = mockContext.ecs!;
   expect(
     screen.getByRole("group", { name: "Terminal renderer" })
-  ).toHaveTextContent("Loading game...");
+  ).toHaveTextContent("Loading č...");
   expect(mockContext.suspended).toBe(true);
   expect(mockContext.paused).toBe(true);
   expect(world.getEntities(["PLAYER", "POSITION"])).toHaveLength(0);
@@ -95,7 +95,7 @@ it("waits for sound loading, generates the standard menu and starts the terminal
     jest.runOnlyPendingTimers();
   });
   expect(world.metadata.gameEntity[LEVEL].name).toBe("LEVEL_MENU");
-  expect(world.getEntities(["PLAYER", "POSITION"])).toHaveLength(1);
+  expect(mockContext.ecs!.getEntities(["PLAYER", "POSITION"])).toHaveLength(1);
   expect(mockContext.suspended).toBe(false);
   expect(mockContext.initial).toBe(false);
   expect(mockContext.paused).toBe(false);

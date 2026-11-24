@@ -9,10 +9,15 @@ import { Sprite } from "./components/sprite";
 import { POI } from "./components/poi";
 import { Position } from "./components/position";
 
-export const TEST_MODE =
+export let TEST_MODE =
   typeof window !== "undefined"
     ? new URLSearchParams(window.location.search).has("test")
     : typeof process !== "undefined" && process.argv.includes("--test");
+
+// Each generation worker starts in its own realm without the page query string.
+export const setGenerationTestMode = (enabled: boolean) => {
+  TEST_MODE = enabled;
+};
 
 export const ECS_DEBUG = false;
 

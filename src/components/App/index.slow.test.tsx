@@ -74,24 +74,26 @@ describe("App", () => {
         <App />
       </StrictMode>
     );
-    expect(readOverlay(container)).toContain("Loading game...");
+    expect(readOverlay(container)).toContain("Loading č...");
     expect(container.querySelector("#resume")).not.toBeInTheDocument();
     await act(async () => {
       jest.advanceTimersByTime(32);
     });
     const world = mockWorlds[mockWorlds.length - 1];
     expect(world.getEntities(["PLAYER", "POSITION"])).toHaveLength(0);
-    expect(readOverlay(container)).toContain("Loading game...");
+    expect(readOverlay(container)).toContain("Loading č...");
     await act(async () => {
       finish();
       await Promise.resolve();
     });
-    expect(readOverlay(container)).toContain("Loading map...");
+    expect(readOverlay(container)).toContain("Menu...");
     expect(world.getEntities(["PLAYER", "POSITION"])).toHaveLength(0);
-    act(() => {
+    await act(async () => {
       jest.runOnlyPendingTimers();
     });
-    expect(world.getEntities(["PLAYER", "POSITION"])).toHaveLength(1);
+    expect(
+      mockWorlds[mockWorlds.length - 1].getEntities(["PLAYER", "POSITION"])
+    ).toHaveLength(1);
     expect(readOverlay(container)).toContain("to start the game");
   });
 
@@ -119,7 +121,7 @@ describe("App", () => {
   it("shows loading screen, then title screen once the level is ready", async () => {
     const { container, loading } = await boot();
 
-    expect(loading).toContain("Loading game...");
+    expect(loading).toContain("Loading č...");
     expect(readOverlay(container)).toContain("to start the game");
     expect(container.querySelector(".Terminal")).toBeInTheDocument();
   });
@@ -127,8 +129,14 @@ describe("App", () => {
   it("starts the game when clicking resume", async () => {
     const { container, world } = await boot();
 
+    const hudGlyphs = "header .Row:not(.StatBorder) .Cell";
+    expect(container.querySelector(hudGlyphs)).not.toBeInTheDocument();
+    expect(container.querySelector("#menu")).not.toBeInTheDocument();
+
     start(container);
 
+    expect(container.querySelector(hudGlyphs)).toBeInTheDocument();
+    expect(container.querySelector("#menu")).toBeInTheDocument();
     expect(container.querySelector(".Paused")).not.toBeInTheDocument();
     expect(world.metadata.initial).toBe(false);
   });

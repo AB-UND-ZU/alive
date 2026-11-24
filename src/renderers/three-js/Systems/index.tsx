@@ -32,7 +32,7 @@ const shakeFactor = 0.1;
 const shakeSpring = { duration: 50 };
 
 
-export default function Systems() {
+export default function Systems({ onReady }: { onReady?: () => void }) {
   const { ecs, paused, suspended } = useWorld();
   const dimensions = useDimensions();
   const { position, fraction, viewable, jump } = useViewpoint();
@@ -87,6 +87,7 @@ export default function Systems() {
   useRenderable([RENDERABLE], "renderer");
 
   useFrame((_, delta) => {
+    if (game && !suspended) onReady?.();
     if (!ecs || paused || suspended || !clock) return;
 
     clock.advance(delta * 1000);

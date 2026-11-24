@@ -1,4 +1,5 @@
-import { createLevel, preloadLevel, World } from "../ecs";
+import type { Destination } from "../../game/levels/generation";
+import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
@@ -10,12 +11,11 @@ import { Inventory, INVENTORY } from "../components/inventory";
 import { Item, ITEM, ItemStats, Material } from "../components/item";
 import { LOCKABLE } from "../components/lockable";
 import { mana, none } from "../../game/assets/sprites";
-import { SPRITE } from "../components/sprite";
-import { Light, LIGHT } from "../components/light";
+import { Sprite, SPRITE } from "../components/sprite";
+import { LIGHT } from "../components/light";
 import { rerenderEntity } from "./renderer";
 import {
   disposeEntity,
-  disposeSequence,
   moveEntity,
   registerEntity,
   updateWalkable,
@@ -42,17 +42,16 @@ import { canRevive, isRevivable, reviveEntity } from "./fate";
 import {
   AuraSequence,
   ConditionSequence,
-  Sequencable,
   SEQUENCABLE,
   SequenceState,
   SpellSequence,
   UnlockSequence,
   VisionSequence,
+  PortalSequence,
 } from "../components/sequencable";
 import {
   createSequence,
   replaceSequence,
-  getParticles,
   getSequence,
 } from "./sequence";
 import { shootArrow } from "./ballistics";
@@ -106,11 +105,11 @@ import {
 import { colors } from "../../game/assets/colors";
 import { NPC } from "../components/npc";
 import { pickupOptions, play } from "../../game/sound";
-import { LEVEL, LevelName } from "../components/level";
+import { LEVEL } from "../components/level";
 import { VIEWABLE } from "../components/viewable";
-import { SPAWNABLE } from "../components/spawnable";
+import { getSaveSummaries } from "../../game/saves";
+import { worldLoading } from "../../game/assets/loading";
 import { getSelectedLevel, levelConfig } from "../../game/levels";
-import { calculateVision } from "./visibility";
 import {
   centerLayer,
   displayedClasses,
@@ -122,8 +121,6 @@ import {
   CONDITIONABLE,
   ConditionType,
 } from "../components/conditionable";
-import { SWIMMABLE } from "../components/swimmable";
-import { getClassData } from "../../game/balancing/classes";
 import { FRAGMENT } from "../components/fragment";
 import { createItemAsDrop } from "./drop";
 import { populateInventory, populateItems } from "../../bindings/creation";
@@ -144,7 +141,6 @@ import { MOUNTABLE } from "../components/mountable";
 import { isMounting, mountVessel, stopVessel } from "./vessel";
 import { ATTACKABLE } from "../components/attackable";
 import {
-  createDialog,
   createText,
   strikethrough,
   addBackground,
@@ -181,7 +177,8 @@ const enterPortal = (
   world: World,
   portal: Entity,
   entity: Entity,
-  dialog: string
+  destination: Destination,
+  line: Sprite[]
 ) => {
   closePopup(world, entity, portal);
   const discovery = getSequence(world, portal, "discovery");
@@ -192,13 +189,13 @@ const enterPortal = (
   moveEntity(world, entity, portal[POSITION]);
   rerenderEntity(world, entity);
   entity[ORIENTABLE].facing = undefined;
-  const previousMovable = entity[MOVABLE];
-  const reference = world.assertByIdAndComponents(previousMovable.reference, [
-    REFERENCE,
-  ]);
+  const movable = entity[MOVABLE] as Movable;
+  movable.orientations = [];
+  delete movable.pendingOrientation;
+  delete movable.momentum;
   world.removeComponentFromEntity(entity as TypedEntity<"MOVABLE">, MOVABLE);
-
-  portal[TOOLTIP].dialogs = [createDialog(dialog)];
+  world.metadata.setLoading?.(line);
+  portal[TOOLTIP].dialogs = [line];
   portal[TOOLTIP].changed = true;
   portal[TOOLTIP].override = "visible";
 
@@ -207,41 +204,13 @@ const enterPortal = (
     entity,
     "vision",
     "changeRadius",
-    {
-      light: portalLight,
-      fast: false,
-    }
+    { light: portalLight, fast: false }
   );
-
-  return { previousMovable, reference };
-};
-
-// open vision and release hero after the new world is shown
-const revealWorld = (
-  world: World,
-  entity: Entity,
-  previousMovable: Movable,
-  light: Light
-) => {
-  setTimeout(() => {
-    world.metadata.resume();
-
-    setTimeout(() => {
-      replaceSequence<"vision", VisionSequence>(
-        world,
-        entity,
-        "vision",
-        "changeRadius",
-        {
-          light,
-          fast: false,
-        }
-      );
-      previousMovable.orientations = [];
-      previousMovable.pendingOrientation = undefined;
-      world.addComponentToEntity(entity, MOVABLE, previousMovable);
-    }, 1000);
-  }, 1000);
+  createSequence<"portal", PortalSequence>(world, portal, "portal", "enterPortal", {
+    traveler: world.getEntityId(entity),
+    movable,
+    destination,
+  });
 };
 
 export const initiateLoad = (
@@ -250,15 +219,14 @@ export const initiateLoad = (
   entity: Entity,
   saveId: string
 ) => {
-  enterPortal(world, portal, entity, "Loading game...");
-
-  setTimeout(() => {
-    world.metadata.suspend();
-
-    setTimeout(() => {
-      world.metadata.loadGame(saveId);
-    }, 500);
-  }, 3000);
+  const saved = getSaveSummaries().find((save) => save.id === saveId);
+  enterPortal(
+    world,
+    portal,
+    entity,
+    { saveId },
+    worldLoading(saved ? levelConfig[saved.level].name : "save")
+  );
 };
 
 export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
@@ -267,159 +235,26 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
 
   // don't set class stats in test mode
   const classIndex = warp[POPUP].tabs.indexOf("class");
-  const classUpdated = classIndex !== -1;
   const styleIndex = warp[POPUP].tabs.indexOf("style");
-  const styleUpdated = styleIndex !== -1;
-  const selectedClass = classUpdated
-    ? TEST_MODE
-      ? displayedClasses[warp[POPUP].selections[classIndex][0] ?? 0]
-      : "rogue"
-    : entity[SPAWNABLE].classKey;
-  const selectedStyle = styleUpdated
-    ? hairColors[warp[POPUP].selections[styleIndex][0] ?? 0].color
-    : entity[SPAWNABLE].hairColor;
-
-  const { previousMovable, reference } = enterPortal(
+  enterPortal(
     world,
     warp,
     entity,
-    "Generating map..."
+    {
+      level: levelName,
+      classKey:
+        classIndex === -1
+          ? undefined
+          : TEST_MODE
+          ? displayedClasses[warp[POPUP].selections[classIndex][0] ?? 0]
+          : "rogue",
+      hairColor:
+        styleIndex === -1
+          ? undefined
+          : hairColors[warp[POPUP].selections[styleIndex][0] ?? 0].color,
+    },
+    worldLoading(levelConfig[levelName].name)
   );
-
-  setTimeout(() => {
-    world.metadata.suspend();
-
-    setTimeout(() => {
-      // tag hero and related entities to new world
-      const { size, generator, vision } = levelConfig[levelName];
-      const light = calculateVision(vision);
-
-      // Quests belong to the departing level, unlike the hero and inventory.
-      if (getSequence(world, entity, "quest")) {
-        disposeSequence(world, entity, "quest");
-      }
-
-      const inspectEntity = assertIdentifier(world, "inspect");
-      const useEntity = assertIdentifier(world, "use");
-      const spawnEntity = assertIdentifier(world, "spawn");
-      const focusEntity = assertIdentifierAndComponents(world, "focus", [
-        MOVABLE,
-        SEQUENCABLE,
-        POSITION,
-      ]);
-      const inventory = (entity[INVENTORY]?.items || []).map((id: number) =>
-        world.assertById(id)
-      );
-      const entityFrames = Object.values(
-        (entity[SEQUENCABLE].states || {}) as Sequencable["states"]
-      ).map((state) => world.assertById(state.reference));
-      const focusFrames = Object.values(
-        (focusEntity[SEQUENCABLE].states || {}) as Sequencable["states"]
-      ).map((state) => world.assertById(state.reference));
-      const transferredEntities = [
-        entity,
-        ...inventory,
-        inspectEntity,
-        useEntity,
-        spawnEntity,
-        focusEntity,
-        reference,
-        ...getParticles(world, entity),
-        ...entityFrames,
-        ...getParticles(world, focusEntity),
-        ...focusFrames,
-      ];
-      transferredEntities.forEach((target) => {
-        world.addComponentToEntity(target, levelName, {});
-        world.removeComponentFromEntity(
-          target as TypedEntity<LevelName>,
-          world.metadata.gameEntity[LEVEL].name
-        );
-      });
-
-      // remove old world for now
-      world.getEntities([]).forEach((target) => {
-        if (transferredEntities.includes(target)) return;
-
-        disposeEntity(world, target);
-      });
-
-      // generate new world
-      const level = createLevel(world, levelName, size);
-      generator(world);
-
-      // reregister positioned entities
-      transferredEntities.forEach((target) => {
-        if (!target[POSITION]) return;
-
-        registerEntity(world, target);
-        rerenderEntity(world, target);
-      });
-
-      // reset hero
-      const spawn = entity[POSITION];
-      rerenderEntity(world, entity);
-      focusEntity[MOVABLE].reference = world.getEntityId(level);
-      const previousSpring = entity[VIEWABLE].spring;
-      entity[VIEWABLE].spring = { duration: 0 };
-      entity[VIEWABLE].active = true;
-      entity[SPAWNABLE].position = { ...spawn };
-      entity[SPAWNABLE].light = light;
-      entity[ORIENTABLE].facing = undefined;
-
-      const { stats, sprite, swimming } = getClassData(
-        selectedClass,
-        selectedStyle
-      );
-
-      if (styleUpdated) {
-        entity[SPAWNABLE].hairColor = selectedStyle;
-      }
-
-      if (classUpdated) {
-        entity[SPAWNABLE].classKey = selectedClass;
-
-        // add collected stats in test mode
-        if (TEST_MODE) {
-          const testStats = [
-            "armor",
-            "power",
-            "power",
-            "resist",
-            "haste",
-            "damp",
-            "thaw",
-            "spike",
-            "vision",
-          ] as const;
-          testStats.forEach((stat) => {
-            stats[stat] += entity[STATS][stat];
-          });
-          stats.maxHp = Math.max(stats.maxHp, entity[STATS].maxHp);
-          stats.maxMp = Math.max(stats.maxMp, entity[STATS].maxMp);
-        }
-
-        entity[STATS] = {
-          hp: stats.maxHp,
-          mp: 0,
-          xp: 0,
-          ...stats,
-        };
-      }
-
-      if (styleUpdated || classUpdated) {
-        entity[SPRITE] = sprite;
-        entity[SWIMMABLE] = { swimming: false, sprite: swimming };
-      }
-
-      preloadLevel(world);
-
-      revealWorld(world, entity, previousMovable, light);
-      setTimeout(() => {
-        entity[VIEWABLE].spring = previousSpring;
-      }, 2000);
-    }, 500);
-  }, 3000);
 };
 
 export const unlockDoor = (world: World, entity: Entity, lockable: Entity) => {

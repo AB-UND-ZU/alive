@@ -1,3 +1,5 @@
+import type { Sprite } from "../engine/components/sprite";
+import { runGeneration } from "../game/levels/generation";
 import { deserialize, serialize } from "v8";
 import { World } from "../engine";
 import { createSystems, preloadLevel } from "../engine/ecs";
@@ -19,4 +21,26 @@ export const saveAndLoad = (world: World) => {
   createSystems(loaded);
   preloadLevel(loaded);
   return loaded;
+};
+
+// Follow the same snapshot handoff as a session when the portal finishes closing.
+export const receiveGeneratedWorld = (world: World, report?: (line: Sprite[]) => void) => {
+  let arrival: World | undefined;
+  world.metadata.generateLevel = (destination) => {
+    runGeneration(
+      { ...destination, source: createSnapshot(world) },
+      (message) => {
+        if ("line" in message) report?.(message.line);
+        if ("snapshot" in message) {
+          arrival = restoreSnapshot(message.snapshot);
+          createSystems(arrival);
+          preloadLevel(arrival);
+        }
+      }
+    );
+  };
+  return () => {
+    if (!arrival) throw new Error("Portal did not finish");
+    return arrival;
+  };
 };

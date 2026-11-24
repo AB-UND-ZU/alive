@@ -1,3 +1,5 @@
+import { worldLoading } from "../../game/assets/loading";
+import { levelConfig } from "../../game/levels";
 import { projectLayers } from "./sprites";
 import { popupHeight } from "../interface/segments";
 import { World } from "../../engine";
@@ -26,7 +28,6 @@ import {
   buttonPalettes,
   createProgress,
   createText,
-  createDialog,
   underline,
   addBackground,
 } from "../../game/assets/ui";
@@ -58,7 +59,7 @@ export { capabilities } from "./capabilities";
 export type TerminalSession = {
   paused?: boolean;
   suspended?: boolean;
-  loadingSounds?: boolean;
+  loading?: Sprite[];
   saveName?: string;
   selection?: number;
   failed?: boolean;
@@ -362,11 +363,12 @@ export const getTerminalFrame = (
     popupHeight - 0.0005
   );
   if (session.suspended) {
+    const loading = session.loading ??
+      worldLoading(levelConfig[world.metadata.gameEntity[LEVEL].name].name);
     line(
-      createDialog(
-        session.loadingSounds ? "Loading game..." : "Loading map..."
-      ),
-      top + Math.floor(height / 2)
+      loading,
+      top + Math.floor(height / 2) - 1,
+      left + Math.floor(width / 2) - Math.floor((loading.length - 1) / 2)
     );
   } else if (session.paused) {
     const background = createTerminalFrame(sprites, columns, rows);

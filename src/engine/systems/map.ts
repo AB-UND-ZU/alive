@@ -229,11 +229,12 @@ export const disposeEntity = (
 export const moveEntity = (
   world: World,
   entity: Entity,
-  position: Position
+  position: Position,
+  animate = true
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
 
-  moveMotion(world, entity, position.x, position.y, size);
+  moveMotion(world, entity, position.x, position.y, size, animate);
   unregisterEntity(world, entity);
   entity[POSITION].x = normalize(position.x, size);
   entity[POSITION].y = normalize(position.y, size);

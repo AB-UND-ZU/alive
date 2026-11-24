@@ -280,6 +280,7 @@ import {
   TornadoSequence,
   UnlockSequence,
   VisionSequence,
+  PortalSequence,
   VortexSequence,
   XpSequence,
   WeatherSequence,
@@ -8304,6 +8305,16 @@ export const doorUnlock: Sequence<UnlockSequence> = (world, entity, state) => {
   }
 
   return { finished, updated };
+};
+
+export const enterPortal: Sequence<PortalSequence> = (world, portal, state) => {
+  if (state.elapsed < 3000) return { finished: false, updated: false };
+
+  const { traveler, movable, destination } = state.args;
+  world.addComponentToEntity(world.assertById(traveler), MOVABLE, movable);
+  if ("saveId" in destination) world.metadata.loadGame(destination.saveId);
+  else world.metadata.generateLevel(destination);
+  return { finished: true, updated: false };
 };
 
 // floor at non-zero value to render full shadow

@@ -1428,16 +1428,29 @@ const getSound = (params: Params) => {
 
 // Only Playwright builds record playback requests in the current page or iframe.
 const soundStub =
-  process.env.REACT_APP_STUB_SOUND === "true"
+  process.env.REACT_APP_STUB_SOUND === "true" && typeof window !== "undefined"
     ? (window.soundStub ??= { played: [] })
     : undefined;
 
 let loading: Promise<void> | undefined;
+type SoundProgress = (current: number, total: number) => void;
+const listeners = new Set<SoundProgress>();
+let prepared = 0;
+let total = 0;
+const reportPrepared = (count: number) => {
+  prepared = count;
+  listeners.forEach((listener) => listener(count, total));
+};
 
 export const loadSounds = (
-  intensities: Partial<Record<SoundPreset, number[]>> = {}
+  intensities: Partial<Record<SoundPreset, number[]>> = {},
+  progress?: SoundProgress
 ) => {
   if (soundStub && !soundStub.loadCatalog) return Promise.resolve();
+  if (progress) {
+    if (total) progress(prepared, total);
+    if (!loading || prepared < total) listeners.add(progress);
+  }
   if (loading) return loading;
   loading = (async () => {
     const catalog = new Map<string, Params>();
@@ -1456,8 +1469,10 @@ export const loadSounds = (
       }
     }
     const pending = [...catalog.values()];
+    total = pending.length;
+    reportPrepared(0);
     if (!pending.length) return;
-    const samples = await synthesizeSounds(pending);
+    const samples = await synthesizeSounds(pending, reportPrepared);
     pending.forEach((params, index) => {
       const key = getSoundKey(params);
       if (!sounds.has(key)) {
@@ -1467,7 +1482,8 @@ export const loadSounds = (
         });
       }
     });
-  })();
+    reportPrepared(total);
+  })().finally(() => listeners.clear());
   return loading;
 };
 

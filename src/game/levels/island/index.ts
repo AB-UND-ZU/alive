@@ -1,3 +1,5 @@
+import { mapLoading, worldLoading } from "../../assets/loading";
+import { levelConfig } from "..";
 import { entities, World } from "../../../engine";
 import { Position, POSITION } from "../../../engine/components/position";
 import { SPRITE } from "../../../engine/components/sprite";
@@ -26,7 +28,6 @@ import {
   getOverlappingCell,
   gradientKernel,
   iterateMatrix,
-  mapMatrix,
   Matrix,
   matrixFactory,
   rectangleKernel,
@@ -99,8 +100,7 @@ import {
   flipArea,
   marchLinePredicate,
   getWaterCell,
-  smoothenWater,
-  smoothenSand,
+  smoothenSandColumn,
   smoothenBeaches,
 } from "../../../bindings/creation";
 import {
@@ -139,6 +139,8 @@ import { REMAINABLE } from "../../../engine/components/remainable";
 import { LOCKABLE } from "../../../engine/components/lockable";
 import { createText, mergeSprites } from "../../assets/ui";
 
+type IslandPass = "terrain" | "biomes" | "water" | "units" | "jungle" | "desert";
+
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
 
@@ -149,7 +151,22 @@ const isMountainInterior = (cells: Matrix<CellType>, x: number, y: number) => {
   return true;
 };
 
-export const generateIsland = (world: World) => {
+function* generateColumns(
+  size: number,
+  cell: (x: number, y: number, matrix: Matrix<CellType>) => CellType,
+  offset = 0,
+  lines = size
+) {
+  const matrix: Matrix<CellType> = new Array(size);
+  for (let x = 0; x < size; x++) {
+    matrix[x] = new Array(size);
+    for (let y = 0; y < size; y++) matrix[x][y] = cell(x, y, matrix);
+    yield (100 * (offset + x + 1)) / lines;
+  }
+  return matrix;
+}
+
+function* generateIslandSteps(world: World): Generator<IslandPass | number> {
   /* MAP GENERATION: Island
 
   Parameters:
@@ -217,6 +234,7 @@ export const generateIsland = (world: World) => {
 
   for (let attempt = 0; attempt < ISLAND_TRIES; attempt += 1) {
     try {
+      yield "terrain";
       // randomize parameters
       const islandAngle = random(0, 360);
       const townFlipped = choice(true, false);
@@ -591,10 +609,12 @@ export const generateIsland = (world: World) => {
             0.175
           );
         }
+        yield (100 * (x + 1)) / size;
       }
 
       // second pass: set biomes, cell types and objects
-      const rawMap = matrixFactory<CellType>(size, size, (x, y) => {
+      yield "biomes";
+      const rawMap = yield* generateColumns(size, (x, y) => {
         let biome: BiomeName = "ocean";
         let cell: CellType = "air";
         const objects: CellType[] = [];
@@ -645,13 +665,25 @@ export const generateIsland = (world: World) => {
       });
 
       // third pass: place shallow water and ensure is surrounded by sand
-      const elevationMap = smoothenWater(smoothenSand(rawMap, biomeMap));
+      yield "water";
+      for (let x = 0; x < size; x++) {
+        smoothenSandColumn(rawMap, biomeMap, x);
+        yield (100 * (x + 1)) / (2 * size);
+      }
+      const elevationMap = yield* generateColumns(
+        size,
+        (x, y) => getWaterCell(rawMap, x, y),
+        size,
+        2 * size
+      );
 
       // fourth pass: process terrain based on biomes and spawn mobs or items
       const campCandidates: Position[] = [];
       const glacierDeposits: Position[] = [];
       const glacierCenter = { x: size / 2, y: size / 2 };
-      const terrainMap = mapMatrix(elevationMap, (x, y, cell, matrix) => {
+      yield "units";
+      const terrainMap = yield* generateColumns(size, (x, y, matrix) => {
+        let cell = elevationMap[x][y];
         const biome = biomeMap[x][y];
         const flattened = flattenedMatrix[x][y];
         const elevation = elevationMatrix[x][y];
@@ -885,6 +917,7 @@ export const generateIsland = (world: World) => {
       world.metadata.gameEntity[LEVEL].cells = worldMap;
       world.metadata.gameEntity[LEVEL].objects = objectsMap;
 
+      yield "jungle";
       // insert spawn
       insertArea(
         world,
@@ -1078,6 +1111,7 @@ export const generateIsland = (world: World) => {
         "iron_door"
       );
 
+      yield "desert";
       // mark entrance of desert for further processing
       const desertEntrance = angledOffset(
         size,
@@ -2344,6 +2378,8 @@ export const generateIsland = (world: World) => {
         error
       );
 
+      if (attempt + 1 === ISLAND_TRIES) throw error;
+
       // clear up all newly created entities
       world.getEntities([]).forEach((target) => {
         if (existingEntities.includes(target)) return;
@@ -2352,7 +2388,23 @@ export const generateIsland = (world: World) => {
       });
     }
   }
-};
+}
+
+export function* generateIsland(world: World) {
+  yield worldLoading(levelConfig.LEVEL_ISLAND.name);
+  let pass: IslandPass = "terrain";
+  let nextUpdate = 0;
+  for (const step of generateIslandSteps(world)) {
+    if (typeof step === "string") pass = step;
+    else if (step < 100 && performance.now() < nextUpdate) continue;
+    const percent = typeof step === "number" ? Math.ceil(step) : 0;
+    const value =
+      pass === "jungle" || pass === "desert" ? pass : `${pass} ${percent}%`;
+    yield createDialog(`Loading ${value}...`);
+    nextUpdate = performance.now() + 32;
+  }
+  yield mapLoading;
+}
 
 export const stringifyMap = (
   cellMap: (CellType | "")[][],

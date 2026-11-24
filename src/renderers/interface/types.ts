@@ -10,6 +10,7 @@ export type RendererProps = {
   cellHeight: number;
   paused: boolean;
   shadows?: boolean;
+  onReady?: () => void;
 };
 
 export type RendererCapabilities = {

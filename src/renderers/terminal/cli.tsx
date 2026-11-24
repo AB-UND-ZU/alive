@@ -10,6 +10,15 @@ import { createLevel, createSystems, preloadLevel } from "../../engine/ecs";
 import { LevelName } from "../../engine/components/level";
 import { PLAYER } from "../../engine/components/player";
 import { POPUP } from "../../engine/components/popup";
+import { soundsLoading, worldLoading } from "../../game/assets/loading";
+import type { Sprite } from "../../engine/components/sprite";
+import type {
+  GenerationMessage,
+  GenerationRequest,
+  LevelDestination,
+} from "../../game/levels/generation";
+import { Worker } from "worker_threads";
+import { TEST_MODE } from "../../engine/utils";
 import { levelConfig } from "../../game/levels";
 import {
   canSave,
@@ -19,7 +28,11 @@ import {
   setSaveSummaries,
   upgradeSave,
 } from "../../game/saves";
-import { restoreSnapshot } from "../../engine/snapshot";
+import {
+  createSnapshot,
+  restoreSnapshot,
+  WorldSnapshot,
+} from "../../engine/snapshot";
 import { createFrameClock, systemsFrame } from "../interface/clock";
 import {
   createTerminalRoot,
@@ -44,16 +57,6 @@ const savePath = () =>
     "terminal.save"
   );
 
-export const createTerminalWorld = (level: LevelName = "LEVEL_MENU") => {
-  const world = createWorld();
-  world.metadata.initial = false;
-  createLevel(world, level, levelConfig[level].size);
-  createSystems(world);
-  levelConfig[level].generator(world);
-  preloadLevel(world);
-  return world;
-};
-
 export const emitTerminalKeys = (stream: NodeJS.ReadableStream) =>
   // Avoid readline's half-second delay for a bare Escape.
   emitKeypressEvents(stream, { escapeCodeTimeout: 50 } as Interface & {
@@ -73,7 +76,9 @@ export const runTerminal = async () => {
   const level = Object.keys(levelConfig).find(
     (name) => name.toLowerCase().replace("level_", "") === levelArg
   ) as LevelName | undefined;
-  let world = createTerminalWorld(level);
+  let world = createWorld();
+  createLevel(world, "LEVEL_MENU", levelConfig.LEVEL_MENU.size);
+  let loading: Sprite[] | undefined;
   let flipped = false;
   let suspended = false,
     paused = false,
@@ -88,10 +93,10 @@ export const runTerminal = async () => {
     saved = upgradeSave(deserialize(readFileSync(savePath())) as SaveGame);
     setSaveSummaries([getSummary(saved)]);
   } catch {}
-  const save = () => {
+  const save = (snapshot?: WorldSnapshot) => {
     if (!canSave(world)) return;
     try {
-      saved = createSave(world);
+      saved = createSave(world, undefined, snapshot);
       world.metadata.saveId = saved.id;
       mkdirSync(dirname(savePath()), { recursive: true });
       writeFileSync(savePath(), serialize(saved));
@@ -110,11 +115,13 @@ export const runTerminal = async () => {
     world.metadata.setFlipped = (value) => {
       flipped = value;
     };
-    world.metadata.suspend = () => {
-      suspended = true;
+    world.metadata.generateLevel = (destination) => {
+      void generate(destination, createSnapshot(world)).catch((error) =>
+        console.error("Loading failed:", error)
+      );
     };
-    world.metadata.resume = () => {
-      suspended = false;
+    world.metadata.setLoading = (value) => {
+      loading = value;
     };
     world.metadata.loadGame = () => {
       if (!saved) return;
@@ -122,6 +129,7 @@ export const runTerminal = async () => {
       restored.metadata.saveId = saved.id;
       restored.metadata.initial = false;
       createSystems(restored);
+      preloadLevel(restored);
       attach(restored);
       suspended = false;
     };
@@ -157,7 +165,49 @@ export const runTerminal = async () => {
     return { columns, rows };
   };
   const frameArg = args.indexOf("--frames");
+  const generate = async (
+    destination: LevelDestination,
+    source?: WorldSnapshot
+  ) => {
+    suspended = true;
+    loading = worldLoading(levelConfig[destination.level].name);
+    const request: GenerationRequest = { ...destination, source };
+    const worker = new Worker(join(__dirname, "generation.cjs"), {
+      workerData: {
+        request,
+        testMode: TEST_MODE,
+        saves: saved ? [getSummary(saved)] : [],
+      },
+    });
+    try {
+      const snapshot = await new Promise<WorldSnapshot>((resolve, reject) => {
+        worker.on("message", (message: GenerationMessage) => {
+          if ("line" in message) {
+            loading = message.line;
+            if (frameArg === -1 && !stopped) render();
+          } else resolve(message.snapshot);
+        });
+        worker.once("error", reject);
+        worker.once("exit", (code) =>
+          reject(new Error("Level worker exited: " + code))
+        );
+      });
+      if (stopped) return;
+      const next = restoreSnapshot(snapshot);
+      next.metadata.initial = false;
+      if (source) next.metadata.saveId = world.metadata.saveId;
+      createSystems(next);
+      preloadLevel(next);
+      attach(next);
+      if (frameArg === -1 && destination.level !== "LEVEL_MENU") save(snapshot);
+    } finally {
+      await worker.terminate();
+      suspended = false;
+    }
+  };
+
   if (frameArg !== -1) {
+    await generate({ level: level ?? "LEVEL_MENU" });
     const { columns, rows } = dimensions();
     for (let i = 0; i < Number(args[frameArg + 1] || 1); i++)
       clock.advance(systemsFrame);
@@ -177,23 +227,6 @@ export const runTerminal = async () => {
   process.stdout.write("\x1b[?1049h\x1b[?25l\x1b[2J");
   const root = createTerminalRoot((output) => process.stdout.write(output));
   const closeAudio = startTerminalAudio();
-  if (closeAudio) {
-    const { columns, rows } = dimensions();
-    root.render(
-      <Terminal
-        world={world}
-        columns={columns}
-        rows={rows}
-        session={{ suspended: true, loadingSounds: true }}
-      />
-    );
-    await loadSounds({
-      move: Object.values(classDefinitions).map(({ stats }) =>
-        getHasteInterval(world, stats.haste)
-      ),
-      open: [(frameHeight - 1) * popupDelay],
-    });
-  }
   const render = () => {
     const { columns, rows } = dimensions();
     if (columns < 33 || rows < 24) {
@@ -211,6 +244,7 @@ export const runTerminal = async () => {
         session={{
           paused,
           suspended,
+          loading,
           flipped,
           selection: pauseSelection,
           saveName:
@@ -222,13 +256,32 @@ export const runTerminal = async () => {
       />
     );
   };
+  if (closeAudio) {
+    suspended = true;
+    loading = soundsLoading();
+    render();
+    await loadSounds(
+      {
+        move: Object.values(classDefinitions).map(({ stats }) =>
+          getHasteInterval(world, stats.haste)
+        ),
+        open: [(frameHeight - 1) * popupDelay],
+      },
+      (current, total) => {
+        loading = soundsLoading(current, total);
+        render();
+      }
+    );
+    suspended = false;
+  }
+  await generate({ level: level ?? "LEVEL_MENU" });
   const stop = () => {
     if (stopped) return;
     stopped = true;
     clearInterval(timer);
     closeAudio?.();
     input.stop();
-    save();
+    if (!suspended) save();
     root.unmount();
     process.stdin.off("keypress", keypress);
     process.stdout.off("resize", render);
@@ -241,6 +294,7 @@ export const runTerminal = async () => {
       stop();
       return;
     }
+    if (suspended) return;
     const hero = world.getEntities([PLAYER])[0];
     const popup =
       hero && world.getEntityByIdAndComponents(hero[PLAYER].popup, [POPUP]);
@@ -261,9 +315,8 @@ export const runTerminal = async () => {
           else if (action.name === "SAVE") save();
           else {
             save();
-            attach(createTerminalWorld());
+            void generate({ level: "LEVEL_MENU" });
             paused = false;
-            suspended = false;
           }
         }
       }

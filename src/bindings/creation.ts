@@ -540,27 +540,20 @@ export const getWaterCell = (
 export const smoothenWater = (cellMatrix: Matrix<CellType>): Matrix<CellType> =>
   mapMatrix(cellMatrix, (x, y, cell) => getWaterCell(cellMatrix, x, y));
 
-export const smoothenSand = (
+export const smoothenSandColumn = (
   cellMatrix: Matrix<CellType>,
-  biomeMatrix: Matrix<BiomeName>
+  biomeMatrix: Matrix<BiomeName>,
+  x: number
 ) => {
-  iterateMatrix(cellMatrix, (x, y, cell) => {
-    if (!["water_shallow", "water_deep"].includes(cell)) return;
-
-    const targetCell = biomeMatrix[x][y] === "glacier" ? "ice" : "sand";
-
-    for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
-      for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
-        const target = { x: x + offsetX, y: y + offsetY };
-        const neighbour = getOverlappingCell(cellMatrix, target.x, target.y);
-
-        if (neighbour === "air") {
-          setMatrix(cellMatrix, x, y, targetCell);
-        }
+  for (let y = 0; y < cellMatrix[x].length; y++) {
+    if (!["water_shallow", "water_deep"].includes(cellMatrix[x][y])) continue;
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (getOverlappingCell(cellMatrix, x + dx, y + dy) === "air")
+          cellMatrix[x][y] = biomeMatrix[x][y] === "glacier" ? "ice" : "sand";
       }
     }
-  });
-  return cellMatrix;
+  }
 };
 
 export const smoothenBeaches = (cellMatrix: Matrix<CellType>) => {

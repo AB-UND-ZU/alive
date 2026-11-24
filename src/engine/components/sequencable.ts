@@ -1,3 +1,5 @@
+import type { Destination } from "../../game/levels/generation";
+import type { Movable } from "./movable";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import * as sequences from "../../game/assets/sequences";
@@ -36,6 +38,11 @@ export type WeatherSequence = {
     particle: string;
   }[];
   type: Weather;
+};
+export type PortalSequence = {
+  traveler: number;
+  movable: Movable;
+  destination: Destination;
 };
 export type VisionSequence = {
   light?: Light;
@@ -264,6 +271,7 @@ export type Sequencable = {
     weather?: SequenceState<WeatherSequence>;
     splash?: SequenceState<EmptyObject>;
     vision?: SequenceState<VisionSequence>;
+    portal?: SequenceState<PortalSequence>;
     perish?: SequenceState<PerishSequence>;
     pointer?: SequenceState<PointerSequence>;
     marker?: SequenceState<MarkerSequence>;

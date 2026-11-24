@@ -1,5 +1,5 @@
 import { enableTouchEmulation, TouchCursor } from "./TouchControls";
-import { createPresetWorld, PresetName } from "./presets";
+import { presets, preparePreset, islandPreviewSeed, PresetName } from "./presets";
 import { setAudioActive, ensureAudio } from "../game/sound/resumable";
 import { findPath, relativeOrientations } from "../game/math/path";
 import { getIdentifierAndComponents } from "../engine/utils";
@@ -321,6 +321,11 @@ function Bridge({ setShadows }: { setShadows: (enabled: boolean) => void }) {
   return null;
 }
 
+const preset =
+  name === "game" && option && option !== "menu"
+    ? (option as PresetName)
+    : undefined;
+
 function Preview() {
   const [shadows, setShadows] = useState(true);
   useEffect(() => {
@@ -356,11 +361,18 @@ function Preview() {
     >
       <World
         persistent={name === "game"}
+        preset={
+          preset
+            ? {
+                level: presets[preset].level,
+                seed: islandPreviewSeed,
+                prepare: (world) => preparePreset(world, preset),
+              }
+            : undefined
+        }
         createInitialWorld={
           name === "game"
-            ? option && option !== "menu"
-              ? () => createPresetWorld(option as PresetName)
-              : undefined
+            ? undefined
             : () => createPreviewWorld(name, decodeURIComponent(option))
         }
       >

@@ -70,7 +70,13 @@ describe("Paused", () => {
   it("shows the loading screen while a level is prepared", () => {
     const { overlay } = renderPaused(menu, { paused: false, suspended: true });
 
-    expect(overlay()[0]).toContain("Loading map...");
+    expect(overlay()[0]).toContain("Menu...");
+  });
+
+  it("keeps the map loading row visible while the installed scene prepares its first frame", () => {
+    const { container } = renderHud(menu, <Paused preparingMap />, { paused: false, suspended: false });
+    expect(readRows(container, ".LoadingRow")[0]).toContain("Loading map...");
+    expect(container.querySelector("#resume")).not.toBeInTheDocument();
   });
 
   it("starts the game from the title screen with a click", () => {

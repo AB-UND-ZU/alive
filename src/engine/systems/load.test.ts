@@ -298,7 +298,6 @@ describe("continue portal", () => {
     ]);
     const { world, hero, popup } = openSaves();
     const loadGame = jest.fn();
-    world.metadata.suspend = jest.fn();
     world.metadata.loadGame = loadGame;
 
     trigger(world, "down");
@@ -307,9 +306,13 @@ describe("continue portal", () => {
 
     expect(hero[POSITION]).toEqual(portal);
 
-    jest.advanceTimersByTime(3500);
+    advance(world, 2400);
+    expect(getSequence(world, hero, "vision")).toBeUndefined();
+    expect(hero[MOVABLE]).toBeUndefined();
+    expect(loadGame).not.toHaveBeenCalled();
+    advance(world, 1100);
 
-    expect(world.metadata.suspend).toHaveBeenCalled();
+    expect(loadGame).toHaveBeenCalledTimes(1);
     expect(loadGame).toHaveBeenCalledWith("20261011-151323");
     expect(popup[POPUP].tabs).toEqual(["load"]);
   });
@@ -337,7 +340,6 @@ describe("continue portal", () => {
     };
 
     const world = restoreSnapshot(createSnapshot(saved));
-    world.metadata.resume = jest.fn();
     resetPlayedSounds();
     createSystems(world);
     preloadLevel(world);
@@ -365,7 +367,6 @@ describe("continue portal", () => {
     const { maxHp } = savedHero[STATS];
 
     const world = restoreSnapshot(createSnapshot(saved));
-    world.metadata.resume = jest.fn();
     createSystems(world);
     preloadLevel(world);
     jest.advanceTimersByTime(2000);

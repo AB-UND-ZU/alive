@@ -1,4 +1,7 @@
+import { receiveGeneratedWorld } from "../../testing/saves";
 import {
+  advance,
+  assertHero,
   findEntityAt,
   findInArea,
   getItems,
@@ -8,6 +11,9 @@ import {
 } from "../../testing/harness";
 import { playedSounds } from "../../testing/env";
 import { World } from "../../engine";
+import { assertIdentifierAndComponents } from "../../engine/utils";
+import { moveEntity } from "../../engine/systems/map";
+import { getMotion, sampleMotion } from "../../engine/motion";
 import { ACTIONABLE } from "../../engine/components/actionable";
 import { LEVEL } from "../../engine/components/level";
 import { MOVABLE } from "../../engine/components/movable";
@@ -108,6 +114,9 @@ describe("portals", () => {
     jest.useFakeTimers();
     try {
       const { world, hero } = setup(area, { level: "LEVEL_MENU" });
+      const arrival = receiveGeneratedWorld(world);
+      const departingFocus = assertIdentifierAndComponents(world, "focus", [POSITION]);
+      moveEntity(world, departingFocus, { x: 1, y: 2 });
       const portal = getPortal(world);
       giveItems(world, hero, [{ consume: "key", material: "iron", amount: 1 }]);
       interact(world, 30);
@@ -122,16 +131,23 @@ describe("portals", () => {
       expect(hero[POSITION]).toEqual(portal[POSITION]);
       expect(hero).not.toHaveProperty(MOVABLE);
 
-      jest.advanceTimersByTime(3500);
-      expect(world.metadata.gameEntity[LEVEL].name).toBe("LEVEL_TUTORIAL");
-      expect(hero).not.toHaveProperty(MOVABLE);
-
-      jest.advanceTimersByTime(2000);
-      expect(hero).toHaveProperty(MOVABLE);
-      expect(
-        world.assertComponents(hero, [SPAWNABLE])[SPAWNABLE].classKey
-      ).toBe("rogue");
-      expect(getItems(world, hero)).toContainEqual(
+      advance(world, 3100);
+      const generated = arrival();
+      const player = generated.assertComponents(assertHero(generated), [
+        "INVENTORY",
+        POSITION,
+        SPAWNABLE,
+      ]);
+      expect(generated.metadata.gameEntity[LEVEL].name).toBe("LEVEL_TUTORIAL");
+      const focus = assertIdentifierAndComponents(generated, "focus", [POSITION]);
+      const motion = getMotion(focus);
+      const start = motion
+        ? sampleMotion(motion, generated.metadata.elapsed)
+        : focus[POSITION];
+      expect(start).toMatchObject(player[POSITION]);
+      expect(player).toHaveProperty(MOVABLE);
+      expect(player[SPAWNABLE].classKey).toBe("rogue");
+      expect(getItems(generated, player)).toContainEqual(
         expect.objectContaining({ consume: "key", material: "iron" })
       );
     } finally {

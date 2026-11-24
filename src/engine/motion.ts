@@ -228,8 +228,13 @@ export const moveMotion = (
   entity: Entity,
   x: number,
   y: number,
-  size: number
+  size: number,
+  animate: boolean
 ) => {
+  if (!animate) {
+    motions.delete(entity);
+    return;
+  }
   const config = entity[MOVABLE]?.spring || (entity[BUMPABLE] ? {} : undefined);
   if (!config) return;
   let motion = motions.get(entity);

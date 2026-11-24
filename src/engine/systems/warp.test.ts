@@ -1,3 +1,7 @@
+import { receiveGeneratedWorld } from "../../testing/saves";
+import { createSnapshot, restoreSnapshot } from "../snapshot";
+import { createSystems, preloadLevel } from "../ecs";
+import { MOVABLE } from "../components/movable";
 import { advance, assertHero, createTestWorld } from "../../testing/harness";
 import { LEVEL } from "../components/level";
 import { POPUP } from "../components/popup";
@@ -22,9 +26,9 @@ describe("warping", () => {
 
   it("enters a new world on land without swimming", () => {
     const warnings = jest.spyOn(console, "warn").mockImplementation(() => {});
-    const world = createTestWorld();
+    let world = createTestWorld();
     advance(world, 3000);
-    const hero = world.assertComponents(assertHero(world), [
+    let hero = world.assertComponents(assertHero(world), [
       SWIMMABLE,
       SPRITE,
       SPAWNABLE,
@@ -37,8 +41,21 @@ describe("warping", () => {
       levelConfig.LEVEL_TUTORIAL.mapOffsetY;
 
     initiateWarp(world, portal, hero);
-    advance(world, 3000);
-    jest.advanceTimersByTime(3500);
+    advance(world, 300);
+    expect(hero[MOVABLE]).toBeUndefined();
+    world = restoreSnapshot(createSnapshot(world));
+    createSystems(world);
+    preloadLevel(world);
+    const arrival = receiveGeneratedWorld(world);
+    expect(world.getEntity(["PLAYER"])![MOVABLE]).toBeUndefined();
+    advance(world, 3100);
+    world = arrival();
+    hero = world.assertComponents(assertHero(world), [
+      SWIMMABLE,
+      SPRITE,
+      SPAWNABLE,
+    ]);
+    expect(hero[MOVABLE]).toBeDefined();
 
     expect(world.metadata.gameEntity[LEVEL].name).toBe("LEVEL_TUTORIAL");
     const { sprite, swimming } = getClassData(

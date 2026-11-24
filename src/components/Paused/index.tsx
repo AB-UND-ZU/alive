@@ -2,16 +2,13 @@ import { backdrop } from "../../game/assets/sprites";
 import { isTouch, useDimensions } from "../Dimensions";
 import Row from "../Row";
 import "./index.css";
-import { useCallback } from "react";
-import { useWorld } from "../../renderers/interface/hooks";
+import { mapLoading, worldLoading } from "../../game/assets/loading";
+import { levelConfig } from "../../game/levels";
+import { useCallback, useContext } from "react";
+import { LoadingContext, useWorld } from "../../renderers/interface/hooks";
 import { repeat } from "../../game/math/std";
 import { colors } from "../../game/assets/colors";
-import {
-  createDialog,
-  createText,
-  addBackground,
-  createButton,
-} from "../../game/assets/ui";
+import { createText, addBackground, createButton } from "../../game/assets/ui";
 import { canSave, getSaveSummaries } from "../../game/saves";
 import { World as WorldType } from "../../engine";
 import { Sprite } from "../../engine/components/sprite";
@@ -47,7 +44,17 @@ function PauseButton({
   );
 }
 
-export default function Paused() {
+function LoadingRow({ preparingMap }: { preparingMap: boolean }) {
+  const { ecs } = useWorld();
+  const line =
+    useContext(LoadingContext) ??
+    worldLoading(
+      levelConfig[ecs?.metadata.gameEntity[LEVEL]?.name ?? "LEVEL_MENU"].name
+    );
+  return <Row className="LoadingRow" cells={preparingMap ? mapLoading : line} />;
+}
+
+export default function Paused({ preparingMap = false }: { preparingMap?: boolean }) {
   const {
     ecs,
     paused,
@@ -55,7 +62,6 @@ export default function Paused() {
     initial,
     setInitial,
     suspended,
-    loadingSounds,
     saveStatus,
     saveGame,
     openMenu,
@@ -90,7 +96,8 @@ export default function Paused() {
     [initial, setPaused, setInitial]
   );
 
-  if (!paused && !initial && !suspended) return null;
+  const loading = suspended || preparingMap;
+  if (!paused && !initial && !loading) return null;
 
   return (
     <div className="Paused">
@@ -107,13 +114,9 @@ export default function Paused() {
       </div>
 
       <div className="Overlay">
-        {suspended ? (
+        {loading ? (
           <>
-            <Row
-              cells={createDialog(
-                loadingSounds ? "Loading game..." : "Loading map..."
-              )}
-            />
+            <LoadingRow preparingMap={preparingMap} />
             <Row />
             <Row />
           </>
@@ -193,7 +196,7 @@ export default function Paused() {
           </>
         )}
       </div>
-      {!suspended && (
+      {!loading && (
         <div className="Resume" id="resume" onClick={handleResume} />
       )}
     </div>

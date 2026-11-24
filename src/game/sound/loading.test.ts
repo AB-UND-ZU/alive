@@ -22,7 +22,14 @@ beforeEach(() => createWorker.mockReset());
 it("loads the complete catalog in one batch and releases the worker before completing", async () => {
   const worker = mockWorker();
   const pending = [new Params(), new Params()];
-  const result = synthesizeSounds(pending);
+  const progress = jest.fn();
+  const result = synthesizeSounds(pending, progress);
+  worker.onmessage!.call(
+    worker as unknown as Worker,
+    new MessageEvent("message", { data: 1 })
+  );
+  expect(progress).toHaveBeenCalledWith(1);
+  expect(worker.terminate).not.toHaveBeenCalled();
   expect(worker.postMessage).toHaveBeenCalledTimes(1);
   expect(worker.postMessage).toHaveBeenCalledWith(pending);
   const samples = [new Float32Array([0.25]), new Float32Array([0.5])];

@@ -176,6 +176,14 @@ export function createPresetWorld(name: PresetName) {
   } finally {
     Math.random = nativeRandom;
   }
+  return preparePreset(world, name);
+}
+
+export function preparePreset(
+  world: ReturnType<typeof createTestWorld>,
+  name: PresetName
+) {
+  const preset = presets[name];
   if (name === "menu") return world;
   const hero = world.assertComponents(assertHero(world), [
     "INVENTORY",

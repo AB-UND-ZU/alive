@@ -66,10 +66,25 @@ class FakeAudioContext {
 }
 (window as any).AudioContext = FakeAudioContext;
 
+// Run the generation worker’s message handler in-process in jsdom.
+jest.mock("./game/levels/createWorker", () => ({
+  createLevelWorker: () => ({
+    terminate() {},
+    onmessage(_event: { data: unknown }) {},
+    postMessage({
+      request,
+    }: {
+      request: import("./game/levels/generation").GenerationRequest;
+    }) {
+      jest
+        .requireActual("./game/levels/generation")
+        .runGeneration(request, (data: unknown) => this.onmessage({ data }));
+    },
+  }),
+}));
+
 // --- sound: record instead of synthesizing ---------------------------------
 
-// synthesizing sfx is by far the slowest part of a tick, so only record calls
-// Jest has no browser worker or module URL; worker lifecycle is tested separately.
 jest.mock("./game/sound/createWorker", () => ({
   createSoundWorker: jest.fn(() => undefined),
 }));

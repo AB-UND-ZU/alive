@@ -83,6 +83,7 @@
       "!src/wiki/**",
       "!src/testing/**",
       "!src/game/sound/createWorker.ts",
+      "!src/game/levels/createWorker.ts",
       "!src/index.tsx"
     ],
     "coverageReporters": [

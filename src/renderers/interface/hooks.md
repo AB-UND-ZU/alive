@@ -18,7 +18,6 @@ export type WorldContext = {
   ecs: WorldType | null;
   initial: boolean;
   setInitial: React.Dispatch<React.SetStateAction<boolean>>;
-  loadingSounds?: boolean;
   suspended: boolean;
   setSuspended: React.Dispatch<React.SetStateAction<boolean>>;
   paused: boolean;

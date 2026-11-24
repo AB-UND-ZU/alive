@@ -20,9 +20,49 @@ import {
   trigger,
   holdMove,
 } from "../testing/harness";
-import { moveEntity } from "./systems/map";
+import { moveEntity, getCellEntities } from "./systems/map";
+import { saveAndLoad } from "../testing/saves";
+import { assertIdentifierAndComponents, setHighlight } from "./utils";
 import { MOVABLE } from "./components/movable";
 import { POSITION } from "./components/position";
+
+const restoreHighlight = (targeted: boolean) => {
+  const world = createAreaWorld("| ♀    |", { size: 64 });
+  const origin = { ...assertHero(world)[POSITION] };
+  const previous = { x: origin.x + 20, y: origin.y + 10 };
+  const destination = { x: origin.x + 4, y: origin.y };
+  const focus = assertIdentifierAndComponents(world, "focus", [POSITION]);
+  moveEntity(world, focus, previous);
+  if (targeted) {
+    const target = world.createEntity();
+    world.addComponentToEntity(target, POSITION, destination);
+    setHighlight(world, "quest", target);
+  }
+
+  const loaded = saveAndLoad(world);
+  const highlight = assertIdentifierAndComponents(loaded, "focus", [POSITION]);
+  return { loaded, highlight, origin, destination, previous };
+};
+
+test("a restored highlight without a target starts at the hero", () => {
+  const { loaded, highlight, origin, previous } = restoreHighlight(false);
+  expect(highlight[POSITION]).toEqual(origin);
+  expect(getCellEntities(loaded, previous)).not.toContain(highlight);
+  expect(getMotion(highlight)).toBeUndefined();
+});
+
+test("a restored quest highlight moves from the hero to its target", () => {
+  const { loaded, highlight, origin, destination } = restoreHighlight(true);
+  const motion = getMotion(highlight)!;
+  const now = loaded.metadata.elapsed;
+  expect(highlight[POSITION]).toEqual(destination);
+  expect(sampleMotion(motion, now)).toMatchObject(origin);
+  expect(sampleMotion(motion, now + 250)).toMatchObject({
+    x: origin.x + 2,
+    y: origin.y,
+  });
+  expect(sampleMotion(motion, now + 500)).toMatchObject(destination);
+});
 
 test("movement turns retain their timing even when no intermediate frames render", () => {
   const world = createAreaWorld("| ♀ |", { size: 64 });

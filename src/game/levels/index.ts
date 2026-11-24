@@ -1,3 +1,4 @@
+import type { Sprite } from "../../engine/components/sprite";
 import { Entity } from "ecs";
 import { World } from "../../engine";
 import { LevelName } from "../../engine/components/level";
@@ -25,7 +26,7 @@ export const levelConfig: Record<
     mapOffsetX: number;
     mapOffsetY: number;
     size: number;
-    generator: (world: World) => void;
+    generator: (world: World) => Generator<Sprite[], void>;
     vision: number;
   }
 > = {

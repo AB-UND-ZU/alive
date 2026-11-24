@@ -170,7 +170,7 @@ export default function Controls({
   children,
 }: React.PropsWithChildren<{ compact?: boolean }>) {
   const dimensions = useDimensions();
-  const { ecs, setPaused, paused, initial, flipped } = useWorld();
+  const { ecs, setPaused, paused, suspended, initial, flipped } = useWorld();
   const level = ecs?.metadata.gameEntity[LEVEL].name;
   const size = ecs?.metadata.gameEntity[LEVEL].size || 0;
   const interactable = ecs?.metadata.interact.active && ecs.metadata.interact;
@@ -212,7 +212,7 @@ export default function Controls({
 
   // update ref for listeners to consume
   heroRef.current = hero || undefined;
-  pausedRef.current = paused;
+  pausedRef.current = paused || suspended;
 
   const hidden =
     initial || !ecs || !heroRef.current || isDead(ecs, heroRef.current);

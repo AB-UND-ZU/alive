@@ -1,6 +1,7 @@
 import {
   CSSProperties,
   Fragment,
+  useContext,
   useEffect,
   useMemo,
   useReducer,
@@ -10,7 +11,7 @@ import {
 import { codePage437 } from "../../game/assets/characters";
 import { colors } from "../../game/assets/colors";
 import { createFrameClock } from "../interface/clock";
-import { useWorld } from "../interface/hooks";
+import { LoadingContext, useWorld } from "../interface/hooks";
 import { RendererProps } from "../interface/types";
 import { getSceneFrame } from "../interface/frame";
 import { collectTerminalSprites, createTerminalFrame } from "./frame";
@@ -48,6 +49,7 @@ export default function BrowserPreview({
   sceneOnly = false,
 }: RendererProps & { interactiveSession?: boolean; sceneOnly?: boolean }) {
   const context = useWorld();
+  const loading = useContext(LoadingContext);
   const { suspended, flipped } = context;
   const contextRef = useRef(context);
   contextRef.current = context;
@@ -230,7 +232,7 @@ export default function BrowserPreview({
       )
     : getTerminalFrame(world, columns, rows, state, {
         suspended,
-        loadingSounds: context.loadingSounds,
+        loading,
         flipped,
         ...(interactiveSession
           ? {

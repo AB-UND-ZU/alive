@@ -1,3 +1,6 @@
+import { initiateWarp } from "../../engine/systems/trigger";
+import { levelConfig } from "../../game/levels";
+import { soundsLoading, worldLoading } from "../../game/assets/loading";
 import { createPopup, openPopup } from "../../engine/systems/popup";
 import { POPUP } from "../../engine/components/popup";
 import { rerenderEntity } from "../../engine/systems/renderer";
@@ -411,7 +414,7 @@ it.each([33, 80])(
     const content = frame
       .slice(layout.top, layout.top + layout.height)
       .map((row) => row.slice(layout.left + 1, layout.left + layout.width - 1));
-    expect(frameToText(content).replace(/\s/g, "")).toBe("│Loadingmap...│");
+    expect(frameToText(content).replace(/\s/g, "")).toBe("│Loading#Dungeon...│");
     const loading = content.flat().find((cell) => cell.char === "L")!;
     expect(loading).toMatchObject({
       foreground: colors.black,
@@ -680,17 +683,41 @@ it("keeps one complete world row below a settled dialog", () => {
   expect(Math.ceil(entry.y)).toBeLessThan(height - 1);
 });
 
+it.each(["LEVEL_TUTORIAL", "LEVEL_ISLAND"] as const)("keeps the %s placeholder aligned with its portal dialog", (level) => {
+  const world = createAreaWorld("| ♀∩ |", { level: "LEVEL_MENU", size: 64 });
+  advance(world, 3000);
+  const portal = world.getEntities(["WARPABLE", "POPUP"])[0];
+  portal.POPUP.horizontalIndex = portal.POPUP.tabs.indexOf("warp");
+  portal.POPUP.verticalIndezes[portal.POPUP.horizontalIndex] = levelConfig[level].mapOffsetY;
+  initiateWarp(world, portal, assertHero(world));
+  advance(world, 2500);
+  const location = (suspended: boolean) => {
+    const frame = getTerminalFrame(world, 33, 24, undefined, {
+      suspended,
+      loading: worldLoading(levelConfig[level].name),
+    });
+    const lines = frame.map((row) => row.map((cell) => cell.char).join(""));
+    const y = lines.findIndex((row) => row.includes(levelConfig[level].name + "..."));
+    expect(y).toBeGreaterThanOrEqual(0);
+    return [lines[y].indexOf("Loading"), y];
+  };
+  expect(location(true)).toEqual(location(false));
+});
+
 it("draws startup loading inside the connected frame without the old world", () => {
   const { world } = setup();
   const frame = getTerminalFrame(world, 33, 24, undefined, {
     suspended: true,
-    loadingSounds: true,
+    loading: soundsLoading(17, 201),
   });
   const layout = getTerminalLayout(33, 24);
   const content = frame
     .slice(layout.top, layout.top + layout.height)
     .map((row) => row.slice(layout.left + 1, layout.left + layout.width - 1));
-  expect(frameToText(content).replace(/\s/g, "")).toBe("│Loadinggame...│");
+  expect(frameToText(content).replace(/\s/g, "")).toBe("│Loading♫17/201...│");
+  expect(content.flat().find((cell) => cell.char === "♫")?.foreground).toBe(
+    colors.green
+  );
   expect(frame[layout.top - 1][layout.left].char).toBe("┌");
   expect(
     frame[layout.top + layout.height][layout.left + layout.width - 1].char

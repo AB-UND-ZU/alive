@@ -1,3 +1,4 @@
+import type { Sprite } from "../../engine/components/sprite";
 import { cameraSpring } from "../../engine/motion";
 import {
   createContext,
@@ -26,7 +27,7 @@ export type WorldContext = {
   ecs: WorldType | null;
   initial: boolean;
   setInitial: React.Dispatch<React.SetStateAction<boolean>>;
-  loadingSounds?: boolean;
+
   suspended: boolean;
   setSuspended: React.Dispatch<React.SetStateAction<boolean>>;
   paused: boolean;
@@ -51,6 +52,8 @@ const initialContext: WorldContext = {
   saveGame: () => {},
   openMenu: () => {},
 };
+export const LoadingContext = createContext<Sprite[] | undefined>(undefined);
+
 const Context = createContext(initialContext);
 
 export const WorldProvider = Context.Provider;

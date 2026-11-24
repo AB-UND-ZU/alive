@@ -31,8 +31,12 @@ export default function HtmlRenderer({
   cellWidth,
   cellHeight,
   paused,
+  onReady,
 }: RendererProps) {
   const { suspended } = useWorld();
+  useEffect(() => {
+    if (!suspended) onReady?.();
+  }, [onReady, suspended]);
   const [, render] = useReducer((value) => value + 1, 0);
   const clock = useMemo(() => createFrameClock(world), [world]);
   const pausedRef = useRef(paused);

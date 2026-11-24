@@ -1,3 +1,5 @@
+import type { LevelDestination } from "../game/levels/generation";
+import type { Sprite } from "./components/sprite";
 import {
   initializeParticleMotion,
   releaseMotion,
@@ -230,8 +232,8 @@ export default function createWorld() {
       saveId: undefined as string | undefined,
       loadGame: (saveId: string) => {},
       eraseGame: (saveId: string) => {},
-      suspend: () => {},
-      resume: () => {},
+      generateLevel: (destination: LevelDestination) => {},
+      setLoading: undefined as ((line: Sprite[]) => void) | undefined,
       setFlipped: (flipped: boolean) => {},
       ecs: world,
       dimensions: initialDimensions,

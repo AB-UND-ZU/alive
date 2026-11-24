@@ -1,5 +1,5 @@
 import { Params } from "jsfxr";
-import { synthesizeSound } from "./synthesis";
+import { synthesizeBatch } from "./batch";
 
 const catalogKey = "/__alive__/sound-catalog";
 
@@ -18,7 +18,10 @@ const unpack = (buffer: ArrayBuffer, count: number) => {
   return sounds;
 };
 
-export const loadSoundCatalog = async (params: Params[]) => {
+export const loadSoundCatalog = async (
+  params: Params[],
+  report?: (current: number) => void
+) => {
   let cache: Cache | undefined;
   let fingerprint: string | undefined;
   try {
@@ -36,7 +39,7 @@ export const loadSoundCatalog = async (params: Params[]) => {
     // Missing storage or an unreadable catalog is a cache miss.
   }
 
-  const sounds = params.map(synthesizeSound);
+  const sounds = await synthesizeBatch(params, report);
   if (cache && fingerprint) {
     try {
       const lengths = Uint32Array.from(sounds, (sound) => sound.length);

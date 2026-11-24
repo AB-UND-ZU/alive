@@ -10,34 +10,50 @@
       content="Alive, an ASCII-based 2D adventure game"
     />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/android-chrome-192x192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
-
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
+    <% if (process.env.REACT_APP_WIKI !== "true") { %>
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="<%= require('./fonts/MostPerfectDOSVGA.woff2') %>" />
+    <style>
+      body { margin: 0; background: black; }
+      #files {
+        --h: round(down, min(5vh, calc(100vw / 21 * 16 / 9)), 1px);
+        --w: calc(var(--h) * 9 / 16);
+        position: fixed;
+        inset: calc(3 * var(--h)) auto calc(3 * var(--h)) 50%;
+        transform: translateX(-50%);
+        width: calc(min(100vw, 32 * var(--w)) + var(--w) + var(--h) / 4);
+        margin: auto;
+        display: grid;
+        grid-template: var(--h) 1fr var(--h) / var(--w) 1fr var(--w);
+      }
+      #files > svg { width: 100%; min-height: 0; align-self: stretch; }
+      #files .message {
+        position: absolute; left: calc(50% + var(--w) / 2); top: calc(50% - var(--h) - var(--h) / 16);
+        transform: translate(-50%, -50%); display: flex;
+      }
+      #files .message svg { width: var(--w); height: var(--h); }
+      #files.terminal { inset-block: 0; max-width: min(100vw, calc(33 * var(--w))); height: min(calc(100vh - 5 * var(--h)), calc(15 * var(--h))); }
+      #files.terminal .message { top: calc(50% - var(--h)); }
+    </style>
+    <% } %>
     <title>ALIVE - ASCII Adventure Game</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
+    <div id="root">
+      <% if (process.env.REACT_APP_WIKI !== "true") {
+        const { createDialog, createText } = require("../src/game/assets/ui");
+        const { characterMarkup } = require("../src/components/Row/characters");
+        const { colors } = require("../src/game/assets/colors");
+        const terminal = process.env.REACT_APP_RENDERER === "terminal";
+        const glyph = sprite => '<svg aria-hidden="true" viewBox="0 0 9 16" preserveAspectRatio="none" shape-rendering="crispEdges">' +
+          characterMarkup((terminal && sprite.terminal || sprite).layers) + '</svg>';
+      %>
+      <main id="files" class="<%= terminal ? 'terminal' : '' %>" aria-label="Loading files...">
+        <%= createText("┌─┐│ │└─┘", colors.silver).map(glyph).join("") %>
+        <div class="message"><%= createDialog("Loading files...").map(glyph).join("") %></div>
+      </main>
+      <% } %>
+    </div>
   </body>
 </html>

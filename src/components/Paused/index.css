@@ -30,3 +30,17 @@
   z-index: 1;
   cursor: pointer;
 }
+
+.LoadingRow {
+  width: max-content;
+  transform: translateY(calc(-1 * var(--pixel-size)));
+}
+
+/* World dialogs anchor their middle glyph to a cell. */
+.LoadingRow:has(> .Cell:last-child:nth-child(even)) {
+  translate: calc(var(--cell-width) / 2) 0;
+}
+
+.LoadingRow > .Cell {
+  margin-left: 0;
+}

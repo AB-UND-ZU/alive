@@ -2092,6 +2092,11 @@ export const caret: Sprite = {
   ],
 };
 
+export const soundNotes: Sprite = {
+  name: "Sound",
+  layers: [{ char: "\u010d", color: colors.green }],
+};
+
 export const mapDiscovery: Sprite = {
   name: "Map",
   terminal: { layers: [{ char: "#", color: colors.lime }] },

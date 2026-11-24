@@ -4,4 +4,4 @@ Shows the start, loading and pause state above the terminal. In a playable level
 
 Save is disabled while a write is running or when the hero cannot be saved. The main menu only offers Resume. Resume input returns control to the game; storage behavior belongs to `World`. See [Savegames](../../../wiki/savegames.md).
 
-The startup overlay shows "Loading game..." while the sound catalog is prepared, then "Loading map..." during menu generation. The resume hit area is absent while loading.
+The portal shows its loading dialog in the world. During loading the overlay displays the supplied sprites at the normal cell size. The terminal frame crops long messages. The initial Click or Tap prompt keeps the HUD rows empty. Starting the game reveals the pause button and its hit area.

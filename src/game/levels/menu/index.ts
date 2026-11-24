@@ -1,3 +1,5 @@
+import { levelConfig } from "..";
+import { worldLoading } from "../../assets/loading";
 import { entities, World } from "../../../engine";
 import { POSITION } from "../../../engine/components/position";
 import { LEVEL, LevelName } from "../../../engine/components/level";
@@ -34,7 +36,8 @@ import { TRACKABLE } from "../../../engine/components/trackable";
 export const menuSize = 42;
 export const menuName: LevelName = "LEVEL_MENU";
 
-export const generateMenu = async (world: World) => {
+export function* generateMenu(world: World) {
+  yield worldLoading(levelConfig.LEVEL_MENU.name);
   const size = world.metadata.gameEntity[LEVEL].size;
   const worldMatrix = createMatrix<CellType>(size, size, "air");
 
@@ -682,4 +685,4 @@ export const generateMenu = async (world: World) => {
     menuCorner,
     add(menuCorner, { x: menuWidth, y: menuHeight })
   );
-};
+}

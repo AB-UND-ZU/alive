@@ -1,4 +1,6 @@
 import "./index.css";
+import { useCallback, useState } from "react";
+import { LEVEL } from "../../engine/components/level";
 import Paused from "../Paused";
 import { useDimensions } from "../Dimensions";
 import Row from "../Row";
@@ -16,6 +18,10 @@ export default function Terminal({
 }: React.PropsWithChildren<{ shadows?: boolean }>) {
   const dimensions = useDimensions();
   const { ecs, paused, suspended } = useWorld();
+
+  const [ready, setReady] = useState(false);
+  const onReady = useCallback(() => setReady(true), []);
+  const preparingMap = !ready && ecs?.metadata.gameEntity[LEVEL]?.name === "LEVEL_ISLAND";
 
   return (
     <main className="Terminal">
@@ -35,6 +41,7 @@ export default function Terminal({
           cellHeight={dimensions.cellHeight}
           paused={paused || suspended}
           shadows={shadows}
+          onReady={preparingMap ? onReady : undefined}
         />
       )}
       <div className="RightEdge">
@@ -45,7 +52,7 @@ export default function Terminal({
         )}
       </div>
       {children}
-      <Paused />
+      <Paused preparingMap={preparingMap} />
     </main>
   );
 }

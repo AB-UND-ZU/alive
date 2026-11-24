@@ -8,7 +8,7 @@ Owns level creation, pause/suspension state and the world context used by the HU
 | `persistent` | Enable storage; defaults off for injected worlds and on for ordinary play |
 | `children` | UI mounted inside the world context |
 
-Normal startup paints "Loading game...", loads the shared sound catalog, then switches to "Loading map..." and generates the menu. Resume input is ignored until loading finishes. Returning to the menu reuses the sound buffers. Injected worlds skip this startup phase. Pending menu generation is cancelled when the world unmounts or is replaced.
+The static entry frame displays “Loading files…” until React mounts. Startup shows the shared sound catalog count, then the menu generator’s sprite line. Browser sessions run each level generator in a worker, restore its snapshot, attach systems and preload the result. Persistent sessions reuse the accepted non-menu snapshot for their arrival autosave. Resume input is ignored until loading finishes. Returning to the menu reuses the sound buffers. Injected worlds skip this startup phase. Pending menu generation is cancelled when the world unmounts or is replaced.
 
 Pausing a playable world and returning to the menu save to [local storage](../../game/saves/storage.md). Continue restores a snapshot, reconnects UI callbacks and systems, preloads the world, then remounts its children.
 
