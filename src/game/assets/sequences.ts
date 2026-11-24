@@ -6334,11 +6334,11 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
     } else if (isHitting && addItem && entity[FORGABLE]) {
       const feedback =
         lastAction === "hit"
-          ? createText(step?.result === "ace" ? "Ace!" : "Hit.", colors.lime)
+          ? createText(step?.result === "ace" ? " Ace!" : " Hit.", colors.lime)
           : lastAction === "ouch"
           ? createText("Ouch!", colors.red)
           : lastAction === "miss"
-          ? createText("Miss.", colors.yellow)
+          ? createText("Miss.", colors.red)
           : failed
           ? createText("Lost!", colors.red)
           : hittingDone

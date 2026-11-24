@@ -166,11 +166,11 @@ describe("forging at an anvil", () => {
           particles[`popup-content-7-${11 + i}`],
           [SPRITE]
         );
-        return cell[SPRITE].layers.find((layer) => layer.color === color)?.char;
+        return cell[SPRITE].layers.find((layer) => layer.color === color)?.char ?? " ";
       }).join("");
     for (const [text, color] of [
       ["Ouch!", colors.red],
-      ["Miss.", colors.yellow],
+      ["Miss.", colors.red],
       ["Hit.", colors.lime],
       ["Ace!", colors.lime],
     ]) {
@@ -188,12 +188,13 @@ describe("forging at an anvil", () => {
           : hittingOffset + (text === "Ace!" ? forge.target! : cell);
       advanceUntil(world, () => getHammerIndex(world, anvil) === target);
       act(world, "right");
-      expect(feedback(color)).not.toBe(text);
-      advanceUntil(world, () => feedback(color) === text);
+      const centered = text.padStart(5);
+      expect(feedback(color)).not.toBe(centered);
+      advanceUntil(world, () => feedback(color) === centered);
       step(world, 4);
-      expect(feedback(color)).toBe(text);
+      expect(feedback(color)).toBe(centered);
       advanceUntil(world, () => forge.lastAction === "swing");
-      expect(feedback(color)).not.toBe(text);
+      expect(feedback(color)).not.toBe(centered);
     }
     const ouch = world.assertByIdAndComponents(particles["popup-content-0-7"], [
       SPRITE,
