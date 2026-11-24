@@ -1388,9 +1388,7 @@ export const getUnitSprite = (unit: UnitKey) => {
       .map((equipment) => getItemSprite(equipment)),
     unitData.sprite,
     ...unitData.equipments
-      .filter(
-        (equipment) => equipment.amount !== 0 && equipment.weapon === "sword"
-      )
+      .filter((equipment) => equipment.weapon && equipment.amount > 0)
       .map((equipment) => getItemSprite(equipment)),
     unitData.faction === "unit" || unitData.faction === "animal"
       ? none

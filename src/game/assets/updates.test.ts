@@ -1,9 +1,9 @@
 import "../../engine";
 import { composeCharacterPixels } from "../../components/Row/characters";
 import { colors } from "./colors";
-import { listBullet, none } from "./sprites";
+import { bandit, hostileBar, listBullet, none } from "./sprites";
 import { getUpdates } from "./updates";
-import { createUnitName, getUnitSprite, getClassSprite } from "./utils";
+import { createUnitName, getUnitSprite, getClassSprite, getItemSprite } from "./utils";
 import { createText } from "./ui";
 
 it("offers every release newest first with readable 17-cell rows", () => {
@@ -112,6 +112,14 @@ it("uses a compact gray dash-and-dot bullet", () => {
   ).toBeLessThan(
     Math.max(...points(dash).map(([x]) => x)) -
       Math.min(...points(dash).map(([x]) => x))
+  );
+});
+
+it("shows the iron wand in the bandit mage portrait", () => {
+  const wand = getItemSprite({ weapon: "wand", material: "iron" });
+  const portrait = createUnitName("banditMage")[0];
+  expect(composeCharacterPixels(portrait.layers)).toEqual(
+    composeCharacterPixels([...bandit.layers, ...wand.layers, ...hostileBar.layers])
   );
 });
 
