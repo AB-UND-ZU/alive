@@ -382,14 +382,14 @@ export const abilityStats: Partial<
   },
 
   banditPriest: {
-    wave: { default: { earth: { heal: 2 } } },
+    wave: { default: { earth: { heal: 3 } } },
   },
   banditMage: {
     wand: { iron: { default: { magic: 3 } } },
     trap: { iron: { water: { magic: 3, freeze: 3, delay: 10 } } },
   },
   banditRogue: {
-    bow: { iron: { default: { melee: 4 } } },
+    bow: { iron: { default: { melee: 3 } } },
   },
 
   violet: {

@@ -286,13 +286,13 @@ export const gearStats: Partial<
     sword: { diamond: { default: { melee: 7 } } },
   },
   banditPriest: {
-    sword: { default: { earth: { heal: 3 } } },
+    sword: { default: { earth: { heal: 4 } } },
   },
   banditKnight: {
-    sword: { wood: { default: { melee: 3 } } },
+    sword: { wood: { default: { melee: 2 } } },
   },
   banditRogue: {
-    sword: { iron: { water: { melee: 4, freeze: 2 } } },
+    sword: { iron: { water: { melee: 3, freeze: 2 } } },
   },
   clover: {
     sword: {

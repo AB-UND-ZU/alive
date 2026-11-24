@@ -595,12 +595,19 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   banditPriest: {
     faction: "wild",
     scratch: colors.silver,
-    stats: { hp: 40, mp: 1, armor: 1 },
+    stats: { hp: 50, mp: 1, armor: 1 },
     equipments: [
       { weapon: "sword", element: "earth", amount: 1, bound: true },
       { spell: "wave", element: "earth", amount: 1, bound: true },
       { skill: "block", material: "wood", amount: 1, bound: true },
       { stackable: "charge", amount: Infinity, bound: true },
+      {
+        amount: 10,
+        consume: "potion",
+        material: "iron",
+        stat: "hp",
+        bound: true,
+      },
     ],
     drops: banditDrops("mp"),
     patternNames: ["bandit_camp", "bandit_priest"],
@@ -610,7 +617,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   banditMage: {
     faction: "wild",
     scratch: colors.silver,
-    stats: { hp: 40, mp: 1, armor: 1 },
+    stats: { hp: 50, mp: 1, armor: 1 },
     equipments: [
       {
         weapon: "wand",
@@ -635,7 +642,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   banditKnight: {
     faction: "wild",
     scratch: colors.silver,
-    stats: { hp: 40, armor: 1 },
+    stats: { hp: 60, armor: 2 },
     equipments: [
       {
         weapon: "sword",
@@ -649,8 +656,15 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         amount: 1,
         bound: true,
       },
-      { skill: "slash", material: "iron", amount: 1, bound: true },
+      { skill: "slash", material: "wood", amount: 1, bound: true },
       { stackable: "charge", amount: Infinity, bound: true },
+      {
+        amount: 10,
+        consume: "potion",
+        material: "iron",
+        stat: "hp",
+        bound: true,
+      },
     ],
     drops: banditDrops("hp"),
     patternNames: ["bandit_camp", "bandit_knight"],
