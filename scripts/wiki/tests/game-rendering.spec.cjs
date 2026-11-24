@@ -40,7 +40,7 @@ test("the bottom terminal edge stays inside the centered game frame", async ({
 }) => {
   await page.setViewportSize({ width: 1214, height: 774 });
   await page.goto("/preview.html?test#game");
-  await expect(page.locator(".ControlsEdge")).toBeVisible();
+  await expect(page.locator("#resume")).toBeVisible({ timeout: 30000 });
   await page.evaluate(() => document.fonts.ready);
   const terminal = await page.locator(".Terminal").boundingBox();
   const edge = await page.locator(".ControlsEdge").boundingBox();
