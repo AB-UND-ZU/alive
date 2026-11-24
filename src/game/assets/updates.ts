@@ -1,3 +1,4 @@
+import { glacierTrees } from "../../bindings/creation";
 import type { Dialog } from "../../engine/components/popup";
 import type { Sprite } from "../../engine/components/sprite";
 import type { UnitStats } from "../../engine/components/stats";
@@ -88,6 +89,37 @@ let history: Dialog[] | undefined;
 // Build once after game modules initialize; the history uses the normal popup labels.
 export const getUpdates = (): Dialog[] =>
   (history ||= [
+    update("0x08", "20261124", [
+      ...change(
+        ["Fill ", label(sprites.ice, "Glacier"), ":"],
+        [
+          unitSprite("diamondPrism"), unitSprite("diamondEye"),
+          label(unitSprite("diamondOrb"), "Mobs", colors.maroon),
+        ],
+        [sprites.birch, ...glacierTrees, createText("Trees", colors.grey)],
+        [
+          unitSprite("banditPriest"), unitSprite("banditMage"),
+          unitSprite("banditKnight"), label(unitSprite("banditRogue"), "Bandits", colors.maroon),
+        ],
+        [
+          mergeSprites(sprites.campfire, sprites.fire),
+          sprites.woodChest, sprites.ironChest, sprites.goldChest,
+          sprites.box, label(sprites.pot, "Camps"),
+        ],
+        [sprites.ironMineDisplay, label(sprites.goldMineDisplay, "Mines")]
+      ),
+      ...change(
+        [label(sprites.fire, "Fire", colors.red), " melts ", label(sprites.ice, "Ice")],
+        ["and ", label(sprites.snowCover, "Snow")]
+      ),
+      ...change(
+        [sprites.anvil, label(forge, "Forging"), " gives"],
+        [stat("xp"), " but higher"],
+        ["difficulty"]
+      ),
+      ...change(["Loading progress"]),
+      ...change(["Cache ", label(sprites.soundNotes, "Sounds")]),
+    ]),
     update("0x07", "20261116", [
       ...change(
         ["New renderers:"],
