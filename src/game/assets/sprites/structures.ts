@@ -318,6 +318,137 @@ export const bench: Sprite = {
   ],
 };
 
+export const iglooWall: Sprite = {
+  name: "igloo_wall",
+  layers: [
+    { char: "█", color: colors.teal },
+    { char: "√", color: colors.aqua },
+    { char: "₧", color: colors.aqua },
+    { char: "M", color: colors.aqua },
+    { char: "\u0113", color: colors.aqua },
+    { char: "▄", color: colors.aqua },
+    { char: "┬", color: colors.teal },
+    { char: "░", color: colors.teal },
+    { char: "╥", color: colors.aqua },
+    { char: "─", color: colors.teal },
+  ],
+};
+
+export const iglooRoofLeftUp: Sprite = {
+  name: "igloo_roof_left",
+  layers: [
+    { char: "▄", color: colors.aqua },
+    { char: "░", color: colors.teal },
+    { char: "┌", color: colors.teal },
+    { char: "▌", color: colors.black },
+    { char: "▀", color: colors.black },
+  ],
+};
+
+export const iglooRoofUp: Sprite = {
+  name: "igloo_roof_up",
+  layers: [
+    { char: "▄", color: colors.aqua },
+    { char: "░", color: colors.teal },
+    { char: "┬", color: colors.teal },
+    { char: "╥", color: colors.aqua },
+    { char: "▀", color: colors.black },
+    { char: "─", color: colors.teal },
+  ],
+};
+
+export const iglooRoofUpRight: Sprite = {
+  name: "igloo_roof_right",
+  layers: [
+    { char: "▄", color: colors.aqua },
+    { char: "░", color: colors.teal },
+    { char: "┐", color: colors.teal },
+    { char: "▐", color: colors.black },
+    { char: "▀", color: colors.black },
+  ],
+};
+
+export const iglooLeftInside: Sprite = {
+  name: "igloo_left_inside",
+  layers: [
+    { char: "▌", color: colors.aqua },
+    { char: "░", color: colors.black },
+    { char: "▐", color: colors.black },
+    { char: "│", color: colors.teal },
+  ],
+};
+
+export const iglooLeftUpInside: Sprite = {
+  name: "igloo_left_up_inside",
+  layers: [
+    { char: "▌", color: colors.aqua },
+    { char: "▀", color: colors.aqua },
+    { char: "░", color: colors.black },
+    { char: "┌", color: colors.teal },
+  ],
+};
+
+export const iglooUpInside: Sprite = {
+  name: "igloo_up_inside",
+  layers: [
+    { char: "▀", color: colors.aqua },
+    { char: "░", color: colors.black },
+    { char: "▄", color: colors.black },
+    { char: "─", color: colors.teal },
+  ],
+};
+
+export const iglooUpRightInside: Sprite = {
+  name: "igloo_up_right_inside",
+  layers: [
+    { char: "▐", color: colors.aqua },
+    { char: "▀", color: colors.aqua },
+    { char: "░", color: colors.black },
+    { char: "┐", color: colors.teal },
+  ],
+};
+
+export const iglooRightInside: Sprite = {
+  name: "igloo_right_inside",
+  layers: [
+    { char: "▐", color: colors.aqua },
+    { char: "░", color: colors.black },
+    { char: "▌", color: colors.black },
+    { char: "│", color: colors.teal },
+  ],
+};
+
+export const iglooRightDownInside: Sprite = {
+  name: "igloo_right_down_inside",
+  layers: [
+    { char: "▐", color: colors.aqua },
+    { char: "▄", color: colors.aqua },
+    { char: "░", color: colors.black },
+    { char: "┘", color: colors.teal }
+  ],
+};
+
+export const iglooDownInside: Sprite = {
+  name: "igloo_down_inside",
+  layers: [
+    { char: "▄", color: colors.aqua },
+    { char: "░", color: colors.black },
+    { char: "▀", color: colors.black },
+    { char: "─", color: colors.teal },
+  ],
+};
+
+export const iglooDownLeftInside: Sprite = {
+  name: "igloo_down_left_inside",
+  layers: [
+    { char: "▌", color: colors.aqua },
+    { char: "▄", color: colors.aqua },
+    { char: "░", color: colors.black },
+    { char: "└", color: colors.teal },
+  ],
+};
+
+
 export const fortressRoof: Sprite = {
   name: "fortress_roof_center",
   terminal: { layers: [{ char: "█", color: colors.silver }] },

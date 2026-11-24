@@ -228,6 +228,18 @@ import {
   table,
   fenceDoorBurnt,
   palisadeDoorBroken,
+  iglooWall,
+  iglooLeftInside,
+  iglooRightInside,
+  iglooDownInside,
+  iglooUpInside,
+  iglooRoofUp,
+  iglooLeftUpInside,
+  iglooRoofLeftUp,
+  iglooUpRightInside,
+  iglooRoofUpRight,
+  iglooDownLeftInside,
+  iglooRightDownInside,
 } from "../game/assets/sprites/structures";
 import {
   createItemName,
@@ -3497,6 +3509,10 @@ export const createCell = (
       "fortress_house_right",
       "fortress_basement_left",
       "fortress_basement_right",
+      "igloo_house_left",
+      "igloo_house_right",
+      "igloo_basement_left",
+      "igloo_basement_right",
     ].includes(cell)
   ) {
     const wallEntity = entities.createWall(world, {
@@ -3512,12 +3528,18 @@ export const createCell = (
             fortress_house_right: fortressHouseRightInside,
             fortress_basement_left: fortressBasementLeftInside,
             fortress_basement_right: fortressBasementRightInside,
+            igloo_house_left: iglooLeftInside,
+            igloo_house_right: iglooRightInside,
+            igloo_basement_left: iglooDownLeftInside,
+            igloo_basement_right: iglooRightDownInside,
           }[cell] || none,
         orientation: [
           "house_left",
           "basement_left",
           "fortress_house_left",
           "fortress_basement_left",
+          "igloo_house_left",
+          "igloo_basement_left",
         ].includes(cell)
           ? "right"
           : "left",
@@ -3533,6 +3555,8 @@ export const createCell = (
           "basement_left",
           "fortress_house_left",
           "fortress_basement_left",
+          "igloo_house_left",
+          "igloo_basement_left",
         ].includes(cell)
           ? "right"
           : "left",
@@ -3548,23 +3572,41 @@ export const createCell = (
           fortress_house_right: fortressHouseRight,
           fortress_basement_left: fortressHouseLeft,
           fortress_basement_right: fortressHouseRight,
+          igloo_house_left: iglooWall,
+          igloo_house_right: iglooWall,
+          igloo_basement_left: iglooWall,
+          igloo_basement_right: iglooWall,
         }[cell] || none,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(wallEntity);
     return { cell: wallEntity, all };
-  } else if (cell === "wall" || cell === "fortress_wall") {
+  } else if (
+    cell === "wall" ||
+    cell === "fortress_wall" ||
+    cell === "igloo_wall"
+  ) {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: {
-        sprite: cell === "wall" ? wallInside : fortressWallInside,
+        sprite:
+          cell === "wall"
+            ? wallInside
+            : cell === "fortress_wall"
+            ? fortressWallInside
+            : iglooDownInside,
         orientation: "down",
       },
       [FOG]: { visibility, type: "terrain" },
       [LAYER]: {},
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [POSITION]: { x, y },
-      [SPRITE]: cell === "wall" ? house : fortressHouse,
+      [SPRITE]:
+        cell === "wall"
+          ? house
+          : cell === "fortress_wall"
+          ? fortressHouse
+          : iglooWall,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(wallEntity);
@@ -3595,13 +3637,22 @@ export const createCell = (
     });
     all.push(floatEntity);
     return { cell: floatEntity, all };
-  } else if (cell === "house" || cell === "fortress_house") {
+  } else if (
+    cell === "house" ||
+    cell === "fortress_house" ||
+    cell === "igloo"
+  ) {
     const facadeEntity = entities.createFacade(world, {
       [ENTERABLE]: { sprite: none },
       [FOG]: { visibility, type: "float" },
       [LAYER]: {},
       [POSITION]: { x, y },
-      [SPRITE]: cell === "house" ? house : fortressHouse,
+      [SPRITE]:
+        cell === "house"
+          ? house
+          : cell === "fortress_house"
+          ? fortressHouse
+          : iglooWall,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(facadeEntity);
@@ -3617,6 +3668,26 @@ export const createCell = (
     });
     all.push(facadeEntity);
     return { cell: facadeEntity, all };
+  } else if (cell === "igloo_roof") {
+    const wallEntity = entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: {
+        sprite: iglooUpInside,
+      },
+      [FOG]: { visibility, type: "float" },
+      [LAYER]: {},
+      [LIGHT]: {
+        brightness: 0,
+        darkness: 1,
+        visibility: 0,
+        orientation: "down",
+      },
+      [POSITION]: { x, y },
+      [SPRITE]: iglooWall,
+      [RENDERABLE]: { generation: 0 },
+    });
+    all.push(wallEntity);
+    return { cell: wallEntity, all };
   } else if (cell === "roof_left" || cell === "fortress_roof_left") {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
@@ -3657,27 +3728,49 @@ export const createCell = (
     });
     all.push(wallEntity);
     return { cell: wallEntity, all };
-  } else if (cell === "roof_left_up" || cell === "fortress_roof_left_up") {
+  } else if (
+    cell === "roof_left_up" ||
+    cell === "fortress_roof_left_up" ||
+    cell === "igloo_roof_left_up"
+  ) {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: {
         sprite:
-          cell === "roof_left_up" ? roofLeftUpInside : fortressRoofLeftUpInside,
+          cell === "roof_left_up"
+            ? roofLeftUpInside
+            : cell === "fortress_roof_left_up"
+            ? fortressRoofLeftUpInside
+            : iglooLeftUpInside,
       },
       [FOG]: { visibility, type: "float" },
       [LAYER]: {},
       [LIGHT]: { brightness: 0, darkness: 0, visibility: 0 },
       [POSITION]: { x, y },
-      [SPRITE]: cell === "roof_left_up" ? roofLeftUp : fortressRoofLeftUp,
+      [SPRITE]:
+        cell === "roof_left_up"
+          ? roofLeftUp
+          : cell === "fortress_roof_left_up"
+          ? fortressRoofLeftUp
+          : iglooRoofLeftUp,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(wallEntity);
     return { cell: wallEntity, all };
-  } else if (cell === "roof_up" || cell === "fortress_roof_up") {
+  } else if (
+    cell === "roof_up" ||
+    cell === "fortress_roof_up" ||
+    cell === "igloo_roof_up"
+  ) {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: {
-        sprite: cell === "roof_up" ? roofUpInside : fortressRoofUpInside,
+        sprite:
+          cell === "roof_up"
+            ? roofUpInside
+            : cell === "fortress_roof_up"
+            ? fortressRoofUpInside
+            : iglooUpInside,
       },
       [FOG]: { visibility, type: "float" },
       [LAYER]: {},
@@ -3688,25 +3781,41 @@ export const createCell = (
         orientation: "down",
       },
       [POSITION]: { x, y },
-      [SPRITE]: cell === "roof_up" ? roofUp : fortressRoofUp,
+      [SPRITE]:
+        cell === "roof_up"
+          ? roofUp
+          : cell === "fortress_roof_up"
+          ? fortressRoofUp
+          : iglooRoofUp,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(wallEntity);
     return { cell: wallEntity, all };
-  } else if (cell === "roof_up_right" || cell === "fortress_roof_up_right") {
+  } else if (
+    cell === "roof_up_right" ||
+    cell === "fortress_roof_up_right" ||
+    cell === "igloo_roof_up_right"
+  ) {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: {
         sprite:
           cell === "roof_up_right"
             ? roofUpRightInside
-            : fortressRoofUpRightInside,
+            : cell === "fortress_roof_up_right"
+            ? fortressRoofUpRightInside
+            : iglooUpRightInside,
       },
       [LAYER]: {},
       [LIGHT]: { brightness: 0, darkness: 0, visibility: 0 },
       [FOG]: { visibility, type: "float" },
       [POSITION]: { x, y },
-      [SPRITE]: cell === "roof_up_right" ? roofUpRight : fortressRoofUpRight,
+      [SPRITE]:
+        cell === "roof_up_right"
+          ? roofUpRight
+          : cell === "fortress_roof_up_right"
+          ? fortressRoofUpRight
+          : iglooRoofUpRight,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(wallEntity);
