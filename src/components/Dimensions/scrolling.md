@@ -6,6 +6,6 @@
 | --- | --- |
 | `--cell-width`, `--cell-height`, `--pixel-size` | Character and sprite size |
 | `--left-offset`, `--right-offset`, `--top-offset`, `--bottom-offset` | Align the terminal with partial viewport cells |
-| `--terminal-width`, `--terminal-height`, `--hud-rows`, `--100vh` | Terminal and HUD bounds |
+| `--terminal-width`, `--terminal-height`, `--hud-rows`, `--game-height` | Terminal and HUD bounds |
 
-The div also registers with `body-scroll-lock` through `enableBodyScroll`.
+On iOS, the game container cancels the native selection gesture across the playfield, stats and controls. Releasing a tap delivers its click with the original pointer ID and coordinates so the controls can still distinguish taps from steering and scrollbar drags.

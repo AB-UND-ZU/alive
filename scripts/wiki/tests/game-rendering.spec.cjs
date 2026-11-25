@@ -47,10 +47,8 @@ test("the bottom terminal edge stays inside the centered game frame", async ({
   const lineWidth = await page
     .locator(".ControlsEdge")
     .evaluate((row) =>
-      Array.from(row.children).reduce(
-        (width, cell) => width + cell.getBoundingClientRect().width,
-        0
-      )
+      row.lastElementChild.getBoundingClientRect().right -
+      row.firstElementChild.getBoundingClientRect().left
     );
   expect(lineWidth).toBeGreaterThanOrEqual(edge.width);
   await expectSolid(
@@ -73,6 +71,32 @@ test("the bottom terminal edge stays inside the centered game frame", async ({
     },
     "#000000"
   );
+});
+
+test("the canvas and HUD shrink back to the same grid during play and pause", async ({ page }) => {
+  await page.setViewportSize({ width: 800, height: 600 });
+  await page.goto("/preview.html?test#game");
+  await page.locator("#resume").click();
+  const bounds = () => page.evaluate(() =>
+    [".Stats", ".Terminal", "canvas", ".ControlsEdge"].map(selector => {
+      const { y, height } = document.querySelector(selector).getBoundingClientRect();
+      return [y, height];
+    })
+  );
+  // The canvas starts at its intrinsic size before Three.js measures its host.
+  await expect.poll(async () => {
+    const [, terminal, canvas] = await bounds();
+    return canvas[1] === terminal[1];
+  }).toBe(true);
+  const original = await bounds();
+  for (const paused of [false, true]) {
+    if (paused) await page.locator("#menu").click();
+    await page.setViewportSize({ width: 1200, height: 900 });
+    await expect.poll(async () => (await bounds())[0][1]).toBe(180);
+    await page.setViewportSize({ width: 800, height: 600 });
+    await expect.poll(bounds).toEqual(original);
+    if (paused) await expect(page.locator("#pause-resume")).toBeVisible();
+  }
 });
 
 test("layered cells have no internal seams at fractional scale", async ({ page }) => {

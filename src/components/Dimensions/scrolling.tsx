@@ -6,10 +6,33 @@ const useScrollLock = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
+    enableBodyScroll(container);
 
-    enableBodyScroll(containerRef.current);
-  }, [containerRef]);
+    if (!window.CSS?.supports?.("-webkit-touch-callout", "none")) return;
+    // Cancel WebKit's tap-and-hold loupe across the whole game. Canceling
+    // touchstart also suppresses its click, so deliver the tap on release.
+    let tapTarget: EventTarget | null = null;
+    const preventLoupe = (event: TouchEvent) => {
+      if (event.cancelable) event.preventDefault();
+      tapTarget =
+        event.defaultPrevented && event.touches.length === 1 ? event.target : null;
+    };
+    const handlePointer = (event: PointerEvent) => {
+      if (event.pointerType !== "touch" || !event.isPrimary) return;
+      if (event.type === "pointerup" && tapTarget && event.target === tapTarget) {
+        tapTarget.dispatchEvent(new PointerEvent("click", event));
+      }
+      tapTarget = null;
+    };
+    const listeners = new AbortController();
+    const { signal } = listeners;
+    container.addEventListener("touchstart", preventLoupe, { passive: false, signal });
+    for (const type of ["pointerdown", "pointerup", "pointercancel"] as const)
+      container.addEventListener(type, handlePointer, { signal });
+    return () => listeners.abort();
+  }, []);
 
   return containerRef;
 };
@@ -22,8 +45,8 @@ export default function ScrollLock({
 
   useResizeListener((dimensions) => {
     document.documentElement.style.setProperty(
-      "--100vh",
-      `${dimensions.screenHeight}px`
+      "--game-height",
+      `${dimensions.rows * dimensions.cellHeight}px`
     );
     document.documentElement.style.setProperty(
       "--pixel-size",

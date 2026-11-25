@@ -25,7 +25,10 @@ function TerminalClient() {
     <BrowserPreview
       world={ecs}
       columns={Math.max(1, Math.floor(dimensions.screenWidth / cellWidth))}
-      rows={Math.max(1, Math.floor(dimensions.screenHeight / cellHeight))}
+      rows={Math.max(
+        1,
+        Math.floor((dimensions.rows * dimensions.cellHeight) / cellHeight)
+      )}
       cellWidth={cellWidth}
       cellHeight={cellHeight}
       paused={paused || suspended}

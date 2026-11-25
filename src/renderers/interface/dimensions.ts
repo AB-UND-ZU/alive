@@ -24,6 +24,8 @@ export type Dimensions = {
 const maxColumns = 32;
 export const pixels = 16;
 export const aspectRatio = 9 / 16; // of DOS font
+// A dungeon room includes both boundary rows.
+export const maxWorldRows = 13;
 const hudHeight = 8;
 // const cutsceneHud = 14;
 const overscanColumns = 1;
@@ -37,7 +39,7 @@ export type DimensionOptions = {
 
 export const calculateDimensions = ({
   visibleColumns = 21,
-  visibleRows = 20,
+  visibleRows = maxWorldRows + hudHeight - overscanRows,
   topHudRows = hudHeight / 2,
 }: DimensionOptions = {}): Dimensions => {
   const screenWidth =
@@ -52,7 +54,7 @@ export const calculateDimensions = ({
   const cellWidth = cellHeight * aspectRatio;
   const pixelSize = cellHeight / pixels;
   const columns = Math.ceil(screenWidth / cellWidth);
-  const rows = Math.ceil(screenHeight / cellHeight);
+  const rows = visibleRows;
   const padding = Math.max(
     0,
     Math.ceil(columns / 2) - (visibleColumns - 1) / 2 - (columns % 2)
@@ -63,7 +65,7 @@ export const calculateDimensions = ({
   const topOffset = cellHeight / -2;
   const bottomOffset = (cellHeight * -6.5) / 12;
   const terminalHeight =
-    screenHeight -
+    rows * cellHeight -
     cellHeight * (topHudRows + hudHeight / 2) -
     topOffset -
     bottomOffset;

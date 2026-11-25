@@ -88,10 +88,13 @@ export default function World({
       world.metadata.setLoading = setLoading;
       world.metadata.setFlipped = setFlipped;
       world.metadata.loadGame = loadGame;
-      world.metadata.eraseGame = (saveId) =>
-        eraseGame(saveId).catch((error) =>
+      world.metadata.readOnlySaves = !persistent;
+      world.metadata.eraseGame = (saveId) => {
+        if (!persistent) return;
+        return eraseGame(saveId).catch((error) =>
           console.error("Erasing failed:", error)
         );
+      };
       world.metadata.dimensions = dimensionsRef.current;
     };
 
@@ -147,6 +150,12 @@ export default function World({
       generation.current = controller;
       const menu = destination.level === initialLevel;
       try {
+        if (menu) {
+          await loadSaveSummaries(persistent ? "readwrite" : "readonly").catch(
+            (error) => console.error("Loading saves failed:", error)
+          );
+          if (controller.signal.aborted) return;
+        }
         const snapshot = await loadLevel(
           {
             ...destination,
@@ -246,8 +255,7 @@ export default function World({
   }, [ecs]);
 
   const saveGame = useCallback(() => {
-    // Composed wiki scenes must not overwrite playable saves.
-    if (!persistent || suspendedRef.current || !canSave(ecs)) return;
+    if (suspendedRef.current || !canSave(ecs)) return;
 
     setSaveStatus({ saving: true });
     storeGame(ecs).then(
@@ -257,7 +265,7 @@ export default function World({
         setSaveStatus({ saving: false, failed: true });
       }
     );
-  }, [ecs, persistent]);
+  }, [ecs]);
 
   const handlePause = useCallback(
     (action: React.SetStateAction<boolean>) => {
@@ -315,14 +323,6 @@ export default function World({
       openMenu,
     ]
   );
-
-  // list saves for continuing
-  useEffect(() => {
-    if (!persistent) return;
-    loadSaveSummaries().catch((error) =>
-      console.error("Loading saves failed:", error)
-    );
-  }, [persistent]);
 
   useEffect(() => {
     if (!TEST_MODE) return;

@@ -230,6 +230,7 @@ export default function createWorld() {
       visibleCells: new Set<number>(),
       // stored game this world was loaded from or saved to
       saveId: undefined as string | undefined,
+      readOnlySaves: false,
       loadGame: (saveId: string) => {},
       eraseGame: (saveId: string) => {},
       generateLevel: (destination: LevelDestination) => {},

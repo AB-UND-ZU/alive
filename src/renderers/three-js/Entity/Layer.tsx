@@ -10,6 +10,7 @@ import Box from "./Box";
 import { Point } from "../../../game/math/std";
 import { fontUrl, getBoxGeometry, getGlyphGeometry } from "./geometries";
 import { updateLocalMatrix } from "./matrixUpdates";
+import { lightSprite } from "./CoveredLight";
 import { Instance } from "./Instances";
 
 export type LayerProps = {
@@ -72,26 +73,20 @@ export default function Layer({
     );
   }
 
-  const Material = props.receiveShadow
-    ? "meshLambertMaterial"
-    : "meshBasicMaterial";
-
-  let materialElement;
-  if (props.opacity) {
-    const AnimatedMaterial = animated[Material];
-    materialElement = (
-      <AnimatedMaterial color={color} transparent opacity={props.opacity} />
-    );
-  } else if (props.darkness) {
-    // interpolate color to black
-    const interpolatedColor = props.darkness.to((darkness) =>
-      color.clone().multiplyScalar(darkness).getHex()
-    );
-    const AnimatedMaterial = animated[Material];
-    materialElement = <AnimatedMaterial color={interpolatedColor} />;
-  } else {
-    materialElement = <Material color={color} />;
-  }
+  const materialElement = props.receiveShadow ? (
+    <animated.meshLambertMaterial
+      color={color}
+      transparent
+      opacity={props.opacity}
+      onBeforeCompile={lightSprite}
+    />
+  ) : (
+    <animated.meshBasicMaterial
+      color={color}
+      transparent
+      opacity={props.opacity}
+    />
+  );
 
   if (layer.char === "█") {
     return (

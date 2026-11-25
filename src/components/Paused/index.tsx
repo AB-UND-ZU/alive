@@ -102,7 +102,9 @@ export default function Paused({ preparingMap = false }: { preparingMap?: boolea
   return (
     <div className="Paused">
       <div className="Cover">
-        {Array.from({ length: dimensions.renderedRows }).map((_, index) => (
+        {Array.from({
+          length: dimensions.renderedRows + dimensions.hudRows,
+        }).map((_, index) => (
           <Row
             key={index}
             cells={repeat(
@@ -147,10 +149,11 @@ export default function Paused({ preparingMap = false }: { preparingMap?: boolea
         ) : (
           <>
             {/* keep an odd number of rows to stay aligned to cells */}
-            {inGame && <Row />}
+            {!inGame && <Row />}
             <Row cells={createText("█▀▄ █▀▄ █ █ ▄▀▀ ▄▀▀")} />
             <Row cells={createText("█▄█ █▄█ █ █ █▄▄ █▄▄")} />
             <Row cells={createText("█   █ █ █▄▀ ▄▄▀ █▄▄")} />
+            <Row />
             <Row />
             <PauseButton
               id="pause-resume"

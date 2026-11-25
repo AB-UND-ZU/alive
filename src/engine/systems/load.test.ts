@@ -218,6 +218,21 @@ describe("continue portal", () => {
     expect(getSaveSummaries()).toHaveLength(2);
   });
 
+  it("keeps erase disabled while allowing a preview to load the selected save", () => {
+    const save = createSummary({ name: "20261106-090000" });
+    setSaveSummaries([save]);
+    const { world, popup } = openSaves();
+    world.metadata.readOnlySaves = true;
+    act(world, "left");
+    expect(getTabSelections(world, popup)).toEqual([]);
+    expect(getSaveSummaries()).toEqual([save]);
+    const loadGame = jest.fn();
+    world.metadata.loadGame = loadGame;
+    trigger(world, "right");
+    advanceUntil(world, () => loadGame.mock.calls.length > 0, 5000);
+    expect(loadGame).toHaveBeenCalledWith(save.id);
+  });
+
   it("erases the selected save after confirming", () => {
     setSaveSummaries([
       createSummary({ name: "20261011-151323" }),

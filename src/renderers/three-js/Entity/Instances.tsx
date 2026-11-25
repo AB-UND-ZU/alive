@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { useLayoutEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
+import { lightSprite } from "./CoveredLight";
 import { updateLocalMatrix } from "./matrixUpdates";
 import { SpringValue } from "@react-spring/three";
 
@@ -47,6 +48,8 @@ const materials = {
   lambert: new THREE.MeshLambertMaterial({ color: 0xffffff }),
   basic: new THREE.MeshBasicMaterial({ color: 0xffffff }),
 };
+
+materials.lambert.onBeforeCompile = lightSprite;
 
 const createMesh = (batch: Batch, capacity: number) => {
   const mesh = new THREE.InstancedMesh(

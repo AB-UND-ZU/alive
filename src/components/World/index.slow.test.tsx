@@ -117,6 +117,7 @@ describe("World", () => {
     setSaveSummaries([]);
 
     renderWorld();
+    await generateMenu();
     await flush();
 
     expect(getSaveSummaries().map(({ id }) => id)).toEqual([save.id]);
@@ -322,6 +323,32 @@ describe("World", () => {
     expect(getSaveSummaries()).toEqual([]);
     expect(readSaves()).toHaveLength(1);
     expect(context.saveStatus).toBeUndefined();
+  });
+
+  it("loads a save from a preview menu without writing to its slot", async () => {
+    const original = await storeGame(createAreaWorld(area));
+    setSaveSummaries([]);
+    renderWorld({ persistent: false });
+    await generateMenu();
+    await flush();
+    expect(getSaveSummaries().map(save => save.id)).toEqual([original.id]);
+
+    await act(async () => { await ecs().metadata.loadGame(original.id); });
+    expect(ecs().metadata.saveId).toBe(original.id);
+    act(() => step(ecs(), 10));
+    pause();
+    act(() => context.saveGame());
+    act(() => ecs().metadata.eraseGame(original.id));
+    await flush();
+    expect(context.saveStatus).toBeUndefined();
+    act(() => ecs().metadata.generateLevel({ level: "LEVEL_TUTORIAL" }));
+    await flush();
+    expect(ecs().metadata.readOnlySaves).toBe(true);
+    act(() => context.openMenu());
+    await generateMenu();
+    await flush();
+    expect(levelName()).toBe("LEVEL_MENU");
+    expect(readSaves()).toEqual([original]);
   });
 
   it("saves before returning to the main menu", async () => {

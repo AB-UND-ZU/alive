@@ -1,6 +1,21 @@
 import { createContext, useEffect, useMemo } from "react";
 import * as THREE from "three";
-import { lightHeight, shadowHeight } from "../../interface/segments";
+import {
+  lightHeight,
+  shadowFactor,
+  shadowHeight,
+} from "../../interface/segments";
+
+// Three.js has already applied the shadow map to each light's color here.
+// A lit pixel takes the strongest light, independent of its angle or distance.
+export const lightSprite: THREE.Material["onBeforeCompile"] = (shader) => {
+  shader.fragmentShader = shader.fragmentShader.replace(
+    "#include <lights_lambert_pars_fragment>",
+    `#include <lights_lambert_pars_fragment>
+    #undef RE_Direct
+    #define RE_Direct(light, pos, normal, viewDir, coat, surface, reflected) reflected.directDiffuse = max(reflected.directDiffuse, light.color * BRDF_Lambert(surface.diffuseColor))`
+  );
+};
 
 // a fixed oversized cover is clipped by the camera and only depends on the
 // radius, so the ring is not rebuilt on every step
@@ -55,8 +70,8 @@ export default function CoveredLight({ brightness }: { brightness: number }) {
     <>
       <pointLight
         position={[0, 0, lightHeight]}
-        decay={-1}
-        intensity={Math.PI * 0.293}
+        decay={0}
+        intensity={Math.PI * (1 - shadowFactor)}
         castShadow
         shadow-mapSize-width={256}
         shadow-mapSize-height={256}

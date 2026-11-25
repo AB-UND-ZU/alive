@@ -166,6 +166,6 @@ it("uses the shared browser cell size without shrinking to a minimum terminal gr
     Math.max(1, Math.floor(dimensions.screenWidth / mockPreviewProps.cellWidth))
   );
   expect(mockPreviewProps.rows).toBe(
-    Math.max(1, Math.floor(dimensions.screenHeight / dimensions.cellHeight))
+    dimensions.rows
   );
 });

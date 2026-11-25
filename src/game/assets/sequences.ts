@@ -5844,7 +5844,10 @@ export const displayLoad: Sequence<PopupSequence> = (world, entity, state) => {
   const saves = getSaveSummaries();
   const selections = getTabSelections(world, entity);
   let erasing = selections.length === 1;
-  if (erasing && !saves.some((save) => save.id === restorable.saveId)) {
+  if (
+    erasing &&
+    (world.metadata.readOnlySaves || !saves.some((save) => save.id === restorable.saveId))
+  ) {
     setVerticalIndex(
       world,
       entity,
@@ -5955,7 +5958,9 @@ export const displayLoad: Sequence<PopupSequence> = (world, entity, state) => {
           ),
         ];
       } else {
-        details = [createText("Pause the game"), createText("to save it.")];
+        details = world.metadata.readOnlySaves
+          ? [createText("No saved games.")]
+          : [createText("Pause the game"), createText("to save it.")];
       }
 
       return {
@@ -5975,7 +5980,9 @@ export const displayLoad: Sequence<PopupSequence> = (world, entity, state) => {
             ),
         leftButton: erasing
           ? createButton("\u011aBACK", 7, false, false, false, "red")
-          : createButton("ERASE", 7, !selectedSave, false, false, "red"),
+          : createButton(
+              "ERASE", 7, !selectedSave || world.metadata.readOnlySaves, false, false, "red"
+            ),
       };
     }
   );

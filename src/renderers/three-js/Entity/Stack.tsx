@@ -1,4 +1,4 @@
-import { offsetFactors, stack, stackHeight } from "../../interface/segments";
+import { stack, stackHeight } from "../../interface/segments";
 import { getFacingLayers } from "../../../game/assets/ui";
 import { useWorld } from "../../interface/hooks";
 import Sprite, { AnimatedSprite } from "./Sprite";
@@ -28,19 +28,13 @@ export default function Stack({
       segment.amount
     );
 
-    let layerProps = segment.layerProps;
-    const colorFactor = offsetFactors[segment.offsetZ];
-    if (colorFactor && layerProps.receiveShadow) {
-      layerProps = { ...layerProps, colorFactor };
-    }
-
     const SpriteComponent = segment.layerProps.animatedOrigin
       ? AnimatedSprite
       : Sprite;
     sprites.push(
       <SpriteComponent
         key={segment.id}
-        layerProps={layerProps}
+        layerProps={segment.layerProps}
         sprite={segment.sprite}
         facing={segment.facing}
         amount={segment.amount}

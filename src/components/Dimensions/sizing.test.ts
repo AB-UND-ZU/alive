@@ -33,6 +33,13 @@ describe("terminal cell sizing", () => {
     expect(dimensions.renderedRows).toBe(13);
     expect(dimensions.terminalHeight).toBeCloseTo(417.333333);
   });
+  it("caps a tall phone at a complete dungeon room, including its entrances", () => {
+    viewport(378, 1000);
+    const { rows, cellHeight, renderedRows } = calculateDimensions();
+    expect(cellHeight).toBe(32);
+    expect(rows).toBe(20);
+    expect(renderedRows).toBe(13);
+  });
   it("fits the preview grid in two-pixel font cells", () => {
     viewport(414, 704);
     const dimensions = calculateDimensions({

@@ -19,7 +19,8 @@
         --h: round(down, min(5vh, calc(100vw / 21 * 16 / 9)), 1px);
         --w: calc(var(--h) * 9 / 16);
         position: fixed;
-        inset: calc(3 * var(--h)) auto calc(3 * var(--h)) 50%;
+        inset: 0 auto 0 50%;
+        height: calc(14 * var(--h));
         transform: translateX(-50%);
         width: calc(min(100vw, 32 * var(--w)) + var(--w) + var(--h) / 4);
         margin: auto;

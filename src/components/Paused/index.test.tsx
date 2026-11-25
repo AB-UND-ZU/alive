@@ -98,7 +98,8 @@ describe("Paused", () => {
       renderPaused(menu);
 
     expect(overlay().join("\n")).toContain("RESUME");
-    expect(overlay()).toHaveLength(5);
+    expect(overlay()).toHaveLength(7);
+    expect(overlay().slice(-3, -1)).toEqual(["", ""]);
     expect(container.querySelector("#pause-menu")).not.toBeInTheDocument();
     expect(container.querySelector("#pause-save")).not.toBeInTheDocument();
 
@@ -117,6 +118,7 @@ describe("Paused", () => {
     expect(text).toContain("MENU");
     expect(text).toContain("SAVE");
     expect(overlay()).toHaveLength(11);
+    expect(overlay().slice(3, 5)).toEqual(["", ""]);
   });
 
   it("resumes the game with the RESUME button", () => {
@@ -161,6 +163,16 @@ describe("Paused", () => {
     click("pause-save");
 
     expect(saveGame).not.toHaveBeenCalled();
+  });
+
+  it("dims SAVE in a read-only preview and stays paused when pressed", () => {
+    const world = createAreaWorld(area);
+    world.metadata.readOnlySaves = true;
+    const { click, isDisabled, saveGame, setPaused } = renderPaused(world);
+    expect(isDisabled("pause-save")).toBe(true);
+    click("pause-save");
+    expect(saveGame).not.toHaveBeenCalled();
+    expect(setPaused).not.toHaveBeenCalled();
   });
 
   it("disables SAVE while the hero steps through a portal", () => {

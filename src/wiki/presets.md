@@ -6,7 +6,7 @@ Dungeon starts empty-handed at level 1; Bandit stays level 1 with a wood sword, 
 
 The Worm Boss preset starts beside the one-health bait worm in the generated cave. Attacking the bait starts the ordinary encounter sequence.
 
-Every preset starts a new world with wiki seed 2026, temporarily scoping the native random source during generation. The Island preview and static Island/town references share that seed. Menu uses the ordinary game menu. Play allows persistence for these generated worlds; feature snippets remain isolated from saved games.
+Every preset starts a new world with wiki seed 2026, temporarily scoping the native random source during generation. The Island preview and static Island/town references share that seed. Menu uses the ordinary game menu. Play presets and feature snippets use read-only save access. Continue in the main menu can load an existing game.
 
 The generation tests verify each Island preset has a playable hero and valid start position, and that defeating the Worm Boss bait starts its encounter.
 <!-- source-types -->

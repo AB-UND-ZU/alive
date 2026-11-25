@@ -1,3 +1,4 @@
+import { maxWorldRows } from "../interface/dimensions";
 import { worldLoading } from "../../game/assets/loading";
 import { levelConfig } from "../../game/levels";
 import { projectLayers } from "./sprites";
@@ -68,7 +69,7 @@ export type TerminalSession = {
 
 export const getTerminalLayout = (columns: number, rows: number) => {
   const width = Math.min(columns, 33);
-  const height = Math.min(13, Math.max(1, rows - 7));
+  const height = Math.min(maxWorldRows, Math.max(1, rows - 7));
   return {
     width,
     height,
@@ -407,40 +408,38 @@ export const getTerminalFrame = (
         left + 1,
         2000
       );
-    let overlay: Sprite[][];
-    {
-      overlay = [
-        createText("█▀▄ █▀▄ █ █ ▄▀▀ ▄▀▀"),
-        createText("█▄█ █▄█ █ █ █▄▄ █▄▄"),
-        createText("█   █ █ █▄▀ ▄▄▀ █▄▄"),
-        [],
-      ];
-      const actions = getPauseActions(world);
-      actions.forEach((action, index) => {
-        if (index) overlay.push([]);
-        const selected = (session.selection || 0) === index && !action.disabled;
-        overlay.push([
-          ...createText(selected ? ">" : " "),
-          ...createSpriteButton(
-            createText(action.name, buttonPalettes[action.palette].text),
-            8,
-            action.disabled || !selected,
-            false,
-            selected,
-            action.palette
-          ),
-        ]);
-      });
-      if (actions.length > 1)
-        overlay.push(
-          createText(
-            session.failed ? "Failed!" : session.saveName || "",
-            session.failed ? colors.red : colors.grey
-          )
-        );
-    }
+    const actions = getPauseActions(world);
+    const overlay: Sprite[][] = [
+      createText("█▀▄ █▀▄ █ █ ▄▀▀ ▄▀▀"),
+      createText("█▄█ █▄█ █ █ █▄▄ █▄▄"),
+      createText("█   █ █ █▄▀ ▄▄▀ █▄▄"),
+      [],
+      [],
+    ];
+    actions.forEach((action, index) => {
+      if (index) overlay.push([]);
+      const selected = (session.selection || 0) === index && !action.disabled;
+      overlay.push([
+        ...createText(selected ? ">" : " "),
+        ...createSpriteButton(
+          createText(action.name, buttonPalettes[action.palette].text),
+          8,
+          action.disabled || !selected,
+          false,
+          selected,
+          action.palette
+        ),
+      ]);
+    });
+    if (actions.length > 1)
+      overlay.push(
+        createText(
+          session.failed ? "Failed!" : session.saveName || "",
+          session.failed ? colors.red : colors.grey
+        )
+      );
     const overlayWidth = Math.max(...overlay.map((row) => row.length));
-    const offset = top + Math.floor((height - overlay.length) / 2);
+    const offset = top + Math.ceil((height - overlay.length) / 2);
     overlay.forEach((row, y) =>
       line(
         addBackground(row, colors.black),

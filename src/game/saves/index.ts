@@ -111,6 +111,7 @@ export const getPlayer = (world: World) => world.getEntity([PLAYER, SPAWNABLE]);
 
 // players can't move while switching worlds, e.g. when stepping into portals
 export const canSave = (world: World) =>
+  !world.metadata.readOnlySaves &&
   world.metadata.gameEntity[LEVEL].name !== "LEVEL_MENU" &&
   !!getPlayer(world)?.[MOVABLE];
 

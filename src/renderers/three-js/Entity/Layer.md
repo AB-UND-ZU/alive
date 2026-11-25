@@ -9,7 +9,7 @@ Draws one colored glyph at its stack elevation. Full-block characters use cached
 | Receives shadows | Lambert material |
 | Unlit UI or effect | Basic material |
 
-`colorFactor` darkens elevated stack layers. `offsetZ` keeps their order; `LayerProps` carries opacity, darkness and movement settings from `Sprite`.
+`colorFactor` dims the exterior while the hero is indoors. Elevation only controls stacking and shadow geometry. `offsetZ` keeps layers in order; `LayerProps` carries opacity, darkness and movement settings from `Sprite`.
 <!-- source-types -->
 
 ## LayerProps

@@ -1,4 +1,4 @@
-import * as THREE from "three";
+import { lightSprite } from "./CoveredLight";
 import { colors } from "../../../game/assets/colors";
 import { Entity } from "ecs";
 import { useDimensions } from "../../../components/Dimensions";
@@ -7,9 +7,6 @@ import { animated, useSpring } from "@react-spring/three";
 import { immersibleHeight, stack, stackHeight } from "../../interface/segments";
 import { ORIENTABLE } from "../../../engine/components/orientable";
 import { MOVABLE } from "../../../engine/components/movable";
-
-const swimmingColor = new THREE.Color(colors.navy).multiplyScalar(3);
-const whiteTexture = new THREE.DataTexture(new Uint8Array([255, 255, 255]), 1, 1, THREE.RGBFormat);
 
 export default function Swimming({
   active,
@@ -77,11 +74,10 @@ export default function Swimming({
         args={[dimensions.aspectRatio, dimensions.aspectRatio, 1 / stack]}
       />
       <animated.meshLambertMaterial
-        color={swimmingColor}
+        color={colors.navy}
         opacity={spring.opacity}
         transparent
-        aoMap={whiteTexture}
-        aoMapIntensity={2/3}
+        onBeforeCompile={lightSprite}
       />
     </animated.mesh>
   );

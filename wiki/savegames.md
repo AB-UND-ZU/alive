@@ -36,4 +36,4 @@ Older saves upgrade automatically when the save list loads. Your saved world and
 
 To delete a selected save, choose [[button:ERASE]], then [[button:YES]]. [[button:BACK]] cancels. Erased saves cannot be restored.
 
-Saves stay in this browser on this device. Clearing site data deletes them. The [Play](play.md) page loads preset starting positions and equipment. Pausing saves those games too.
+Saves stay in this browser on this device. Clearing site data deletes them. The wiki [Play](play.md) page lets you try presets or load an existing save through Continue. Progress in a preview lasts for that session.

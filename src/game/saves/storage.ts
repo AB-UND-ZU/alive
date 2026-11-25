@@ -83,10 +83,12 @@ const runTransaction = async <T>(
   });
 };
 
-export const loadSaveSummaries = async () => {
+export const loadSaveSummaries = async (
+  mode: "readonly" | "readwrite" = "readwrite"
+) => {
   let upgradeError: unknown;
   const summaries = await runTransaction<SaveSummary[]>(
-    "readwrite",
+    mode,
     (transaction) => {
       const summariesStore = transaction.objectStore(summaryStore);
       const savesStore = transaction.objectStore(saveStore);
@@ -111,8 +113,10 @@ export const loadSaveSummaries = async () => {
             try {
               const upgraded = upgradeSave(save);
               const updated = getSummary(upgraded);
-              if (upgraded !== save) savesStore.put(upgraded);
-              summariesStore.put(updated);
+              if (mode === "readwrite") {
+                if (upgraded !== save) savesStore.put(upgraded);
+                summariesStore.put(updated);
+              }
               request.result[index] = updated;
             } catch (error) {
               upgradeError = error;

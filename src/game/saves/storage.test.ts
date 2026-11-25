@@ -89,21 +89,24 @@ describe("save storage", () => {
     ]);
   });
 
-  it("upgrades an older saved world and its summary while listing saves", async () => {
-    const saved = await storeGame(createAreaWorld(area));
-    const older = { ...saved, version: "0.4.0" };
-    fake.write("alive", "saves", older);
-    fake.write("alive", "summaries", getSummary(older));
-    setSaveSummaries([]);
+  it.each(["readonly", "readwrite"] as const)(
+    "lists an older save in a %s transaction",
+    async (mode) => {
+      const saved = await storeGame(createAreaWorld(area));
+      const older = { ...saved, version: "0.4.0" };
+      fake.write("alive", "saves", older);
+      fake.write("alive", "summaries", getSummary(older));
+      setSaveSummaries([]);
 
-    await loadSaveSummaries();
+      await loadSaveSummaries(mode);
 
-    const upgraded = { ...older, version: saveVersion };
-    expect(readSaves()).toEqual([upgraded]);
-    expect(fake.read("alive", "summaries")).toEqual([getSummary(upgraded)]);
-    expect(getSaveSummaries()).toEqual([getSummary(upgraded)]);
-    expect(readSaves()[0].snapshot).toEqual(older.snapshot);
-  });
+      const upgraded = { ...older, version: saveVersion };
+      const stored = mode === "readwrite" ? upgraded : older;
+      expect(getSaveSummaries()).toEqual([getSummary(upgraded)]);
+      expect(readSaves()).toEqual([stored]);
+      expect(fake.read("alive", "summaries")).toEqual([getSummary(stored)]);
+    }
+  );
 
   it("keeps stored worlds and the menu cache unchanged when an upgrade fails", async () => {
     const saved = await storeGame(createAreaWorld(area));

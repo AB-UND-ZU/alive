@@ -30,8 +30,24 @@ body:not(.Wiki),
   touch-action: none;
 }
 
+#root:has(> .App) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+}
+
+@media (any-pointer: coarse) {
+  .App,
+  .App :is(canvas, .HtmlRenderer, .TerminalBrowserPreview) {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
 .App {
-  height: var(--100vh);
+  position: relative;
+  height: var(--game-height);
   display: flex;
   flex-direction: column;
   text-align: center;

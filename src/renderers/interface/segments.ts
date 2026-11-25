@@ -31,7 +31,6 @@ export const textSize = 18 / 25 + 0.001;
 export const stack = 1000;
 export const stackHeight = 1;
 
-// odd values because i don't want to recalculate brightness values
 export const terrainHeight = 0 * stackHeight;
 export const effectHeight = 0.3 * stackHeight;
 export const objectHeight = 0.5 * stackHeight;
@@ -264,15 +263,6 @@ export const createSprite = (world: World, entityId: number) => {
     name: "sprite_generic",
     layers,
   };
-};
-
-// depending on the distance between camera, object and light,
-// the brightness might need to be adjusted to match the original
-export const offsetFactors: Record<number, number> = {
-  1: 1.41,
-  1.1: 1.46,
-  1.3: 1.6,
-  1.5: 1.77,
 };
 
 // scalar value factor for colors in shadow

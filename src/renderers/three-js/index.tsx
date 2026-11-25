@@ -1,6 +1,7 @@
 import { WorldProvider, useWorld } from "../interface/hooks";
 import { DimensionsContext } from "../../components/Dimensions/sizing";
 import { pixels } from "../interface/dimensions";
+import { shadowFactor } from "../interface/segments";
 import { Canvas } from "@react-three/fiber";
 import Camera from "./Camera";
 import Systems from "./Systems";
@@ -41,7 +42,7 @@ export default function ThreeJsRenderer({
           <LightingContext.Provider value={shadows}>
             <InstanceRoot />
             <ShadowCache />
-            <ambientLight intensity={shadows ? Math.PI / 8 : Math.PI} />
+            <ambientLight intensity={Math.PI * (shadows ? shadowFactor : 1)} />
             <Camera />
             <Systems onReady={onReady} />
           </LightingContext.Provider>

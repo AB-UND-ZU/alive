@@ -1772,7 +1772,7 @@ export default function setupPopup(world: World) {
           setVerticalIndex(world, popupEntity, selections[0]);
           popTabSelection(world, popupEntity);
           restorable.saveId = undefined;
-          if (save) {
+          if (save && !world.metadata.readOnlySaves) {
             removeSaveSummary(save.id);
             world.metadata.eraseGame(save.id);
             play("die", { variant: 2 });
@@ -1852,10 +1852,10 @@ export default function setupPopup(world: World) {
         play("back");
       } else if (tab === "load" && selections.length === 0) {
         // ask before erasing a saved game
-        if (getSaveSummaries()[getVerticalIndex(world, popupEntity)]) {
+        const save = getSaveSummaries()[getVerticalIndex(world, popupEntity)];
+        if (save && !world.metadata.readOnlySaves) {
           // the confirmation only shows the selected save in the first row
-          world.assertComponents(popupEntity, [RESTORABLE])[RESTORABLE].saveId =
-            getSaveSummaries()[getVerticalIndex(world, popupEntity)].id;
+          world.assertComponents(popupEntity, [RESTORABLE])[RESTORABLE].saveId = save.id;
           pushTabSelection(world, popupEntity);
           setVerticalIndex(world, popupEntity, 0);
           play("confirm");

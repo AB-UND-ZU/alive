@@ -265,7 +265,7 @@ function Bridge({ setShadows }: { setShadows: (enabled: boolean) => void }) {
     const focus = () => {
       focused = true;
       stop();
-      if (name !== "interface") setPaused(false);
+      if (name !== "interface" && name !== "game") setPaused(false);
       document.body.classList.add("focused");
       window.parent.postMessage(
         { type: "preview-focus", active: true },
@@ -344,7 +344,7 @@ function Preview() {
         name === "game" || name === "interface"
           ? undefined
           : ({
-              "--controls-center-y": `calc(var(--terminal-height) / 2 + ${
+              "--controls-center-y": `calc((100% - var(--game-height)) / 2 + var(--terminal-height) / 2 + ${
                 sceneLayout(name).topHudRows
               } * var(--cell-height))`,
             } as CSSProperties)
@@ -360,7 +360,7 @@ function Preview() {
       }
     >
       <World
-        persistent={name === "game"}
+        persistent={false}
         preset={
           preset
             ? {

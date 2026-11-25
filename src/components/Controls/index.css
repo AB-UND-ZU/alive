@@ -12,6 +12,12 @@
 
 .ControlsEdge {
   overflow: hidden;
+  margin-inline: calc(-1 * var(--pixel-size));
+  translate: 0 calc(-1 * var(--pixel-size));
+}
+
+.ControlsEdge > .Cell {
+  flex: 1;
 }
 
 .Spell {

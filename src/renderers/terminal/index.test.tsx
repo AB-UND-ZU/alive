@@ -348,14 +348,13 @@ it.each([33, 80])(
     const paused = getTerminalFrame(world, columns, rows, undefined, {
       paused: true,
     });
-    const { top, height } = getTerminalLayout(columns, rows);
-    const overlayTop = top + Math.floor((height - 10) / 2);
-    const titleWidth = "█▀▄ █▀▄ █ █ ▄▀▀ ▄▀▀".length;
-    const overlayLeft = Math.floor((columns - titleWidth) / 2);
-    const buttonLeft = overlayLeft + Math.floor((titleWidth - 9) / 2);
+    const lines = frameToText(paused).split("\n");
+    const resumeRow = lines.findIndex((line) => line.includes(">[RESUME]"));
+    const buttonLeft = lines[resumeRow].indexOf(">[RESUME]");
     for (const [x, y] of [
-      [buttonLeft - 1, overlayTop + 4],
-      [Math.floor(columns / 2), overlayTop + 3],
+      [buttonLeft - 1, resumeRow],
+      [buttonLeft, resumeRow - 1],
+      [buttonLeft, resumeRow - 2],
     ]) {
       const source = active[y][x];
       expect(paused[y][x]).toEqual({
