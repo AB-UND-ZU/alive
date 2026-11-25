@@ -20,6 +20,7 @@ Alive is a browser adventure game built with TypeScript, React, Three.js and an 
 **During development**, each agent works independently in its own worktree. Before committing, run only the checks for the affected behavior. Reserve broad suites for integration. The pre-commit hook runs lint only.
 
 - Test observable features and relevant failure cases. Update existing tests when behavior changes. A manual check can cover a small behavior adjustment. Record the steps and result.
+- The user runs persistent game and wiki servers in their own worktree terminal. Reuse a running preview for that worktree when available. If a check needs a temporary server, stop it and its child processes as soon as the check ends, including after failure or interruption. Only leave a server running when the user explicitly asks. Leave servers started by others alone.
 - For visual changes, capture a reference and inspect the result on desktop and a small screen, including the affected interaction states.
 - For prose and link edits, read the changed text and follow its links. For wiki pages, check the page in the local preview and verify any changed source metadata.
 
