@@ -215,6 +215,9 @@ const retreatFrom = (world: World, position: Position, target: Position) => {
   });
 };
 
+const inPursuitRange = (origin: Position, target: Position, size: number) =>
+  getDistance(origin, target, size, 1, false) <= 10;
+
 const banditWarning = (idle: typeof rage, ticks: number): Pattern[] => [
   { name: "dialog", memory: { idle, override: "idle" } },
   { name: "wait", memory: { ticks } },
@@ -277,7 +280,39 @@ export default function setupAi(world: World) {
 
       for (const pattern of [...patterns]) {
         let movement = pattern.name;
-        if (pattern.name === "bandit_camp") {
+        if (pattern.name === "defend") {
+          const hp = entity[STATS]!.hp;
+          const damaged = hp < (pattern.memory.hp ?? entity[STATS]!.maxHp);
+          pattern.memory.hp = hp;
+          if (!damaged) continue;
+
+          const next = patterns.indexOf(pattern) + 1;
+          if (patterns[next]?.memory.pursuitOrigin) continue;
+          const origin = entity[POSITION];
+          const hostile = world
+            .getEntities([ATTACKABLE, BELONGABLE, POSITION, STATS])
+            .find(
+              (unit) =>
+                (unit[NPC] || unit[PLAYER]) &&
+                isEnemy(world, unit) &&
+                !isNeutral(world, unit) &&
+                !isDead(world, unit) &&
+                getDistance(origin, unit[POSITION], size, 1, false) <= 5
+            );
+          if (!hostile) continue;
+
+          const pursuitOrigin = copy(origin);
+          patterns.splice(
+            next,
+            0,
+            {
+              name: "kill",
+              memory: { target: world.getEntityId(hostile), pursuitOrigin },
+            },
+            { name: "move", memory: { targetPosition: pursuitOrigin } }
+          );
+          break;
+        } else if (pattern.name === "bandit_camp") {
           if (!entity[STATS]) break;
           const group = entity[BELONGABLE]?.group;
           const priest = patterns.find(({ name }) => name === "bandit_priest");
@@ -2067,7 +2102,13 @@ export default function setupAi(world: World) {
             movement === "kill" &&
             (!targetEntity ||
               isDead(world, targetEntity) ||
-              isFriendlyFire(world, entity, targetEntity));
+              isFriendlyFire(world, entity, targetEntity) ||
+              (memory.pursuitOrigin &&
+                !inPursuitRange(
+                  memory.pursuitOrigin,
+                  targetEntity[POSITION],
+                  size
+                )));
           const healed =
             pattern.name === "heal" &&
             (!targetEntity ||
@@ -2142,6 +2183,17 @@ export default function setupAi(world: World) {
             } else {
               memory.path = undefined;
             }
+          }
+
+          // A detour around an obstacle must also stay inside the pursuit area.
+          if (
+            memory.pursuitOrigin &&
+            (!memory.path ||
+              !attemptedPosition ||
+              !inPursuitRange(memory.pursuitOrigin, attemptedPosition, size))
+          ) {
+            patterns.splice(patterns.indexOf(pattern), 1);
+            continue;
           }
 
           // move or act depending on pattern

@@ -1,6 +1,10 @@
 import createWorld, { World } from "./ecs";
 import * as sprites from "../game/assets/sprites";
 import { Sprite } from "./components/sprite";
+import { BEHAVIOUR } from "./components/behaviour";
+import { NPC } from "./components/npc";
+import { STATS } from "./components/stats";
+import { unitDefinitions } from "../game/balancing/units";
 import { INVENTORY } from "./components/inventory";
 import { ITEM } from "./components/item";
 import { TypedEntity } from "./entities";
@@ -146,8 +150,19 @@ export const restoreSnapshot = (snapshot: WorldSnapshot) => {
     }
   });
 
-  // Older arena cleanup could remove loot items while their containers survived.
   for (const entity of restored) {
+    const npc = entity[NPC];
+    const patterns = entity[BEHAVIOUR]?.patterns;
+    if (
+      npc &&
+      patterns &&
+      unitDefinitions[npc.type].patternNames.includes("defend") &&
+      !patterns.some((pattern) => pattern.name === "defend")
+    ) {
+      patterns.unshift({ name: "defend", memory: { hp: entity[STATS]?.hp } });
+    }
+
+    // Older arena cleanup could remove loot items while their containers survived.
     const inventory = entity[INVENTORY];
     if (!inventory) continue;
     const items = inventory.items.filter((id) =>

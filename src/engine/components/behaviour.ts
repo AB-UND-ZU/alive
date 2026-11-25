@@ -53,6 +53,7 @@ export type Pattern = {
     | "spawner"
     | "habitat"
     | "dummy"
+    | "defend"
     | "guard"
     | "gate"
     | "watch";

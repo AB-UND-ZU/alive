@@ -285,6 +285,9 @@ export const gearStats: Partial<
   diamondEye: {
     sword: { diamond: { default: { melee: 7 } } },
   },
+  earthChief: { sword: { default: { earth: { melee: 4, heal: 2 } } } },
+  fireChief: { sword: { default: { fire: { melee: 4 } } } },
+  waterChief: { sword: { default: { water: { melee: 4 } } } },
   banditPriest: {
     sword: { default: { earth: { heal: 4 } } },
   },

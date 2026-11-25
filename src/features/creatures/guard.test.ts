@@ -1,8 +1,13 @@
 import { EQUIPPABLE } from "../../engine/components/equippable";
+import { saveAndLoad } from "../../testing/saves";
+import { BELONGABLE } from "../../engine/components/belongable";
 import { ITEM } from "../../engine/components/item";
 import { STATS } from "../../engine/components/stats";
 import { BEHAVIOUR, Pattern } from "../../engine/components/behaviour";
 import { LOCKABLE } from "../../engine/components/lockable";
+import { ORIENTABLE } from "../../engine/components/orientable";
+import { shootArrow } from "../../engine/systems/ballistics";
+import { castAs } from "../spells/helpers";
 import { POSITION } from "../../engine/components/position";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { isDead } from "../../engine/systems/damage";
@@ -11,6 +16,7 @@ import {
   advanceUntil,
   countItems,
   findEntityAt,
+  giveItems,
   holdMove,
   trigger,
   walk,
@@ -19,6 +25,7 @@ import {
   advanceTicks,
   createCreatureWorld,
   getCreature,
+  giveSword,
   teleport,
   toughen,
 } from "./helpers";
@@ -279,4 +286,142 @@ it("arms the Water Guard to defend the igloo and replenish HP", () => {
   });
   teleport(world, prism, { x: guard[POSITION].x + 1, y: guard[POSITION].y });
   advanceUntil(world, () => prism[STATS].hp < prism[STATS].maxHp, 5000);
+});
+
+describe("village defenders", () => {
+  it.each(["earthChief", "fireChief", "waterChief", "fireGateGuard"] as const)(
+    "%s chases its attacker, kills it and returns to the cell where it was hit",
+    (type) => {
+      const { world, hero } = createCreatureWorld("|  ♀G          |", {
+        G: type,
+      });
+      const defender = getCreature(world, type);
+      const origin = { ...defender[POSITION] };
+      world.assertComponents(hero, [BELONGABLE])[BELONGABLE].faction =
+        "hostile";
+      giveSword(world, hero);
+      holdMove(world, ["right"]);
+      advanceUntil(world, () => defender[STATS].hp < defender[STATS].maxHp);
+      holdMove(world, []);
+      teleport(world, hero, { x: origin.x + 4, y: origin.y });
+      hero[STATS].hp = 1;
+
+      advanceUntil(world, () => defender[POSITION].x === origin.x + 3);
+      advanceUntil(world, () => isDead(world, hero));
+      advanceUntil(world, () => defender[POSITION].x === origin.x);
+      expect(defender[POSITION]).toEqual(origin);
+    }
+  );
+
+  it.each(["arrow", "wave"])(
+    "pursues the %s shooter before resuming gate duty",
+    (attack) => {
+      const { world, hero } = createCreatureWorld(
+        `
+|   ♀        |
+|            |
+|±±±=±±±±±±±±|
+|   G   B    |
+|            |
+`,
+        { G: "earthGuard", B: "banditArcher" }
+      );
+      const guard = getCreature(world, "earthGuard");
+      const archer = getCreature(world, "banditArcher");
+      toughen(hero);
+      archer[BEHAVIOUR].patterns = [];
+      advanceTicks(world, 2);
+      const origin = { ...guard[POSITION] };
+      if (attack === "arrow") {
+        giveItems(world, archer, [{ stackable: "arrow", amount: 1 }]);
+        archer[ORIENTABLE].facing = "left";
+        const bow = world.assertByIdAndComponents(archer[EQUIPPABLE]!.skill, [
+          ITEM,
+        ]);
+        shootArrow(world, archer, bow);
+      } else {
+        castAs(world, archer, { spell: "wave", material: "wood" }, "left");
+      }
+      advanceUntil(world, () => guard[STATS].hp < guard[STATS].maxHp);
+      advanceUntil(world, () => guard[POSITION].x > origin.x);
+      advanceUntil(world, () => isDead(world, archer));
+      advanceUntil(world, () => guard[POSITION].x === origin.x);
+      expect(guard[POSITION]).toEqual(origin);
+      openGate(world);
+      advanceUntil(world, () => Math.abs(guard[POSITION].x - origin.x) === 2);
+    }
+  );
+
+  it("selects the first nearby hostile after damage, even when a different unit shoots", () => {
+    const { world } = createCreatureWorld("|♀ E    G  B |", {
+      E: "eye",
+      G: "waterGuard",
+      B: "banditArcher",
+    });
+    const first = getCreature(world, "eye");
+    const guard = getCreature(world, "waterGuard");
+    const shooter = getCreature(world, "banditArcher");
+    first[BEHAVIOUR].patterns = [];
+    shooter[BEHAVIOUR].patterns = [];
+    advanceTicks(world, 3);
+    const origin = { ...guard[POSITION] };
+    expect(origin.x).toBe(7);
+    expect(first[STATS].hp).toBe(first[STATS].maxHp);
+    giveItems(world, shooter, [{ stackable: "arrow", amount: 1 }]);
+    shooter[ORIENTABLE].facing = "left";
+    shootArrow(
+      world,
+      shooter,
+      world.assertByIdAndComponents(shooter[EQUIPPABLE]!.skill, [ITEM])
+    );
+    advanceUntil(world, () => guard[STATS].hp < guard[STATS].maxHp);
+    advanceUntil(world, () => first[STATS].hp < first[STATS].maxHp);
+    expect(shooter[STATS].hp).toBe(shooter[STATS].maxHp);
+    advanceUntil(world, () => isDead(world, first));
+    advanceUntil(world, () => guard[POSITION].x === origin.x);
+    advanceTicks(world, 3);
+    expect(guard[POSITION]).toEqual(origin);
+  });
+
+  it("detects at five blocks after damage, chases to ten and returns at eleven", () => {
+    const { world, hero } = createCreatureWorld("|♀     G             |", {
+      G: "waterGuard",
+    });
+    const guard = getCreature(world, "waterGuard");
+    const origin = { ...guard[POSITION] };
+    world.assertComponents(hero, [BELONGABLE])[BELONGABLE].faction = "hostile";
+    toughen(hero);
+    guard[STATS].hp -= 1;
+    advanceTicks(world, 3);
+    expect(guard[POSITION]).toEqual(origin);
+    teleport(world, hero, { x: origin.x + 5, y: origin.y });
+    advanceTicks(world, 3);
+    expect(guard[POSITION]).toEqual(origin);
+    guard[STATS].hp -= 1;
+    advanceUntil(world, () => guard[POSITION].x === origin.x + 1);
+    teleport(world, hero, { x: origin.x + 10, y: origin.y });
+    advanceUntil(world, () => guard[POSITION].x === origin.x + 9);
+    teleport(world, hero, { x: origin.x + 11, y: origin.y });
+    advanceUntil(world, () => guard[POSITION].x === origin.x);
+    teleport(world, hero, { x: origin.x + 3, y: origin.y });
+    advanceTicks(world, 3);
+    expect(guard[POSITION]).toEqual(origin);
+    guard[STATS].hp -= 1;
+    advanceUntil(world, () => guard[POSITION].x === origin.x + 2);
+  });
+
+  it("resumes an older save without treating a previous wound as a fresh hit", () => {
+    const { world, hero } = createCreatureWorld("|♀   G|", { G: "fireChief" });
+    const chief = getCreature(world, "fireChief");
+    const origin = { ...chief[POSITION] };
+    chief[BEHAVIOUR].patterns = [];
+    chief[STATS].hp -= 1;
+    world.assertComponents(hero, [BELONGABLE])[BELONGABLE].faction = "hostile";
+    const loaded = saveAndLoad(world);
+    const restored = getCreature(loaded, "fireChief");
+    advanceTicks(loaded, 3);
+    expect(restored[POSITION]).toEqual(origin);
+    restored[STATS].hp -= 1;
+    advanceUntil(loaded, () => restored[POSITION].x < origin.x);
+  });
 });

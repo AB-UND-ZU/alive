@@ -269,7 +269,7 @@ const townChief = (
     },
   ],
   drops: [],
-  patternNames: [],
+  patternNames: ["defend"],
   sprite: {
     ...recolorSprite(bandit, { [colors.white]: color }),
     name: "Chief",
@@ -344,7 +344,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     drops: [],
-    patternNames: ["guard"],
+    patternNames: ["defend", "guard"],
     sprite: {
       ...recolorSprite(knight, { [colors.white]: colors.lime }),
       name: "Guard",
@@ -384,7 +384,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     drops: [],
-    patternNames: [],
+    patternNames: ["defend"],
     sprite: {
       ...recolorSprite(knight, { [colors.white]: colors.red }),
       name: "Guard",
@@ -420,7 +420,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     drops: [],
-    patternNames: [],
+    patternNames: ["defend"],
     sprite: {
       ...recolorSprite(knight, { [colors.white]: colors.red }),
       name: "Guard",
@@ -456,7 +456,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     drops: [],
-    patternNames: [],
+    patternNames: ["defend"],
     sprite: {
       ...recolorSprite(knight, { [colors.white]: colors.red }),
       name: "Guard",
@@ -484,7 +484,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     drops: [],
-    patternNames: [],
+    patternNames: ["defend"],
     sprite: {
       ...recolorSprite(knight, { [colors.white]: colors.blue }),
       name: "Guard",

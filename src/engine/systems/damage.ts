@@ -872,10 +872,9 @@ export default function setupDamage(world: World) {
         if (!targetEntity) continue;
 
         // skip if not damaging enemy or healing ally
-        const healing =
-          weaponEntity[ITEM].element === "earth" &&
-          !weaponEntity[ITEM].material;
         const friendly = isFriendlyFire(world, entity, targetEntity);
+        const healing =
+          weaponStats.heal > 0 && (friendly || !weaponStats.melee);
 
         if (healing !== friendly) continue;
 

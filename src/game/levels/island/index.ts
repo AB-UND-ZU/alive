@@ -1967,7 +1967,7 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
       // place guards at exits
       guards.forEach((guard, index) => {
         const guardEntity = createNpc(world, "earthGuard", { ...guard });
-        guardEntity[BEHAVIOUR].patterns.unshift({
+        guardEntity[BEHAVIOUR].patterns.splice(1, 0, {
           name: "watch",
           memory: {
             origin: guard,
@@ -2426,7 +2426,7 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
           origin,
           dy === -1 ? "waterGuardNorth" : "waterGuardSouth"
         );
-        guard[BEHAVIOUR].patterns.unshift({
+        guard[BEHAVIOUR].patterns.push({
           name: "watch",
           memory: {
             origin,
