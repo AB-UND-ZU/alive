@@ -99,7 +99,7 @@ export function Sounds() {
     setAudioActive(true);
     unmuteAudio();
     await ensureAudio();
-    play(name);
+    play(undefined, name);
     setLast(name);
   };
   return (

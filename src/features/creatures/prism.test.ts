@@ -143,7 +143,7 @@ describe("prism", () => {
   it.each([
     ["nearby", 2, true],
     ["far away", 18, false],
-  ] as const)("limits guard hit sounds to earshot (hero %s)", (_, y, audible) => {
+  ] as const)("limits town combat hits and deaths to earshot (hero %s)", (_, y, audible) => {
     const { world, hero } = createCreatureWorld("|♀P G|", {
       P: "diamondPrism",
       G: "waterGuard",
@@ -156,6 +156,9 @@ describe("prism", () => {
     advanceUntil(world, () => guard[STATS].hp < guard[STATS].maxHp);
 
     expect(playedSounds.includes("hit")).toBe(audible);
+    prism[STATS].hp = 0;
+    advanceUntil(world, () => !world.getEntityId(prism) || !!prism.SEQUENCABLE?.states.decay);
+    expect(playedSounds.includes("die")).toBe(audible);
   });
 
   it("drops coins and xp when defeated", () => {

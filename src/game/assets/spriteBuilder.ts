@@ -210,7 +210,7 @@ export const updateSpriteBuilder = (
       setVerticalIndex(world, popup, Math.max(0, Math.min(last, row + change)));
       if (tab === "pack") editor.selected = getVerticalIndex(world, popup);
     }
-    play("select");
+    play(world, "select");
   } else if (
     action === "content" &&
     clickedRow !== undefined &&
@@ -226,7 +226,7 @@ export const updateSpriteBuilder = (
         target.layers[index] = { char, color: orderedColors[editor.color] };
         changed = true;
         view(index);
-        play("confirm");
+        play(world, "confirm");
       }
     } else if (tab === "pack" && selected <= editor.sprites.length) {
       if (selected === row) {
@@ -259,7 +259,7 @@ export const updateSpriteBuilder = (
     } else {
       editor.colorMode = !editor.colorMode;
     }
-    play("confirm");
+    play(world, "confirm");
   } else if (action === "left") {
     if (tab === "pack" && sprite) {
       editor.sprites.splice(editor.selected, 1);
@@ -282,7 +282,7 @@ export const updateSpriteBuilder = (
     } else if (tab === "layer") {
       view(editor.layer ?? (sprite?.layers.length || 0));
     }
-    play("back");
+    play(world, "back");
   }
   if (changed) saveSpritePack(editor.sprites);
 };

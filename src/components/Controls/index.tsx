@@ -699,7 +699,7 @@ export default function Controls({
       if (ecs && popup && getTab(ecs, popup) === "credits") {
         const credit = credits[getVerticalIndex(ecs, popup)];
         if (credit?.link) {
-          play("confirm");
+          play(ecs, "confirm");
           window.open(credit.link, "_blank");
         }
         return;

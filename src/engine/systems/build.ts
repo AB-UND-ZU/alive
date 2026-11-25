@@ -149,7 +149,7 @@ export default function setupBuild(world: World) {
       if (entity[STATS].hp < entity[STATS].maxHp) continue;
 
       // replace plot with cell
-      play("build", { intensity: 2, notes: 3, spacing: 45 });
+      play(world, "build", { position: entity[POSITION], intensity: 2, notes: 3, spacing: 45 });
       createCell(world, entity[POSITION], entity[BUILDABLE].cell, "hidden");
       disposeEntity(world, entity);
 

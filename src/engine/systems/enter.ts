@@ -1,3 +1,4 @@
+import { setRainIndoors } from "../../game/sound/spatial";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -11,7 +12,7 @@ import { LIGHT } from "../components/light";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
 import { VIEWABLE } from "../components/viewable";
-import { LAYER } from "../components/layer";
+import { isInside, LAYER } from "../components/layer";
 import { PLAYER } from "../components/player";
 import { getLockable } from "./action";
 
@@ -46,8 +47,7 @@ export const getOpaque = (world: World, position: Position) =>
     | Entity
     | undefined;
 
-export const isInside = (world: World, entity: Entity) =>
-  !!entity[LAYER]?.structure;
+export { isInside };
 
 export const isOutside = (world: World, entity: Entity, structure?: number) =>
   !!structure && entity[LAYER]?.structure !== structure;
@@ -101,6 +101,7 @@ export default function setupEnter(world: World) {
 
         // trigger rerender for enterables
         if (entity[PLAYER]) {
+          setRainIndoors(world, isInside(world, entity));
           const enterableEntities = world
             .getEntities([ENTERABLE, RENDERABLE, FRAGMENT, LAYER])
             .filter(

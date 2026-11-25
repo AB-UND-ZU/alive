@@ -8,7 +8,7 @@ import { getCellEntities, moveEntity } from "./map";
 import { COLLIDABLE } from "../components/collidable";
 import { Entity } from "ecs";
 import { rerenderEntity } from "./renderer";
-import { combine, getDistance, random, sum } from "../../game/math/std";
+import { combine, sum } from "../../game/math/std";
 import {
   ORIENTABLE,
   Orientation,
@@ -36,7 +36,6 @@ import { isInPopup, isInTab } from "./popup";
 import { PLAYER } from "../components/player";
 import { npcVariants, play } from "../../game/sound";
 import { NPC } from "../components/npc";
-import { LAYER } from "../components/layer";
 import { FOG } from "../components/fog";
 import { SPRITE } from "../components/sprite";
 import { getClickable } from "./click";
@@ -288,7 +287,6 @@ export default function setupMovement(world: World) {
 
   const onUpdate = (delta: number) => {
     const size = world.metadata.gameEntity[LEVEL].size;
-    const hero = world.getEntity([PLAYER, POSITION, LAYER]);
 
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
@@ -396,26 +394,17 @@ export default function setupMovement(world: World) {
       }
 
       if (movedOrientation) {
-        if (pushSound) play("push");
+        if (pushSound) play(world, "push", { position: entity[POSITION] });
         const delta = orientationPoints[movedOrientation];
         const rootPosition = combine(size, entity[POSITION], delta);
-        // play sound
-        const proximity =
-          getCellEntities(world, rootPosition).filter(
-            (cell) => cell[RENDERABLE] && cell[SPRITE]?.layers.length
-          ).length > 0
-            ? 1
-            : 0.5;
-
         const boat = entity[MOUNTABLE]?.medium === "water";
-        if (boat && isImmersible(world, entity[POSITION])) {
-          const distance = hero
-            ? getDistance(hero[POSITION], entity[POSITION], size)
-            : Infinity;
-          if (distance < 10 && entityReference >= (nextSail[entityId] ?? 0)) {
-            play("sail", { proximity: 1 / (distance + 1) });
-            nextSail[entityId] = entityReference + 5;
-          }
+        if (
+          boat &&
+          entityReference >= (nextSail[entityId] ?? 0) &&
+          isImmersible(world, entity[POSITION])
+        ) {
+          play(world, "sail", { position: entity[POSITION] });
+          nextSail[entityId] = entityReference + 5;
         }
 
         if (entity[PLAYER]) {
@@ -424,19 +413,19 @@ export default function setupMovement(world: World) {
             : getTempo(world, rootPosition) < 0
             ? 2
             : 1;
-          play("move", {
+          play(world, "move", {
+            position: entity[POSITION],
             intensity: movableReference[REFERENCE].tick,
             variant,
-            proximity,
+            volume: getCellEntities(world, rootPosition).some(
+              (cell) => cell[RENDERABLE] && cell[SPRITE]?.layers.length
+            ) ? 1 : 0.5,
           });
         } else if (entity[NPC] && entity[FOG]?.visibility === "visible") {
-          play("slide", {
+          play(world, "slide", {
+            position: rootPosition,
             intensity: movableReference[REFERENCE].tick,
-            proximity: hero
-              ? 1 / (getDistance(hero[POSITION], entity[POSITION], size) + 1)
-              : 0.5,
             variant: npcVariants[entity[NPC].type],
-            delay: random(0, 50),
           });
         }
 

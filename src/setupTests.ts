@@ -28,8 +28,16 @@ if (!window.matchMedia) {
 HTMLCanvasElement.prototype.getContext = (() => null) as any;
 
 // minimal Web Audio stub, only needed so audio modules can be imported
+class FakeAudioParam {
+  constructor(public value: number) {}
+  setValueAtTime(value: number) { this.value = value; }
+  setTargetAtTime(value: number) { this.value = value; }
+  cancelScheduledValues() {}
+  linearRampToValueAtTime(value: number) { this.value = value; }
+}
 class FakeAudioNode {
-  gain = { value: 1 };
+  constructor(public context: FakeAudioContext) {}
+  gain = new FakeAudioParam(1);
   buffer: unknown = null;
   connect() {
     return this;
@@ -40,14 +48,25 @@ class FakeAudioNode {
 }
 class FakeAudioContext {
   state = "suspended";
-  destination = new FakeAudioNode();
+  destination = new FakeAudioNode(this);
   sampleRate = 44100;
   currentTime = 0;
   createGain() {
-    return new FakeAudioNode();
+    return new FakeAudioNode(this);
+  }
+  createBiquadFilter() {
+    return {
+      context: this,
+      frequency: new FakeAudioParam(350),
+      Q: new FakeAudioParam(1),
+      connect() {},
+    };
+  }
+  createStereoPanner() {
+    return { pan: new FakeAudioParam(0), connect() {}, disconnect() {} };
   }
   createBufferSource() {
-    return new FakeAudioNode();
+    return new FakeAudioNode(this);
   }
   createBuffer(_channels: number, length: number) {
     const data = Array.from({ length: _channels }, () => new Float32Array(length));
@@ -98,11 +117,17 @@ jest.mock("./game/sound/synthesis", () => ({
 jest.mock("./game/sound", () => {
   const actual = jest.requireActual("./game/sound");
   const env = jest.requireActual("./testing/env");
+  const { getSoundSource } = jest.requireActual("./game/sound/spatial");
   return {
     ...actual,
     loadSounds: jest.fn(() => Promise.resolve()),
-    play: (...args: unknown[]) => {
-      env.playedSounds.push(args[0]);
+    play: (...[world, preset, options]: Parameters<typeof import("./game/sound").play>) => {
+      if (
+        !options?.position ||
+        (world && getSoundSource(world, options.position, preset, options.variant))
+      ) {
+        env.playedSounds.push(preset);
+      }
     },
   };
 });

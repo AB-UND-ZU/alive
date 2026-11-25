@@ -15,7 +15,8 @@ Synthesizes sound effects from named presets. `play` does nothing until the game
 | --------- | -------------------------------------------- |
 | delay     | Delay before playback, in milliseconds       |
 | intensity | Preset-specific strength                     |
-| proximity | Preset-specific distance/volume factor       |
+| position  | Tile where the sound starts in the given world |
+| volume    | Relative playback gain, defaults to 1        |
 | variant   | Preset variation, typed per preset           |
 | seed      | One of 4 random characters, picked if absent |
 | notes     | Number of notes to synthesize                |
@@ -28,7 +29,7 @@ With multiple notes, the note index selects each variant. Every note is schedule
 
 `variant` only accepts the values listed for its preset, so new values need to be added to that list. A sound with additional synthesis parameters, such as a new `intensity`, is synthesized when played and kept.
 
-Sounds are cached by their synthesis parameters except volume. `proximity` and options that do not change a preset share one buffer, and a replay sets the requested volume through its gain node. Buffers retain the original 44,100 samples per second and leave out their silent tail.
+Use `play(world, "hit", { position })` for a sound on the map and `play(world, "confirm")` for centered UI feedback. Distance and stereo use the hero’s position in that world. Moving the hero adjusts ongoing sounds through [spatial playback](spatial.md). All positions and playback volumes share the same cached samples. Buffers retain the original 44,100 samples per second and leave out their silent tail.
 <!-- source-types -->
 
 ## Seed
@@ -43,7 +44,6 @@ type Seed = (typeof seeds)[number];
 type SoundOptions = {
   delay?: number;
   intensity?: number;
-  proximity?: number;
   variant?: number;
   seed?: number;
   notes?: number;
@@ -56,6 +56,8 @@ type SoundOptions = {
 
 ```ts src/game/sound/index.ts
 export type SfxOptions<P extends SoundPreset> = SoundOptions & {
+  position?: Position;
+  volume?: number;
   variant?: SoundVariant<P>;
   seed?: Seed;
 };
@@ -71,4 +73,10 @@ export type SoundPreset = Exclude<keyof Presets, keyof Params>;
 
 ```ts src/game/sound/index.ts
 type SoundVariant<P extends SoundPreset> = (typeof soundVariants)[P][number];
+```
+
+## SoundProgress
+
+```ts src/game/sound/index.ts
+type SoundProgress = (current: number, total: number) => void;
 ```

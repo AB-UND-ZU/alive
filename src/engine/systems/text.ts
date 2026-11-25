@@ -255,7 +255,8 @@ export default function setupText(world: World) {
 
         // play sound
         if (!isIdle && !!dialog) {
-          play("talk", {
+          play(world, "talk", {
+            position: tooltipEntity[POSITION],
             variant: tooltipEntity[TOOLTIP].enemy
               ? 2
               : tooltipEntity[BELONGABLE]?.faction === "animal"

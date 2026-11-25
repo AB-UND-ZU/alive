@@ -451,7 +451,8 @@ export default function setupDrop(world: World) {
       POSITION,
     ])) {
       if (isDecaying(world, entity)) {
-        play("die", {
+        play(world, "die", {
+          position: entity[POSITION],
           variant: entity[NPC] ? 1 : 2,
           intensity: entity[STATS]?.maxHp,
         });
@@ -484,7 +485,8 @@ export default function setupDrop(world: World) {
       const rootEntity = getRoot(world, entity);
 
       if (isDecaying(world, entity)) {
-        play("die", {
+        play(world, "die", {
+          position: entity[POSITION],
           variant: entity[NPC] ? 1 : 2,
           intensity: entity[STATS]?.maxHp,
         });
@@ -554,7 +556,7 @@ export default function setupDrop(world: World) {
             updateShoreline(world, entity[POSITION]);
           }
         } else {
-          play("harvest", { variant: 4 });
+          play(world, "harvest", { position: entity[POSITION], variant: 4 });
           const limbs = getLimbs(world, entity);
           limbs.forEach((limb) => {
             createSequence<"decay", DecaySequence>(

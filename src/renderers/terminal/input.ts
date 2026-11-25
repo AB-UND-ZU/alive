@@ -168,7 +168,7 @@ export const createTerminalInput = (
       hero[PLAYER].actionTriggered = undefined;
       if (chat && getTabSelections(world, popup).length) {
         clearChat(world, popup);
-        play("back");
+        play(world, "back");
       } else closePopup(world, hero, popup);
       return;
     }
@@ -183,7 +183,7 @@ export const createTerminalInput = (
     if (action === "right" && popup && getTab(world, popup) === "credits") {
       const credit = credits[getVerticalIndex(world, popup)];
       if (credit?.link) {
-        play("confirm");
+        play(world, "confirm");
         openLink(credit.link);
       }
       return;

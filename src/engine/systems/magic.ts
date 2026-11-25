@@ -47,7 +47,7 @@ import {
 } from "../components/orientable";
 import { SPRITE } from "../components/sprite";
 import { ITEM, Material } from "../components/item";
-import { combine, copy, getDistance } from "../../game/math/std";
+import { combine, copy } from "../../game/math/std";
 import { none } from "../../game/assets/sprites";
 import { brighten, colors } from "../../game/assets/colors";
 import { MOVABLE } from "../components/movable";
@@ -167,9 +167,9 @@ export const attemptBubbleAbsorb = (world: World, entity: Entity) => {
 
     if (entity[CONDITIONABLE].block.amount <= 0) {
       delete entity[CONDITIONABLE].block;
-      play("block", { variant: 3 });
+      play(world, "block", { position: entity[POSITION], variant: 3 });
     } else {
-      play("block", { variant: 2 });
+      play(world, "block", { position: entity[POSITION], variant: 2 });
     }
     return true;
   }
@@ -232,7 +232,7 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
     { facing: "right", tick, rotate: true }
   );
 
-  play("slash");
+  play(world, "slash", { position: entity[POSITION] });
 };
 
 const totemUnits = {
@@ -328,7 +328,7 @@ export const summonTotem = (world: World, entity: Entity, totem: Entity) => {
       element: totem[ITEM].element,
     }
   );
-  play("totem");
+  play(world, "totem", { position: target });
 };
 
 export const hasTriggered = (
@@ -378,8 +378,6 @@ export default function setupMagic(world: World) {
       .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
     const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
     const worldDelta = world.metadata.gameEntity[REFERENCE].delta;
-    const heroEntity = world.getEntity([PLAYER, POSITION]);
-    const size = world.metadata.gameEntity[LEVEL].size;
 
     if (referenceGenerations === generation) return;
 
@@ -553,7 +551,7 @@ export default function setupMagic(world: World) {
             if (healing > 0) {
               targetEntity[STATS].hp = hp;
               createAmountMarker(world, fragmentEntity, healing, "up", "heal");
-              play("pickup", pickupOptions.hp);
+              play(world, "pickup", { position: fragmentEntity[POSITION], ...pickupOptions.hp });
               hasAffected = true;
             }
           }
@@ -589,11 +587,7 @@ export default function setupMagic(world: World) {
             }
 
             // play sound
-            const proximity = heroEntity
-              ? 1 /
-                (getDistance(entity[POSITION], heroEntity[POSITION], size) + 1)
-              : 0.5;
-            play("magic", { intensity: damage, proximity });
+            play(world, "magic", { position: fragmentEntity[POSITION], intensity: damage });
 
             // add hit marker
             createAmountMarker(
@@ -746,7 +740,7 @@ export default function setupMagic(world: World) {
           previousStats += 1;
         } else continue;
 
-        play("pickup", {
+        play(world, "pickup", {
           delay,
           ...pickupOptions[statName as "hp" | "maxHp" | "mp" | "maxMp"],
         });
@@ -786,10 +780,7 @@ export default function setupMagic(world: World) {
         rerenderEntity(world, rootEntity);
       }
 
-      const proximity = heroEntity
-        ? 1 / (getDistance(entity[POSITION], heroEntity[POSITION], size) + 1)
-        : 0.5;
-      play("magic", { intensity: damage, proximity });
+      play(world, "magic", { position: entity[POSITION], intensity: damage });
 
       // add hit marker
       createAmountMarker(world, entity, -damage, "up", "true");

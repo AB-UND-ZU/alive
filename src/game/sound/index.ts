@@ -1,3 +1,6 @@
+import type { World } from "../../engine/ecs";
+import type { Position } from "../../engine/components/position";
+import { getSoundSource } from "./spatial";
 import { Consumable, Stackable } from "../../engine/components/item";
 import { NpcType } from "../../engine/components/npc";
 import { UnitStats } from "../../engine/components/stats";
@@ -71,7 +74,6 @@ const frnd = (range: number) => rng() * range;
 type SoundOptions = {
   delay?: number;
   intensity?: number;
-  proximity?: number;
   variant?: number;
   seed?: number;
   notes?: number;
@@ -80,6 +82,8 @@ type SoundOptions = {
 };
 
 export type SfxOptions<P extends SoundPreset> = SoundOptions & {
+  position?: Position;
+  volume?: number;
   variant?: SoundVariant<P>;
   seed?: Seed;
 };
@@ -87,9 +91,8 @@ export type SfxOptions<P extends SoundPreset> = SoundOptions & {
 class Presets extends Params {
   move(options: SoundOptions) {
     const intensity = (options.intensity || 350) / 1000;
-    const proximity = options.proximity || 1;
     const variant = options.variant || 1;
-    this.sound_vol = (1 / 128) * proximity ** 1.2 * variant ** 0.2;
+    this.sound_vol = (1 / 128) * variant ** 0.2;
     this.wave_type = waveforms.NOISE;
     this.p_env_attack = intensity - 0.08;
     this.p_env_sustain = 0.1 * variant - 0.05;
@@ -103,10 +106,9 @@ class Presets extends Params {
   }
 
   slide(options: SoundOptions) {
-    const proximity = options.proximity || 1;
     const variant = options.variant || 1;
     this.wave_type = waveforms.SQUARE;
-    this.sound_vol = ((1 / 8) * proximity * (10 - Math.sqrt(variant))) / 7;
+    this.sound_vol = ((1 / 8) * (10 - Math.sqrt(variant))) / 7;
     this.p_env_attack = 0.02;
     this.p_env_sustain = 0.2;
     this.p_env_decay = 0.1 + frnd(0.1) * variant;
@@ -126,9 +128,8 @@ class Presets extends Params {
 
   hit(options: SoundOptions) {
     const intensity = Math.min(((options.intensity || 1) + 4) ** 0.7 - 2, 5);
-    const proximity = options.proximity || 1;
     const variant = options.variant || 1;
-    this.sound_vol = (Math.sqrt(intensity) / 48) * proximity;
+    this.sound_vol = Math.sqrt(intensity) / 48;
     this.wave_type = waveforms.NOISE;
     this.p_base_freq = 1.5 - frnd(0.2) * intensity ** 2;
     this.p_freq_ramp = -0.5 - frnd(0.2) * (intensity / 2);
@@ -143,8 +144,7 @@ class Presets extends Params {
 
   magic(options: SoundOptions) {
     const intensity = Math.min(((options.intensity || 1) + 4) ** 0.7 - 2, 5);
-    const proximity = options.proximity || 1;
-    this.sound_vol = (Math.sqrt(intensity) / 32) * proximity ** 0.8;
+    this.sound_vol = Math.sqrt(intensity) / 32;
     this.wave_type = waveforms.NOISE;
     this.p_base_freq = 0.6 + frnd(0.1);
     this.p_freq_limit = frnd(0.1);
@@ -207,10 +207,9 @@ class Presets extends Params {
   }
 
   bubble(options: SoundOptions) {
-    const proximity = options.proximity || 1;
     const variant = options.variant || 1;
     this.wave_type = waveforms.SINE;
-    this.sound_vol = (1 / 32) * proximity ** 1.2 * variant ** 2;
+    this.sound_vol = (1 / 32) * variant ** 2;
     this.p_env_attack = (frnd(0.2) + 0.2) / variant;
     this.p_env_sustain = 0.1 / variant;
     this.p_env_decay = 0.2 / variant;
@@ -232,9 +231,8 @@ class Presets extends Params {
   }
 
   sail(options: SoundOptions) {
-    const proximity = options.proximity || 1;
     this.wave_type = waveforms.NOISE;
-    this.sound_vol = (1 / 56) * proximity ** 1.2;
+    this.sound_vol = 1 / 56;
     this.p_env_attack = 0.5;
     this.p_env_sustain = 0.15;
     this.p_env_decay = 0.6 + frnd(0.02);
@@ -244,10 +242,8 @@ class Presets extends Params {
     return this;
   }
 
-  rain(options: SoundOptions) {
-    const proximity = options.proximity || 1;
-    const intensity = options.intensity || 1;
-    this.sound_vol = (1 / 128) * (proximity / 2) ** 0.5;
+  rain() {
+    this.sound_vol = (1 / 128) * Math.SQRT1_2;
     this.wave_type = waveforms.NOISE;
     this.p_base_freq = 0.6 + frnd(0.1);
     this.p_freq_limit = frnd(0.3);
@@ -257,7 +253,7 @@ class Presets extends Params {
     this.p_env_decay = 0.3 + frnd(0.4);
     this.p_hpf_freq = 0.8 + frnd(0.1);
     this.p_hpf_ramp = frnd(0.1) - 0.6;
-    this.p_lpf_freq = intensity ** 2;
+    this.p_lpf_freq = 1;
     this.p_lpf_resonance = 0.6;
 
     return this;
@@ -366,8 +362,7 @@ class Presets extends Params {
 
   fire(options: SoundOptions) {
     this.wave_type = waveforms.NOISE;
-    const proximity = options.proximity || 1;
-    this.sound_vol = proximity * 3;
+    this.sound_vol = 3;
 
     this.p_env_attack = 0.5;
     this.p_env_sustain = 0.2;
@@ -397,9 +392,8 @@ class Presets extends Params {
 
   crackle(options: SoundOptions) {
     this.wave_type = waveforms.NOISE;
-    const proximity = options.proximity || 1;
     const intensity = options.intensity || 1;
-    this.sound_vol = proximity / 16 / intensity;
+    this.sound_vol = 1 / 16 / intensity;
 
     this.p_env_sustain = 0.05 + frnd(0.05);
     this.p_env_punch = 0.5 + frnd(0.5);
@@ -427,9 +421,8 @@ class Presets extends Params {
   danger(options: SoundOptions) {
     const variant = options.variant || 1;
     const intensity = options.intensity || 1;
-    const proximity = options.proximity || 1;
     // one harsh alert beep, pitch and tone per mob type, longer for bosses
-    this.sound_vol = (1 / 12) * proximity;
+    this.sound_vol = 1 / 12;
     this.wave_type = waveforms.SQUARE;
     this.p_env_attack = 0;
     this.p_env_sustain = intensity === 2 ? 0.3 : 0.12;
@@ -446,12 +439,11 @@ class Presets extends Params {
 
   arrow(options: SoundOptions) {
     const variant = options.variant || 1;
-    const proximity = options.proximity || 1;
     this.p_env_attack = 0;
 
     if (variant === 1) {
       // bow string twang
-      this.sound_vol = (1 / 28) * proximity;
+      this.sound_vol = 1 / 28;
       this.wave_type = waveforms.SQUARE;
       this.p_env_sustain = 0.04;
       this.p_env_punch = 0.5;
@@ -464,7 +456,7 @@ class Presets extends Params {
       this.p_lpf_freq = 0.45;
     } else if (variant === 2) {
       // bounce off
-      this.sound_vol = (1 / 24) * proximity;
+      this.sound_vol = 1 / 24;
       this.wave_type = waveforms.NOISE;
       this.p_env_sustain = 0.02;
       this.p_env_punch = 1;
@@ -475,7 +467,7 @@ class Presets extends Params {
       this.p_hpf_freq = 0.2;
     } else if (variant === 3) {
       // hit like a spell but with a sharp attack
-      this.sound_vol = (1 / 15) * proximity;
+      this.sound_vol = 1 / 15;
       this.wave_type = waveforms.NOISE;
       this.p_env_sustain = 0.1;
       this.p_env_punch = 1;
@@ -486,7 +478,7 @@ class Presets extends Params {
       this.p_hpf_ramp = -0.4;
     } else {
       // dropping on the floor
-      this.sound_vol = (1 / 20) * proximity;
+      this.sound_vol = 1 / 20;
       this.wave_type = waveforms.NOISE;
       this.p_env_sustain = 0.02;
       this.p_env_punch = 1;
@@ -501,8 +493,7 @@ class Presets extends Params {
   }
 
   spear(options: SoundOptions) {
-    const proximity = options.proximity || 1;
-    this.sound_vol = (1 / 40) * proximity;
+    this.sound_vol = 1 / 40;
     this.wave_type = waveforms.NOISE;
     this.p_env_attack = 0.08;
     this.p_env_sustain = 0.1;
@@ -516,8 +507,7 @@ class Presets extends Params {
   }
 
   disc(options: SoundOptions) {
-    const proximity = options.proximity || 1;
-    this.sound_vol = (1 / 96) * proximity;
+    this.sound_vol = 1 / 96;
     this.wave_type = waveforms.SQUARE;
     this.p_env_attack = 0.1;
     this.p_env_sustain = 0.2;
@@ -532,8 +522,7 @@ class Presets extends Params {
   }
 
   bolt(options: SoundOptions) {
-    const proximity = options.proximity || 1;
-    this.sound_vol = (1 / 40) * proximity;
+    this.sound_vol = 1 / 40;
     this.wave_type = waveforms.SQUARE;
     this.p_env_attack = 0;
     this.p_env_sustain = 0.05;
@@ -547,8 +536,7 @@ class Presets extends Params {
   }
 
   blast(options: SoundOptions) {
-    const proximity = options.proximity || 1;
-    this.sound_vol = (1 / 24) * proximity;
+    this.sound_vol = 1 / 24;
     this.wave_type = waveforms.NOISE;
     this.p_env_attack = 0.2;
     this.p_env_sustain = 0.2;
@@ -564,14 +552,13 @@ class Presets extends Params {
   trap(options: SoundOptions) {
     const variant = options.variant || 1;
     const intensity = options.intensity || 1;
-    const proximity = options.proximity || 1;
     this.wave_type = waveforms.NOISE;
     this.p_env_attack = 0;
     this.p_env_punch = 1;
 
     if (intensity === 1) {
       // set mechanism, small crackles slowly fading
-      this.sound_vol = (1 / 72) * proximity * 0.8 ** (variant - 1);
+      this.sound_vol = (1 / 72) * 0.8 ** (variant - 1);
       this.p_env_sustain = 0.01;
       this.p_env_decay = 0.04 + frnd(0.02);
       this.p_base_freq = 0.7 + frnd(0.2);
@@ -580,7 +567,7 @@ class Presets extends Params {
       this.p_hpf_freq = 0.4;
     } else if (variant === 1) {
       // steel jaws clank shut
-      this.sound_vol = (1 / 32) * proximity;
+      this.sound_vol = 1 / 32;
       this.p_env_sustain = 0.03;
       this.p_env_decay = 0.32 + frnd(0.01);
       this.p_base_freq = 0.9;
@@ -590,7 +577,7 @@ class Presets extends Params {
       this.p_hpf_freq = 0.15;
     } else {
       // crunch of the bite
-      this.sound_vol = (1 / 16) * proximity;
+      this.sound_vol = 1 / 16;
       this.p_env_sustain = 0.04;
       this.p_env_decay = 0.2 + frnd(0.01);
       this.p_base_freq = 0.25;
@@ -605,11 +592,10 @@ class Presets extends Params {
   dash(options: SoundOptions) {
     const variant = options.variant || 1;
     const intensity = options.intensity || 500;
-    const proximity = options.proximity || 1;
 
     if (variant === 1) {
       // rising charge while dash arrows show
-      this.sound_vol = (1 / 56) * proximity;
+      this.sound_vol = 1 / 56;
       this.wave_type = waveforms.SQUARE;
       this.p_env_attack = 0.05;
       this.p_env_sustain = Math.sqrt((intensity * 44.1) / 100000);
@@ -622,7 +608,7 @@ class Presets extends Params {
       this.p_lpf_freq = 0.35;
     } else {
       // whoosh on teleport
-      this.sound_vol = (1 / 32) * proximity;
+      this.sound_vol = 1 / 32;
       this.wave_type = waveforms.NOISE;
       this.p_env_attack = 0.12;
       this.p_env_sustain = 0.05;
@@ -638,12 +624,11 @@ class Presets extends Params {
 
   zap(options: SoundOptions) {
     const variant = options.variant || 1;
-    const proximity = options.proximity || 1;
     this.p_env_attack = 0;
 
     if (variant === 1) {
       // charge up
-      this.sound_vol = (1 / 64) * proximity;
+      this.sound_vol = 1 / 64;
       this.wave_type = waveforms.SQUARE;
       this.p_env_sustain = 0.2;
       this.p_env_decay = 0.15;
@@ -657,7 +642,7 @@ class Presets extends Params {
       this.p_hpf_freq = 0.3;
     } else if (variant === 2) {
       // lightning crack
-      this.sound_vol = (1 / 24) * proximity;
+      this.sound_vol = 1 / 24;
       this.wave_type = waveforms.NOISE;
       this.p_env_sustain = 0.05;
       this.p_env_punch = 1;
@@ -669,7 +654,7 @@ class Presets extends Params {
       this.p_hpf_freq = 0.2;
     } else {
       // faint buzz while charged
-      this.sound_vol = (1 / 110) * proximity;
+      this.sound_vol = 1 / 110;
       this.wave_type = waveforms.SQUARE;
       this.p_env_sustain = 0.06;
       this.p_env_decay = 0.1 + frnd(0.005);
@@ -705,11 +690,10 @@ class Presets extends Params {
 
   block(options: SoundOptions) {
     const variant = options.variant || 1;
-    const proximity = options.proximity || 1;
 
     if (variant === 1) {
       // shield up
-      this.sound_vol = (1 / 32) * proximity;
+      this.sound_vol = 1 / 32;
       this.wave_type = waveforms.SINE;
       this.p_env_attack = 0.1;
       this.p_env_sustain = 0.1;
@@ -718,7 +702,7 @@ class Presets extends Params {
       this.p_freq_ramp = 0.15;
     } else if (variant === 2) {
       // hit bouncing off the bubble
-      this.sound_vol = (1 / 28) * proximity;
+      this.sound_vol = 1 / 28;
       this.wave_type = waveforms.SINE;
       this.p_env_attack = 0;
       this.p_env_sustain = 0.12;
@@ -731,7 +715,7 @@ class Presets extends Params {
       this.p_vib_speed = 0.3;
     } else if (variant === 3) {
       // shield breaks
-      this.sound_vol = (1 / 28) * proximity;
+      this.sound_vol = 1 / 28;
       this.wave_type = waveforms.NOISE;
       this.p_env_attack = 0;
       this.p_env_sustain = 0.04;
@@ -743,7 +727,7 @@ class Presets extends Params {
       this.p_hpf_freq = 0.2;
     } else {
       // faint hum while shielded
-      this.sound_vol = (1 / 128) * proximity;
+      this.sound_vol = 1 / 128;
       this.wave_type = waveforms.SINE;
       this.p_env_attack = 0.05;
       this.p_env_sustain = 0.06;
@@ -758,12 +742,11 @@ class Presets extends Params {
 
   totem(options: SoundOptions) {
     const variant = options.variant || 1;
-    const proximity = options.proximity || 1;
     this.wave_type = waveforms.SINE;
 
     if (variant === 1) {
       // warm rise from C4 to E4 on summon
-      this.sound_vol = (1 / 36) * proximity;
+      this.sound_vol = 1 / 36;
       this.p_env_attack = 0.06;
       this.p_env_sustain = 0.12;
       this.p_env_punch = 0.2;
@@ -775,7 +758,7 @@ class Presets extends Params {
       this.p_vib_speed = 0.3;
     } else {
       // soft swell with each aura pulse
-      this.sound_vol = (1 / 80) * proximity;
+      this.sound_vol = 1 / 80;
       this.p_env_attack = 0.32;
       this.p_env_sustain = 0.05;
       this.p_env_decay = 0.3;
@@ -806,14 +789,13 @@ class Presets extends Params {
 
   harvest(options: SoundOptions) {
     const variant = options.variant || 1;
-    const proximity = options.proximity || 1;
     this.wave_type = waveforms.NOISE;
     this.p_env_attack = 0;
     this.p_env_punch = 1;
 
     if (variant === 1) {
       // axe into wood
-      this.sound_vol = (1 / 18) * proximity;
+      this.sound_vol = 1 / 18;
       this.p_env_sustain = 0.01;
       this.p_env_decay = 0.12 + frnd(0.01);
       this.p_base_freq = 0.25 + frnd(0.02);
@@ -822,7 +804,7 @@ class Presets extends Params {
       this.p_hpf_freq = 0.02;
     } else if (variant === 2) {
       // pickaxe on stone
-      this.sound_vol = (1 / 24) * proximity;
+      this.sound_vol = 1 / 24;
       this.p_env_attack = 0.04;
       this.p_env_sustain = 0.04;
       this.p_env_punch = 0.4;
@@ -836,7 +818,7 @@ class Presets extends Params {
       this.p_hpf_freq = 0.03;
     } else if (variant === 3) {
       // hammer on construction
-      this.sound_vol = (1 / 36) * proximity;
+      this.sound_vol = 1 / 36;
       this.p_env_sustain = 0.02;
       this.p_env_decay = 0.1 + frnd(0.01);
       this.p_base_freq = 0.6;
@@ -845,7 +827,7 @@ class Presets extends Params {
       this.p_hpf_freq = 0.1;
     } else {
       // felled or broken, a soft round blop
-      this.sound_vol = (1 / 32) * proximity;
+      this.sound_vol = 1 / 32;
       this.wave_type = waveforms.SINE;
       this.p_env_sustain = 0.05;
       this.p_env_punch = 0.5;
@@ -1017,7 +999,7 @@ class Presets extends Params {
 
   prompt(options: SoundOptions) {
     const variant = options.variant || 1;
-    this.sound_vol = (1 / 64) * (options.proximity || 1);
+    this.sound_vol = 1 / 64;
     this.wave_type = waveforms.SQUARE;
     this.p_env_attack = 0;
     this.p_env_sustain = 0.06;
@@ -1255,8 +1237,7 @@ class Presets extends Params {
   }
 
   snow(options: SoundOptions) {
-    const proximity = options.proximity || 1;
-    this.sound_vol = (1 / 40) * proximity;
+    this.sound_vol = 1 / 40;
     this.wave_type = waveforms.NOISE;
     this.p_env_attack = 0.03;
     this.p_env_sustain = 0.06;
@@ -1488,14 +1469,28 @@ export const loadSounds = (
 };
 
 export const play = <P extends SoundPreset>(
+  world: World | undefined,
   preset: P,
-  { delay = 0, notes = 1, spacing = 0, pattern, ...options }: SfxOptions<P> = {}
+  {
+    position,
+    volume = 1,
+    delay = 0,
+    notes = 1,
+    spacing = 0,
+    pattern,
+    ...options
+  }: SfxOptions<P> = {}
 ) => {
   if (!isPlaying()) return;
+  const source =
+    world && position && getSoundSource(world, position, preset, options.variant);
+  if (position && !source) return;
   if (soundStub) {
     soundStub.played.push(preset);
     return;
   }
+
+  if (position) delay += 50 * Math.random() ** 2;
 
   for (let note = 1; note <= notes; note += 1) {
     // leave out rests, e.g. empty chars
@@ -1513,7 +1508,8 @@ export const play = <P extends SoundPreset>(
     const cached = getSound(params);
     cached.sound.play(
       getAudioTime(delay + (note - 1) * spacing),
-      gain / cached.gain
+      (gain / cached.gain) * volume,
+      source
     );
   }
 };

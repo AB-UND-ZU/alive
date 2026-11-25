@@ -175,19 +175,7 @@ export const triggerSpear = (
     REFERENCE,
   ])[REFERENCE].tick;
 
-  // scale sound by distance to hero
-  const heroEntity = world.getEntity([PLAYER, POSITION]);
-  play("spear", {
-    proximity: heroEntity
-      ? 1 /
-        (getDistance(
-          entity[POSITION],
-          heroEntity[POSITION],
-          world.metadata.gameEntity[LEVEL].size
-        ) +
-          1)
-      : 0.5,
-  });
+  play(world, "spear", { position: entity[POSITION] });
 
   // create spear slash
   createSequence<"slash", SlashSequence>(
@@ -541,12 +529,12 @@ export const triggerZap = (
     "lightningFlash",
     { targets: zapPositions }
   );
-  play("zap", { variant: 2 });
+  play(world, "zap", { position: fragmentEntity[POSITION], variant: 2 });
 
   // electric spark on each hit target in quick succession
-  if (zapPositions.length > 0) {
-    play("spark", { notes: zapPositions.length, spacing: 35 });
-  }
+  zapPositions.forEach((position, index) => {
+    play(world, "spark", { position, variant: index + 1, delay: index * 35 });
+  });
 
   delete attackerEntity[CONDITIONABLE]?.zap;
   rerenderEntity(world, attackerEntity);
@@ -654,7 +642,7 @@ export const applyProcs = (
       attackerEntity[STATS].hp = hp;
       hasAffected = true;
       createAmountMarker(world, attackerEntity, drain, "up", "heal");
-      play("pickup", pickupOptions.hp);
+      play(world, "pickup", { position: attackerEntity[POSITION], ...pickupOptions.hp });
     }
   }
 
@@ -952,15 +940,11 @@ export default function setupDamage(world: World) {
               targetOrientation
             );
 
-            const hero = world.getEntity([PLAYER, POSITION]);
-            const size = world.metadata.gameEntity[LEVEL].size;
-            if (hero && getDistance(hero[POSITION], targetPosition, size) < 10) {
-              play("hit", {
-                intensity: damage,
-                proximity: targetEntity[PLAYER] ? 1 : 0.5,
-                variant: targetEntity[PLAYER] ? 1 : 2,
-              });
-            }
+            play(world, "hit", {
+              position: targetPosition,
+              intensity: damage,
+              variant: targetEntity[PLAYER] ? 1 : 2,
+            });
 
             // set rechargable if applicable
             const shouldRecharge = canRecharge(world, entity);

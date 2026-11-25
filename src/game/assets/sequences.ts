@@ -672,7 +672,7 @@ export const zapCondition: Sequence<ConditionSequence> = (
     rerenderEntity(world, conditionParticle);
     updated = true;
 
-    if (targetAmount === 1 && !finished) play("zap", { variant: 3 });
+    if (targetAmount === 1 && !finished) play(world, "zap", { position: entity[POSITION], variant: 3 });
   }
 
   if (finished) {
@@ -780,7 +780,7 @@ export const blockCondition: Sequence<ConditionSequence> = (
     }
     updated = true;
 
-    if (!inactive) play("block", { variant: 4 });
+    if (!inactive) play(world, "block", { position: entity[POSITION], variant: 4 });
   }
 
   // burst bubble
@@ -946,7 +946,8 @@ export const toolCondition: Sequence<ConditionSequence> = (
       targetOrientation &&
       progress > tick / 2
     ) {
-      play("harvest", {
+      play(world, "harvest", {
+        position: targetEntity[POSITION],
         variant:
           toolEntity[ITEM].tool === "hammer"
             ? 3
@@ -1119,7 +1120,7 @@ export const shovelCondition: Sequence<ConditionSequence> = (
     PARTICLE,
   ]);
   if (finished) {
-    play("dig");
+    play(world, "dig", { position: entity[POSITION] });
     performDig(world, entity, toolEntity);
 
     if (entity[BUMPABLE]) {
@@ -1355,7 +1356,7 @@ export const hookCondition: Sequence<ConditionSequence> = (
   if (!toolParticle[ORIENTABLE].facing && condition.orientation) {
     toolParticle[ORIENTABLE].facing = condition.orientation;
     updated = true;
-    play("fish", { variant: 1 });
+    play(world, "fish", { position: entity[POSITION], variant: 1 });
 
     const baitParticle = entities.createFibre(world, {
       [ORIENTABLE]: {},
@@ -1457,7 +1458,6 @@ export const hookCondition: Sequence<ConditionSequence> = (
 
     const delta = orientationPoints[condition.orientation];
     const baitStats = getItemStats(hookEntity[ITEM]);
-    play("fish", { variant: 2 });
     const baitEntity = entities.createBait(world, {
       [BAITABLE]: { caster: entityId, amount: baitStats.fishing },
       [BUMPABLE]: { generation: 0 },
@@ -1472,6 +1472,7 @@ export const hookCondition: Sequence<ConditionSequence> = (
       [SWIMMABLE]: { swimming: false },
     });
     registerEntity(world, baitEntity);
+    play(world, "fish", { position: baitEntity[POSITION], variant: 2 });
 
     updated = true;
   }
@@ -2349,7 +2350,7 @@ export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
       });
       state.particles[`border-${index}`] = world.getEntityId(particle);
     });
-    play("trap", { intensity: 2, notes: 2, spacing: 0 });
+    play(world, "trap", { position: entity[POSITION], intensity: 2, notes: 2, spacing: 0 });
     updated = true;
   } else if (triggered && burstTime < 0) {
     if (!state.particles.warning) {
@@ -2379,12 +2380,7 @@ export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
     if (warning[SPRITE] !== sprite) {
       warning[SPRITE] = sprite;
       rerenderEntity(world, warning);
-      const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
-      const distance = heroEntity
-        ? getDistance(entity[POSITION], heroEntity[POSITION], size) + 1
-        : 2;
-      if (sprite === warnOn && distance < 10)
-        play("prompt", { proximity: 1 / distance });
+      if (sprite === warnOn) play(world, "prompt", { position: entity[POSITION] });
       updated = true;
     }
   }
@@ -2413,12 +2409,6 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
     progress >= teleportTicks + dashRemain ||
     (casterEntity && isDead(world, casterEntity));
   let updated = false;
-
-  // scale sounds by distance to hero
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
-  const dashProximity = heroEntity
-    ? 1 / (getDistance(entity[POSITION], heroEntity[POSITION], size) + 1)
-    : 0.5;
 
   // create dash particles and teleport anchor
   if (!state.args.memory?.position && progress < teleportTicks) {
@@ -2469,10 +2459,10 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
     } else {
       updated = true;
       state.args.memory = { position, target };
-      play("dash", {
+      play(world, "dash", {
+        position: entity[POSITION],
         variant: 1,
         intensity: teleportTicks * dashTime,
-        proximity: dashProximity,
       });
 
       // create blocking anchor
@@ -2515,7 +2505,6 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
   ) {
     delete state.args.memory.position;
     const target = state.args.memory.target;
-    play("dash", { variant: 2, proximity: dashProximity });
 
     let offset = 0;
     let origin = copy(entity[POSITION]);
@@ -2539,6 +2528,7 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
         y: delta.y * target,
       })
     );
+    play(world, "dash", { position: casterEntity[POSITION], variant: 2 });
     rerenderEntity(world, casterEntity);
     const teleportEntity = world.assertById(state.args.memory.teleport);
     disposeEntity(world, teleportEntity);
@@ -2963,11 +2953,7 @@ export const totemAura: Sequence<AuraSequence> = (world, entity, state) => {
 
     // swell along with the aura brightening
     if ((auraGeneration + 10) % 15 === 12 && !finished) {
-      const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
-      const distance = heroEntity
-        ? getDistance(entity[POSITION], heroEntity[POSITION], size) + 1
-        : 2;
-      if (distance < 10) play("totem", { variant: 2, proximity: 1 / distance });
+      play(world, "totem", { position: entity[POSITION], variant: 2 });
     }
 
     state.args.memory.generation = auraGeneration;
@@ -3694,7 +3680,7 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
   if (state.args.note === 0) {
     // noise riser while the cross expands to build tension for the rings
     state.args.note = 1;
-    play("progress", { intensity: crossTime });
+    play(world, "progress", { position: entity[POSITION], intensity: crossTime });
 
     for (let i = 0; i < progressParts; i += 1) {
       for (const orientation of orientations) {
@@ -3740,7 +3726,7 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
   );
   while (state.elapsed > crossTime && state.args.ring < rings) {
     state.args.ring += 1;
-    play("level", { variant: state.args.ring });
+    play(world, "level", { position: entity[POSITION], variant: state.args.ring });
 
     for (let i = 0; i < progressParts; i += 1) {
       for (const orientation of orientations) {
@@ -3914,7 +3900,7 @@ export const acquireXp: Sequence<XpSequence> = (world, entity, state) => {
         rerenderEntity(world, heroEntity);
 
         // play sound
-        play("xp", { delay: random(0, (heroEntity[STATS].xp % 1) * 75 + 75) });
+        play(world, "xp", { delay: random(0, (heroEntity[STATS].xp % 1) * 75 + 75) });
 
         disposeEntity(world, xpParticle);
         delete state.particles[particleName];
@@ -7753,7 +7739,6 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
   const burnGeneration = Math.ceil(state.elapsed / fireTick);
   const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
   const worldDelta = world.metadata.gameEntity[REFERENCE].delta;
-  const size = world.metadata.gameEntity[LEVEL].size;
   const entityId = world.getEntityId(entity);
 
   let updated = false;
@@ -7967,27 +7952,11 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
       updated = true;
     }
 
-    // play sounds
-    const listener =
-      world.getEntity([PLAYER, SOUL, POSITION]) ||
-      world.getEntity([PLAYER, POSITION]);
-    const distance = listener
-      ? getDistance(listener[POSITION], entity[POSITION], size) + 1
-      : Infinity;
-    if (distance < 10) {
-      const proximity = 1 / distance;
-
-      if (isEternalFire || isUnitBurning || random(0, 3) === 0) {
-        play("fire", { proximity, delay: random(0, 175) });
-      }
-
-      if (isCrackle) {
-        play("crackle", {
-          proximity,
-          delay: random(0, fireTick),
-          intensity: random(5, 10),
-        });
-      }
+    if (isEternalFire || isUnitBurning || random(0, 3) === 0) {
+      play(world, "fire", { position: entity[POSITION], delay: random(0, 175) });
+    }
+    if (isCrackle) {
+      play(world, "crackle", { position: entity[POSITION], delay: random(0, fireTick), intensity: random(5, 10) });
     }
   }
 
@@ -8291,7 +8260,7 @@ export const doorUnlock: Sequence<UnlockSequence> = (world, entity, state) => {
   if (state.particles.key && (finished || state.elapsed > keyTime)) {
     disposeEntity(world, world.assertById(state.particles.key));
     delete state.particles.key;
-    play("unlock", { notes: 2, spacing: 80 });
+    play(world, "unlock", { position: entity[POSITION], notes: 2, spacing: 80 });
 
     const holeParticle = entities.createParticle(world, {
       [PARTICLE]: {
@@ -8308,7 +8277,7 @@ export const doorUnlock: Sequence<UnlockSequence> = (world, entity, state) => {
 
   if (finished) {
     openDoor(world, entity);
-    play("door");
+    play(world, "door", { position: entity[POSITION] });
   }
 
   return { finished, updated };
@@ -8858,7 +8827,7 @@ export const popupInteract: Sequence<InteractSequence> = (
   if (initial) {
     updated = true;
 
-    play("prompt", { notes: 2, spacing: 70 });
+    play(world, "prompt", { position: entity[POSITION], notes: 2, spacing: 70 });
 
     const discoveryParticle = entities.createParticle(world, {
       [PARTICLE]: {

@@ -20,7 +20,7 @@ import { TypedEntity } from "../entities";
 import { TEMPO } from "../components/tempo";
 import { getTempo, isWalkable } from "./movement";
 import { Orientation, orientationPoints } from "../components/orientable";
-import { add, getDistance } from "../../game/math/std";
+import { add } from "../../game/math/std";
 import { PLAYER } from "../components/player";
 import { isDead } from "./damage";
 import { getSwimmables } from "./immersion";
@@ -402,14 +402,9 @@ export default function setupFreeze(world: World) {
     }
 
     // remove snow
-    const size = world.metadata.gameEntity[LEVEL].size;
-    const hero = world.getEntity([PLAYER, POSITION]);
     for (const entity of world.getEntities([CLICKABLE, COVERABLE, POSITION])) {
       if (entity[COVERABLE].type === "snow" && entity[CLICKABLE].clicked) {
-        const distance = hero
-          ? getDistance(hero[POSITION], entity[POSITION], size) + 1
-          : 1;
-        if (distance < 7) play("snow", { proximity: 1 / distance });
+        play(world, "snow", { position: entity[POSITION] });
         disposeEntity(world, entity);
       }
     }

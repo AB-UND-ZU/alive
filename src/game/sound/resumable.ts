@@ -1,3 +1,5 @@
+import { clearSoundSources, SoundSource, trackSound } from "./spatial";
+
 export type AudioChannels = 1 | 2;
 
 let active = true;
@@ -7,6 +9,7 @@ let masterGain: GainNode | undefined;
 let activityGain: GainNode | undefined;
 
 export const setAudioContext = (context?: AudioContext) => {
+  clearSoundSources();
   masterGain?.disconnect();
   activityGain?.disconnect();
   audioContext = context;
@@ -63,7 +66,7 @@ export const isPlaying = () =>
   (activityGain?.gain.value || 0) > 0;
 
 export type SoundBuffer = {
-  play: (time: number, volume?: number) => void;
+  play: (time: number, volume?: number, origin?: SoundSource) => void;
 };
 
 // audio clock time after a delay in milliseconds
@@ -98,13 +101,19 @@ export const createSoundBuffer = (
   }
 
   return {
-    play: (time, volume = 1) => {
+    play: (time, volume = 1, origin) => {
       if (context !== audioContext) return;
       const source = context.createBufferSource();
       source.buffer = buffer;
       const gainNode = context.createGain();
-      gainNode.gain.value = volume;
-      gainNode.connect(master);
+      if (origin) {
+        const panner = context.createStereoPanner();
+        source.onended = trackSound(origin, gainNode, panner, master, volume);
+        gainNode.connect(panner);
+      } else {
+        gainNode.gain.value = volume;
+        gainNode.connect(master);
+      }
       source.connect(gainNode);
       source.start(Math.max(time, context.currentTime));
     },

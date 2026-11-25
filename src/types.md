@@ -230,6 +230,7 @@
 | [SoundBuffer](game/sound/resumable.md#type-soundbuffer) | `src/game/sound/resumable.ts` |
 | [SoundOptions](game/sound/index.md#type-soundoptions) | `src/game/sound/index.ts` |
 | [SoundPreset](game/sound/index.md#type-soundpreset) | `src/game/sound/index.ts` |
+| [SoundSource](game/sound/spatial.md#type-soundsource) | `src/game/sound/spatial.ts` |
 | [SoundVariant](game/sound/index.md#type-soundvariant) | `src/game/sound/index.ts` |
 | [Spawnable](engine/components/spawnable.md#type-spawnable) | `src/engine/components/spawnable.ts` |
 | [SpellItem](features/spells/helpers.md#type-spellitem) | `src/features/spells/helpers.ts` |

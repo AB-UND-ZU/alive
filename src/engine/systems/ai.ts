@@ -224,6 +224,19 @@ const banditWarning = (idle: typeof rage, ticks: number): Pattern[] => [
   { name: "dialog", memory: { idle: undefined, override: undefined } },
 ];
 
+function playRage(world: World, entity: TypedEntity<"POSITION">, charged = false) {
+  const type = entity[NPC]?.type || "";
+  const pitch = [...type].reduce(
+    (hash, char) => (hash * 33 + char.charCodeAt(0)) % 1009,
+    150
+  );
+  play(world, "danger", {
+    position: entity[POSITION],
+    variant: (pitch % 72) + 1,
+    intensity: charged || type.toLowerCase().includes("boss") ? 2 : 1,
+  });
+}
+
 export default function setupAi(world: World) {
   let lastGeneration = -1;
 
@@ -239,22 +252,6 @@ export default function setupAi(world: World) {
       const patterns = (entity[BEHAVIOUR] as Behaviour).patterns;
       const entityId = world.getEntityId(entity);
       const size = world.metadata.gameEntity[LEVEL].size;
-
-      // scale danger sound on rage by distance to hero
-      const heroDistance = rageHero
-        ? getDistance(entity[POSITION], rageHero[POSITION], size)
-        : 0;
-      const rageProximity = heroDistance < 10 ? 2 / (heroDistance + 2) : 0;
-      // distinct alert pitch and tone per mob type, longer for bosses
-      const rageType = entity[NPC]?.type || "";
-      const rageVariant =
-        ([...rageType].reduce(
-          (hash, char) => (hash * 33 + char.charCodeAt(0)) % 1009,
-          150
-        ) %
-          72) +
-        1;
-      const rageIntensity = rageType.toLowerCase().includes("boss") ? 2 : 1;
 
       // always reset movement first to cover cases of changed patterns
       if (entity[MOVABLE]) {
@@ -585,12 +582,7 @@ export default function setupAi(world: World) {
             if (textSequence) {
               textSequence.args.text = [rage];
             }
-            if (rageProximity)
-              play("danger", {
-                variant: rageVariant,
-                intensity: rageIntensity,
-                proximity: rageProximity,
-              });
+            playRage(world, entity);
 
             patterns.splice(
               patterns.indexOf(pattern),
@@ -1074,12 +1066,7 @@ export default function setupAi(world: World) {
             }
           }
           if (inWalkableRange && entity[TOOLTIP] && !entity[TOOLTIP]?.idle) {
-            if (rageProximity)
-              play("danger", {
-                variant: rageVariant,
-                intensity: rageIntensity,
-                proximity: rageProximity,
-              });
+            playRage(world, entity);
             entity[TOOLTIP].idle = rage;
             entity[TOOLTIP].changed = true;
           } else if (!inWalkableRange && entity[TOOLTIP]?.idle) {
@@ -1134,13 +1121,7 @@ export default function setupAi(world: World) {
             entity[TOOLTIP].idle = undefined;
             entity[TOOLTIP].changed = true;
           } else if (!isMoving) {
-            if (rageProximity) {
-              play("danger", {
-                variant: rageVariant,
-                intensity: rageIntensity,
-                proximity: rageProximity,
-              });
-            }
+            playRage(world, entity);
             entity[TOOLTIP].idle = rage;
             entity[TOOLTIP].changed = true;
           }
@@ -1385,12 +1366,8 @@ export default function setupAi(world: World) {
               shootingOrientation
             ) {
               entity[ORIENTABLE].facing = shootingOrientation;
-              if (entity[TOOLTIP].idle !== rage && rageProximity) {
-                play("danger", {
-                  variant: rageVariant,
-                  intensity: rageIntensity,
-                  proximity: rageProximity,
-                });
+              if (entity[TOOLTIP].idle !== rage) {
+                playRage(world, entity);
               }
               entity[TOOLTIP].idle = rage;
               entity[TOOLTIP].changed = true;
@@ -1583,14 +1560,9 @@ export default function setupAi(world: World) {
 
           if (
             (memory.idle === rage || memory.idle === rage2) &&
-            entity[TOOLTIP].idle !== memory.idle &&
-            rageProximity
+            entity[TOOLTIP].idle !== memory.idle
           ) {
-            play("danger", {
-              variant: rageVariant,
-              intensity: memory.idle === rage2 ? 2 : rageIntensity,
-              proximity: rageProximity,
-            });
+            playRage(world, entity, memory.idle === rage2);
           }
 
           if (
@@ -1621,12 +1593,7 @@ export default function setupAi(world: World) {
           const memory = pattern.memory;
           entity[BELONGABLE].faction = "hostile";
           entity[TOOLTIP].changed = true;
-          if (rageProximity)
-            play("danger", {
-              variant: rageVariant,
-              intensity: rageIntensity,
-              proximity: rageProximity,
-            });
+          playRage(world, entity);
           entity[TOOLTIP].idle = rage;
           entity[TOOLTIP].enemy = true;
           entity[TOOLTIP].override = memory.shout ? "visible" : undefined;
@@ -1736,12 +1703,8 @@ export default function setupAi(world: World) {
               });
 
               if (entity[TOOLTIP]) {
-                if (entity[TOOLTIP].idle !== rage && rageProximity) {
-                  play("danger", {
-                    variant: rageVariant,
-                    intensity: rageIntensity,
-                    proximity: rageProximity,
-                  });
+                if (entity[TOOLTIP].idle !== rage) {
+                  playRage(world, entity);
                 }
                 entity[TOOLTIP].idle = rage;
                 entity[TOOLTIP].changed = true;
@@ -2046,7 +2009,7 @@ export default function setupAi(world: World) {
               entity[STATS].hp = hp;
               createAmountMarker(world, entity, healing, "up", "heal");
               if (healing > 0) {
-                play("pickup", pickupOptions.hp);
+                play(world, "pickup", { position: entity[POSITION], ...pickupOptions.hp });
               }
             }
 
@@ -2055,12 +2018,7 @@ export default function setupAi(world: World) {
               entity[TOOLTIP].changed = true;
               if (restart) pattern.memory.generation = 0;
             } else if (((wait && !healing) || done) && !entity[TOOLTIP].idle) {
-              if (rageProximity)
-                play("danger", {
-                  variant: rageVariant,
-                  intensity: rageIntensity,
-                  proximity: rageProximity,
-                });
+              playRage(world, entity);
               entity[TOOLTIP].idle = rage;
               entity[TOOLTIP].changed = true;
             }
@@ -2399,7 +2357,7 @@ export default function setupAi(world: World) {
             entity[STATS].hp = hp;
             if (healing > 0) {
               createAmountMarker(world, entity, healing, "up", "heal");
-              play("pickup", pickupOptions.hp);
+              play(world, "pickup", { position: entity[POSITION], ...pickupOptions.hp });
             }
           } else if (pattern.memory.heal) {
             delete pattern.memory.heal;
@@ -4691,10 +4649,10 @@ export default function setupAi(world: World) {
               detached: [],
             });
             entity[ORIENTABLE].facing = "up";
-            play("talk", {
+            play(world, "talk", {
+              position: entity[POSITION],
               variant: 1,
               intensity: 3,
-              proximity: rageProximity,
             });
           }
           const center: Position = memory.center;
@@ -4876,9 +4834,9 @@ export default function setupAi(world: World) {
             tooltip.idle = sprite;
             tooltip.changed = true;
             if (sprite)
-              play("danger", {
+              play(world, "danger", {
+                position: entity[POSITION],
                 intensity: sprite === rage2 ? 2 : 1,
-                proximity: rageProximity,
               });
           };
           const clearArtillery = () => {
@@ -5206,10 +5164,10 @@ export default function setupAi(world: World) {
               warn(undefined);
               nextPhase(memory.surfacePhase);
               if (memory.surfacePhase === "rage") {
-                play("talk", {
+                play(world, "talk", {
+                  position: entity[POSITION],
                   variant: 1,
                   intensity: 3,
-                  proximity: rageProximity,
                 });
               }
             }
@@ -5449,7 +5407,7 @@ export default function setupAi(world: World) {
                     exertables: [],
                   }
                 );
-                play("slash");
+                play(world, "slash", { position: entity[POSITION] });
                 memory.slashes -= 1;
                 if (memory.slashes === 0) {
                   memory.ticks = 0;
@@ -5971,7 +5929,7 @@ export default function setupAi(world: World) {
                   exertables: [],
                 }
               );
-              play("slash");
+              play(world, "slash", { position: entity[POSITION] });
               memory.nextAttack = memory.ticks + 2;
             }
             delete memory.queuedAttack;
@@ -6666,7 +6624,7 @@ export default function setupAi(world: World) {
       }
 
       const steps = entity[MOVABLE].orientations;
-      if (steps.length && rageType.startsWith("bandit")) {
+      if (steps.length && entity[NPC]?.type.startsWith("bandit")) {
         const safe = (direction: Orientation) =>
           !getBurning(
             world,

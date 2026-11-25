@@ -15,10 +15,8 @@ import {
   beach,
   soilWet,
 } from "../../game/assets/sprites";
-import { add, combine, copy, getDistance, lerp, random } from "../../game/math/std";
+import { add, combine, copy, lerp, random } from "../../game/math/std";
 import { play } from "../../game/sound";
-import { PLAYER } from "../components/player";
-import { LAYER } from "../components/layer";
 import { LEVEL } from "../components/level";
 import { getImmersible, hasWater, isImmersible, isSubmerged } from "./immersion";
 import { getEnterable } from "./enter";
@@ -79,18 +77,11 @@ export const bubbleSound = (
   position: Position,
   type: Liquid["type"]
 ) => {
-  const hero = world.getEntity([PLAYER, POSITION, LAYER]);
-  const size = world.metadata.gameEntity[LEVEL].size;
-  const distance = hero
-    ? getDistance(hero[POSITION], position, size, 0.45)
-    : Infinity;
-
-  if (hero && distance < 10 && (type !== "drop" || random(0, 4) === 0)) {
-    play(type === "drop" ? "rain" : "bubble", {
-      proximity: 1 / (distance + 1),
+  if (type !== "drop" || random(0, 4) === 0) {
+    play(world, type === "drop" ? "rain" : "bubble", {
+      position,
       variant: type === "bubble" ? 1 : 2,
       delay: random(0, 100),
-      intensity: hero[LAYER].structure ? 0.5 : 1,
     });
   }
 };

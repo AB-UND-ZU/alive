@@ -61,7 +61,7 @@ describe("preset waveforms", () => {
   afterEach(() => jest.restoreAllMocks());
 
   it("keeps the original sample rate without silent tails", () => {
-    play("wave", { seed: 2 });
+    play(undefined, "wave", { seed: 2 });
 
     const rendered = synthesized.mock.results[0].value.normalized;
     const [, length, sampleRate] = buffers.mock.calls[0];
@@ -72,8 +72,8 @@ describe("preset waveforms", () => {
   });
 
   it("keeps the prompt cue shorter and quieter than a danger warning", () => {
-    play("prompt", { seed: 3 });
-    play("danger", { seed: 3 });
+    play(undefined, "prompt", { seed: 3 });
+    play(undefined, "danger", { seed: 3 });
 
     const [prompt, danger] = synthesized.mock.results.map(
       ({ value }) => value.normalized as number[]

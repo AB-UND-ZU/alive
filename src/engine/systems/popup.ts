@@ -232,10 +232,10 @@ export const typeChat = (
     const indices = Array.isArray(keyIndex) ? keyIndex : [keyIndex];
     getTabSelections(world, popup).push(...indices);
     rerenderEntity(world, popup);
-    play("type", { notes: 2, spacing: 16 });
+    play(world, "type", { notes: 2, spacing: 16 });
   } else {
     popTabSelection(world, popup);
-    play("type", { notes: 2, spacing: 20, intensity: 2 });
+    play(world, "type", { notes: 2, spacing: 20, intensity: 2 });
   }
 };
 
@@ -255,7 +255,7 @@ export const navigateChat = (
       popup[POPUP].chatSuggestion =
         (popup[POPUP].chatSuggestion || 0) + direction;
       rerenderEntity(world, popup);
-      play("select", { variant: direction === -1 ? 2 : 1 });
+      play(world, "select", { variant: direction === -1 ? 2 : 1 });
     }
     return;
   }
@@ -268,7 +268,7 @@ export const navigateChat = (
     : [];
   popup[POPUP].chatSuggestion = 0;
   if (next !== historyIndex)
-    play("select", { variant: direction === -1 ? 2 : 1 });
+    play(world, "select", { variant: direction === -1 ? 2 : 1 });
 };
 
 export const completeChat = (world: World, heroEntity: Entity) => {
@@ -332,7 +332,7 @@ export const submitChat = (
   );
   heroEntity[PLAYER].chatHistory.unshift(selections);
   saveChatHistory(heroEntity[PLAYER].chatHistory);
-  play("confirm");
+  play(world, "confirm");
 
   const command = parseCommand(keys.join(""));
   const error = command
@@ -804,7 +804,7 @@ export const openPopup = (
   }
 
   // hum while window unrolls, short if shown instantly
-  play("open", {
+  play(world, "open", {
     intensity: instant ? 120 : (frameHeight - 1) * popupDelay,
   });
 
@@ -1133,7 +1133,7 @@ export default function setupPopup(world: World) {
         const index = Math.round(
           clamp(heroEntity[PLAYER].contentTriggered ?? 0, 0, 1) * maximum
         );
-        if (index !== getVerticalIndex(world, popupEntity)) play("select");
+        if (index !== getVerticalIndex(world, popupEntity)) play(world, "select");
         setVerticalIndex(world, popupEntity, index);
         if (popupEntity[POPUP].sprite && getTab(world, popupEntity) === "pack")
           popupEntity[POPUP].sprite!.selected = index;
@@ -1226,7 +1226,7 @@ export default function setupPopup(world: World) {
       setVerticalIndex(world, popupEntity, newIndex);
 
       if (clamp(newIndex, 0, lines > 0 ? lines - 1 : 0) !== previousIndex) {
-        play("select", { variant: targetScroll === "up" ? 2 : 1 });
+        play(world, "select", { variant: targetScroll === "up" ? 2 : 1 });
       }
 
       if (
@@ -1260,7 +1260,7 @@ export default function setupPopup(world: World) {
           setVerticalIndex(world, popupEntity, newIndex);
 
           if (clamp(newIndex, 0, lines > 0 ? lines - 1 : 0) !== previousIndex) {
-            play("select");
+            play(world, "select");
           }
         }
       }
@@ -1280,7 +1280,7 @@ export default function setupPopup(world: World) {
       heroEntity[PLAYER].actionTriggered = undefined;
       if (popupSequence) {
         closePopup(world, heroEntity, popupEntity);
-        play("close");
+        play(world, "close");
       }
     } else if (
       heroEntity[PLAYER].actionTriggered === "tab" ||
@@ -1305,7 +1305,7 @@ export default function setupPopup(world: World) {
         popupSequence.elapsed = popupSequence.args.windowHeight * popupDelay;
         popupSequence.args.contentIndex = 0;
         rerenderEntity(world, popupEntity);
-        play("tab", { variant: backtab ? 2 : 1 });
+        play(world, "tab", { variant: backtab ? 2 : 1 });
       }
     } else if (heroEntity[PLAYER].actionTriggered === "type") {
       const { tabTriggered, offsetTriggered, contentTriggered } =
@@ -1336,7 +1336,7 @@ export default function setupPopup(world: World) {
         if (tradeEntity && isQuestCompleted(world, heroEntity, tradeEntity)) {
           pushTabSelection(world, tradeEntity);
           completeQuest(world, heroEntity, tradeEntity);
-          play("confirm");
+          play(world, "confirm");
 
           // advance to completed screen
           if (selections.length === 1) pushTabSelection(world, tradeEntity);
@@ -1355,15 +1355,15 @@ export default function setupPopup(world: World) {
             });
 
             closePopup(world, heroEntity, addEntity);
-            play("confirm");
+            play(world, "confirm");
           } else {
             // proceed to choices screen
             pushTabSelection(world, addEntity);
             setVerticalIndex(world, addEntity, 0);
-            play("confirm");
+            play(world, "confirm");
           }
         } else if (!isQuestCompleted(world, heroEntity, popupEntity)) {
-          play("deny");
+          play(world, "deny");
           queueMessage(world, heroEntity, {
             line: createText("Not completed!", colors.silver, colors.black),
             orientation: "up",
@@ -1379,7 +1379,7 @@ export default function setupPopup(world: World) {
           if (canShop(world, heroEntity, deal)) {
             performTrade(world, heroEntity, tradeEntity);
           } else if (deal.stock === 0) {
-            play("deny");
+            play(world, "deny");
             queueMessage(world, heroEntity, {
               line: createText("Sold out!", colors.silver, colors.black),
               orientation: "up",
@@ -1387,7 +1387,7 @@ export default function setupPopup(world: World) {
               delay: 0,
             });
           } else if (missingItem) {
-            play("deny");
+            play(world, "deny");
             queueMessage(world, heroEntity, {
               line: addBackground(
                 [
@@ -1411,7 +1411,7 @@ export default function setupPopup(world: World) {
             rerenderEntity(world, heroEntity);
             rerenderEntity(world, popupEntity);
           } else {
-            play("deny");
+            play(world, "deny");
             queueMessage(world, heroEntity, {
               line: addBackground(
                 [
@@ -1486,7 +1486,7 @@ export default function setupPopup(world: World) {
           }
           rerenderEntity(world, base);
           rerenderEntity(world, heroEntity);
-          play("pickup");
+          play(world, "pickup");
         } else if (
           ((addEntity && selections.length === 2) ||
             (useEntity && forgingFailed(useEntity))) &&
@@ -1507,20 +1507,20 @@ export default function setupPopup(world: World) {
           forge.lastAction = "swing";
           if (selections.length === 2) pushTabSelection(world, popupEntity);
           else rerenderEntity(world, popupEntity);
-          play("confirm");
+          play(world, "confirm");
         } else if (addEntity) {
           const nextItem = addItem || baseItem;
 
           if (forgeable && selections.length < 2) {
             pushTabSelection(world, addEntity);
-            play("confirm");
+            play(world, "confirm");
 
             // scroll up for preview
             if (selections.length === 2) {
               setVerticalIndex(world, addEntity, 0);
             }
           } else {
-            play("deny");
+            play(world, "deny");
             queueMessage(world, heroEntity, {
               line: nextItem
                 ? addBackground(
@@ -1564,7 +1564,7 @@ export default function setupPopup(world: World) {
           if (canShop(world, heroEntity, deal)) {
             performTrade(world, heroEntity, tradeEntity);
           } else if (missingItem) {
-            play("deny");
+            play(world, "deny");
             queueMessage(world, heroEntity, {
               line: addBackground(
                 [
@@ -1588,9 +1588,9 @@ export default function setupPopup(world: World) {
             const recipeIndex = selections[1];
             const recipe = popupEntity[POPUP].recipes[recipeIndex];
             queueBrew(world, heroEntity, tradeEntity, recipe, verticalIndex);
-            play("confirm");
+            play(world, "confirm");
           } else if (missingItem) {
-            play("deny");
+            play(world, "deny");
             queueMessage(world, heroEntity, {
               line: addBackground(
                 [
@@ -1608,7 +1608,7 @@ export default function setupPopup(world: World) {
         } else if (addEntity) {
           pushTabSelection(world, addEntity);
           setVerticalIndex(world, addEntity, 0);
-          play("confirm");
+          play(world, "confirm");
         }
       } else if (tab === "plant") {
         const plantedItem = plantItems[verticalIndex];
@@ -1617,9 +1617,9 @@ export default function setupPopup(world: World) {
           if (isPlantable(world, plantedItem[ITEM])) {
             closePopup(world, heroEntity, popupEntity);
             plantSeed(world, heroEntity, plantedItem);
-            play("confirm");
+            play(world, "confirm");
           } else {
-            play("deny");
+            play(world, "deny");
             queueMessage(world, heroEntity, {
               line: addBackground(
                 [
@@ -1658,7 +1658,7 @@ export default function setupPopup(world: World) {
             !canConstruct(world, heroEntity, buildingConstruction)
           ) {
             const buildingSprite = buildingConstruction.sprite;
-            play("deny");
+            play(world, "deny");
             queueMessage(world, heroEntity, {
               line: addBackground(
                 [
@@ -1679,7 +1679,7 @@ export default function setupPopup(world: World) {
               heroEntity,
               getBuildingDeal(buildingConstruction)
             )[0];
-            play("deny");
+            play(world, "deny");
             queueMessage(world, heroEntity, {
               line: addBackground(
                 [
@@ -1708,7 +1708,7 @@ export default function setupPopup(world: World) {
         } else if (useEntity) {
           const useItem =
             inspectItems[getVerticalIndex(world, useEntity)]?.[ITEM];
-          play("deny");
+          play(world, "deny");
           queueMessage(world, heroEntity, {
             line: useItem
               ? [
@@ -1739,9 +1739,9 @@ export default function setupPopup(world: World) {
           // proceed to next tab
           addEntity[POPUP].horizontalIndex += 1;
           rerenderEntity(world, addEntity);
-          play("confirm");
+          play(world, "confirm");
         } else {
-          play("deny");
+          play(world, "deny");
           queueMessage(world, heroEntity, {
             line: createText("Not unlocked!", colors.silver, colors.black),
             orientation: "up",
@@ -1756,7 +1756,7 @@ export default function setupPopup(world: World) {
         ) {
           pushTabSelection(world, popupEntity);
           setVerticalIndex(world, popupEntity, 0);
-          play("confirm");
+          play(world, "confirm");
         }
       } else if (tab === "load") {
         const erasing = selections.length === 1;
@@ -1775,13 +1775,13 @@ export default function setupPopup(world: World) {
           if (save && !world.metadata.readOnlySaves) {
             removeSaveSummary(save.id);
             world.metadata.eraseGame(save.id);
-            play("die", { variant: 2 });
+            play(world, "die", { variant: 2 });
           }
         } else if (save && isLoadable(save)) {
           initiateLoad(world, popupEntity, heroEntity, save.id);
-          play("confirm");
+          play(world, "confirm");
         } else {
-          play("deny");
+          play(world, "deny");
           queueMessage(world, heroEntity, {
             line: createText(
               save ? "Newer version!" : "No saves yet!",
@@ -1799,9 +1799,9 @@ export default function setupPopup(world: World) {
           // ignore
         } else if (canWarp(world, heroEntity, warpEntity)) {
           initiateWarp(world, warpEntity, heroEntity);
-          play("confirm");
+          play(world, "confirm");
         } else if (selectedLevel) {
-          play("deny");
+          play(world, "deny");
           queueMessage(world, heroEntity, {
             line: createText(
               getSelectedLevel(world, warpEntity) ===
@@ -1823,7 +1823,7 @@ export default function setupPopup(world: World) {
       } else if (tab === "use") {
         if (addEntity && selections.length === 0) {
           pushTabSelection(world, addEntity);
-          play("confirm");
+          play(world, "confirm");
         } else if (
           addEntity &&
           selections.length === 2 &&
@@ -1836,7 +1836,7 @@ export default function setupPopup(world: World) {
           popTabSelection(world, addEntity);
           popTabSelection(world, addEntity);
           setVerticalIndex(world, addEntity, 0);
-          play("confirm");
+          play(world, "confirm");
         }
       }
     } else if (heroEntity[PLAYER].actionTriggered === "left") {
@@ -1849,7 +1849,7 @@ export default function setupPopup(world: World) {
 
       if (tab === "chat") {
         clearChat(world, popupEntity);
-        play("back");
+        play(world, "back");
       } else if (tab === "load" && selections.length === 0) {
         // ask before erasing a saved game
         const save = getSaveSummaries()[getVerticalIndex(world, popupEntity)];
@@ -1858,7 +1858,7 @@ export default function setupPopup(world: World) {
           world.assertComponents(popupEntity, [RESTORABLE])[RESTORABLE].saveId = save.id;
           pushTabSelection(world, popupEntity);
           setVerticalIndex(world, popupEntity, 0);
-          play("confirm");
+          play(world, "confirm");
         }
       } else if (
         selections.length > 0 &&
@@ -1875,11 +1875,11 @@ export default function setupPopup(world: World) {
         const previousIndex =
           verticalIndex === undefined || tab === "use" ? 0 : verticalIndex;
         setVerticalIndex(world, popupEntity, previousIndex);
-        play("back");
+        play(world, "back");
       } else if (questCompleted || forgeCompleted) {
         // close final screens on escape
         closePopup(world, heroEntity, popupEntity);
-        play("close");
+        play(world, "close");
       }
     }
 
