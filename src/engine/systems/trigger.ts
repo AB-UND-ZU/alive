@@ -380,6 +380,27 @@ export const removeFromInventory = (
   }
 };
 
+const announcePickup = (
+  world: World,
+  entity: Entity,
+  item: Omit<Item, "bound" | "carrier">
+) => {
+  const delay = queueMessage(world, entity, {
+    line: createText(
+      `${item.amount}x ${getItemSprite(item).name}`,
+      colors.silver,
+      colors.black
+    ),
+    orientation: "up",
+    fast: false,
+    delay: 0,
+  });
+  play(world, "pickup", {
+    ...pickupOptions[(item.stackable || item.consume)!],
+    delay,
+  });
+};
+
 export const performTrade = (
   world: World,
   entity: Entity,
@@ -437,17 +458,7 @@ export const performTrade = (
 
   // play sound
   if (!(deal.item.stat && !deal.item.material)) {
-    queueMessage(world, entity, {
-      line: createText(
-        `${deal.item.amount}x ${getItemSprite(deal.item).name}`,
-        colors.silver,
-        colors.black
-      ),
-      orientation: "up",
-      fast: false,
-      delay: 0,
-    });
-    play(world, "pickup", pickupOptions[(deal.item.stackable || deal.item.consume)!]);
+    announcePickup(world, entity, deal.item);
   }
 
   rerenderEntity(world, shop);
@@ -753,17 +764,7 @@ export const completeQuest = (world: World, entity: Entity, target: Entity) => {
     populateItems(world, entity as TypedEntity<"INVENTORY" | "POSITION">, [
       { ...choice, bound: false },
     ]);
-    queueMessage(world, entity, {
-      line: createText(
-        `${choice.amount}x ${getItemSprite(choice).name}`,
-        colors.silver,
-        colors.black
-      ),
-      orientation: "up",
-      fast: false,
-      delay: 0,
-    });
-    play(world, "pickup", pickupOptions[(choice.stackable || choice.consume)!]);
+    announcePickup(world, entity, choice);
   }
 
   popup.deals.forEach((_, index) => {

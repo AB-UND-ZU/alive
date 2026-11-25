@@ -45,6 +45,8 @@ const press = (world: World, action: "right" | "down" | "close") => {
 const getPrism = (world: World) =>
   findEntityAt(world, findInArea(area, "◀"), [NPC, STATS])!;
 
+const sound = jest.requireMock<typeof import("../../game/sound")>("../../game/sound");
+
 describe("quests", () => {
   it("refuses an unfinished quest", () => {
     const { world, hero, giver } = setupQuest({
@@ -117,8 +119,17 @@ describe("quests", () => {
     interact(world, 30);
     press(world, "right");
     press(world, "down");
+    const playback = jest.spyOn(sound, "play");
     press(world, "right");
+    const delays = playback.mock.calls
+      .filter(([, name]) => name === "pickup")
+      .map(([, , options]) => options?.delay);
+    playback.mockRestore();
 
+    expect(delays).toHaveLength(2);
+    expect(delays[1]! - delays[0]!).toBeGreaterThanOrEqual(250);
+    const messages = getSequence(world, hero, "message")!.args.messages;
+    expect(messages[1].delay - messages[0].delay).toBe(delays[1]! - delays[0]!);
     expect(countItems(world, hero, { stackable: "charge" })).toBe(3);
     expect(countItems(world, hero, { stackable: "arrow" })).toBe(0);
     expect(countItems(world, hero, reward)).toBe(1);

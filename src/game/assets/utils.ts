@@ -1198,6 +1198,7 @@ export const queueMessage = (
         messageState.args.messages[0]?.orientation ?? message.orientation,
       delay,
     });
+    return delay - messageState.elapsed;
   } else {
     createSequence<"message", MessageSequence>(
       world,
@@ -1210,6 +1211,7 @@ export const queueMessage = (
         lastMessage: message.delay,
       }
     );
+    return message.delay;
   }
 };
 
