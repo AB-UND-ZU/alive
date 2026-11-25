@@ -2417,14 +2417,13 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         combine(size, iglooPoint, clearing.center)
       );
 
-      const iglooGate = combine(size, iglooOrigin, village.gate);
-      for (const dy of [-1, 1]) {
-        const origin = combine(size, iglooGate, { x: 0, y: dy });
+      for (const [index, post] of village.guards.entries()) {
+        const origin = combine(size, iglooOrigin, post);
         const guard = createNpc(
           world,
           "waterGuard",
           origin,
-          dy === -1 ? "waterGuardNorth" : "waterGuardSouth"
+          index === 0 ? "waterGuardNorth" : "waterGuardSouth"
         );
         guard[BEHAVIOUR].patterns.push({
           name: "watch",

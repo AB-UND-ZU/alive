@@ -46,10 +46,12 @@ it("connects every quadrant and the glacier-facing opening to the village center
   for (let seed = 0; seed < 400; seed++) {
     seedRandom(seed);
     const angle = (seed * Math.PI) / 64;
-    const { matrix, objects, center, plaza, gate, houses } = villageAt({
+    const clearing = createIglooClearing({
       x: Math.cos(angle),
       y: Math.sin(angle),
     });
+    const { matrix, objects, center, plaza, gate, houses, guards } =
+      generateIglooVillage(clearing);
     const boardwalk = matrix.map((col) =>
       col.map((cell) =>
         Number(cell === "jetty_horizontal" || cell === "jetty_vertical")
@@ -58,10 +60,9 @@ it("connects every quadrant and the glacier-facing opening to the village center
     expect(boardwalk[plaza.x][plaza.y]).toBe(1);
     const fence = pixelCircle(center, iglooRadius);
     for (const point of fence) {
-      const inGate =
-        Math.abs(point.x - gate.x) <= 1 && Math.abs(point.y - gate.y) <= 1;
-      expect(objects[point.x][point.y] === "rock").toBe(!inGate);
-      expect(inGate || matrix[point.x][point.y] === "sand").toBe(true);
+      const inGate = point.x === gate.x && point.y === gate.y;
+      expect(objects[point.x][point.y]).toBe(inGate ? "palisade_door" : "rock");
+      expect(matrix[point.x][point.y]).toBe("sand");
     }
     expect(
       new Set(
@@ -92,7 +93,9 @@ it("connects every quadrant and the glacier-facing opening to the village center
       expect((right - left + 3) * aspectRatio).toBeGreaterThan(
         entrance.y - top + 2
       );
-      supplyCells += right - left - 1;
+      expect(objects[left + 1][top]).toBeUndefined();
+      expect(objects[right - 1][top]).toBeUndefined();
+      supplyCells += right - left - 3;
       for (let x = left; x <= right; x++) {
         for (let y = top; y < entrance.y; y++) {
           const object = objects[x][y];
@@ -114,15 +117,22 @@ it("connects every quadrant and the glacier-facing opening to the village center
       expect(objects[entrance.x][entrance.y - 1]).toBeUndefined();
       expect(objects[resident.x][resident.y]).toBeUndefined();
     }
-    for (const dx of [-1, 0, 1])
-      for (const dy of [-1, 0, 1]) {
-        expect(matrix[gate.x + dx][gate.y + dy]).toBe("sand");
-        boardwalk[gate.x + dx][gate.y + dy] = 1;
-      }
-    expect(path.findPathSimple(boardwalk, plaza, gate)).toContainEqual(gate);
+    expect(fence).toContainEqual(gate);
+    const sides = guards.map((post) => {
+      expect(matrix[post.x][post.y]).toBe("rubble");
+      expect(objects[post.x][post.y]).toBeUndefined();
+      return Math.sign(
+        (post.x - gate.x) * (center.y - gate.y) -
+          (post.y - gate.y) * (center.x - gate.x)
+      );
+    });
+    expect(sides.sort()).toEqual([-1, 1]);
+    expect(path.findPathSimple(boardwalk, plaza, clearing.inside)).toContainEqual(
+      clearing.inside
+    );
   }
-  expect(Math.abs(pots / supplyCells - 0.2)).toBeLessThan(0.02);
-  expect(Math.abs(chests / supplyCells - 0.1)).toBeLessThan(0.02);
+  expect(Math.abs(pots / supplyCells - 0.3)).toBeLessThan(0.02);
+  expect(Math.abs(chests / supplyCells - 0.2)).toBeLessThan(0.02);
 });
 
 it("fits all four houses beside a diagonal opening in the nine-cell radius", () => {

@@ -130,7 +130,7 @@ export const describeIslandSeeds = (seeds: number[]) =>
       expect(failedAttempts).toBeLessThan(islandTries);
     });
 
-    it("leaves an open entrance between the water guards and a boat site at the jetty", () => {
+    it("places a one-cell gate and a free jetty between the water guards and a boat site at the jetty", () => {
       const level = world.metadata.gameEntity[LEVEL];
       expect(level.objects.flat(2)).not.toContain("boat");
       const [north, south] = ["waterGuardNorth", "waterGuardSouth"].map((id) =>
@@ -147,10 +147,21 @@ export const describeIslandSeeds = (seeds: number[]) =>
       expect(
         world.getEntities(["NPC"]).filter((npc) => npc.NPC.type === "waterGuard")
       ).toHaveLength(2);
-      const entrance = combine(level.size, north[POSITION], { x: 0, y: 1 });
-      expect(south[POSITION]).toEqual(
-        combine(level.size, north[POSITION], { x: 0, y: 2 })
-      );
+      const entrance = level.cellPositions.palisade_door.find(
+        (p) => level.biomes[p.x][p.y] === "glacier"
+      )!;
+      expect(entrance).toBeDefined();
+      expect(["sand", "beach"]).toContain(level.cells[entrance.x][entrance.y]);
+      const gate = getCellEntities(world, entrance).find((e) => e[LOCKABLE]);
+      expect(gate?.[LOCKABLE]).toMatchObject({ type: "gate", locked: true });
+      expect(
+        Object.values(orientationPoints).some((offset) => {
+          const p = combine(level.size, entrance, offset);
+          return (
+            level.cells[p.x][p.y].startsWith("jetty_") && isWalkable(world, p)
+          );
+        })
+      ).toBe(true);
       for (const guard of [north, south]) {
         expect(guard.BELONGABLE.faction).toBe("water");
         expect(isImmersible(world, guard[POSITION])).toBe(false);
@@ -160,6 +171,12 @@ export const describeIslandSeeds = (seeds: number[]) =>
         expect(watch?.memory.origin).toEqual(guard[POSITION]);
         const { center, radius, ratio } = watch!.memory;
         expect(ratio).toBe(aspectRatio);
+        expect(getDistance(center, guard[POSITION], level.size)).toBeLessThan(
+          radius
+        );
+        expect(level.cells[guard[POSITION].x][guard[POSITION].y]).toBe(
+          "rubble"
+        );
         expect(getDistance(center, entrance, level.size)).toBeCloseTo(
           radius,
           0
@@ -171,14 +188,6 @@ export const describeIslandSeeds = (seeds: number[]) =>
         expect(getDistance(entrance, glacierCenter, level.size)).toBeLessThan(
           getDistance(center, glacierCenter, level.size)
         );
-      }
-      for (const dx of [-1, 0, 1]) {
-        expect(
-          isWalkable(
-            world,
-            combine(level.size, north[POSITION], { x: dx, y: 1 })
-          )
-        ).toBe(true);
       }
       expect(level.biomes[chief[POSITION].x][chief[POSITION].y]).toBe(
         "glacier"

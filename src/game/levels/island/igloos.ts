@@ -12,7 +12,7 @@ import {
   range,
   shuffle,
 } from "../../math/std";
-import { pixelCircle, pointToDegree } from "../../math/tracing";
+import { iterations, pixelCircle, pointToDegree } from "../../math/tracing";
 
 export const iglooRadius = 9;
 
@@ -63,23 +63,40 @@ export function createIglooClearing(towardGlacier: Point) {
     x: towardGlacier.x * aspectRatio,
     y: towardGlacier.y,
   });
-  const gate = angledOffset(width, center, angle, iglooRadius);
+  const idealGate = angledOffset(width, center, angle, iglooRadius);
 
   for (const { x, y } of pixelCircle(center, iglooRadius, aspectRatio, true))
     matrix[x][y] = "rubble";
-  for (const { x, y } of pixelCircle(center, iglooRadius)) {
+  const fence = pixelCircle(center, iglooRadius);
+  for (const { x, y } of fence) {
     matrix[x][y] = "sand";
-    if (Math.abs(x - gate.x) > 1 || Math.abs(y - gate.y) > 1)
-      objects[x][y] = "rock";
+    objects[x][y] = "rock";
   }
-  for (const dx of [-1, 0, 1])
-    for (const dy of [-1, 0, 1]) matrix[gate.x + dx][gate.y + dy] = "sand";
 
-  return { matrix, objects, center, gate };
+  // As in Haven, pick a fence cell that can be crossed in a straight line.
+  const distance = (p: Point) =>
+    Math.hypot((p.x - idealGate.x) * aspectRatio, p.y - idealGate.y);
+  for (const gate of fence.sort((a, b) => distance(a) - distance(b))) {
+    for (const { direction } of iterations) {
+      const inside = add(gate, direction);
+      const outside = { x: gate.x - direction.x, y: gate.y - direction.y };
+      if (
+        matrix[outside.x]?.[outside.y] ||
+        matrix[inside.x]?.[inside.y] !== "rubble"
+      )
+        continue;
+
+      objects[gate.x][gate.y] = "palisade_door";
+      matrix[outside.x][outside.y] = "sand";
+      matrix[inside.x][inside.y] = "sand";
+      return { matrix, objects, center, gate, inside };
+    }
+  }
+  throw new Error("Could not place the igloo gate!");
 }
 
 function tryIglooVillage(clearing: ReturnType<typeof createIglooClearing>) {
-  const { center, gate } = clearing;
+  const { center, gate, inside } = clearing;
   const matrix = clearing.matrix.map((column) => column.slice());
   const objects = clearing.objects.map((column) => column.slice());
   const width = matrix.length;
@@ -145,10 +162,10 @@ function tryIglooVillage(clearing: ReturnType<typeof createIglooClearing>) {
       objects[flipped ? left : left + w - 1][top] = station[npc];
 
       const bottom = top + h - 1;
-      for (let x = left + 1; x < left + w - 1; x++) {
+      for (let x = left + 2; x < left + w - 2; x++) {
         const roll = Math.random();
-        if (roll < 0.1) objects[x][top] = "ironChest";
-        else if (roll < 0.3) objects[x][top] = "pot";
+        if (roll < 0.2) objects[x][top] = "ironChest";
+        else if (roll < 0.5) objects[x][top] = "pot";
       }
 
       // Furnish the longer side of the bottom row, leaving the doorway clear.
@@ -182,21 +199,17 @@ function tryIglooVillage(clearing: ReturnType<typeof createIglooClearing>) {
         : 20;
     })
   );
+  weights[inside.x][inside.y] = 20;
   for (const target of [
     ...houses.map((house) => add(house.entrance, { x: 0, y: 1 })),
-    gate,
+    inside,
   ]) {
-    if (target === gate) {
-      for (const dx of [-1, 0, 1])
-        for (const dy of [-1, 0, 1]) weights[gate.x + dx][gate.y + dy] = 1;
-    }
     const path = [plaza, ...findPathSimple(weights, plaza, target)];
     if (path.length === 1 && (target.x !== plaza.x || target.y !== plaza.y))
       return;
     for (const [index, { x, y }] of path.entries()) {
-      if (matrix[x][y] === "sand") break;
       if (weights[x][y] === 1) continue;
-      const next = path[index + 1];
+      const next = path[index + 1] || (target === inside ? gate : undefined);
       matrix[x][y] =
         next && next.x !== x ? "jetty_horizontal" : "jetty_vertical";
       weights[x][y] = 1;
@@ -206,9 +219,25 @@ function tryIglooVillage(clearing: ReturnType<typeof createIglooClearing>) {
   iterateMatrix(matrix, (x, y, cell) => {
     if (cell === "rubble") rubble.push({ x, y });
   });
+  // Flank the entrance on open ground, leaving every jetty cell free.
+  const side = (p: Point) =>
+    (p.x - gate.x) * (center.y - gate.y) - (p.y - gate.y) * (center.x - gate.x);
+  const distance = (p: Point) => Math.hypot(p.x - gate.x, p.y - gate.y);
+  const posts = rubble.slice().sort((a, b) => distance(a) - distance(b));
+  const postOn = (sign: number) =>
+    posts.find(
+      (p) =>
+        Math.sign(side(p)) === sign &&
+        findPathSimple(weights, inside, p).length > 0
+    );
+  const left = postOn(-1);
+  const right = postOn(1);
+  if (!left || !right) return;
+  const guards = [left, right].sort((a, b) => a.y - b.y || a.x - b.x);
+
   const plants = Math.round(rubble.length / 12);
   const planted: Point[] = [];
-  for (const point of shuffle(rubble)) {
+  for (const point of shuffle(rubble.filter((p) => !guards.includes(p)))) {
     if (planted.length === plants) break;
     if (
       planted.some(
@@ -221,5 +250,5 @@ function tryIglooVillage(clearing: ReturnType<typeof createIglooClearing>) {
     planted.push(point);
   }
 
-  return { matrix, objects, center, plaza, houses, gate };
+  return { matrix, objects, center, plaza, houses, gate, guards };
 }
