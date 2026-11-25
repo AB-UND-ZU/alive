@@ -99,19 +99,12 @@ export default function Paused({ preparingMap = false }: { preparingMap?: boolea
   const loading = suspended || preparingMap;
   if (!paused && !initial && !loading) return null;
 
+  const coverRow = repeat(backdrop, dimensions.renderedColumns);
   return (
     <div className="Paused">
       <div className="Cover">
-        {Array.from({
-          length: dimensions.renderedRows + dimensions.hudRows,
-        }).map((_, index) => (
-          <Row
-            key={index}
-            cells={repeat(
-              backdrop,
-              dimensions.visibleColumns + dimensions.padding * 2
-            )}
-          />
+        {Array.from({ length: dimensions.renderedRows }, (_, index) => (
+          <Row key={index} cells={coverRow} />
         ))}
       </div>
 
@@ -198,10 +191,10 @@ export default function Paused({ preparingMap = false }: { preparingMap?: boolea
             )}
           </>
         )}
+        {!loading && (
+          <div className="Resume" id="resume" onClick={handleResume} />
+        )}
       </div>
-      {!loading && (
-        <div className="Resume" id="resume" onClick={handleResume} />
-      )}
     </div>
   );
 }

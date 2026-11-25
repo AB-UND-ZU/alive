@@ -28,6 +28,7 @@ import {
   specialKey,
   lowerKey,
   lettersKey,
+  backdrop,
   keyboardBorder,
   keyPressed,
   keySocketPressed,
@@ -36,6 +37,7 @@ import {
   deletePressed,
   deleteSocketPressed,
 } from "../../game/assets/sprites";
+import { Sprite } from "../../engine/components/sprite";
 import Row from "../Row";
 import { colors } from "../../game/assets/colors";
 import "./index.css";
@@ -45,7 +47,7 @@ import { POSITION } from "../../engine/components/position";
 import { typeChat } from "../../engine/systems/popup";
 import { useDimensions } from "../Dimensions";
 import { repeat } from "../../game/math/std";
-import { getPressedKeyEdge, parseSprite } from "../../game/assets/ui";
+import { addForeground, getPressedKeyEdge, parseSprite } from "../../game/assets/ui";
 
 import {
   keyboardColumns,
@@ -261,6 +263,9 @@ export default function Keyboard() {
   }
 
   const overlayWidth = dimensions.renderedColumns;
+  const { color, char } = backdrop.layers[0];
+  const shade = (row: Sprite[]) =>
+    paused ? addForeground(row, color, char) : row;
 
   return (
     <aside
@@ -268,10 +273,10 @@ export default function Keyboard() {
       style={{ "--overlay-width": overlayWidth } as React.CSSProperties}
     >
       <div className="KeyboardBorder">
-        <Row cells={repeat(keyboardBorder, overlayWidth + 1)} />
+        <Row cells={shade(repeat(keyboardBorder, overlayWidth + 1))} />
       </div>
       {keyboardSprites.map((row, index) => (
-        <Row key={index} cells={row} />
+        <Row key={index} cells={shade(row)} />
       ))}
       <div
         id="keyboard"

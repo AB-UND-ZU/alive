@@ -1,11 +1,9 @@
 .Paused {
   position: absolute;
   inset: var(--pixel-size);
-  overflow: hidden;
-  z-index: 2;
 }
 
-.Terminal:has(+ footer #keyboard) .Paused {
+.Terminal:has(+ footer #keyboard) .Resume {
   height: calc(
     var(--game-height) - var(--cell-height) * var(--hud-rows) - var(--top-offset)
   );
@@ -16,23 +14,11 @@
   inset: 0;
 }
 
-.Cover {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 .Overlay {
   position: absolute;
-  height: calc(
-    var(--game-height) - var(--cell-height) * (var(--hud-rows, 4) * 2 - 2) - var(--top-offset) -
-      var(--bottom-offset)
-  );
-  top: calc(var(--cell-height) * -1);
-  bottom: calc(var(--cell-height) * -1);
-  left: 0;
-  right: 0;
-
+  inset: 0;
+  height: var(--terminal-height);
+  z-index: 2;
   display: flex;
   flex-direction: column;
   justify-content: center;

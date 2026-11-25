@@ -62,12 +62,15 @@ for (const renderer of ["three-js", "html", "terminal"]) {
       const lastRow = { x: keys.x + keys.width / 2, y: keys.y + keys.height * 5 / 6 };
       await page.locator("#menu").click();
       await expect(page.locator("#pause-resume")).toBeVisible();
-      expect(await page.evaluate(({ x, y }) => {
-        const targets = document.elementsFromPoint(x, y);
-        return targets[0]?.id === "resume" && targets.some(el => el.closest(".Cover .Cell"));
-      }, lastRow)).toBe(true);
+      const lastKey = page.locator(".KeyboardOverlay > .Row .Cell").last();
+      await expect(lastKey).toHaveAttribute("data-glyph", "▓");
+      expect(await page.evaluate(
+        ({ x, y }) => document.elementFromPoint(x, y)?.id,
+        lastRow
+      )).toBe("resume");
       await page.mouse.click(lastRow.x, lastRow.y);
       await expect.poll(async () => (await session(page)).paused).toBe(false);
+      await expect(lastKey).not.toHaveAttribute("data-glyph", "▓");
       expect((await session(page)).promptLength).toBe(5);
     }
     await page.keyboard.press("Escape");
