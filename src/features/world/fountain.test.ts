@@ -2,6 +2,7 @@ import { AFFECTABLE } from "../../engine/components/affectable";
 import { PLAYER } from "../../engine/components/player";
 import { STATS } from "../../engine/components/stats";
 import { advance, advanceUntil, createAreaWorld } from "../../testing/harness";
+import { playedSounds } from "../../testing/env";
 import { assertUnit } from "./helpers";
 
 // ♀ hero, ⌠ fountain
@@ -33,6 +34,10 @@ describe("fountain", () => {
     advanceUntil(world, () => hero[STATS].hp === hero[STATS].maxHp, 60000);
 
     expect(hero[PLAYER].receivedStats.hp).toBe(15);
+    expect(playedSounds).toContain("fountain");
+    playedSounds.length = 0;
+    advance(world, 3000);
+    expect(playedSounds).not.toContain("fountain");
   });
 
   it("does not heal a hero further away", () => {
@@ -41,6 +46,7 @@ describe("fountain", () => {
     advance(world, 20000);
 
     expect(hero[STATS].hp).toBe(5);
+    expect(playedSounds).not.toContain("fountain");
   });
 
   it("puts out a burning hero next to it", () => {
@@ -48,5 +54,6 @@ describe("fountain", () => {
     hero[AFFECTABLE].burn = 10;
 
     advanceUntil(world, () => hero[AFFECTABLE].burn === 0, 3000);
+    expect(playedSounds.filter((name) => name === "extinguish")).toHaveLength(1);
   });
 });

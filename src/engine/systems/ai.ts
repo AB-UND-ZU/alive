@@ -2323,6 +2323,12 @@ export default function setupAi(world: World) {
 
           // show countdown
           if (countdown !== undefined && countdown <= 3 * 4 && nextSpawn) {
+            if (countdown % 4 === 0) {
+              play(world, "countdown", {
+                position: entity[POSITION],
+                variant: countdown === 0 ? 2 : 1,
+              });
+            }
             queueMessage(world, entity, {
               line:
                 countdown === 0

@@ -1,3 +1,4 @@
+import { play } from "../../game/sound";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { entities } from "../../engine";
@@ -50,6 +51,9 @@ export const getBurning = (world: World, position: Position) =>
 
 // create static smoke animation from point where unit or terrain extinguishes
 export const extinguishEntity = (world: World, entity: Entity) => {
+  if (entity[BURNABLE]?.burning || entity[AFFECTABLE]?.burn > 0) {
+    play(world, "extinguish", { position: entity[POSITION] });
+  }
   if (entity[AFFECTABLE]) {
     entity[AFFECTABLE].burn = 0;
   }

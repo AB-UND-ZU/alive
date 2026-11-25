@@ -35,14 +35,22 @@ const getSpawned = (world: World) =>
       (entity) => entity[IDENTIFIABLE].name === "arena:mob"
     ) as TypedEntity<"STATS" | "NPC">[];
 
+const sound = jest.requireMock<typeof import("../../game/sound")>("../../game/sound");
+
 describe("mob spawner", () => {
   it("counts down before spawning the first mob of its wave", () => {
     const { world } = setup(["prism", "eye"]);
 
+    const playback = jest.spyOn(sound, "play");
     advanceTicks(world, 8);
     expect(getSpawned(world)).toHaveLength(0);
 
     advanceUntil(world, () => getSpawned(world).length === 1, 5000);
+    const beeps = playback.mock.calls
+      .filter(([, name]) => name === "countdown")
+      .map(([, , options]) => options?.variant);
+    playback.mockRestore();
+    expect(beeps).toEqual([1, 1, 1, 2]);
     expect(getCreatures(world, "prism")).toHaveLength(1);
   });
 

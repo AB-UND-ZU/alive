@@ -34,6 +34,7 @@ import { TEMPO } from "../components/tempo";
 import { freezeMomentum, isFrozen } from "./freeze";
 import { isInPopup, isInTab } from "./popup";
 import { PLAYER } from "../components/player";
+import { BEHAVIOUR } from "../components/behaviour";
 import { npcVariants, play } from "../../game/sound";
 import { NPC } from "../components/npc";
 import { FOG } from "../components/fog";
@@ -421,6 +422,11 @@ export default function setupMovement(world: World) {
               (cell) => cell[RENDERABLE] && cell[SPRITE]?.layers.length
             ) ? 1 : 0.5,
           });
+        } else if (
+          entity[MOVABLE].flying &&
+          entity[BEHAVIOUR]?.patterns.some((pattern) => pattern.name === "tumbleweed")
+        ) {
+          play(world, "tumbleweed", { position: rootPosition });
         } else if (entity[NPC] && entity[FOG]?.visibility === "visible") {
           play(world, "slide", {
             position: rootPosition,

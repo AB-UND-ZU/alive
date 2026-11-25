@@ -209,7 +209,7 @@ class Presets extends Params {
   bubble(options: SoundOptions) {
     const variant = options.variant || 1;
     this.wave_type = waveforms.SINE;
-    this.sound_vol = (1 / 32) * variant ** 2;
+    this.sound_vol = (1 / 48) * variant ** 2;
     this.p_env_attack = (frnd(0.2) + 0.2) / variant;
     this.p_env_sustain = 0.1 / variant;
     this.p_env_decay = 0.2 / variant;
@@ -239,6 +239,53 @@ class Presets extends Params {
     this.p_base_freq = 0.6 + frnd(0.02);
     this.p_lpf_freq = 0.21 + frnd(0.01);
     this.p_hpf_freq = 0.025;
+    return this;
+  }
+
+  extinguish() {
+    this.wave_type = waveforms.NOISE;
+    this.sound_vol = 1 / 44;
+    this.p_base_freq = 0.74;
+    this.p_env_attack = 0.075;
+    this.p_env_sustain = 0.15;
+    this.p_env_decay = 0.78;
+    this.p_hpf_freq = 0.43;
+    this.p_lpf_freq = 0.60;
+    this.p_lpf_ramp = -0.012;
+    return this;
+  }
+
+  fountain(options: SoundOptions) {
+    this.wave_type = waveforms.SINE;
+    this.sound_vol = 1 / 105;
+    this.p_base_freq = options.variant === 2 ? 0.3318 : 0.2705;
+    this.p_env_attack = 0.36;
+    this.p_env_sustain = 0.5;
+    this.p_env_decay = 0.46;
+    return this;
+  }
+
+  countdown(options: SoundOptions) {
+    const go = options.variant === 2;
+    this.wave_type = waveforms.SINE;
+    this.sound_vol = 1 / 80;
+    this.p_base_freq = go ? 0.47 : 0.3318;
+    this.p_env_attack = 0.045;
+    this.p_env_sustain = go ? 0.23 : 0.14;
+    this.p_env_decay = 0.13;
+    return this;
+  }
+
+  tumbleweed() {
+    this.wave_type = waveforms.NOISE;
+    this.sound_vol = 1 / 115;
+    this.p_base_freq = 0.56 + frnd(0.06);
+    this.p_env_attack = 0.25;
+    this.p_env_sustain = 0.16;
+    this.p_env_decay = 0.39;
+    this.p_hpf_freq = 0.16;
+    this.p_lpf_freq = 0.26 + frnd(0.02);
+    this.p_lpf_ramp = -0.02;
     return this;
   }
 
@@ -746,7 +793,7 @@ class Presets extends Params {
 
     if (variant === 1) {
       // warm rise from C4 to E4 on summon
-      this.sound_vol = 1 / 36;
+      this.sound_vol = 1 / 40;
       this.p_env_attack = 0.06;
       this.p_env_sustain = 0.12;
       this.p_env_punch = 0.2;
@@ -758,11 +805,12 @@ class Presets extends Params {
       this.p_vib_speed = 0.3;
     } else {
       // soft swell with each aura pulse
-      this.sound_vol = 1 / 80;
-      this.p_env_attack = 0.32;
-      this.p_env_sustain = 0.05;
-      this.p_env_decay = 0.3;
+      this.sound_vol = 1 / 36;
+      this.p_env_attack = 0.40;
+      this.p_env_sustain = 0.40;
+      this.p_env_decay = 0.59;
       this.p_base_freq = 0.304 + frnd(0.002);
+      this.p_freq_ramp = 0.063;
       this.p_vib_strength = 0.05;
       this.p_vib_speed = 0.3;
     }
@@ -1021,7 +1069,7 @@ class Presets extends Params {
     this.p_env_decay = 0.08;
     this.p_base_freq = 0.2 + frnd(0.002);
     this.p_freq_ramp = 0.08;
-    this.p_lpf_freq = 0.12;
+    this.p_lpf_freq = 0.15;
 
     return this;
   }
@@ -1034,7 +1082,7 @@ class Presets extends Params {
     this.p_env_decay = 0.1;
     this.p_base_freq = 0.21 + frnd(0.002);
     this.p_freq_ramp = -0.15;
-    this.p_lpf_freq = 0.12;
+    this.p_lpf_freq = 0.15;
 
     return this;
   }
@@ -1282,8 +1330,9 @@ class Presets extends Params {
 
   level(options: SoundOptions) {
     const variant = options.variant || 1;
-    this.sound_vol = 1 / 48;
+    this.sound_vol = 1 / 36;
     this.wave_type = waveforms.SAWTOOTH;
+    this.p_duty = 0.9;
     this.p_env_attack = 0.02;
     this.p_env_sustain = 0.05;
     this.p_env_punch = 0.15;
@@ -1319,6 +1368,10 @@ const soundVariants = {
   bubble: [1, 2],
   sail: [],
   rain: [2],
+  extinguish: [],
+  fountain: [1, 2],
+  countdown: [1, 2],
+  tumbleweed: [],
   beam: [3],
   wave: [],
   slash: [],

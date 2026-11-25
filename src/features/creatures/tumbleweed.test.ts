@@ -1,3 +1,4 @@
+import { playedSounds } from "../../testing/env";
 import { World } from "../../engine";
 import { BEHAVIOUR, Pattern } from "../../engine/components/behaviour";
 import { FOG } from "../../engine/components/fog";
@@ -42,6 +43,7 @@ describe("tumbleweed", () => {
 
     const positions = trace(world, 12, () => ({ ...tumbleweed[POSITION] }));
 
+    expect(playedSounds).toContain("tumbleweed");
     expect(positions.every(({ y }) => y === 1)).toBe(true);
     expect(Math.max(...positions.map(({ x }) => x))).toBeGreaterThan(3);
     expect(

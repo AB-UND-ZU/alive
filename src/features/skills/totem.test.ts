@@ -64,6 +64,16 @@ describe("totem", () => {
     });
   });
 
+  it("plays one aura swell when a slow frame crosses a pulse", () => {
+    const { world } = setup();
+    act(world, "skill");
+    resetPlayedSounds();
+
+    world.update(350);
+    world.update(50);
+    expect(playedSounds.filter((sound) => sound === "totem")).toHaveLength(1);
+  });
+
   it("raises attributes of the hero within its aura", () => {
     const { world, hero } = setup();
     const before = getEntityStats(world, hero);

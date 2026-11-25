@@ -2854,7 +2854,7 @@ export const totemAura: Sequence<AuraSequence> = (world, entity, state) => {
   if (state.args.areas.length === 0) {
     state.args.memory = {
       position: copy(entity[POSITION]),
-      generation: auraGeneration,
+      generation: 0,
     };
 
     const areaPoints = pixelCircle(
@@ -2952,7 +2952,11 @@ export const totemAura: Sequence<AuraSequence> = (world, entity, state) => {
     }
 
     // swell along with the aura brightening
-    if ((auraGeneration + 10) % 15 === 12 && !finished) {
+    if (
+      !finished &&
+      Math.floor((auraGeneration - 2) / 15) >
+        Math.floor((state.args.memory.generation - 2) / 15)
+    ) {
       play(world, "totem", { position: entity[POSITION], variant: 2 });
     }
 
@@ -9771,6 +9775,10 @@ export const fountainSplash: Sequence<FountainSequence> = (
         previousEntered &&
         heroEntity[STATS].hp >= heroEntity[STATS].maxHp - healingAmount
       );
+
+    if (emitHealing && (generation - state.args.entered!) % fountainTicks === 0) {
+      play(world, "fountain", { position: entity[POSITION], notes: 2 });
+    }
 
     for (const orientation of ["left", "right"]) {
       const dropParticle = entities.createParticle(world, {
