@@ -66,7 +66,12 @@ export const isPlaying = () =>
   (activityGain?.gain.value || 0) > 0;
 
 export type SoundBuffer = {
-  play: (time: number, volume?: number, origin?: SoundSource) => void;
+  play: (
+    time: number,
+    volume?: number,
+    origin?: SoundSource,
+    playbackRate?: number
+  ) => void;
 };
 
 // audio clock time after a delay in milliseconds
@@ -101,10 +106,11 @@ export const createSoundBuffer = (
   }
 
   return {
-    play: (time, volume = 1, origin) => {
+    play: (time, volume = 1, origin, playbackRate = 1) => {
       if (context !== audioContext) return;
       const source = context.createBufferSource();
       source.buffer = buffer;
+      source.playbackRate.value = playbackRate;
       const gainNode = context.createGain();
       if (origin) {
         const panner = context.createStereoPanner();

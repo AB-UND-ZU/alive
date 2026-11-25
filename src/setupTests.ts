@@ -38,6 +38,7 @@ class FakeAudioParam {
 class FakeAudioNode {
   constructor(public context: FakeAudioContext) {}
   gain = new FakeAudioParam(1);
+  playbackRate = new FakeAudioParam(1);
   buffer: unknown = null;
   connect() {
     return this;

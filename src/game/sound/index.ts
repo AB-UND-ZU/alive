@@ -1544,6 +1544,7 @@ export const play = <P extends SoundPreset>(
   }
 
   if (position) delay += 50 * Math.random() ** 2;
+  const playbackRate = 0.997 + Math.random() * 0.006;
 
   for (let note = 1; note <= notes; note += 1) {
     // leave out rests, e.g. empty chars
@@ -1562,7 +1563,8 @@ export const play = <P extends SoundPreset>(
     cached.sound.play(
       getAudioTime(delay + (note - 1) * spacing),
       (gain / cached.gain) * volume,
-      source
+      source,
+      playbackRate
     );
   }
 };

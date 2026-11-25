@@ -5,6 +5,7 @@ test("activity gates silence output without changing the user's Sound FX setting
   const output: number[] = [];
   const destination = {};
   const makeNode = () => ({
+    playbackRate: { value: 1 },
     gain: { value: 1 },
     connect(target: object) {
       edges.set(this, target);
@@ -172,6 +173,7 @@ it("uses the injected native context clock, scheduling and gain gates", async ()
       },
       createBuffer: () => ({ copyToChannel: jest.fn() }),
       createBufferSource: () => ({
+        playbackRate: { value: 1 },
         connect: jest.fn(),
         start: (time: number) => starts.push(time),
       }),

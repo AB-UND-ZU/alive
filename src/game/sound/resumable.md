@@ -19,6 +19,11 @@ export type AudioChannels = 1 | 2;
 
 ```ts src/game/sound/resumable.ts
 export type SoundBuffer = {
-  play: (time: number, volume?: number, origin?: SoundSource) => void;
+  play: (
+    time: number,
+    volume?: number,
+    origin?: SoundSource,
+    playbackRate?: number
+  ) => void;
 };
 ```
