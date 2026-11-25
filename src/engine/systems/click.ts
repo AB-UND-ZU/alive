@@ -14,6 +14,7 @@ import {
 } from "../components/orientable";
 import { isControllable } from "./freeze";
 import { COVERABLE } from "../components/coverable";
+import { BUMPABLE } from "../components/bumpable";
 import { CLICKABLE } from "../components/clickable";
 import { PLAYER } from "../components/player";
 import { rerenderEntity } from "./renderer";
@@ -78,8 +79,7 @@ export default function setupClick(world: World) {
 
     referenceGenerations = generation;
 
-    // handle player clicking entities
-    for (const entity of world.getEntities([POSITION, MOVABLE])) {
+    for (const entity of world.getEntities([POSITION, MOVABLE, BUMPABLE])) {
       const entityId = world.getEntityId(entity);
       const entityReference = world.assertByIdAndComponents(
         entity[MOVABLE].reference,

@@ -6,7 +6,7 @@ import { INVENTORY } from "../../engine/components/inventory";
 import { POSITION } from "../../engine/components/position";
 import { TypedEntity } from "../../engine/entities";
 import { dropEntity } from "../../engine/systems/drop";
-import { freezeTerrain } from "../../engine/systems/freeze";
+import { freezeTerrain, isSnowy } from "../../engine/systems/freeze";
 import { giveItems } from "../../testing/harness";
 import {
   advanceTicks,
@@ -65,6 +65,20 @@ describe("fish", () => {
       distanceBetween(world, fish[POSITION], hero[POSITION])
     ).toBeGreaterThan(start);
   });
+  it("stays in the water when fleeing toward a snowy shore", () => {
+    const { world } = createCreatureWorld(`
+|≈≈≈≈|
+|♀~α+|
+|≈≈≈≈|
+`);
+    const fish = getCritter(world, "fish");
+    const positions = trace(world, 6, () => ({ ...fish[POSITION] }));
+
+    expect(isSnowy(world, { x: 3, y: 1 })).toBe(true);
+    expect(positions).not.toContainEqual({ x: 3, y: 1 });
+    expect(positions.some(({ y }) => y !== 1)).toBe(true);
+  });
+
   it("gets stuck and flounders when its water freezes over", () => {
     const { world, hero } = createCreatureWorld(pond);
     teleport(world, hero, { x: 30, y: 30 });
