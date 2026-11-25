@@ -71,6 +71,23 @@ describe("preset waveforms", () => {
     expect(Math.abs(rendered[length - 1])).toBeGreaterThan(peak / 1000);
   });
 
+  it.each([0, 1, 2, 3] as const)(
+    "keeps orb beam sweeps audible without sharp clicks for seed %s",
+    (seed) => {
+      play(undefined, "beam", { variant: 3, seed });
+      const samples: number[] = synthesized.mock.results[0].value.normalized;
+      let largestStep = 0;
+      let energy = 0;
+      for (let i = 0; i < samples.length; i++) {
+        const step = samples[i] - (samples[i - 1] ?? 0);
+        largestStep = Math.max(largestStep, Math.abs(step));
+        energy += samples[i] ** 2;
+      }
+      expect(Math.sqrt(energy / samples.length)).toBeGreaterThan(0.02);
+      expect(largestStep).toBeLessThan(0.01);
+    }
+  );
+
   it("keeps the prompt cue shorter and quieter than a danger warning", () => {
     play(undefined, "prompt", { seed: 3 });
     play(undefined, "danger", { seed: 3 });

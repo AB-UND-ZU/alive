@@ -321,8 +321,8 @@ class Presets extends Params {
     this.p_arp_mod = 0.7 + frnd(0.05);
     this.p_arp_speed = 0.5;
     this.p_repeat_speed = 0.6 / variant ** 0.8 - 0.1;
-    this.p_lpf_freq = 0.333;
-    this.p_lpf_ramp = 0.048;
+    // Keep the filter closed enough to soften each pitch sweep's restart.
+    this.p_lpf_freq = 0.21;
     this.p_lpf_resonance = 0;
     this.p_hpf_freq = 0.3 + frnd(0.1);
     this.p_hpf_ramp = -0.07;
@@ -1544,7 +1544,8 @@ export const play = <P extends SoundPreset>(
   }
 
   if (position) delay += 50 * Math.random() ** 2;
-  const playbackRate = 0.997 + Math.random() * 0.006;
+  const cents = (Math.random() * 2 - 1) * 10;
+  const playbackRate = 2 ** (cents / 1200);
 
   for (let note = 1; note <= notes; note += 1) {
     // leave out rests, e.g. empty chars

@@ -194,15 +194,15 @@ describe("sound", () => {
 
   it("varies pitch between plays of cached sounds and keeps each chord in tune", () => {
     const world = createAreaWorld("|♀ |", { size: 64 });
-    jest.spyOn(Math, "random").mockReturnValueOnce(0).mockReturnValue(0.75);
+    jest.spyOn(Math, "random").mockReturnValueOnce(0).mockReturnValue(1 - Number.EPSILON);
     const chord = { notes: 2, seed: 0 } as const;
     play(world, "fountain", chord);
     play(world, "fountain", { ...chord, position: { x: 0, y: 0 } });
 
     const rates = sources.map((source) => source.playbackRate.value);
-    expect(rates[0]).toBeCloseTo(0.997, 6);
+    expect(1200 * Math.log2(rates[0])).toBeCloseTo(-10, 6);
     expect(rates[1]).toBe(rates[0]);
-    expect(rates[2]).toBeCloseTo(1.0015, 6);
+    expect(1200 * Math.log2(rates[2])).toBeCloseTo(10, 6);
     expect(rates[3]).toBe(rates[2]);
     expect(sources[2].buffer).toBe(sources[0].buffer);
     expect(sources[3].buffer).toBe(sources[1].buffer);
