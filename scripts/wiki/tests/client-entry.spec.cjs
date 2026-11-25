@@ -22,6 +22,28 @@ const session = (page) =>
     };
   });
 
+for (const width of [390, 980]) {
+  test(`loading and playing use the same frame at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.route("**/*.js", (route) => route.abort());
+    await page.goto("/html/");
+    const left = await page.locator("#files > img:nth-child(4)").boundingBox();
+    const right = await page.locator("#files > img:nth-child(6)").boundingBox();
+    if (width === 390) {
+      expect(left.x + left.width).toBeLessThanOrEqual(0);
+      expect(right.x).toBeGreaterThanOrEqual(width);
+    } else {
+      expect(left.x).toBeGreaterThan(0);
+      expect(right.x + right.width).toBeLessThan(width);
+    }
+    await page.unroute("**/*.js");
+    await page.reload();
+    for (const [side, x] of [[".LeftEdge", left.x], [".RightEdge", right.x]]) {
+      await expect.poll(async () => (await page.locator(side).boundingBox()).x).toBeCloseTo(x, 0);
+    }
+  });
+}
+
 for (const renderer of ["three-js", "html", "terminal"]) {
   test(`${renderer} standalone entry plays the menu with only its own assets`, async ({
     page,
@@ -86,7 +108,7 @@ for (const renderer of ["three-js", "html", "terminal"]) {
       ).toHaveCount(0);
       await expect(page.locator(".TerminalBrowserPreview")).toHaveCSS(
         "user-select",
-        "text"
+        "none"
       );
       await page.keyboard.press(" ");
     } else await page.locator("#pause-resume").click();

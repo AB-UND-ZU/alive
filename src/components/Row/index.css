@@ -5,31 +5,19 @@
 }
 
 .Cell {
+  display: inline-block;
   position: relative;
-  height: var(--cell-height);
+  vertical-align: top;
   width: var(--cell-width);
-  overflow: hidden;
-  margin-left: -0.5px;
+  height: var(--cell-height);
+  white-space: pre;
 }
 
-.Layer {
-  display: block;
+.Cell > img {
   position: absolute;
   inset: 0;
-  font-size: calc(var(--cell-height) * 1.02);
-}
-
-.Dot {
-  display: block;
-  position: absolute;
-  width: var(--pixel-size);
-  height: var(--pixel-size);
-  background-color: var(--silver);
-}
-.Cell > svg {
-  position: absolute;
-  inset: 0;
-  width: calc(var(--cell-width) * 1.02);
-  height: calc(var(--cell-height) * 1.02);
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
   pointer-events: none;
 }

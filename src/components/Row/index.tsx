@@ -1,60 +1,57 @@
+import type { CSSProperties, ReactNode } from "react";
 import { Layer, Sprite } from "../../engine/components/sprite";
-import { dotCount } from "../../renderers/interface/segments";
 import { getFacingLayers } from "../../game/assets/ui";
-import { characterMarkup } from "./characters";
+import { characterImage } from "./characters";
 import "./index.css";
 
 export type CellSprite = Sprite & { stackableAmount?: number };
 
-function Cell({
+export function Cell({
   layers,
-  stackableAmount,
+  name,
+  dots,
+  className = "",
+  style,
+  children,
 }: {
   layers: Layer[];
-  stackableAmount?: number;
+  name: string;
+  dots?: number;
+  className?: string;
+  style?: CSSProperties;
+  children?: ReactNode;
 }) {
+  const text = name === "text_generic" || name === "button_generic";
+  const last = layers[layers.length - 1];
+  const backedText = text && layers.length === 2 && layers[0].char === "█";
+  const glyph = layers.length === 1 || backedText ? last : undefined;
+  // Box and block glyphs meet their neighbours at the edge of the font bitmap.
+  const graphic = !!dots || (last && (!glyph || /[─-▟]/u.test(glyph.char)));
   return (
     <span
-      className="Cell"
-      data-glyph={
-        layers.length > 1 ? layers[layers.length - 1].char : undefined
+      className={className ? `Cell ${className}` : "Cell"}
+      data-glyph={graphic ? last?.char : undefined}
+      style={
+        backedText ? { ...style, backgroundColor: layers[0].color } : style
       }
     >
-      &nbsp;
-      {layers.length > 1 ? (
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 9 16"
-          shapeRendering="crispEdges"
-          dangerouslySetInnerHTML={{ __html: characterMarkup(layers) }}
+      {glyph && (!graphic || text) && (
+        <span
+          className="Layer"
+          style={{ color: graphic ? "transparent" : glyph.color }}
+        >
+          {glyph.char}
+        </span>
+      )}
+      {graphic && (
+        <img
+          alt=""
+          decoding="sync"
+          draggable={false}
+          src={characterImage(layers, dots)}
         />
-      ) : (
-        layers.map((layer, index) => (
-          <span key={index} style={{ color: layer.color }} className="Layer">
-            {layer.char}
-          </span>
-        ))
       )}
-      {stackableAmount !== undefined && stackableAmount > 1 && (
-        <>
-          {Array.from({ length: Math.min(stackableAmount, 10) }).map(
-            (_, index) => (
-              <span
-                key={index}
-                className="Dot"
-                style={{
-                  top: `calc(var(--pixel-size) * (13 + ${
-                    index >= dotCount ? 2 : 0
-                  }))`,
-                  left: `calc(0.95 * var(--pixel-size) * ${
-                    (index % dotCount) * 2
-                  })`,
-                }}
-              ></span>
-            )
-          )}
-        </>
-      )}
+      {children}
     </span>
   );
 }
@@ -71,8 +68,11 @@ export default function Row({
       {cells.map((cell, index) => (
         <Cell
           key={index}
+          name={cell.name}
           layers={getFacingLayers(cell, undefined, cell.stackableAmount)}
-          stackableAmount={cell.stackableAmount}
+          dots={
+            (cell.stackableAmount ?? 0) > 1 ? cell.stackableAmount : undefined
+          }
         />
       ))}
     </span>

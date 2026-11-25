@@ -11,27 +11,8 @@ test("Contents groups start together and only stacked group rows have a gap", as
       cell.getAttribute("data-glyph") || Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " "
     ).join("")
   )).toContain("CONTENTS");
-  expect(
-    await overview
-      .locator(".FrameEdge .Layer, .FrameEdge svg rect")
-      .evaluateAll((cells) =>
-        cells.some(
-          (cell) => getComputedStyle(cell)[cell.matches("rect") ? "fill" : "color"] === "rgb(0, 128, 0)"
-        )
-      )
-  ).toBe(true);
-  expect(
-    await overview
-      .locator(".FrameEdge .Layer, .FrameEdge svg rect")
-      .evaluateAll((nodes) =>
-        nodes.some(
-          (node) =>
-            getComputedStyle(node)[
-              node.tagName.toLowerCase() === "rect" ? "fill" : "color"
-            ] === "rgb(0, 128, 0)"
-        )
-      )
-  ).toBe(true);
+  const edge = overview.locator(".FrameEdge img").first();
+  expect(decodeURIComponent(await edge.getAttribute("src"))).toContain('fill="#008000"');
   const grid = overview.locator(".CatalogGrouped");
   const geometry = await grid.evaluate((node) => ({
     columns: getComputedStyle(node).gridTemplateColumns.split(" ").length,

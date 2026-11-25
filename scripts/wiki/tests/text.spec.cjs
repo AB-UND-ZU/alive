@@ -106,17 +106,10 @@ test("double clicking selects a complete word in the font run", async ({
     "adventure"
   );
 });
-test("copying an item retains its name and normalizes cell spacing", async ({
-  page,
-}) => {
+test("copying an item includes its count and name and skips its icon", async ({ page }) => {
   await page.goto("/game-design/interactions/crafting.html");
-  const item = page.locator("main .Item").first();
-  const expected = await item.textContent();
-  expect(expected.length).toBeGreaterThan(0);
-  expect(await copy(page, item)).toBe(expected.replaceAll("\u00a0", " "));
-  expect(await item.locator("svg").allTextContents()).toEqual(
-    Array(await item.locator("svg").count()).fill("")
-  );
+  const item = page.locator("main .Item").filter({ hasText: "Stick" }).first();
+  expect(await copy(page, item)).toBe("1Stick");
 });
 
 test("readable Unicode uses existing sprites and copies unchanged", async ({

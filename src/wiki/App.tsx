@@ -535,13 +535,14 @@ const LinkPolicyContext = createContext<{
   targets: Map<string, string>;
 } | null>(null);
 function getLinkDecoration(name: string, href: string) {
+  const route = canonicalRoute(href.split("#")[0] || currentRoute());
+  if (route.startsWith("development/")) return;
   const key = name.toLowerCase();
   const feature = features[key];
   if (
     featureSprites[key] &&
     feature &&
-    canonicalRoute(feature.href.split("#")[0]) ===
-      canonicalRoute(href.split("#")[0])
+    canonicalRoute(feature.href.split("#")[0]) === route
   )
     return {
       sprite: featureSprites[key],

@@ -24,7 +24,7 @@ const entries = {
 
 test("the Map item stays yellow while world and Levels references use the green warp icon", () => {
   render(<ItemView item={commandItems.map} />);
-  const map = screen.getByLabelText("Map").innerHTML;
+  const map = decodeURIComponent(screen.getByLabelText("Map").innerHTML);
   expect(map).toContain(`fill="${colors.yellow}"`);
   expect(map).not.toContain(`fill="${colors.lime}"`);
   for (const key of ["level", "levels", "menu", "dungeon", "island"])

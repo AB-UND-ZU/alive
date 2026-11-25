@@ -5,7 +5,7 @@ import { World } from "../../engine";
 import { step } from "../../testing/harness";
 import { createWorldContext } from "../../renderers/three-js/testing";
 import { Layer } from "../../engine/components/sprite";
-import { characterMarkup } from "../Row/characters";
+import { characterImage, characterMarkup } from "../Row/characters";
 import {
   buttonPalettes,
   createText,
@@ -34,23 +34,25 @@ export const readRow = (row: Element) =>
     .join("");
 
 export const showsLayers = (cell: Element, layers: Layer[], _index = 0) => {
-  const svg = cell.querySelector("svg");
-  if (svg)
-    return (
-      svg.innerHTML.replaceAll("></rect>", "/>") === characterMarkup(layers)
+  const image = cell.querySelector("img");
+  if (image) return image.getAttribute("src") === characterImage(layers);
+  const hex = (color: string) =>
+    color.replace(
+      /rgb\((\d+), (\d+), (\d+)\)/,
+      (_, r, g, b) =>
+        "#" +
+        [r, g, b]
+          .map((value) => Number(value).toString(16).padStart(2, "0"))
+          .join("")
     );
   const drawn = Array.from(cell.querySelectorAll<HTMLElement>(".Layer")).map(
     (layer) => ({
       char: layer.textContent || " ",
-      color: layer.style.color.replace(
-        /rgb\((\d+), (\d+), (\d+)\)/,
-        (_, r, g, b) =>
-          `#${[r, g, b]
-            .map((value) => Number(value).toString(16).padStart(2, "0"))
-            .join("")}`
-      ),
+      color: hex(layer.style.color),
     })
   );
+  const background = (cell as HTMLElement).style.backgroundColor;
+  if (background) drawn.unshift({ char: "█", color: hex(background) });
   return characterMarkup(drawn) === characterMarkup(layers);
 };
 

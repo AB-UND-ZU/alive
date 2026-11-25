@@ -5,7 +5,6 @@ export const characterWidth = 9;
 export const characterHeight = 16;
 const glyphs = font.glyphs as Record<string, { o?: string }>;
 const masks = new Map<string, boolean[]>();
-const images = new Map<string, string>();
 
 export const characterMask = (char: string) => {
   const cached = masks.get(char);
@@ -43,7 +42,7 @@ export const characterMask = (char: string) => {
   return mask;
 };
 
-export const composeCharacterPixels = (layers: Layer[], amount?: number) => {
+export const composeCharacterPixels = (layers: Layer[], dots?: number) => {
   const pixels: (string | undefined)[] = Array(
     characterWidth * characterHeight
   ).fill(undefined);
@@ -51,17 +50,14 @@ export const composeCharacterPixels = (layers: Layer[], amount?: number) => {
     const mask = characterMask(layer.char);
     for (let i = 0; i < mask.length; i++) if (mask[i]) pixels[i] = layer.color;
   }
-  if (amount !== undefined && amount > 1)
-    for (let i = 0; i < Math.min(amount, 10); i++)
+  if (dots)
+    for (let i = 0; i < Math.min(dots, 10); i++)
       pixels[(i < 5 ? 13 : 15) * characterWidth + (i % 5) * 2] = "#c0c0c0";
   return pixels;
 };
 
-export const characterMarkup = (layers: Layer[], amount?: number) => {
-  const key = JSON.stringify([layers, amount]);
-  const cached = images.get(key);
-  if (cached) return cached;
-  const pixels = composeCharacterPixels(layers, amount);
+export const characterMarkup = (layers: Layer[], dots?: number) => {
+  const pixels = composeCharacterPixels(layers, dots);
   const rects: string[] = [];
   for (let y = 0; y < characterHeight; y++)
     for (let x = 0; x < characterWidth; ) {
@@ -77,7 +73,22 @@ export const characterMarkup = (layers: Layer[], amount?: number) => {
         );
       x = end;
     }
-  const markup = rects.join("");
-  images.set(key, markup);
-  return markup;
+  return rects.join("");
+};
+
+const images = new Map<string, string>();
+
+export const characterImage = (layers: Layer[], dots?: number) => {
+  const count = dots && Math.min(dots, 10);
+  const key = JSON.stringify([layers, count]);
+  let image = images.get(key);
+  if (!image) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="9" height="16" viewBox="0 0 9 16" preserveAspectRatio="none" shape-rendering="crispEdges">${characterMarkup(
+      layers,
+      count
+    )}</svg>`;
+    image = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+    images.set(key, image);
+  }
+  return image;
 };

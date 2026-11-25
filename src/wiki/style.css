@@ -329,12 +329,9 @@ nav {
 .NavSelection[aria-disabled="true"] {
   cursor: default;
 }
-.Wiki .Cell {
-  user-select: text;
-}
 ::selection {
   background: var(--green);
-  color: transparent;
+  color: var(--white);
 }
 ul,
 ol {
@@ -498,11 +495,6 @@ table {
 .CodeSemantic span, .CodeSemantic a { user-select: text; }
 .CodeSemantic a { color: var(--blue); }
 .CodeSemantic a:is(:hover, :focus-visible) { color: var(--aqua); }
-.CodeSemantic::selection,
-.CodeSemantic *::selection {
-  background: var(--green);
-  color: var(--white);
-}
 
 .NavSelection {
   width: 306px;

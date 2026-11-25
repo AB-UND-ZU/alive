@@ -12,8 +12,8 @@
 
 .ControlsEdge {
   overflow: hidden;
-  margin-inline: calc(-1 * var(--pixel-size));
-  translate: 0 calc(-1 * var(--pixel-size));
+  position: relative;
+  top: calc(-1 * var(--pixel-size));
 }
 
 .ControlsEdge > .Cell {

@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { unitDefinitions, UnitKey } from "../game/balancing/units";
 import { getUnitSprite } from "../game/assets/utils";
 import { getFacingLayers } from "../game/assets/ui";
-import { characterMarkup } from "../components/Row/characters";
+import { characterImage } from "../components/Row/characters";
 import { readRows } from "../components/Controls/testing";
 import { render, screen } from "@testing-library/react";
 import {
@@ -162,7 +162,7 @@ it("keeps the complete native title in a narrow frame with its requested backgro
   const frame = screen.getByLabelText("Contents");
   expect(readRows(frame)[0]).toContain("CONTENTS");
   expect(frame).toHaveStyle({ maxWidth: "216px" });
-  expect(frame.innerHTML).toContain('fill="#008000"');
+  expect(decodeURIComponent(frame.innerHTML)).toContain('fill="#008000"');
 });
 
 it.each([Infinity, -Infinity])(
@@ -170,7 +170,7 @@ it.each([Infinity, -Infinity])(
   (value) => {
     const view = renderToStaticMarkup(<Count value={value} />);
     expect(view).toContain('aria-label="99+"');
-    expect(view).toContain('fill="#c0c0c0"');
+    expect(decodeURIComponent(view)).toContain('fill="#c0c0c0"');
     expect(view).not.toContain("Infinity");
   }
 );
@@ -218,7 +218,7 @@ it.each(
   )
 )("renders the full native %s portrait including its backdrop", (unit) => {
   const view = renderToStaticMarkup(<UnitView unit={unit} />);
-  expect(view).toContain(characterMarkup(getFacingLayers(getUnitSprite(unit))));
+  expect(view).toContain(characterImage(getFacingLayers(getUnitSprite(unit))));
 });
 
 test("scenario item labels identify material, element and potion type without relying on color", () => {

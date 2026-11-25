@@ -442,10 +442,10 @@ test("code dialogs have filename tabs, syntax colors and copy only source", asyn
   await expect(block.locator(".CodeNumbers")).toBeVisible();
   await expect(block.locator("pre .CodeNumbers")).toHaveCount(0);
   await expectColor(block.locator(".CodeSemantic"), "rgb(0, 255, 255)");
-  await expectColor(
-    block.getByRole("button", { name: "Copy", exact: true }),
-    "rgb(0, 255, 0)"
-  );
+  const copyButton = block.getByRole("button", { name: "Copy", exact: true });
+  await expect(
+    copyButton.locator(".StateIdle .Cell").filter({ hasText: /^C$/ })
+  ).toHaveCSS("background-color", "rgb(0, 255, 0)");
   expect(
     await block
       .locator(".CodeChrome .Cell")
@@ -464,7 +464,7 @@ test("code dialogs have filename tabs, syntax colors and copy only source", asyn
   expect(selected).toContain("export type Item");
   expect(selected).not.toContain("src/engine");
   expect(selected).not.toContain("║");
-  await block.getByRole("button", { name: "Copy", exact: true }).click();
+  await copyButton.click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
     source
   );

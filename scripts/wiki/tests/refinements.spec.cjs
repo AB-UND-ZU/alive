@@ -142,7 +142,7 @@ test("plant contents group forest and desert and Rotten has a real stump icon", 
   const contents = page.locator(".CatalogOverview");
   await expect(contents).toContainText("Forest");
   await expect(contents).toContainText("Desert");
-  await expect(contents.locator('a[href*="#rotten"] .Pixels svg')).toHaveCount(
+  await expect(contents.locator('a[href*="#rotten"] .Pixels img')).toHaveCount(
     1
   );
 });

@@ -6,8 +6,8 @@
   letter-spacing: calc(var(--cell-width) - var(--cell-height) * 9 / 16);
   font-variant-ligatures: none;
   white-space: pre;
-  -webkit-user-select: text;
-  user-select: text;
+  -webkit-user-select: none;
+  user-select: none;
   width: max-content;
   margin: 0;
 }

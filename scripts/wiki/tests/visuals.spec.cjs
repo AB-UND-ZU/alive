@@ -5,14 +5,14 @@ const fills = (locator) =>
     const nodes = roots
       .flatMap((root) => [
         root,
-        ...root.querySelectorAll("svg rect, .Layer, .NativeText"),
+        ...root.querySelectorAll(".Layer, .NativeText"),
       ])
-      .filter((node) => node.matches("svg rect, .Layer, .NativeText"));
+      .filter((node) => node.matches(".Layer, .NativeText"));
     return [
       ...new Set(
         nodes.map(
           (node) =>
-            getComputedStyle(node)[node.matches("rect") ? "fill" : "color"]
+            getComputedStyle(node).color
         )
       ),
     ];
@@ -34,6 +34,7 @@ test("item links underline and recolor only the name", async ({ page }) => {
 
   const icon = item.locator(".TextPrefix > .Pixels");
   const iconColors = await fills(icon);
+  expect(iconColors.length).toBeGreaterThan(0);
   await item.hover();
   expect(await fills(name)).toEqual(["rgb(0, 255, 255)"]);
   await expect(name.first()).toHaveCSS("text-decoration-line", "none");

@@ -1,3 +1,4 @@
+import { characterImage } from "../../components/Row/characters";
 import { render, screen } from "@testing-library/react";
 import HtmlRenderer from ".";
 import * as frames from "../interface/frame";
@@ -99,7 +100,10 @@ it("leaves fog shading on body opacity and uses a lower-half water character for
   render(<HtmlRenderer world={world} {...dimensions} paused />);
   expect(screen.queryByText("▓")).not.toBeInTheDocument();
   expect(screen.queryByText("░")).not.toBeInTheDocument();
-  expect(screen.getByText("▄")).toBeInTheDocument();
+  expect(screen.getByAltText("")).toHaveAttribute(
+    "src",
+    characterImage([{ char: "▄", color: colors.navy }])
+  );
 });
 
 it("fills a solid block's entire cell without enlarging neighboring glyphs", () => {
@@ -121,9 +125,10 @@ it("fills a solid block's entire cell without enlarging neighboring glyphs", () 
   ]);
   render(<HtmlRenderer world={world} {...dimensions} paused />);
   // eslint-disable-next-line testing-library/no-node-access
-  expect(screen.getByText("█").parentElement).toHaveStyle({
-    backgroundColor: colors.black,
-  });
+  expect(screen.getByAltText("")).toHaveAttribute(
+    "src",
+    characterImage(sprite.layers)
+  );
 });
 
 it("fades loot in and retains collected items only until their fade completes", () => {

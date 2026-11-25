@@ -28,21 +28,15 @@
 body:not(.Wiki),
 .App:not(.Wiki) {
   touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 #root:has(> .App) {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
-}
-
-@media (any-pointer: coarse) {
-  .App,
-  .App :is(canvas, .HtmlRenderer, .TerminalBrowserPreview) {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-  }
 }
 
 .App {

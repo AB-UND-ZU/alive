@@ -25,6 +25,8 @@ export function DemoFrame({ island = false }: { island?: boolean }) {
   const rows = island
     ? Math.round(dimensions.terminalHeight / dimensions.cellHeight)
     : 15;
+  const width = columns * dimensions.cellWidth;
+  const height = rows * dimensions.cellHeight;
   const color = focused ? colors.lime : colors.silver;
   return (
     <div
@@ -36,11 +38,10 @@ export function DemoFrame({ island = false }: { island?: boolean }) {
         island
           ? undefined
           : {
-              left: "50%",
-              top: "50%",
-              transform: "translate(-50%, -50%)",
-              width: columns * dimensions.cellWidth,
-              height: rows * dimensions.cellHeight,
+              width,
+              height,
+              left: `calc(50% - ${width / 2}px)`,
+              top: `calc(50% - ${height / 2}px)`,
             }
       }
     >

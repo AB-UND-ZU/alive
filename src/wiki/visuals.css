@@ -1,9 +1,3 @@
-.WikiLink:is(:hover, :focus-visible)
-  .LinkText
-  svg
-  rect:not(.TextSuffix *, .TextPrefix *) {
-  fill: #00ffff;
-}
 .GameButton.SpriteStates,
 .GameSelection.SpriteStates {
   display: inline-grid;
@@ -195,10 +189,10 @@ h1.Heading:has(.HeadingNewLine) .HeadingWord {
 .GameTab.SpriteStates { display: inline-grid; }
 .Choice > .Choices { display: flex; flex-wrap: nowrap; gap: var(--pixel-size); }
 .Wiki .Row { display: block; white-space: pre; text-align: left; line-height: var(--cell-height); }
-.Wiki .Cell { display: inline-block; vertical-align: top; margin-left: 0; }
 .RichText, .RichMention, .Item, .GridValue .Item, .TextPrefix { display: inline; white-space: nowrap; }
 .Pixels:not(.SelectablePixels) { user-select: none; }
-.Wiki .SingleRowPixels > .Row { display: inline; }
+.Wiki .SingleRowPixels > .Row,
+.Wiki .SelectablePixels .Cell:has(> .Layer:only-child) { display: inline; }
 .Wiki .Word { display: inline; white-space: nowrap; }
 .HeadingLetter { user-select: none; }
 .Choices { flex-wrap: nowrap; max-height: none; }

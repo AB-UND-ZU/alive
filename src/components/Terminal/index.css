@@ -13,18 +13,18 @@
 .LeftEdge,
 .RightEdge {
   position: absolute;
-  inset: 0;
+  inset-block: 0;
+  /* Center the same full-width frame used by the loading screen. */
+  --frame-edge: calc(50% - 16.5 * var(--cell-width) - 2 * var(--pixel-size));
   z-index: 1;
   width: var(--cell-width);
   overflow: hidden;
 }
 
 .LeftEdge {
-  right: unset;
-  left: calc(var(--cell-width) * -4 / 9 - 0.5px);
+  left: var(--frame-edge);
 }
 
 .RightEdge {
-  left: unset;
-  right: calc(var(--cell-width) * -5 / 9 - 0.5px);
+  right: var(--frame-edge);
 }

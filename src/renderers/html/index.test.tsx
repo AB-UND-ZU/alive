@@ -92,7 +92,7 @@ it("advances the supplied world, pauses without catchup, and releases its animat
   expect(frames.size).toBe(0);
 });
 
-it("keeps a single glyph as selectable text and resolves stacked layers into one SVG", () => {
+it("keeps a single glyph as text and resolves stacked layers into one SVG", () => {
   const world = createWorld();
   const entity = assertHero(world);
   const letter: Sprite = {
@@ -134,10 +134,10 @@ it("keeps a single glyph as selectable text and resolves stacked layers into one
   expect(container.textContent).toBe("A");
   // Decorative SVG layers deliberately have no accessible text or role.
   // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
-  const resolved = container.querySelectorAll("svg");
+  const resolved = container.querySelectorAll("img");
   expect(resolved).toHaveLength(1);
-  expect(resolved[0]).toHaveAttribute("viewBox", "0 0 9 16");
-  expect(resolved[0].innerHTML).not.toBe("");
+  expect(resolved[0]).toHaveAttribute("alt", "");
+  expect(decodeURIComponent(resolved[0].src)).toContain('viewBox="0 0 9 16"');
   expect(sceneFrame.getSceneFrame).toHaveBeenCalledWith(
     world,
     11,
@@ -191,24 +191,28 @@ it("keeps neighboring cells rigid while snapping the camera to device pixels", (
   for (const elapsed of [0, 25, 50, 100]) {
     world.metadata.renderTime = camera.startedAt + elapsed;
     rerender(<HtmlRenderer {...props} />);
-    expect(first).toHaveStyle({ left: "calc(50% + -27.1875px)" });
+    expect(first).toHaveStyle({
+      left: "calc(50% + -27.1875px)",
+      right: "calc(50% - -9.0625px)",
+    });
     expect(second).toHaveStyle({ left: "calc(50% + -9.0625px)" });
   }
   world.metadata.renderTime = camera.startedAt + 50;
   rerender(<HtmlRenderer {...props} />);
   // eslint-disable-next-line testing-library/no-node-access
   expect(first.parentElement).toHaveStyle({
-    transform: "translate(-12.8px, -11.2px)",
+    left: "-12.8px",
+    top: "-11.2px",
   });
   expect(
     screen
       .getByLabelText("Game world")
-      .style.getPropertyValue("--html-cell-width")
+      .style.getPropertyValue("--cell-width")
   ).toBe("18.125px");
   expect(
     screen
       .getByLabelText("Game world")
-      .style.getPropertyValue("--html-cell-height")
+      .style.getPropertyValue("--cell-height")
   ).toBe("32.222px");
 });
 
@@ -235,19 +239,19 @@ it("shakes after new damage and returns to the normal camera position", () => {
   );
   // eslint-disable-next-line testing-library/no-node-access
   const camera = screen.getByLabelText("Game world").firstElementChild!;
-  expect(camera).toHaveStyle({ transform: "translate(0px, 0px)" });
+  expect(camera).toHaveStyle({ left: "0px", top: "0px" });
   rerender(<HtmlRenderer world={world} {...dimensions} paused />);
   hero[PLAYER].receivedStats.melee += 9;
   rerender(<HtmlRenderer world={world} {...dimensions} paused />);
   world.metadata.renderTime += 49;
   rerender(<HtmlRenderer world={world} {...dimensions} paused />);
-  expect(camera).toHaveStyle({ transform: "translate(-36px, -32px)" });
+  expect(camera).toHaveStyle({ left: "-36px", top: "-32px" });
   world.metadata.renderTime += 51;
   rerender(<HtmlRenderer world={world} {...dimensions} paused />);
-  expect(camera).toHaveStyle({ transform: "translate(-23px, -32px)" });
+  expect(camera).toHaveStyle({ left: "-23px", top: "-32px" });
   world.metadata.renderTime += 50;
   rerender(<HtmlRenderer world={world} {...dimensions} paused />);
-  expect(camera).toHaveStyle({ transform: "translate(-36px, -32px)" });
+  expect(camera).toHaveStyle({ left: "-36px", top: "-32px" });
 });
 
 it("repeats a viewpoint earthquake without damage and settles when it ends", () => {

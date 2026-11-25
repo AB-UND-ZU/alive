@@ -1,6 +1,6 @@
 # Character Rows
 
-`Row` renders one `Cell` per sprite. Single characters use the font. Layered sprites use the existing pixel compositor to resolve their final colors into one SVG, followed by stack dots when needed. Cell spacing and font size use the shared dimensions. Rows and cells use span elements so native sprites remain valid inside text paragraphs and links; their existing flex layout is unchanged.
+`Row` lays out one cell per sprite. Letters and spaces are HTML text, including dialog text on a solid background. Box and block characters use their DOS bitmap so adjacent strokes meet. Stacked characters and stack dots share one cached 9×16 SVG image of the visible pixels. The cell keeps its logical size at every zoom level. Wiki prose is selectable. Game surfaces leave dragging to the controls.
 
 ```tsx row-example.tsx
 import Row from "./index";

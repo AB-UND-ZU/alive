@@ -1,6 +1,6 @@
 import { CSSProperties, useEffect, useReducer, useMemo, useRef } from "react";
 import { RendererProps } from "../interface/types";
-import { characterMarkup } from "../../components/Row/characters";
+import { Cell } from "../../components/Row";
 import { getSceneFrame, SceneSprite } from "../interface/frame";
 import "./style.css";
 import { createFrameClock } from "../interface/clock";
@@ -168,79 +168,38 @@ export default function HtmlRenderer({
       aria-label="Game world"
       style={
         {
-          "--html-cell-width": `${cellWidth}px`,
-          "--html-cell-height": `${cellHeight}px`,
+          "--cell-width": `${cellWidth}px`,
+          "--cell-height": `${cellHeight}px`,
         } as CSSProperties
       }
     >
       <div
         className="HtmlRendererScene"
         style={{
-          transform: `translate(${pixel(
-            shake.x * factor * cellHeight - camera.x * cellWidth
-          )}px, ${pixel((shake.y * factor - camera.y) * cellHeight)}px)`,
+          left: pixel(shake.x * factor * cellHeight - camera.x * cellWidth),
+          top: pixel((shake.y * factor - camera.y) * cellHeight),
         }}
       >
         {scene.map((entry) => {
           const layers = entry.swimming ? swimmingLayers : entry.layers;
-          const backgroundColor =
-            layers.length === 1 && layers[0].char === "█"
-              ? layers[0].color
-              : undefined;
+          const x = (entry.x + camera.x - columns / 2) * cellWidth;
+          const y = (entry.y + camera.y - rows / 2) * cellHeight;
           return (
-            <span
+            <Cell
+              layers={layers}
+              name={entry.sprite.name}
+              dots={entry.dots}
               key={entry.key}
               className="HtmlRendererSprite"
               style={{
                 opacity: entry.hidden || appearing.has(entry.key) ? 0 : 1,
                 filter: entry.fog ? "brightness(0.25)" : undefined,
-                backgroundColor,
-                boxShadow: backgroundColor
-                  ? `0 0 0 ${
-                      0.5 / (window.devicePixelRatio || 1)
-                    }px ${backgroundColor}`
-                  : undefined,
-                left: `calc(50% + ${
-                  (entry.x + camera.x - columns / 2) * cellWidth
-                }px)`,
-                top: `calc(50% + ${
-                  (entry.y + camera.y - rows / 2) * cellHeight
-                }px)`,
+                left: `calc(50% + ${x}px)`,
+                top: `calc(50% + ${y}px)`,
+                right: `calc(50% - ${x + cellWidth}px)`,
+                bottom: `calc(50% - ${y + cellHeight}px)`,
               }}
             >
-              {layers.length === 1 ? (
-                <span
-                  className="HtmlRendererCharacter"
-                  style={{ color: layers[0].color }}
-                >
-                  {layers[0].char}
-                </span>
-              ) : layers.length > 1 ? (
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 9 16"
-                  preserveAspectRatio="none"
-                  shapeRendering="crispEdges"
-                  dangerouslySetInnerHTML={{
-                    __html: characterMarkup(layers),
-                  }}
-                />
-              ) : null}
-              {entry.dots !== undefined && (
-                <span className="HtmlRendererDots">
-                  {Array.from({ length: entry.dots }, (_, index) => (
-                    <i
-                      key={index}
-                      style={{
-                        left: `${(((index % 5) * 2) / 9) * 100}%`,
-                        top: `${
-                          ((13 + Math.floor(index / 5) * 2) / 16) * 100
-                        }%`,
-                      }}
-                    />
-                  ))}
-                </span>
-              )}
               {entry.hp && (
                 <span
                   className="HtmlRendererHealth"
@@ -260,7 +219,7 @@ export default function HtmlRenderer({
                   />
                 </span>
               )}
-            </span>
+            </Cell>
           );
         })}
       </div>

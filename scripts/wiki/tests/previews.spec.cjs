@@ -103,9 +103,8 @@ test("desktop touch emulation feeds the native joystick and releases movement", 
   );
   expect(origin.y + origin.height / 2).toBeCloseTo(bounds.y + 330, 1);
   await expect(preview).toHaveClass(/active/);
-  await expect(frame.locator(".DemoFrame .Layer").first()).toHaveCSS(
-    "color",
-    "rgb(0, 255, 0)"
+  await expect(frame.locator(".DemoFrame img").first()).toHaveAttribute(
+    "src", /%2300ff00/i
   );
   await expect
     .poll(async () => Number(await iframe.getAttribute("data-x")))

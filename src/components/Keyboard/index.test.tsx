@@ -100,8 +100,13 @@ describe("on-screen keyboard", () => {
       const keyboard = container.querySelector("#keyboard")!;
       const rows = container.querySelectorAll(".KeyboardOverlay > .Row");
       const index = column * 2 + 1;
-      const pixel = (cell: Element, x: number, y: number) =>
-        Array.from(cell.querySelectorAll("svg rect"))
+      const pixel = (cell: Element, x: number, y: number) => {
+        const src = cell.querySelector("img")?.getAttribute("src") || "";
+        const svg = new DOMParser().parseFromString(
+          decodeURIComponent(src.split(",")[1] || ""),
+          "image/svg+xml"
+        );
+        return Array.from(svg.querySelectorAll("rect"))
           .find(
             (rect) =>
               x >= Number(rect.getAttribute("x")) &&
@@ -114,6 +119,7 @@ describe("on-screen keyboard", () => {
                   Number(rect.getAttribute("height"))
           )
           ?.getAttribute("fill");
+      };
       const untouched = (cells: HTMLCollection) =>
         [0, 1, 2, 3].flatMap((x) =>
           [0, 4, 9, 15].map((y) => [

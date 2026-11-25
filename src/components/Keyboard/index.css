@@ -5,8 +5,7 @@
   width: calc(var(--overlay-width) * var(--cell-width));
   bottom: 0;
   overflow: hidden;
-  left: 50%;
-  transform: translateX(-50%);
+  left: calc((100% - var(--overlay-width) * var(--cell-width)) / 2);
   background-color: black;
 }
 

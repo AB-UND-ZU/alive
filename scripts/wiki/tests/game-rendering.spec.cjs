@@ -99,15 +99,20 @@ test("the canvas and HUD shrink back to the same grid during play and pause", as
   }
 });
 
-test("layered cells have no internal seams at fractional scale", async ({ page }) => {
+test("adjacent layered cells leave no seams across rows or columns at fractional scale", async ({ page }) => {
   const { build } = require("esbuild");
   const result = await build({
     stdin: { resolveDir: process.cwd(), loader: "tsx", contents: `
       import { createRoot } from "react-dom/client";
       import Row from "./src/components/Row";
+      import { createDialog } from "./src/game/assets/ui";
+      import "./src/components/Paused/index.css";
       import "./src/index.css";
       const sprite = {name:"solid", layers:[{char:"▀",color:"#ffffff"},{char:"▄",color:"#ffffff"}]};
-      createRoot(document.getElementById("root")).render(<Row cells={[sprite]} />);
+      createRoot(document.getElementById("root")).render(<>
+        <div id="tiles">{[0,1,2].map(y => <Row key={y} cells={[sprite,sprite,sprite]} />)}</div>
+        <Row className="LoadingRow" cells={createDialog("Loading map...")} />
+      </>);
     ` },
     bundle: true, write: false, outdir: "out", jsx: "automatic",
     loader: { ".woff": "dataurl", ".woff2": "dataurl" },
@@ -123,17 +128,24 @@ test("layered cells have no internal seams at fractional scale", async ({ page }
   }));
   await page.goto("/rendering.html");
   await page.addStyleTag({content: result.outputFiles.find(file => file.path.endsWith(".css")).text});
-  await page.addStyleTag({content: ':root{--cell-height:33px;--cell-width:18.5625px;--pixel-size:2.0625px} body{margin:0;background:black;min-height:2000px} #root{position:absolute;left:12.234px;top:300.671px;width:40px}'});
+  await page.addStyleTag({content: ':root{--cell-height:33px;--cell-width:18.5625px;--pixel-size:2.0625px} body{margin:0;background:black;min-height:2000px} #tiles{margin-bottom:var(--cell-height)} .LoadingRow .Layer{color:white !important} #root{position:absolute;left:12.234px;top:300.671px;width:40px}'});
   await page.addScriptTag({content: result.outputFiles.find(file => file.path.endsWith(".js")).text});
-  await expect(page.locator(".Cell > svg")).toHaveCount(1);
-  await expect(page.locator(".Cell .Layer")).toHaveCount(0);
+  await expect(page.locator("#tiles .Cell > img")).toHaveCount(9);
+  await expect(page.locator("#tiles .Cell .Layer")).toHaveCount(0);
   for (const width of [40, 12]) for (const zoom of [0.67, 1, 1.25, 1.75, 2.5]) {
     await page.evaluate(({zoom, width}) => {
       document.getElementById("root").style.width = width + "px";
       document.body.style.zoom = String(zoom); window.scrollTo(0,127);
     }, {zoom, width});
-    const box = await page.locator(".Cell").boundingBox();
+    const box = await page.locator("#tiles").boundingBox();
     await expectSolid(page, {x:box.x+2,y:box.y+2,width:box.width-4,height:box.height-4}, "#ffffff");
+    const letters = page.locator(".LoadingRow .Cell:has(.Layer)");
+    const first = await letters.first().boundingBox();
+    const last = await letters.last().boundingBox();
+    await expectSolid(page, {
+      x: first.x + 1, y: first.y + 1,
+      width: last.x + last.width - first.x - 2, height: first.height - 2,
+    }, "#ffffff", "The loading label has a continuous background");
   }
 });
 
