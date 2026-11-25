@@ -226,6 +226,7 @@ export default function createWorld() {
       playtime: 0,
       elapsed: 0,
       renderTime: 0,
+      cameraTeleport: undefined as ECSEntity | undefined,
       occlusionGeneration: 0,
       visibleCells: new Set<number>(),
       // stored game this world was loaded from or saved to
@@ -254,6 +255,7 @@ export default function createWorld() {
 }
 
 export const createLevel = (world: World, name: LevelName, size: number) => {
+  world.metadata.cameraTeleport = undefined;
   world.metadata.visibleCells.clear();
   // create global render counter and reference frame
   world.metadata.gameEntity = entities.createGame(world, {

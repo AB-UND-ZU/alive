@@ -1,5 +1,5 @@
 import type { Sprite } from "../../engine/components/sprite";
-import { cameraSpring } from "../../engine/motion";
+import { cameraSpring, getCameraMotion, Motion } from "../../engine/motion";
 import {
   createContext,
   useCallback,
@@ -174,28 +174,33 @@ export const useViewpoint = () => {
     renderedViewable ||
     (ecs && getActiveViewable(ecs.getEntities([VIEWABLE, POSITION])));
   const level = ecs?.metadata.gameEntity[LEVEL]?.name;
-  const committed = useRef<{ position: Position; level?: string }>();
+  const camera = ecs ? getCameraMotion(ecs) : undefined;
+  const committed = useRef<{
+    position: Position;
+    level?: string;
+    camera?: Motion;
+  }>();
 
   // start right at the viewpoint in new or loaded worlds
   const previous = committed.current;
-  const jump = !previous || previous.level !== level;
+  const jump =
+    !previous || previous.level !== level || previous.camera !== camera;
   const x = viewable?.[POSITION].x;
   const y = viewable?.[POSITION].y;
   let position = previous?.position || { x: 0, y: 0 };
 
   if (ecs && x !== undefined && y !== undefined) {
     const size = ecs.metadata.gameEntity[LEVEL].size;
-    position = jump
-      ? { x, y }
-      : {
-          x: position.x + signedDistance(position.x, x, size),
-          y: position.y + signedDistance(position.y, y, size),
-        };
+    const origin = jump ? camera || { x, y } : position;
+    position = {
+      x: Math.round(origin.x + signedDistance(origin.x, x, size)),
+      y: Math.round(origin.y + signedDistance(origin.y, y, size)),
+    };
   }
 
   useEffect(() => {
     if (x === undefined || y === undefined) return;
-    committed.current = { position, level };
+    committed.current = { position, level, camera };
   });
 
   return {

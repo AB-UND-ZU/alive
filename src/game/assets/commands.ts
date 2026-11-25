@@ -16,7 +16,7 @@ import {
   tools,
   Weapon,
 } from "../../engine/components/item";
-import { POSITION } from "../../engine/components/position";
+import { Position, POSITION } from "../../engine/components/position";
 import {
   createItemAsDrop,
   findAdjacentDroppable,
@@ -334,26 +334,19 @@ const executeCast = (
 
 const executeTp = (world: World, entity: Entity, idOrLoc: string) => {
   const parts = idOrLoc.split(",");
-  if (idOrLoc.includes(",") && parts.length === 2) {
-    const [x, y] = parts;
-    const size = world.metadata.gameEntity[LEVEL].size;
-    const normalizedX = normalize(parseInt(x), size);
-    const normalizedY = normalize(parseInt(y), size);
-    if (isNaN(normalizedX) || isNaN(normalizedY)) {
-      return `No loc "${idOrLoc}"!`;
-    }
-    moveEntity(world, entity, { x: normalizedX, y: normalizedY });
-    return;
-  } else if (idOrLoc) {
+  let position: Position;
+  if (parts.length === 2) {
+    const [x, y] = parts.map((part) => parseInt(part));
+    if (isNaN(x) || isNaN(y)) return `No loc "${idOrLoc}"!`;
+    position = { x, y };
+  } else {
     const target = getIdentifierAndComponents(world, idOrLoc, [POSITION]);
-    if (target) {
-      const position = findAdjacentDroppable(world, target[POSITION]);
-      moveEntity(world, entity, position);
-      return;
-    }
+    if (!target) return `No id "${idOrLoc}"!`;
+    position = findAdjacentDroppable(world, target[POSITION]);
   }
 
-  return `No id "${idOrLoc}"!`;
+  moveEntity(world, entity, position, false);
+  world.metadata.cameraTeleport = entity;
 };
 
 export const commandMods = [

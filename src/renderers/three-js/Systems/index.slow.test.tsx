@@ -1,4 +1,10 @@
 import Systems from ".";
+import Camera from "../Camera";
+import {
+  getCameraMotion, getMotion, sampleMotion, updateCameraMotion,
+} from "../../../engine/motion";
+import { executeCommand } from "../../../game/assets/commands";
+import * as scene from "../../interface/scene";
 import {
   assertHero,
   createAreaWorld,
@@ -161,6 +167,74 @@ describe("Systems", () => {
       expect(within(x, hero[POSITION].x, renderedColumns / 2)).toBe(true);
       expect(within(y, hero[POSITION].y, renderedRows / 2)).toBe(true);
     }
+  });
+
+  it.each(["hero", "room"])(
+    "renders only the destination when /tp moves the %s viewpoint",
+    async (view) => {
+      const world = createAreaWorld(area, { size: 128 });
+      const hero = assertHero(world);
+      const room = view === "room" && entities.createViewpoint(world, {
+        POSITION: { ...hero.POSITION },
+        RENDERABLE: { generation: 0 },
+        VIEWABLE: { active: true, priority: 30 },
+      });
+      const teleport = () => executeCommand(world, hero, { handler: "tp", args: ["60,60"] });
+      if (room) teleport();
+      const { renderer, advanceFrames } = await renderScene(
+        world,
+        <>
+          <Camera />
+          <Systems />
+        </>
+      );
+      const collect = jest.spyOn(scene, "collectScene");
+      try {
+        await advanceFrames(2);
+        const destination = { x: 60, y: 60 };
+        if (room) moveEntity(world, room, destination);
+        else teleport();
+        collect.mockClear();
+        await advanceFrames(1);
+
+        expect(collect.mock.calls.length).toBeGreaterThan(0);
+        for (const [, viewport] of collect.mock.calls) {
+          expect(viewport.position).toEqual(destination);
+          expect(viewport.overscan).toEqual({ x: 0, y: 0 });
+        }
+        expect(getEntityGroups(renderer.scene)).toContainEqual({
+          entity: hero,
+          ...destination,
+        });
+        expect(getMotion(hero)).toBeUndefined();
+        expect(sampleMotion(getCameraMotion(world)!, world.metadata.renderTime))
+          .toMatchObject(destination);
+      } finally {
+        collect.mockRestore();
+        await renderer.unmount();
+      }
+    }
+  );
+
+  it("keeps the hero in the camera's quadrant when walking across a seam after /tp", async () => {
+    const world = createWorld();
+    const hero = assertHero(world);
+    const { renderer, advanceFrames } = await renderScene(world, <Systems />);
+    await advanceFrames(2);
+    updateCameraMotion(world, true);
+    executeCommand(world, hero, { handler: "tp", args: ["-1,2"] });
+    updateCameraMotion(world);
+    moveEntity(world, hero, { x: 0, y: 2 });
+    await advanceFrames(1);
+
+    expect(getEntityGroups(renderer.scene)).toContainEqual({
+      entity: hero,
+      x: 48,
+      y: 2,
+    });
+    expect(sampleMotion(getCameraMotion(world)!, world.metadata.renderTime).x)
+      .toBeLessThan(48);
+    await renderer.unmount();
   });
 
   it("advances the world from the render loop and follows the hero", async () => {

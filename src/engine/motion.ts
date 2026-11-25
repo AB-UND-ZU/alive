@@ -326,7 +326,16 @@ export const updateCameraMotion = (world: World, initialize = false) => {
   const y = position.y + (fraction?.y || 0);
   const level = world.metadata.gameEntity.LEVEL;
   const config = viewable.VIEWABLE.spring || cameraSpring;
-  if (!camera || camera.level !== level.name) {
+  const teleported = world.metadata.cameraTeleport;
+  const destination = teleported?.[POSITION];
+  const { renderedColumns, renderedRows } = world.metadata.dimensions;
+  // A room's camera anchor may follow a tick later. Cut when it shows the destination.
+  const snap =
+    destination &&
+    Math.abs(signedDistance(x, destination.x, level.size)) <= renderedColumns / 2 &&
+    Math.abs(signedDistance(y, destination.y, level.size)) <= renderedRows / 2;
+  if (snap || (teleported && getMotion(teleported))) world.metadata.cameraTeleport = undefined;
+  if (camera.level !== level.name || snap) {
     camera = {
       motion: createMotion(x, y, world.metadata.elapsed, config),
       level: level.name,
