@@ -43,6 +43,7 @@ import {
   orientations,
 } from "../../../engine/components/orientable";
 import {
+  giantSize,
   ilexArea,
   nomadArea,
   nomadSize,
@@ -139,7 +140,13 @@ import { REMAINABLE } from "../../../engine/components/remainable";
 import { LOCKABLE } from "../../../engine/components/lockable";
 import { createText, mergeSprites } from "../../assets/ui";
 
-type IslandPass = "terrain" | "biomes" | "water" | "units" | "jungle" | "desert";
+type IslandPass =
+  | "terrain"
+  | "biomes"
+  | "water"
+  | "units"
+  | "jungle"
+  | "desert";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -147,7 +154,8 @@ export const islandName: LevelName = "LEVEL_ISLAND";
 const isMountainInterior = (cells: Matrix<CellType>, x: number, y: number) => {
   for (let dx = -1; dx <= 1; dx++)
     for (let dy = -1; dy <= 1; dy++)
-      if (getOverlappingCell(cells, x + dx, y + dy) !== "mountain") return false;
+      if (getOverlappingCell(cells, x + dx, y + dy) !== "mountain")
+        return false;
   return true;
 };
 
@@ -197,6 +205,8 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
   const mainlandRatio = 0.8;
   const glacierRadius = size * 0.07;
   const glacierRatio = 0.3;
+  const iglooOffset = size * 0.085;
+  const iglooRadius = 8;
   const ilexRatio = 0.6;
   const oakRatio = 0.6;
   const oceanDepth = -70;
@@ -242,9 +252,11 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
       const spawnAngle = islandAngle - random(30, 60) - (townFlipped ? 90 : 0);
       const ilexAngle = islandAngle - 90;
       const townAngle = spawnAngle + townOffset;
+      const iglooAngle = random(60, 120) * choice(-1, 1);
 
       // precalculated values
       const oakPoint = { x: 0, y: 0 };
+      const glacierCenter = { x: size / 2, y: size / 2 };
       const spawnPoint = angledOffset(
         size,
         { x: 0, y: 0 },
@@ -317,6 +329,13 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         nomadFlipped ? islandAngle + 40 : islandAngle + 140,
         mainlandRadius * 0.6,
         mainlandRatio
+      );
+      const iglooPoint = angledOffset(
+        size,
+        glacierCenter,
+        iglooAngle,
+        iglooOffset,
+        glacierRatio
       );
 
       // preload world matrizes
@@ -504,6 +523,17 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
             0,
             15
           );
+          const iglooCircle = circularKernel(
+            size,
+            size,
+            x,
+            y,
+            iglooPoint,
+            iglooRadius,
+            1,
+            0,
+            10
+          );
           const flattenedKernel =
             spawnCircle *
             spawnWalk *
@@ -512,7 +542,8 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
             oakCircle *
             passageKernel *
             nomadSquare *
-            wormCircle;
+            wormCircle *
+            iglooCircle;
 
           const beachesKernel = simplexNoiseKernel(
             beachesFactory,
@@ -531,7 +562,8 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
               Math.max(mainlandKernel, glacierKernel) * (beachesKernel + 0.5) +
               (beachesKernel - 0.5) * 30) *
               flattenedKernel +
-            (flattenedKernel * -(airDepth + 1) + airDepth + 1);
+            (flattenedKernel * -(airDepth + 1) + airDepth + 1) +
+            (1 - iglooCircle) * -4;
 
           const archipelagoKernel = simplexNoiseKernel(
             archipelagoFactory,
@@ -552,7 +584,7 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
                 size,
                 x,
                 y,
-                { x: size / 2, y: size / 2 },
+                glacierCenter,
                 glacierRadius * 1.4,
                 0,
                 1,
@@ -680,7 +712,6 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
       // fourth pass: process terrain based on biomes and spawn mobs or items
       const campCandidates: Position[] = [];
       const glacierDeposits: Position[] = [];
-      const glacierCenter = { x: size / 2, y: size / 2 };
       yield "units";
       const terrainMap = yield* generateColumns(size, (x, y, matrix) => {
         let cell = elevationMap[x][y];
@@ -851,19 +882,28 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
             objects.push(generateNpcKey(distribution));
           else if (cell === "sand" && spawn > 97) objects.push("tumbleweed");
         } else if (biome === "glacier" && cell === "air") {
-          // Opposite ends of the terrain noise leave open ground between trees and walls.
+          // don't place anything in igloo town and in glacier center
           const outsideClearing =
-            getDistance({ x, y }, glacierCenter, size, 1, false) > 2;
+            flattened > 0.95 &&
+            (Math.abs(signedDistance(glacierCenter.x, x, size)) >
+              (giantSize.x - 1) / 2 ||
+              Math.abs(signedDistance(glacierCenter.y, y, size)) >
+                (giantSize.y - 1) / 2);
+
+          // opposite ends of the terrain noise leave open ground between trees and walls
           const rock =
             (100 - terrainMatrix[x][y]) * sigmoid(elevation, terrainDepth);
-          if (rock > wallDepth + 2 && outsideClearing) {
+
+          if (!outsideClearing) {
+            // nothing
+          } else if (rock > wallDepth + 2) {
             cell = "mountain";
             if (spawnMatrix[x][y] > 60) glacierDeposits.push({ x, y });
             objects.length = 0;
           } else if (terrain > treeDepth + 8)
             cell = Math.random() < treeChance ? "birch" : "glacier_tree";
           else if (mobSpawn < -97) objects.push(generateNpcKey(distribution));
-          else if (outsideClearing) campCandidates.push({ x, y });
+          else campCandidates.push({ x, y });
         }
 
         // set path weight
@@ -2425,7 +2465,7 @@ export const stringifyMap = (
         : [];
 
       if (objects.includes("habitat")) row += "@";
-      if (objects.includes("fish")) row += "\u03b1";
+      else if (objects.includes("fish")) row += "\u03b1";
       else if (objects.includes("palisade")) row += "î";
       else if (cell === "barrier") row += "ï";
       else if (cell === "water_shallow") row += "~";

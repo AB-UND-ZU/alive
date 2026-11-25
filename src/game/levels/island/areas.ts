@@ -68,6 +68,8 @@ export const wormArea = `\
 ░░░░░░w░░░░░░\
 `;
 
+export const giantSize = { x: 23, y: 13 };
+
 export const bossArea = `\
 ███████████████████████
 █                     █
