@@ -35,6 +35,27 @@ it("keeps every character and edit typed between game updates", () => {
   expect(getDialog(hero)).toEqual(["hello there"]);
 });
 
+it("closes chat with X even when a draft is present", () => {
+  const { hero, container, tick } = setup();
+  fireEvent.keyDown(document.body, { key: "x" });
+  fireEvent.click(container.querySelector("#close")!);
+  tick(15);
+  expect(container.querySelector("#keyboard")).not.toBeInTheDocument();
+  expect(getDialog(hero)).toEqual([]);
+});
+
+it("clears the draft with Escape and closes chat on the next Escape", () => {
+  const { world, container, tick } = setup();
+  fireEvent.keyDown(document.body, { key: "x" });
+  fireEvent.keyDown(document.body, { key: "Escape" });
+  tick(15);
+  expect(container.querySelector("#keyboard")).toBeInTheDocument();
+  expect(getPrompt(world)).toBe("");
+  fireEvent.keyDown(document.body, { key: "Escape" });
+  tick(15);
+  expect(container.querySelector("#keyboard")).not.toBeInTheDocument();
+});
+
 it("accepts held letters and backspace in chat", () => {
   const { world } = setup();
   for (const key of ["a", "a", "a", "Backspace"])

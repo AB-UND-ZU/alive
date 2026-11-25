@@ -1278,10 +1278,7 @@ export default function setupPopup(world: World) {
     if (heroEntity[PLAYER].actionTriggered === "close") {
       // close popup
       heroEntity[PLAYER].actionTriggered = undefined;
-      if (getTab(world, popupEntity) === "chat" && selections.length) {
-        clearChat(world, popupEntity);
-        play("back");
-      } else if (popupSequence) {
+      if (popupSequence) {
         closePopup(world, heroEntity, popupEntity);
         play("close");
       }

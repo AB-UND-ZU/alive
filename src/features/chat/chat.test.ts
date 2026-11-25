@@ -165,17 +165,15 @@ describe("chat", () => {
     expect(getDialog(hero)).toEqual([]);
   });
 
-  it("clears typed text before closing chat with Escape", () => {
+  it("discards an unsent draft when closing chat", () => {
     const { world, hero } = setup();
     openChat(world);
     type(world, "draft");
 
     act(world, "close");
-    expect(isInPopup(world, hero)).toBeTruthy();
+    expect(isInPopup(world, hero)).toBeFalsy();
     expect(getPrompt(world)).toBe("");
     expect(hero[PLAYER].chatHistory).toEqual([]);
-    act(world, "close");
-    expect(isInPopup(world, hero)).toBeFalsy();
     expect(getDialog(hero)).toEqual([]);
   });
 

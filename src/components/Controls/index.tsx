@@ -39,6 +39,7 @@ import Joystick from "../Joystick";
 import { canCast } from "../../engine/systems/magic";
 import {
   getTab,
+  getTabSelections,
   typeChat,
   completeChat,
   navigateChat,
@@ -904,11 +905,11 @@ export default function Controls({
         return;
       } else if (closeKeys.includes(event.key) && event.type === "keydown") {
         if (ecs && popup) {
-          if (!getSequence(ecs, popup, "popup")?.args.backButton) {
-            handleClose(event);
-          } else {
-            handleLeft(event);
-          }
+          const useLeftButton = popupTab === "chat"
+            ? getTabSelections(ecs, popup).length > 0
+            : getSequence(ecs, popup, "popup")?.args.backButton;
+          if (useLeftButton) handleLeft(event);
+          else handleClose(event);
         }
         return;
       }
