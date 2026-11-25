@@ -79,15 +79,15 @@ describe("defeating mobs", () => {
   });
 
   it.each([
-    ["banditPriest", "mp"],
-    ["banditMage", "mp"],
-    ["banditKnight", "hp"],
-    ["banditRogue", "hp"],
-  ])(
+    ["banditPriest", "mp", 50, 1],
+    ["banditMage", "mp", 50, 1],
+    ["banditKnight", "hp", 60, 2],
+    ["banditRogue", "hp", 40, 1],
+  ] as const)(
     "%s drops coins, XP and an iron potion without leaving a tombstone",
-    (mob, stat) => {
+    (mob, stat, maxHp, armor) => {
       const { world, unit, loot } = slay(mob);
-      expect(unit[STATS]).toMatchObject({ maxHp: 40, armor: 1 });
+      expect(unit[STATS]).toMatchObject({ maxHp, armor });
       advanceUntil(world, () =>
         getDrops(world).some(({ item }) => item.stat === "xp")
       );

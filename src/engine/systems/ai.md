@@ -11,7 +11,9 @@ Runs the queued patterns in [Behaviour](../components/behaviour.md) when the wor
 
 Patterns keep their own memory and may add or remove patterns. [Movement](movement.md) and [Trigger](trigger.md) consume the resulting intent later in the update. NPC story stages are defined in [NPC sequences](../../game/assets/npcs.md).
 
-Bandits use their campfire entity ID as their group. The oldest living member keeps lookout. Approaching within two cells or damaging a member alerts the group. Each bandit warns for one tick before moving. The camp pattern compares missing HP between ticks, including a fallen member until its body is removed. Wounded groups resume pursuit when a member can see the hero within fifteen cells. The chase ends fifteen cells from the fire unless the hero stays within two cells of a bandit. If the fire is missing, the group regathers around a surviving member.
+Bandits use their campfire entity ID as their group. The northernmost living bandit relative to the fire keeps lookout. The oldest takes the role when tied or when the fire is gone. Approaching within two cells or damaging a member alerts the group. Each bandit warns for one tick before moving. The camp pattern compares missing HP between ticks, including a fallen member until its body is removed. Wounded groups resume pursuit when a member can see the hero within fifteen cells. The chase ends fifteen cells from the fire unless the hero stays within two cells of a bandit. If the fire is missing, the group regathers around a surviving member.
+
+Knights and melee rogues follow the `kill` pattern’s path to the hero. Rogues switch to the archer pattern below half health.
 
 Priests heal the wounded campmate with the lowest HP, including after a retreat. Back at camp with a surviving ally, a wounded priest can heal itself with its wave. The lookout whistles again when the group has recovered.
 

@@ -201,6 +201,27 @@ describe("bandit camp", () => {
     advanceUntil(world, () => knight[POSITION].x <= 4);
   });
 
+  it("keeps lookout north of the campfire across the map edge", () => {
+    const { world, hero } = createCreatureWorld("|♀     R*K|", {
+      R: "banditRogue",
+      K: "banditKnight",
+    });
+    const rogue = getCreature(world, "banditRogue");
+    const knight = getCreature(world, "banditKnight");
+    const fire = findEntityAt(world, { x: 7, y: 0 }, [BURNABLE])!;
+    rogue[BELONGABLE].group = knight[BELONGABLE].group =
+      world.getEntityId(fire);
+    moveEntity(world, knight, { x: 7, y: -1 });
+
+    advanceTicks(world, 2);
+    expect([whistle1, whistle2]).toContain(knight[TOOLTIP].idle);
+    expect(rogue[TOOLTIP].idle).toBeUndefined();
+    moveEntity(world, hero, { x: 10, y: 0 });
+    advanceTicks(world, 1);
+    expect(knight[TOOLTIP].idle).toBe(confused);
+    expect(rogue[TOOLTIP].idle).toBeUndefined();
+  });
+
   it("alerts the whole camp when a ranged spell hits one bandit", () => {
     const { world, hero } = createCreatureWorld(
       `|♀   R |
@@ -320,6 +341,27 @@ describe("bandit camp", () => {
   });
 });
 
+it.each(["banditKnight", "banditRogue"] as const)(
+  "%s follows the passage around a wall to attack the hero",
+  (type) => {
+    const { world, hero, bandit } = setup(
+      type,
+      `
+|████████|
+|█   B███|
+|█ ████♀█|
+|█      █|
+|████████|
+`
+    );
+    advanceUntil(
+      world,
+      () => bandit[POSITION].x === 1 && bandit[POSITION].y === 2
+    );
+    advanceUntil(world, () => hero[STATS].hp < hero[STATS].maxHp);
+  }
+);
+
 describe("bandit knight", () => {
   it("chases every tick, warns for two ticks, then slashes at most every three seconds", () => {
     const { world, hero, bandit } = setup("banditKnight", "|    ♀ B|");
@@ -345,7 +387,7 @@ describe("bandit knight", () => {
     expect(showsWarning()).toBe(true);
     expect(slash()).toBeUndefined();
     advanceTicks(world, 1);
-    expect(slash()?.[CASTABLE].melee).toBe(5);
+    expect(slash()?.[CASTABLE].melee).toBe(3);
     const firstCast = world.metadata.playtime;
     advanceUntil(world, () => !slash() && !showsWarning());
     advanceUntil(world, showsWarning);
@@ -418,7 +460,7 @@ describe("bandit rogue", () => {
     const { world, hero, bandit } = setup("banditRogue", "|♀ B|");
     bandit[STATS].hp = bandit[STATS].maxHp / 2;
     advanceUntil(world, () => hero[STATS].hp < hero[STATS].maxHp);
-    expect(hero[STATS].maxHp - hero[STATS].hp).toBe(4);
+    expect(hero[STATS].maxHp - hero[STATS].hp).toBe(3);
     bandit[STATS].hp -= 1;
     advanceUntil(world, () => world.getEntities([PROJECTILE]).length > 0);
     expect(
@@ -426,7 +468,7 @@ describe("bandit rogue", () => {
     ).toBeGreaterThan(2);
     const hp = hero[STATS].hp;
     advanceUntil(world, () => hero[STATS].hp < hp);
-    expect(hp - hero[STATS].hp).toBe(4);
+    expect(hp - hero[STATS].hp).toBe(3);
   });
 });
 
@@ -452,7 +494,7 @@ describe("bandit priest", () => {
     mage[STATS].hp = 50;
     rogue[STATS].hp = 1;
     advanceUntil(world, () => knight[STATS].hp > 10);
-    expect(knight[STATS].hp).toBe(13);
+    expect(knight[STATS].hp).toBe(14);
     expect(mage[STATS].hp).toBe(50);
     expect(rogue[STATS].hp).toBe(1);
     advanceUntil(world, () => getSpells(world, priest).length > 0);
@@ -460,12 +502,12 @@ describe("bandit priest", () => {
       distanceBetween(world, knight[POSITION], priest[POSITION])
     ).toBeGreaterThan(1);
     expect(getSpells(world, priest)[0][CASTABLE]).toMatchObject({
-      heal: 2,
+      heal: 3,
       magic: 0,
       melee: 0,
     });
     advanceUntil(world, () => mage[STATS].hp > 50);
-    expect(mage[STATS].hp).toBe(52);
+    expect(mage[STATS].hp).toBe(53);
   });
 
   it("flees alone and uses a bubble only while it has at least 15% HP", () => {
@@ -512,6 +554,8 @@ it("regroups with surviving campmates if the campfire is gone", () => {
     world,
     () => distanceBetween(world, knight[POSITION], rogue[POSITION]) <= 2
   );
+  expect([whistle1, whistle2]).toContain(knight[TOOLTIP].idle);
+  expect(rogue[TOOLTIP].idle).toBeUndefined();
 });
 
 it("chases around a burning campfire instead of crossing it", () => {

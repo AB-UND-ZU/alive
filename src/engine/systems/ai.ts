@@ -329,9 +329,15 @@ export default function setupAi(world: World) {
           }
           const tooltip = entity[TOOLTIP];
           if (tooltip && !engaged) {
-            const lookout = !mates.some(
-              (mate) => world.getEntityId(mate) < entityId
-            );
+            const offsetY = (position: Position) =>
+              fire ? signedDistance(fire[POSITION].y, position.y, size) : 0;
+            const y = offsetY(entity[POSITION]);
+            const lookout = !mates.some((mate) => {
+              const mateY = offsetY(mate[POSITION]);
+              return (
+                mateY < y || (mateY === y && world.getEntityId(mate) < entityId)
+              );
+            });
             const idle =
               !lookout || wounds
                 ? undefined
@@ -461,8 +467,8 @@ export default function setupAi(world: World) {
         } else if (pattern.name === "bandit_rogue") {
           if (!entity[STATS]) break;
           movement =
-            entity[STATS].hp < entity[STATS].maxHp / 2 ? "archer" : "chase";
-          if (movement === "chase" && entity[TOOLTIP]?.idle) {
+            entity[STATS].hp < entity[STATS].maxHp / 2 ? "archer" : "kill";
+          if (movement === "kill" && entity[TOOLTIP]?.idle) {
             entity[TOOLTIP].idle = undefined;
             entity[TOOLTIP].changed = true;
           }
@@ -500,7 +506,7 @@ export default function setupAi(world: World) {
             }
             break;
           }
-          movement = mage ? "archer" : "chase";
+          movement = mage ? "archer" : "kill";
         }
         if (pattern.name === "wait") {
           if (pattern.memory.ticks === 0) {
@@ -1103,7 +1109,7 @@ export default function setupAi(world: World) {
             entity[TOOLTIP].idle = rage;
             entity[TOOLTIP].changed = true;
           }
-        } else if (movement === "chase" || movement === "chase_slow") {
+        } else if (pattern.name === "chase" || pattern.name === "chase_slow") {
           const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
           ]);
@@ -1117,7 +1123,7 @@ export default function setupAi(world: World) {
             0.69
           );
 
-          if (movement === pattern.name && distance > 7) break;
+          if (distance > 7) break;
 
           const halfStep = pattern.name === "chase_slow";
           const attackingOrientations = relativeOrientations(
@@ -2026,15 +2032,14 @@ export default function setupAi(world: World) {
             break;
           }
         } else if (
-          pattern.name === "kill" ||
+          movement === "kill" ||
           pattern.name === "heal" ||
           pattern.name === "unlock" ||
           pattern.name === "collect" ||
           pattern.name === "drop"
         ) {
-          const movablePattern = ["kill", "heal", "collect"].includes(
-            pattern.name
-          );
+          const pursuingHero = movement === "kill" && pattern.name !== "kill";
+          const movablePattern = ["kill", "heal", "collect"].includes(movement);
           const placementPattern = ["drop", "sell"].includes(pattern.name);
           const memory = pattern.memory;
           const itemEntity =
@@ -2048,17 +2053,18 @@ export default function setupAi(world: World) {
                     item[ITEM].carrier !== entityId
                 )[0]);
 
-          const targetEntity =
-            pattern.name === "collect"
-              ? itemEntity && world.getEntityById(itemEntity[ITEM].carrier)
-              : placementPattern
-              ? { [POSITION]: pattern.memory.targetPosition }
-              : world.getEntityById(memory.target);
+          const targetEntity = pursuingHero
+            ? rageHero
+            : pattern.name === "collect"
+            ? itemEntity && world.getEntityById(itemEntity[ITEM].carrier)
+            : placementPattern
+            ? { [POSITION]: pattern.memory.targetPosition }
+            : world.getEntityById(memory.target);
           entity[MOVABLE].orientations = [];
 
           // end if target not actionable
           const killed =
-            pattern.name === "kill" &&
+            movement === "kill" &&
             (!targetEntity ||
               isDead(world, targetEntity) ||
               isFriendlyFire(world, entity, targetEntity));
@@ -2083,6 +2089,7 @@ export default function setupAi(world: World) {
             !isLocked(world, targetEntity);
 
           if (killed || healed || unlocked || collected || dropped) {
+            if (pursuingHero) break;
             patterns.splice(patterns.indexOf(pattern), 1);
             continue;
           }
