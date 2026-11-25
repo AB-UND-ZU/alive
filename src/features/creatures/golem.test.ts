@@ -335,17 +335,13 @@ describe("golem", () => {
   it("strikes with a fist that extends towards the hero and retracts", () => {
     const { world, hero, golem, phases } = setup();
     provoke(world, golem);
+    advanceUntil(world, () => phases().includes(12), 30000);
+    // Align with the right arm beyond its three-cell stomp range.
+    moveEntity(world, hero, add(golem[POSITION], { x: 5, y: 0 }));
     const limbs = () => world.getEntities([FRAGMENT]).length;
     const resting = limbs();
 
-    advanceUntil(
-      world,
-      () => {
-        hero[STATS].hp = hero[STATS].maxHp;
-        return phases().includes(33) && limbs() > resting;
-      },
-      30000
-    );
+    advanceUntil(world, () => phases().includes(33) && limbs() > resting, 10000);
     advanceUntil(world, () => phases().includes(10), 10000);
 
     expect(limbs()).toBe(resting);
