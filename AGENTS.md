@@ -4,35 +4,33 @@ Alive is a browser adventure game built with TypeScript, React, Three.js and an 
 
 ## Work in the local style
 
-- Read the surrounding code and relevant tests before changing a feature.
-- Keep code simple to read and follow. Use existing naming, formatting and file structure.
-- **Everything in the game must use stacked text sprites. No new rendering primitive may be added anywhere.** Use only existing characters and stack them, including half-blocks for masking. Never add custom font assets, new glyphs, clipping or another drawing mechanism.
-- Reuse existing helpers, entity factories, sprites and balancing data. Add a helper only when it is needed and makes the code simpler.
-- Keep game rules in the engine or balancing files, rather than duplicating them in UI code or wiki examples.
-- Explain why only when the reason is not clear from the code. Avoid comments that repeat what the code does.
-- Use plain, readable English in wiki and UI text.
+- Inspect the surrounding code, relevant tests and Development wiki first. Find a working example of the same behavior and follow its helpers, naming, formatting and structure.
+- Identify the smallest change that satisfies the request. Reuse existing helpers, factories, sprites and balancing data. Introduce a helper only when it simplifies the implementation.
+- **Every visible element in the game and wiki must use the existing DOS characters and stacked text sprites.** This includes controls, text, borders, highlights and masks. Use the existing palette, half-blocks and UI components. Never add custom CSS, glyphs, fonts, shapes, clipping, drawing primitives or rendering machinery.
+- Keep game rules in the engine or balancing files. Explain why only when the code needs it. Use plain English in wiki and UI text.
+- Verify assumptions against the code, tests or running game before acting on them or stating them in a reply.
 
 ## Repository contents
 
 - Keep temporary scripts, profiling experiments, benchmark bundles, investigation screenshots and research reports outside the repository and its worktrees, for example in a task directory under `/tmp`. Do not commit them.
 - Keep only maintained game code, media, wiki content, implementation documentation and required build/test tooling in the repository. Remove investigation artifacts from earlier work when cleaning up.
 
-## Git history
+## Verification
 
-- Keep `main` linear. Rebase worktree or feature commits onto the current `main`, then integrate them with `git merge --ff-only`.
-- Never create merge commits or use `--no-ff`. If a fast-forward is not possible, rebase and resolve conflicts before updating `main`.
+**During development**, each agent works independently in its own worktree. Before committing, run only the checks for the affected behavior. Reserve broad suites for integration. The pre-commit hook runs lint only.
 
-## Verify every change
+- Test observable features and relevant failure cases. Update existing tests when behavior changes. A manual check can cover a small behavior adjustment. Record the steps and result.
+- For visual changes, capture a reference and inspect the result on desktop and a small screen, including the affected interaction states.
+- For prose and link edits, read the changed text and follow its links. For wiki pages, check the page in the local preview and verify any changed source metadata.
 
-- General functionality needs tests. Test an explicit game feature and its observable outcome, including relevant failure cases.
-- Keep tests about the feature, not a timeline of changes or a record of implementation steps. Update existing tests when behavior changes.
-- A small change to a specific behavior may be verified manually. Record the steps and result, and adjust existing tests if needed.
-- Visual implementation needs a reference screenshot and inspection of the result. Check desktop and small screens, interaction states and readability. Record the screenshots and what was inspected.
-- Before committing code changes, agents run `npm run check:fast` for type checking, lint and fast tests, and `npm run test:slow` for game integration and rendering. The pre-commit hook runs lint only. `npm run test:all` runs both test groups. Run `npm run build` for production game changes.
-- Run `npm run test:generation` only when changing level generation or generation-dependent fixtures. CI always runs generation and the other game tests together with coverage through `npm run test:ci`.
-- For wiki, run `npm run wiki:build` and `npm run wiki:test`. Inspect the built pages and working examples in a browser after visual changes.
-- Rebuild `src/wiki/minimap.json` with `npm run wiki:minimap` only when the user explicitly asks. Normal wiki builds and previews must reuse the committed snapshot.
-- Report what passed, what was checked manually, and any remaining limits. Do not claim checks that were not run.
+**When merging to local `main`**, rebase onto the current `main`, resolve conflicts, then run the applicable checks once on the rebased tree, in order:
+
+1. For game code or game tests, run `npm run check:fast`, then `npm run test:slow`.
+2. If level generation or its fixtures changed, also run `npm run test:generation`.
+3. For wiki rendering, routing, previews or build tooling, run `npm run wiki:test`. It builds the game clients and wiki. For production game changes outside that check, run `npm run build`.
+4. Integrate with `git merge --ff-only`. If `main` advances, rebase again and recheck what the new base affects.
+
+Prose-only merges use the text and link checks above. CI runs the full game, generation and wiki suites on `main`. Report the checks run and any limits.
 
 ## Find the right place
 
@@ -58,4 +56,5 @@ Alive is a browser adventure game built with TypeScript, React, Three.js and an 
 - Check claims against current code and the game. Clearly identify unavailable or experimental features; do not present design plans as playable features.
 - Reference interactive scenes with fenced `scene` blocks. Import game code or data in the scene implementation rather than copying rules or recipe tables.
 - Match the game's DOS font, terminal palette, character sprites and box borders using simple HTML. Preserve keyboard access, readable contrast and responsive layouts.
+- Rebuild `src/wiki/minimap.json` with `npm run wiki:minimap` only when explicitly requested. Normal builds and previews use the committed snapshot.
 - See `src/wiki/index.md` for authoring, local preview and deployment.

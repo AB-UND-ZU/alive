@@ -5,7 +5,7 @@
 | `npm run wiki:dev`                         | Stock CRA development server at `http://127.0.0.1:4173`                               |
 | `npm run wiki:build`                       | Stock CRA production build in `.wiki-build/`, followed by HTML copies for direct URLs |
 | `BUILD_PATH=build/wiki npm run wiki:build` | Build the deployment subtree                                                          |
-| `npm run wiki:test`                        | Documentation checks, production browser tests and a live Markdown edit               |
+| `npm run wiki:test`                        | Build clients and wiki, run browser checks and verify live Markdown reload               |
 | `npm run wiki:types`                       | Refresh adjacent type documentation                                                   |
 | `npm run wiki:references`                  | Refresh generated source links during a running preview                               |
 | `npm run wiki:sources`                     | Explicitly refresh item acquisition metadata                                          |
@@ -20,7 +20,7 @@ Markdown is fetched and parsed in the browser when its page opens. Player docume
 
 Production assets use `/alive/wiki/`. `scripts/wiki/routes.mjs` copies CRA's generated HTML unchanged to each registered URL, including preview frames and aliases. Direct links return HTML and load the shared bundle; internal links use browser history. This is client rendering, with no prerendering. `PUBLIC_URL=/ npm run wiki:build` builds for local root hosting; `BUILD_PATH` selects `.wiki-build` or `build/wiki`.
 
-`wiki:test` serves the production build using the standard `serve` package and then checks live Markdown updates with CRA. `WIKI_PORT` selects the production test port; the reload test uses the next port. The test servers run sequentially and do not reuse other workspaces' servers.
+For prose or link edits, open the affected page with `npm run wiki:dev`, read it and follow its links. Check changed metadata against its source. For merge checks, follow `AGENTS.md`. The full `wiki:test` command builds all three clients and the wiki, serves the production build, then checks Markdown reload on the development server. Set `WIKI_PORT` to choose the first of two consecutive ports.
 
 Browser tests use the shared fixtures in `scripts/wiki/tests/fixtures.cjs`. For standalone feature scenes, call `playPreview(page)` after navigation to wait for the scene's ready message. For timed input, request `freezeGameClock`, call `const clock = await freezeGameClock()` when the scene is ready, then use `await clock.runFor(milliseconds)` between press, observation and release. This drives the real renderer's animation frames and timers. For asynchronous loading or single actions, wait for the resulting UI state. Lint rejects fixed wall-clock sleeps in browser tests.
 
@@ -40,7 +40,7 @@ Browser tests use the shared fixtures in `scripts/wiki/tests/fixtures.cjs`. For 
 
 `GamePreview.tsx` manages isolated frames. Client pages use `clients/three-js`, `clients/html` and `clients/terminal` scene fences to open each deployed client's standard menu. The component's `renderer` prop also selects the entry point used by feature scenes. `preview.tsx` belongs to the client build, and the wiki preview alias redirects to that client instead of loading another renderer into the wiki bundle. `Widgets.tsx` imports game data and calculators. The Chat scene uses native dialog completion. Popup widgets show settled native screens; a suffix selects a populated dialog stage such as `forge:add` or `brew:ingredients`.
 
-Readable symbol aliases use the existing stacked text sprites over a selectable source character. The wiki uses the existing DOS font without generating or adding font assets. Body cells are 18 by 32 pixels, headings use three character rows, and scrolling is native.
+Build every visible element from the game's existing DOS characters and stacked text sprites. Never add custom CSS, glyphs, drawing primitives or rendering machinery. Find the closest example in the Development wiki and its source, then reuse the same [wiki components](visuals.md) and [character rows](../components/Row/index.md). Body cells are 18 by 32 pixels. Headings use three rows.
 
 Write a module's purpose and contracts in its adjacent Markdown before running `wiki:types`. It refreshes declarations below `<!-- source-types -->`, preserving authored examples above. A missing source note stops generation before changing files. The workflow uses Node 24 on Ubuntu 24.04, builds the game and wiki, and publishes `build/` to GitHub Pages.
 

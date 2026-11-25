@@ -35,26 +35,11 @@ Open http://127.0.0.1:4173. Edits rebuild and reload the preview automatically. 
 
 Wiki builds and previews reuse the committed minimap snapshot. Run `npm run wiki:minimap` only when you want to regenerate it, then review and commit `src/wiki/minimap.json`.
 
-
 ## Development
 
-Read [AGENTS.md](AGENTS.md) before editing. Reuse the local style and game helpers, keep code easy to follow, and verify every change.
+Start with the [development guidelines](AGENTS.md). Check assumptions against the code, tests or running game. Find the closest example in the code and Development wiki, then make the smallest change that fits the local style. Build every visible game and wiki element from existing DOS characters and stacked sprites. Never add custom CSS or new rendering machinery.
 
-```sh
-npm run check:fast
-npm run test:slow
-npm run build
-npx playwright install chromium
-npm run wiki:test
-```
-
-Fast checks cover types, lint, and small feature tests. `test:slow` checks game integration and rendering; `test:all` runs both test groups. `test:logic` runs engine and game feature tests without a visual host; `test:renderers` runs renderer and browser UI tests. The pre-commit hook runs lint only, so run the checks above before committing code changes. The wiki browser suite checks live examples, navigation, and responsive layout.
-
-CRA still requests Babel's former proposal-plugin name. The development dependency aliases that name to the maintained private-property transform, with the same plugin interface. Drei imports name the used modules directly so unused face-tracking dependencies are excluded from the build graph. Jest transforms those ESM modules and their runtime helpers.
-
-The wiki test script clears `NO_COLOR` for Playwright because its workers force `FORCE_COLOR=1`; passing both flags causes a Node warning.
-
-Run `npm run test:generation` only when changing level generation or generation-dependent fixtures. CI uses `npm run test:ci` to run game and generation tests together, report coverage and enforce the thresholds in `package.json`.
+Verify the affected behavior in your worktree. Follow the [merge checks](AGENTS.md#verification) when integrating into local `main`. The [game test guide](src/testing/harness.md) shows how to run one feature file.
 
 ## Version bumps
 
