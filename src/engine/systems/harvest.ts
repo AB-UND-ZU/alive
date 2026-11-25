@@ -263,6 +263,23 @@ export const performDig = (
   }
 };
 
+export const harvestResource = (
+  world: World,
+  target: Entity,
+  amount: number
+) => {
+  target[HARVESTABLE].amount = Math.max(0, target[HARVESTABLE].amount - amount);
+  rerenderEntity(world, target);
+
+  const farmable = getFarmable(world, target[POSITION]);
+  if (farmable) {
+    farmable[FARMABLE].planted = undefined;
+    farmable[FARMABLE].progress = undefined;
+    farmable[FARMABLE].sapling = undefined;
+    farmable[FARMABLE].nextGeneration = undefined;
+  }
+};
+
 export const performHarvest = (
   world: World,
   entity: Entity,
@@ -298,11 +315,7 @@ export const performHarvest = (
 
   for (let targetIndex = 0; targetIndex < targets.length; targetIndex += 1) {
     const rangeTarget = targets[targetIndex];
-    rangeTarget[HARVESTABLE].amount = Math.max(
-      0,
-      rangeTarget[HARVESTABLE].amount - harvestAmount
-    );
-    rerenderEntity(world, rangeTarget);
+    harvestResource(world, rangeTarget, harvestAmount);
     const entityOrientation = relativeOrientations(
       world,
       entity[POSITION],
@@ -312,15 +325,6 @@ export const performHarvest = (
       targetIndex === 0
         ? orientation || entityOrientation
         : entityOrientation || orientation;
-
-    // reset soil
-    const farmable = getFarmable(world, rangeTarget[POSITION]);
-    if (farmable) {
-      farmable[FARMABLE].planted = undefined;
-      farmable[FARMABLE].progress = undefined;
-      farmable[FARMABLE].sapling = undefined;
-      farmable[FARMABLE].nextGeneration = undefined;
-    }
 
     // bump target resource
     const targetLimbs = getLimbs(world, rangeTarget);

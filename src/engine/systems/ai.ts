@@ -171,7 +171,7 @@ import {
   createDialog,
 } from "../../game/assets/ui";
 import { getLootable } from "./collect";
-import { getFarmable, getHarvestable } from "./harvest";
+import { getFarmable, getHarvestable, harvestResource } from "./harvest";
 import { wormRadius, wormSize } from "../../game/levels/island/areas";
 import { PARTICLE } from "../components/particle";
 import { REFERENCE } from "../components/reference";
@@ -764,14 +764,6 @@ export default function setupAi(world: World) {
           }
 
           const lootStackables = ["grain", "worm"];
-          const eggEntity = world.getEntityByIdAndComponents(
-            pattern.memory.egg,
-            [POSITION]
-          );
-          if (pattern.memory.egg && !eggEntity) {
-            pattern.memory.egg = undefined;
-          }
-
           // pick up grains and worms
           let lootEntity = world.getEntityByIdAndComponents(
             pattern.memory.loot,
@@ -868,45 +860,32 @@ export default function setupAi(world: World) {
             }
           }
 
-          // wander around, hack planted seeds or hatch egg
+          // Wander, peck the ground, or lay an egg while idle.
           if (!movement && !pattern.memory.wander) {
             if (entity[BUMPABLE] && Math.random() < 0.2) {
-              for (const hack of orientations) {
-                const hackTarget = combine(
-                  size,
-                  entity[POSITION],
-                  orientationPoints[hack]
-                );
-                const harvestable = getHarvestable(world, hackTarget);
-                const farmable = getFarmable(world, hackTarget);
-                if (
-                  (harvestable &&
-                    ["grass", "bush"].includes(
-                      harvestable[HARVESTABLE].resource
-                    )) ||
-                  farmable
-                ) {
-                  bumpEntity(world, entity, hack, generation);
-
-                  // pick crop seed
-                  if (
-                    harvestable &&
-                    farmable?.[FARMABLE].planted &&
-                    Math.random() < 0.05
-                  ) {
-                    farmable[FARMABLE].planted = undefined;
-                    farmable[FARMABLE].progress = undefined;
-                    farmable[FARMABLE].sapling = undefined;
-                    farmable[FARMABLE].nextGeneration = undefined;
-                    harvestable[HARVESTABLE].amount = 0;
-                  }
-                  break;
+              const soil = getFarmable(world, entity[POSITION]);
+              const resource = getHarvestable(world, entity[POSITION])?.[
+                HARVESTABLE
+              ].resource;
+              if (soil || resource === "grass" || resource === "bush") {
+                bumpEntity(world, entity, "down", generation);
+                if (soil?.[FARMABLE].planted && Math.random() < 0.2) {
+                  const sapling = world.getEntityByIdAndComponents(
+                    soil[FARMABLE].sapling,
+                    [HARVESTABLE]
+                  );
+                  if (sapling) harvestResource(world, sapling, 1);
                 }
               }
             } else if (Math.random() < 0.15) {
               movement = choice(...orientations);
               pattern.memory.wander = movement;
-            } else if (Math.random() < 0.001 && !pattern.memory.egg) {
+            } else if (
+              Math.random() < 0.001 &&
+              !world.getEntityByIdAndComponents(pattern.memory.egg, [
+                INVENTORY,
+              ])?.[INVENTORY].items.length
+            ) {
               const eggData = {
                 stackable: "egg",
                 amount: 1,
