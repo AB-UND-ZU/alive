@@ -5,6 +5,7 @@ import { TOOLTIP } from "../../engine/components/tooltip";
 import { LEVEL } from "../../engine/components/level";
 import { rage } from "../../game/assets/ui";
 import { createMatrix } from "../../game/math/matrix";
+import { playedSounds } from "../../testing/env";
 import { advanceUntil, findInArea } from "../../testing/harness";
 import {
   attackUntilDead,
@@ -12,6 +13,7 @@ import {
   createCreatureWorld,
   getCreature,
   giveSword,
+  teleport,
   toughen,
   trace,
 } from "./helpers";
@@ -135,6 +137,25 @@ describe("prism", () => {
     );
 
     advanceUntil(world, () => hero[STATS].hp < hero[STATS].maxHp, 5000);
+    expect(playedSounds).toContain("hit");
+  });
+
+  it.each([
+    ["nearby", 2, true],
+    ["far away", 18, false],
+  ] as const)("limits guard hit sounds to earshot (hero %s)", (_, y, audible) => {
+    const { world, hero } = createCreatureWorld("|♀P G|", {
+      P: "diamondPrism",
+      G: "waterGuard",
+    });
+    teleport(world, hero, { x: 0, y });
+    const prism = getCreature(world, "diamondPrism");
+    const guard = getCreature(world, "waterGuard");
+    prism[ORIENTABLE].facing = "right";
+
+    advanceUntil(world, () => guard[STATS].hp < guard[STATS].maxHp);
+
+    expect(playedSounds.includes("hit")).toBe(audible);
   });
 
   it("drops coins and xp when defeated", () => {

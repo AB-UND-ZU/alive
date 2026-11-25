@@ -953,12 +953,15 @@ export default function setupDamage(world: World) {
               targetOrientation
             );
 
-            // play sound
-            play("hit", {
-              intensity: damage,
-              proximity: targetEntity[PLAYER] ? 1 : 0.5,
-              variant: targetEntity[PLAYER] ? 1 : 2,
-            });
+            const hero = world.getEntity([PLAYER, POSITION]);
+            const size = world.metadata.gameEntity[LEVEL].size;
+            if (hero && getDistance(hero[POSITION], targetPosition, size) < 10) {
+              play("hit", {
+                intensity: damage,
+                proximity: targetEntity[PLAYER] ? 1 : 0.5,
+                variant: targetEntity[PLAYER] ? 1 : 2,
+              });
+            }
 
             // set rechargable if applicable
             const shouldRecharge = canRecharge(world, entity);
