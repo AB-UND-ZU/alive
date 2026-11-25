@@ -183,6 +183,8 @@ import {
   lock,
   doorOpen,
   doorClosed,
+  frameOpen,
+  frameClosed,
   portOpen,
   portClosed,
   entryClosed,
@@ -1691,6 +1693,11 @@ export const materialSprites: Partial<
     sprite: doorOpen,
     resource: doorClosed,
     display: doorClosed,
+  },
+  frame: {
+    sprite: frameOpen,
+    resource: frameClosed,
+    display: frameClosed,
   },
   port: {
     sprite: portOpen,

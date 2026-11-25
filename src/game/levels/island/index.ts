@@ -117,6 +117,7 @@ import {
   assertIdentifierAndComponents,
   setIdentifier,
 } from "../../../engine/utils";
+import { createIglooClearing, generateIglooVillage, iglooRadius } from "./igloos";
 import { islandNpcDistribution } from "./units";
 import { snowFill } from "../../../engine/systems/freeze";
 import { BEHAVIOUR } from "../../../engine/components/behaviour";
@@ -131,7 +132,7 @@ import {
   getEmptyCastable,
 } from "../../../engine/components/castable";
 import { MOVABLE } from "../../../engine/components/movable";
-import { pixelCircle, pointToDegree } from "../../math/tracing";
+import { pixelCircle } from "../../math/tracing";
 import { aspectRatio } from "../../../renderers/interface/dimensions";
 import generateHaven from "../../../engine/wfc/haven";
 import { disposeEntity } from "../../../engine/systems/map";
@@ -146,7 +147,8 @@ type IslandPass =
   | "water"
   | "units"
   | "jungle"
-  | "desert";
+  | "desert"
+  | "glacier";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -206,7 +208,6 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
   const glacierRadius = size * 0.07;
   const glacierRatio = 0.3;
   const iglooOffset = size * 0.085;
-  const iglooRadius = 9;
   const ilexRatio = 0.6;
   const oakRatio = 0.6;
   const oceanDepth = -70;
@@ -336,16 +337,6 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         iglooAngle,
         iglooOffset,
         glacierRatio
-      );
-
-      const iglooGate = angledOffset(
-        size,
-        iglooPoint,
-        pointToDegree({
-          x: signedDistance(iglooPoint.x, glacierCenter.x, size) * aspectRatio,
-          y: signedDistance(iglooPoint.y, glacierCenter.y, size),
-        }),
-        iglooRadius
       );
 
       // preload world matrizes
@@ -572,8 +563,7 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
               Math.max(mainlandKernel, glacierKernel) * (beachesKernel + 0.5) +
               (beachesKernel - 0.5) * 30) *
               flattenedKernel +
-            (flattenedKernel * -(airDepth + 1) + airDepth + 1) +
-            (1 - iglooCircle) * -4;
+            (flattenedKernel * -(airDepth + 1) + airDepth + 1);
 
           const archipelagoKernel = simplexNoiseKernel(
             archipelagoFactory,
@@ -706,14 +696,22 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         return cell;
       });
 
-      // Reserve the three-cell landing before the shoreline is drawn.
-      for (let dx = -1; dx <= 1; dx++) {
-        for (let dy = -1; dy <= 1; dy++) {
-          const { x, y } = combine(size, iglooGate, { x: dx, y: dy });
-          rawMap[x][y] = "sand";
-          objectsMap[x][y] = [];
-        }
-      }
+      // Reserve the clearing before water depth and beaches are calculated.
+      const clearing = createIglooClearing({
+        x: signedDistance(iglooPoint.x, glacierCenter.x, size),
+        y: signedDistance(iglooPoint.y, glacierCenter.y, size),
+      });
+      const iglooOrigin = {
+        x: iglooPoint.x - clearing.center.x,
+        y: iglooPoint.y - clearing.center.y,
+      };
+      iterateMatrix(clearing.matrix, (dx, dy, cell) => {
+        if (!cell) return;
+        const { x, y } = combine(size, iglooOrigin, { x: dx, y: dy });
+        rawMap[x][y] = cell;
+        biomeMap[x][y] = "glacier";
+        objectsMap[x][y] = [];
+      });
 
       // third pass: place shallow water and ensure is surrounded by sand
       yield "water";
@@ -934,36 +932,6 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
 
         return cell;
       });
-
-      for (const { x, y } of glacierDeposits) {
-        if (isMountainInterior(terrainMap, x, y))
-          terrainMap[x][y] = spawnMatrix[x][y] > 96 ? "gold" : "iron";
-      }
-
-      const camps: Position[] = [];
-      campCandidates.sort(
-        (a, b) => spawnMatrix[b.x][b.y] - spawnMatrix[a.x][a.y]
-      );
-      for (const center of campCandidates) {
-        if (
-          camps.some((camp) => getDistance(camp, center, size, 1, false) < 10)
-        )
-          continue;
-        const free = [-1, 0, 1].every((dx) =>
-          [-1, 0, 1].every((dy) => {
-            const { x, y } = combine(size, center, { x: dx, y: dy });
-            return (
-              biomeMap[x][y] === "glacier" &&
-              terrainMap[x][y] === "air" &&
-              objectsMap[x][y].every((object) => object === "snow")
-            );
-          })
-        );
-        if (!free) continue;
-        objectsMap[center.x][center.y].push("bandit_camp");
-        camps.push(center);
-        if (camps.length === 6) break;
-      }
 
       // persist pre-processed matrizes for lazy initialization
       const worldMap = terrainMap;
@@ -1834,32 +1802,6 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         });
       }
 
-      // set snow for glacier
-      const glacierStorm = entities.createAnchor(world, {
-        [POSITION]: { x: 0, y: 0 },
-        [RENDERABLE]: { generation: 0 },
-        [SEQUENCABLE]: { states: {} },
-        [STICKY]: {},
-        [SPRITE]: none,
-      });
-      createSequence<"weather", WeatherSequence>(
-        world,
-        glacierStorm,
-        "weather",
-        "weatherStorm",
-        {
-          position: { x: size / 2, y: size / 2 },
-          generation: 0,
-          intensity: glacierRadius * 0.9,
-          drops: [],
-          start: 0,
-          end: Infinity,
-          type: "snow",
-          viewable: { x: 0, y: 0 },
-          ratio: glacierRatio,
-        }
-      );
-
       // initialize settlements and boss areas
       initializeArea(
         world,
@@ -1928,6 +1870,19 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         ...emptyFireHouses,
       ].map((building) => assignBuilding(world, building.position));
 
+      const openTrader = (trader: ReturnType<typeof createNpc>) =>
+        createPopup(world, trader, {
+          deals: purchasableItems.map((item) => ({
+            item: {
+              ...item,
+              amount: 1,
+            },
+            stock: Infinity,
+            prices: getItemBuyPrice(item),
+          })),
+
+          tabs: ["buy", "sell"],
+        });
       // add map markers
       entities.createMarker(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
@@ -2098,18 +2053,7 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         })
       );
 
-      createPopup(world, earthTraderEntity, {
-        deals: purchasableItems.map((item) => ({
-          item: {
-            ...item,
-            amount: 1,
-          },
-          stock: Infinity,
-          prices: getItemBuyPrice(item),
-        })),
-
-        tabs: ["buy", "sell"],
-      });
+      openTrader(earthTraderEntity);
       const earthBenchEntity = createCell(
         world,
         add(earthTraderBuilding.building[POSITION], {
@@ -2263,18 +2207,7 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         })
       );
 
-      createPopup(world, fireTraderEntity, {
-        deals: purchasableItems.map((item) => ({
-          item: {
-            ...item,
-            amount: 1,
-          },
-          stock: Infinity,
-          prices: getItemBuyPrice(item),
-        })),
-
-        tabs: ["buy", "sell"],
-      });
+      openTrader(fireTraderEntity);
       const fireBenchEntity = createCell(
         world,
         add(fireTraderBuilding.building[POSITION], {
@@ -2411,11 +2344,80 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         );
       }
 
+      yield "glacier";
+      const village = generateIglooVillage(clearing);
+      iterateMatrix(village.matrix, (dx, dy, cell) => {
+        if (!cell) return;
+        const { x, y } = combine(size, iglooOrigin, { x: dx, y: dy });
+        // The shoreline pass already resolved sand and beach along the fence.
+        if (cell !== "sand") worldMap[x][y] = cell;
+        const object = village.objects[dx][dy];
+        objectsMap[x][y] = object ? [object] : [];
+      });
+
+      for (const { x, y } of glacierDeposits) {
+        if (isMountainInterior(terrainMap, x, y))
+          terrainMap[x][y] = spawnMatrix[x][y] > 96 ? "gold" : "iron";
+      }
+
+      const camps: Position[] = [];
+      campCandidates.sort(
+        (a, b) => spawnMatrix[b.x][b.y] - spawnMatrix[a.x][a.y]
+      );
+      for (const center of campCandidates) {
+        if (
+          camps.some((camp) => getDistance(camp, center, size, 1, false) < 10)
+        )
+          continue;
+        const free = [-1, 0, 1].every((dx) =>
+          [-1, 0, 1].every((dy) => {
+            const { x, y } = combine(size, center, { x: dx, y: dy });
+            return (
+              biomeMap[x][y] === "glacier" &&
+              terrainMap[x][y] === "air" &&
+              objectsMap[x][y].every((object) => object === "snow")
+            );
+          })
+        );
+        if (!free) continue;
+        objectsMap[center.x][center.y].push("bandit_camp");
+        camps.push(center);
+        if (camps.length === 6) break;
+      }
+
+      // set snow for glacier
+      const glacierStorm = entities.createAnchor(world, {
+        [POSITION]: { x: 0, y: 0 },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [STICKY]: {},
+        [SPRITE]: none,
+      });
+      createSequence<"weather", WeatherSequence>(
+        world,
+        glacierStorm,
+        "weather",
+        "weatherStorm",
+        {
+          position: { x: size / 2, y: size / 2 },
+          generation: 0,
+          intensity: glacierRadius * 0.9,
+          drops: [],
+          start: 0,
+          end: Infinity,
+          type: "snow",
+          viewable: { x: 0, y: 0 },
+          ratio: glacierRatio,
+        }
+      );
+
       initializeArea(
         world,
-        combine(size, iglooGate, { x: -1, y: -1 }),
-        combine(size, iglooGate, { x: 1, y: 1 })
+        iglooOrigin,
+        combine(size, iglooPoint, clearing.center)
       );
+
+      const iglooGate = combine(size, iglooOrigin, village.gate);
       for (const dy of [-1, 1]) {
         const origin = combine(size, iglooGate, { x: 0, y: dy });
         const guard = createNpc(
@@ -2434,9 +2436,16 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
           },
         });
       }
-      objectsMap[iglooPoint.x][iglooPoint.y] = [];
-      initializeArea(world, iglooPoint, iglooPoint);
-      createNpc(world, "waterChief", iglooPoint);
+
+      for (const house of village.houses) {
+        assignBuilding(world, combine(size, iglooOrigin, house.center));
+        const resident = createNpc(
+          world,
+          house.npc,
+          combine(size, iglooOrigin, house.resident)
+        );
+        if (house.npc === "waterTrader") openTrader(resident);
+      }
 
       // console.log(
       //   stringifyMap(worldMap, { x: size / 2, y: size / 2 }, objectsMap)
@@ -2471,7 +2480,9 @@ export function* generateIsland(world: World) {
     else if (step < 100 && performance.now() < nextUpdate) continue;
     const percent = typeof step === "number" ? Math.ceil(step) : 0;
     const value =
-      pass === "jungle" || pass === "desert" ? pass : `${pass} ${percent}%`;
+      pass === "jungle" || pass === "desert" || pass === "glacier"
+        ? pass
+        : `${pass} ${percent}%`;
     yield createDialog(`Loading ${value}...`);
     nextUpdate = performance.now() + 32;
   }

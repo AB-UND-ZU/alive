@@ -1,6 +1,7 @@
 import { createTemplate, TEMPLATE_COLORS } from ".";
 import { Sprite } from "../../../engine/components/sprite";
 import { colors } from "../colors";
+import { recolorSprite } from "../ui";
 
 // doors
 
@@ -149,6 +150,13 @@ export const portClosed = createTemplate({
 });
 portClosed.wood.default = portClosedWood;
 portClosed.default.fire = portClosedFire;
+
+const frame = (port: Sprite): Sprite => ({
+  ...recolorSprite(port, { [colors.silver]: colors.teal }),
+  name: "Frame",
+});
+export const frameOpen = { wood: { default: frame(portOpen.wood.default) } };
+export const frameClosed = { wood: { default: frame(portClosed.wood.default) } };
 
 const entryClosedTemplate: Sprite = {
   name: "Entry",

@@ -39,6 +39,7 @@ const freeLocks = [
   "guide_door",
   "nomad_door",
   "wood_port",
+  "wood_frame",
   "wood_entry",
   "fence_door",
   "fence_door_path",

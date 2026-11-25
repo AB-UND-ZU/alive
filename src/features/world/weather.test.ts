@@ -19,7 +19,7 @@ import { PARTICLE } from "../../engine/components/particle";
 import { moveEntity } from "../../engine/systems/map";
 import { signedDistance } from "../../game/math/std";
 import { saveAndLoad } from "../../testing/saves";
-import { isSnowy } from "../../engine/systems/freeze";
+import { coverSnow, isSnowy } from "../../engine/systems/freeze";
 import { createSequence } from "../../engine/systems/sequence";
 import { disposeSequence } from "../../engine/systems/map";
 import {
@@ -28,7 +28,8 @@ import {
   Weather,
   weatherIntensity,
 } from "../../engine/systems/water";
-import { none, snowCover, soilWet } from "../../game/assets/sprites";
+import { jetty, none, snowCover, soilWet } from "../../game/assets/sprites";
+import { getSegments } from "../../renderers/interface/segments";
 import { playedSounds } from "../../testing/env";
 import {
   advance,
@@ -301,6 +302,28 @@ describe("weather", () => {
     );
     expect(covers.length).toBeGreaterThan(0);
     covers.forEach((cover) => expect(cover[SPRITE]).toBe(snowCover));
+  });
+
+  it("settles snow above rubble and both jetty orientations", () => {
+    const layout = "|♀ H V R|";
+    const world = createAreaWorld(layout, {
+      size: 16,
+      legend: { H: "jetty_horizontal", V: "jetty_vertical", R: "rubble" },
+    });
+    for (const symbol of ["H", "V", "R"]) {
+      const position = findInArea(layout, symbol);
+      coverSnow(world, position);
+      world.update(0);
+      const surface = getEntitiesAt(world, position).find(
+        (e) => e[SPRITE] === jetty || e.HARVESTABLE?.resource === "rubble"
+      )!;
+      const cover = findEntityAt(world, position, [COVERABLE])!;
+      expect(cover[SPRITE]).toBe(snowCover);
+      const props = { isTransparent: false, receiveShadow: false };
+      expect(getSegments(world, cover, props)[0].offsetZ).toBeGreaterThan(
+        getSegments(world, surface, props)[0].offsetZ
+      );
+    }
   });
 
   it("snow stays off paths, sand, mountains and doors", () => {

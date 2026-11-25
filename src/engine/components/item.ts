@@ -56,6 +56,7 @@ export type Consumable = (typeof consumables)[number];
 export const materialized = [
   "door",
   "port",
+  "frame",
   "entry",
   "gate",
   "entrance",

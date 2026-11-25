@@ -166,6 +166,84 @@ const banditDrops = (stat: "hp" | "mp"): UnitDefinition["drops"] => [
   },
 ];
 
+const townSmith = (
+  faction: "earth" | "fire" | "water",
+  color: string
+): UnitDefinition => ({
+  faction,
+  scratch: colors.silver,
+  stats: {
+    hp: 30,
+  },
+  equipments: [
+    {
+      offhand: "shield",
+      material: "iron",
+      amount: 1,
+      bound: true,
+    },
+  ],
+  drops: [],
+  patternNames: [],
+  sprite: {
+    ...recolorSprite(knight, { [colors.white]: color }),
+    name: "Smith",
+  },
+  remains: "tombstone1",
+  evaporate: { sprite: ghost, fast: false },
+});
+
+const townTrader = (
+  faction: "earth" | "fire" | "water",
+  color: string
+): UnitDefinition => ({
+  faction,
+  scratch: colors.silver,
+  stats: {
+    hp: 20,
+  },
+  equipments: [],
+  drops: [],
+  patternNames: [],
+  sprite: {
+    ...recolorSprite(rogue, {
+      [colors.white]: color,
+    }),
+    name: "Trader",
+  },
+  swimming: recolorSprite(swimmingRogue, {
+    [colors.white]: color,
+  }),
+  backdrop: recolorSprite(rogueBackdrop, {
+    [colors.white]: color,
+  }),
+  swimmingBackdrop: recolorSprite(swimmingRogueBackdrop, {
+    [colors.white]: color,
+  }),
+  remains: "tombstone1",
+  evaporate: { sprite: ghost, fast: false },
+});
+
+const townDruid = (
+  faction: "earth" | "fire" | "water",
+  color: string
+): UnitDefinition => ({
+  faction,
+  scratch: colors.silver,
+  stats: {
+    hp: 20,
+  },
+  equipments: [],
+  drops: [],
+  patternNames: [],
+  sprite: {
+    ...recolorSprite(mage, { [colors.white]: color }),
+    name: "Druid",
+  },
+  remains: "tombstone1",
+  evaporate: { sprite: ghost, fast: false },
+});
+
 const townChief = (
   faction: "earth" | "fire" | "water",
   color: string
@@ -234,72 +312,9 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     remains: "tombstone1",
     evaporate: { sprite: ghost, fast: false },
   },
-  earthSmith: {
-    faction: "earth",
-    scratch: colors.silver,
-    stats: {
-      hp: 30,
-    },
-    equipments: [
-      {
-        offhand: "shield",
-        material: "iron",
-        amount: 1,
-        bound: true,
-      },
-    ],
-    drops: [],
-    patternNames: [],
-    sprite: {
-      ...recolorSprite(knight, { [colors.white]: colors.lime }),
-      name: "Smith",
-    },
-    remains: "tombstone1",
-    evaporate: { sprite: ghost, fast: false },
-  },
-  earthTrader: {
-    faction: "earth",
-    scratch: colors.silver,
-    stats: {
-      hp: 20,
-    },
-    equipments: [],
-    drops: [],
-    patternNames: [],
-    sprite: {
-      ...recolorSprite(rogue, {
-        [colors.white]: colors.lime,
-      }),
-      name: "Trader",
-    },
-    swimming: recolorSprite(swimmingRogue, {
-      [colors.white]: colors.lime,
-    }),
-    backdrop: recolorSprite(rogueBackdrop, {
-      [colors.white]: colors.lime,
-    }),
-    swimmingBackdrop: recolorSprite(swimmingRogueBackdrop, {
-      [colors.white]: colors.lime,
-    }),
-    remains: "tombstone1",
-    evaporate: { sprite: ghost, fast: false },
-  },
-  earthDruid: {
-    faction: "earth",
-    scratch: colors.silver,
-    stats: {
-      hp: 20,
-    },
-    equipments: [],
-    drops: [],
-    patternNames: [],
-    sprite: {
-      ...recolorSprite(mage, { [colors.white]: colors.lime }),
-      name: "Druid",
-    },
-    remains: "tombstone1",
-    evaporate: { sprite: ghost, fast: false },
-  },
+  earthSmith: townSmith("earth", colors.lime),
+  earthTrader: townTrader("earth", colors.lime),
+  earthDruid: townDruid("earth", colors.lime),
   earthChief: townChief("earth", colors.lime),
   earthGuard: {
     faction: "earth",
@@ -337,72 +352,9 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     remains: "tombstone1",
     evaporate: { sprite: ghost, fast: false },
   },
-  fireSmith: {
-    faction: "fire",
-    scratch: colors.silver,
-    stats: {
-      hp: 30,
-    },
-    equipments: [
-      {
-        offhand: "shield",
-        material: "iron",
-        amount: 1,
-        bound: true,
-      },
-    ],
-    drops: [],
-    patternNames: [],
-    sprite: {
-      ...recolorSprite(knight, { [colors.white]: colors.red }),
-      name: "Smith",
-    },
-    remains: "tombstone1",
-    evaporate: { sprite: ghost, fast: false },
-  },
-  fireTrader: {
-    faction: "fire",
-    scratch: colors.silver,
-    stats: {
-      hp: 20,
-    },
-    equipments: [],
-    drops: [],
-    patternNames: [],
-    sprite: {
-      ...recolorSprite(rogue, {
-        [colors.white]: colors.red,
-      }),
-      name: "Trader",
-    },
-    swimming: recolorSprite(swimmingRogue, {
-      [colors.white]: colors.red,
-    }),
-    backdrop: recolorSprite(rogueBackdrop, {
-      [colors.white]: colors.red,
-    }),
-    swimmingBackdrop: recolorSprite(swimmingRogueBackdrop, {
-      [colors.white]: colors.red,
-    }),
-    remains: "tombstone1",
-    evaporate: { sprite: ghost, fast: false },
-  },
-  fireDruid: {
-    faction: "fire",
-    scratch: colors.silver,
-    stats: {
-      hp: 20,
-    },
-    equipments: [],
-    drops: [],
-    patternNames: [],
-    sprite: {
-      ...recolorSprite(mage, { [colors.white]: colors.red }),
-      name: "Druid",
-    },
-    remains: "tombstone1",
-    evaporate: { sprite: ghost, fast: false },
-  },
+  fireSmith: townSmith("fire", colors.red),
+  fireTrader: townTrader("fire", colors.red),
+  fireDruid: townDruid("fire", colors.red),
   fireChief: townChief("fire", colors.red),
   fireGuard: {
     faction: "fire",
@@ -512,6 +464,9 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     remains: "tombstone1",
     evaporate: { sprite: ghost, fast: false },
   },
+  waterSmith: townSmith("water", colors.blue),
+  waterTrader: townTrader("water", colors.blue),
+  waterDruid: townDruid("water", colors.blue),
   waterChief: townChief("water", colors.blue),
   waterGuard: {
     faction: "water",

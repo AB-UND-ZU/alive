@@ -41,11 +41,10 @@ import {
 } from "../../engine/motion";
 import { getDistance, normalize, signedDistance } from "../../game/math/std";
 import { discovery, getFacingLayers } from "../../game/assets/ui";
-import { fogOfWar } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import {
   getSegments,
-  fogHeight,
+  getFogOverlay,
   dotsHeight,
   lootHeight,
   oreHeight,
@@ -434,7 +433,8 @@ export const getSceneFrame = (
       !hidden &&
       !lootVisible;
     if (needsFog || includeHidden) {
-      add(fogOfWar, "fog", fogHeight).hidden = !needsFog;
+      const overlay = getFogOverlay(needsFog ? entity[SPRITE] : undefined);
+      add(overlay.sprite, "fog", overlay.offsetZ).hidden = !needsFog;
     }
     if (
       (visible || includeHidden) &&

@@ -345,6 +345,17 @@ export const cellNames = [
   "bandit_camp",
   "jetty_horizontal",
   "jetty_vertical",
+  "wood_frame",
+  "igloo",
+  "igloo_wall",
+  "igloo_house_left",
+  "igloo_house_right",
+  "igloo_basement_left",
+  "igloo_basement_right",
+  "igloo_roof_left_up",
+  "igloo_roof_up",
+  "igloo_roof",
+  "igloo_roof_up_right",
   "kettle",
   "bench",
   "anvil",
@@ -2061,13 +2072,15 @@ export const createCell = (
   } else if (
     cell === "wood_port" ||
     cell === "fire_port" ||
-    cell === "iron_port"
+    cell === "iron_port" ||
+    cell === "wood_frame"
   ) {
+    const type = cell === "wood_frame" ? "frame" : "port";
     const material =
       cell === "fire_port" ? undefined : cell === "iron_port" ? "iron" : "wood";
     const element = cell === "fire_port" ? "fire" : undefined;
     const sprite = getItemSprite(
-      { materialized: "port", material, element },
+      { materialized: type, material, element },
       "resource"
     );
     const doorEntity = entities.createDoor(world, {
@@ -2078,8 +2091,8 @@ export const createCell = (
         locked: true,
         material,
         element,
-        sprite: getItemSprite({ materialized: "port", material, element }),
-        type: "port",
+        sprite: getItemSprite({ materialized: type, material, element }),
+        type,
       },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },

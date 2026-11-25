@@ -27,7 +27,7 @@ import { getSwimmables } from "./immersion";
 import { SWIMMABLE } from "../components/swimmable";
 import { extinguishEntity } from "./burn";
 import { queueMessage } from "../../game/assets/utils";
-import { ice, snow, snowCover, waterDeep } from "../../game/assets/sprites";
+import { ice, jetty, snow, snowCover, waterDeep } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { getLockable } from "./action";
 import { LOCKABLE } from "../components/lockable";
@@ -38,6 +38,7 @@ import { FOG } from "../components/fog";
 import { getLiquids, updateShoreline } from "./water";
 import { matrixFactory } from "../../game/math/matrix";
 import { LEVEL } from "../components/level";
+import { HARVESTABLE } from "../components/harvestable";
 import { COVERABLE } from "../components/coverable";
 import { isInPopup, isShowingPopup } from "./popup";
 import { isMounting } from "./vessel";
@@ -321,18 +322,23 @@ export const applySnow = (world: World, position: Position) => {
   if (unfrozen.length > 0) {
     return unfrozen.map((entity) => freezeTerrain(world, entity))[0];
   }
-  const hasFrozen = getFrozen(world, position).length > 0;
+  const overlay = getCellEntities(world, position).some(
+    (entity) =>
+      entity[FREEZABLE]?.frozen ||
+      entity[SPRITE] === jetty ||
+      entity[HARVESTABLE]?.resource === "rubble"
+  );
 
   return entities.createSnow(world, {
     [CLICKABLE]: { clicked: false, player: false },
     [FOG]: {
       visibility: "hidden",
-      type: hasFrozen ? "object" : "terrain",
+      type: overlay ? "object" : "terrain",
     },
     [COVERABLE]: { type: "snow" },
     [POSITION]: position,
     [RENDERABLE]: { generation: 0 },
-    [SPRITE]: hasFrozen ? snowCover : snow,
+    [SPRITE]: overlay ? snowCover : snow,
   });
 };
 

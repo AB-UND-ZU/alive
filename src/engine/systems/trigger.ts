@@ -325,10 +325,18 @@ export const openDoor = (world: World, entity: Entity) => {
 
 export const lockDoor = (world: World, entity: Entity) => {
   entity[LOCKABLE].locked = true;
-  entity[SPRITE] = getItemSprite({
-    materialized: "door",
-    material: entity[LOCKABLE].material || "wood",
-  });
+  entity[SPRITE] = getItemSprite(
+    {
+      materialized: entity[LOCKABLE].type,
+      material: entity[LOCKABLE].material,
+      element: entity[LOCKABLE].element,
+    },
+    "resource"
+  );
+  if (entity[ENTERABLE]) {
+    entity[ENTERABLE].sprite = entity[SPRITE];
+    entity[ENTERABLE].orientation = undefined;
+  }
   entity[LIGHT].orientation = undefined;
   entity[TOOLTIP].override = undefined;
   invalidateOcclusion(world);

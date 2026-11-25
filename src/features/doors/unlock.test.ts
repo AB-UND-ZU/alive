@@ -218,17 +218,23 @@ describe("unlocking doors", () => {
     expect(lock[LOCKABLE].locked).toBe(true);
   });
 
-  it("blocks the way again when a scripted door is locked", () => {
-    const { world, hero, lock } = setupDoor("wood_door");
-    const start = { ...hero[POSITION] };
-    interact(world);
+  it.each(["wood_door", "wood_frame"])(
+    "closes the original %s when relocked",
+    (type) => {
+      const { world, hero, lock } = setupDoor(type);
+      const closed = lock.SPRITE;
+      const start = { ...hero[POSITION] };
+      interact(world);
 
-    lockDoor(world, lock);
-    step(world, 5);
+      lockDoor(world, lock);
+      step(world, 5);
+      expect(lock.SPRITE).toEqual(closed);
+      expect(lock.ENTERABLE?.sprite).toEqual(closed);
 
-    expect(lock[LOCKABLE].locked).toBe(true);
-    expect(hero[ACTIONABLE].unlock).toBe(world.getEntityId(lock));
-    tryWalkRight(world);
-    expect(hero[POSITION]).toEqual(start);
-  });
+      expect(lock[LOCKABLE].locked).toBe(true);
+      expect(hero[ACTIONABLE].unlock).toBe(world.getEntityId(lock));
+      tryWalkRight(world);
+      expect(hero[POSITION]).toEqual(start);
+    }
+  );
 });

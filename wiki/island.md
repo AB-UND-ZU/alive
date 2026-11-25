@@ -34,6 +34,8 @@ See [Quests](quests.md#fire-haven) for the settlements' progression and [Trading
 
 ## Glacier
 
-Sail to the glacier and meet the [[unit:waterChief]] in the igloo clearing. A [[unit:waterGuard]] defends each side of the entrance. [[unit:diamondPrism]], [[unit:diamondEye]] and [[unit:diamondOrb]] roam the snow. Mine through the mountain walls to uncover [[item:iron]] and occasional [[item:gold]] deposits. Each [bandit camp](enemies.md#bandit-camps) has a campfire and a [[unit:goldChest]].
+Sail to the glacier and meet the [[unit:waterChief]] inside the chief’s igloo. A [[unit:waterGuard]] defends each side of the entrance. [[unit:diamondPrism]], [[unit:diamondEye]] and [[unit:diamondOrb]] roam the snow. Mine through the mountain walls to uncover [[item:iron]] and occasional [[item:gold]] deposits. Each [bandit camp](enemies.md#bandit-camps) has a campfire and a [[unit:goldChest]].
+
+A rock fence surrounds the rubble clearing. Follow the wooden paths to the water trader, smith, druid and chief. The three workshops have a workbench, anvil and kettle respectively.
 
 The glacier additions come with newly generated islands. Loading an older island preserves its original terrain and inhabitants.

@@ -251,7 +251,7 @@ function Entity({
         !isLiquid &&
         !(isInside && !isFloat && inRadius) &&
         !((isOpaque || isFloat) && inRadius) &&
-        !(isTransparent || (hasLoot && !isDotsTransparent)) && <FogOfWar />}
+        !(isTransparent || (hasLoot && !isDotsTransparent)) && <FogOfWar surface={entity[SPRITE]} />}
     </Container>
   );
 }

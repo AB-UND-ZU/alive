@@ -1,4 +1,5 @@
 import * as town from "../../engine/wfc/town";
+import * as igloos from "../../game/levels/island/igloos";
 import * as haven from "../../engine/wfc/haven";
 import { createPresetWorld } from "../../wiki/presets";
 import { receiveGeneratedWorld, saveAndLoad } from "../../testing/saves";
@@ -35,6 +36,12 @@ test("restores an island reached through the menu portal", () => {
     const rows: string[] = [];
     const townLabels = new Set<string>();
     const havenLabels = new Set<string>();
+    const glacierLabels = new Set<string>();
+    const generateVillage = igloos.generateIglooVillage;
+    jest.spyOn(igloos, "generateIglooVillage").mockImplementation((...args) => {
+      glacierLabels.add(rows[rows.length - 1]);
+      return generateVillage(...args);
+    });
     const generateTown = town.default;
     const generateHaven = haven.default;
     jest.spyOn(town, "default").mockImplementation((...args) => {
@@ -74,10 +81,12 @@ test("restores an island reached through the menu portal", () => {
     }
     expect([...townLabels]).toEqual(["Loading jungle..."]);
     expect([...havenLabels]).toEqual(["Loading desert..."]);
-    expect(passes.slice(-4)).toEqual([
+    expect([...glacierLabels]).toEqual(["Loading glacier..."]);
+    expect(passes.slice(-5)).toEqual([
       "Loading units 100%...",
       "Loading jungle...",
       "Loading desert...",
+      "Loading glacier...",
       "Loading map...",
     ]);
     advance(world, 1000);

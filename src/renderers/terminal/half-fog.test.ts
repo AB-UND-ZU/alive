@@ -1,7 +1,50 @@
-import { advance, createAreaWorld } from "../../testing/harness";
+import {
+  advance,
+  createAreaWorld,
+  findInArea,
+  getEntitiesAt,
+} from "../../testing/harness";
+import { applySnow } from "../../engine/systems/freeze";
+import { fogOfWar, snowFogOfWar } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { getSceneFrame } from "../interface/frame";
 import { collectTerminalSprites, createTerminalFrame } from "./frame";
+
+it("remembers snow cover as a grey quarter-shade only on explored cells", () => {
+  const area = "|♀   R |";
+  const world = createAreaWorld(area, { size: 32, legend: { R: "rubble" } });
+  const position = findInArea(area, "R");
+  const snow = applySnow(world, position);
+  world.update(0);
+  const frame = () => getSceneFrame(world, 17, 9, undefined, { instant: true });
+  const cell = getEntitiesAt(world, position);
+  cell.forEach((entity) => {
+    if (entity.FOG) entity.FOG.visibility = "fog";
+  });
+  const scene = frame();
+  const mask = scene.find(
+    (entry) => entry.entity === snow && entry.sprite === snowFogOfWar
+  )!;
+  const terrainMask = scene.find(
+    (entry) =>
+      entry.x === mask.x && entry.y === mask.y && entry.sprite === fogOfWar
+  )!;
+  expect(mask.z).toBeGreaterThan(terrainMask.z);
+  expect(mask.layers).toEqual([{ char: "░", color: colors.grey }]);
+  const terminal = createTerminalFrame(collectTerminalSprites(scene), 17, 9);
+  expect(terminal[Math.ceil(mask.y)][Math.ceil(mask.x)]).toEqual({
+    char: "░",
+    foreground: colors.grey,
+    background: colors.black,
+  });
+
+  for (const visibility of ["visible", "hidden"] as const) {
+    cell.forEach((entity) => {
+      if (entity.FOG) entity.FOG.visibility = visibility;
+    });
+    expect(frame().some((entry) => entry.sprite === snowFogOfWar)).toBe(false);
+  }
+});
 
 it("keeps real fogged rotten leaves facing their stems over gray fog", () => {
   const world = createAreaWorld("|          |\n|  r   ♀   |\n|          |", {

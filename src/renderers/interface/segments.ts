@@ -11,7 +11,7 @@ import { PLAYER } from "../../engine/components/player";
 import { PROJECTILE } from "../../engine/components/projectile";
 import { ITEM } from "../../engine/components/item";
 import { isSwimming } from "../../engine/systems/immersion";
-import { none, shadow } from "../../game/assets/sprites";
+import { fogOfWar, none, shadow, snowCover, snowFogOfWar } from "../../game/assets/sprites";
 import { LIQUID } from "../../engine/components/liquid";
 import { LOOTABLE } from "../../engine/components/lootable";
 import {
@@ -60,6 +60,15 @@ export const overlayHeight = 10.2 * stackHeight;
 export const selectionHeight = 10.5 * stackHeight;
 export const transientHeight = 11 * stackHeight;
 export const cameraHeight = 12 * stackHeight;
+
+const defaultFog = { sprite: fogOfWar, offsetZ: fogHeight };
+// Draw the snow dots just above the matching black dots on the underlying surface.
+const snowFog = {
+  sprite: snowFogOfWar,
+  offsetZ: fogHeight + stackHeight / stack,
+};
+export const getFogOverlay = (sprite?: Sprite) =>
+  sprite === snowCover ? snowFog : defaultFog;
 
 export type RenderLayerProps = {
   isTransparent: boolean;
@@ -118,7 +127,9 @@ export const getSegments = <Props extends RenderLayerProps>(
     : isFloat
     ? floatHeight
     : isObject
-    ? objectHeight
+    ? entity[SPRITE] === snowCover
+      ? objectHeight + 0.05
+      : objectHeight
     : terrainHeight;
 
   const visibleProps = isFixed

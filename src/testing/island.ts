@@ -144,6 +144,9 @@ export const describeIslandSeeds = (seeds: number[]) =>
         POSITION,
       ]);
       expect(getIdentifiers(world, "waterChief")).toHaveLength(1);
+      expect(
+        world.getEntities(["NPC"]).filter((npc) => npc.NPC.type === "waterGuard")
+      ).toHaveLength(2);
       const entrance = combine(level.size, north[POSITION], { x: 0, y: 1 });
       expect(south[POSITION]).toEqual(
         combine(level.size, north[POSITION], { x: 0, y: 2 })
@@ -201,6 +204,77 @@ export const describeIslandSeeds = (seeds: number[]) =>
           )
         )
       ).toBe(true);
+    });
+
+    it("puts the igloo fence rocks on beach at the waterline and sand inland", () => {
+      const level = world.metadata.gameEntity[LEVEL];
+      const chief = assertIdentifierAndComponents(world, "waterChief", [
+        POSITION,
+      ]);
+      const rocks = level.cellPositions.rock.filter(
+        (p) =>
+          getDistance(p, chief[POSITION], level.size) < 20 &&
+          level.biomes[p.x][p.y] === "glacier" &&
+          level.objects[p.x][p.y]?.includes("rock")
+      );
+      expect(rocks.length).toBeGreaterThan(40);
+      for (const p of rocks) {
+        const neighbors = [-1, 0, 1].flatMap((dx) =>
+          [-1, 0, 1].map((dy) =>
+            getOverlappingCell(level.cells, p.x + dx, p.y + dy)
+          )
+        );
+        expect(neighbors).not.toContain("water_deep");
+        expect(level.cells[p.x][p.y]).toBe(
+          neighbors.includes("water_shallow") ? "beach" : "sand"
+        );
+      }
+    });
+
+    it("houses four water villagers and their workstations in separate igloos", () => {
+      const level = world.metadata.gameEntity[LEVEL];
+      const frames = world
+        .getEntities([LOCKABLE, "FRAGMENT"])
+        .filter((door) => door[LOCKABLE].type === "frame");
+      expect(frames).toHaveLength(4);
+      const structures = new Set<number>();
+      for (const [name, station] of [
+        ["waterTrader", "bench"],
+        ["waterSmith", "anvil"],
+        ["waterDruid", "kettle"],
+        ["waterChief", undefined],
+      ] as const) {
+        const npc = assertIdentifierAndComponents(world, name, [
+          POSITION,
+          "BELONGABLE",
+        ]);
+        expect(npc.BELONGABLE.faction).toBe("water");
+        const part = getCellEntities(world, npc[POSITION]).find(
+          (entity) => entity.FRAGMENT
+        )!;
+        const id = part.FRAGMENT!.structure;
+        structures.add(id);
+        expect(frames.some((door) => door.FRAGMENT.structure === id)).toBe(
+          true
+        );
+        if (station) {
+          const row = world
+            .getEntities(["FRAGMENT", POSITION])
+            .filter(
+              (entity) =>
+                entity.FRAGMENT.structure === id &&
+                entity[POSITION].y === npc[POSITION].y
+            );
+          expect(
+            row.some(({ POSITION: { x, y } }) =>
+              level.objects[x][y]?.includes(station)
+            )
+          ).toBe(true);
+        }
+        if (name === "waterTrader")
+          expect(npc.POPUP?.tabs).toEqual(["buy", "sell"]);
+      }
+      expect(structures.size).toBe(4);
     });
 
     it("registers worm teleport destinations before visiting the cave", () => {

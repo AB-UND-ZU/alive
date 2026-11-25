@@ -1,14 +1,15 @@
 import Sprite from "./Sprite";
-import { fogOfWar } from "../../../game/assets/sprites";
-import { fogHeight } from "../../interface/segments";
+import type { Sprite as EntitySprite } from "../../../engine/components/sprite";
+import { getFogOverlay } from "../../interface/segments";
 
-export default function FogOfWar() {
+export default function FogOfWar({ surface }: { surface: EntitySprite }) {
+  const overlay = getFogOverlay(surface);
   return (
     <Sprite
       offsetX={0}
       offsetY={0}
-      offsetZ={fogHeight}
-      sprite={fogOfWar}
+      offsetZ={overlay.offsetZ}
+      sprite={overlay.sprite}
       layerProps={{ isTransparent: false, receiveShadow: false }}
     />
   );

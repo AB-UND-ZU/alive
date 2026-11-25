@@ -17,6 +17,17 @@ export const fogOfWar: Sprite = {
   layers: [{ color: colors.black, char: "░" }],
 };
 
+export const snowFogOfWar: Sprite = {
+  name: "snow_fog_war",
+  layers: [{ char: "░", color: colors.grey }],
+  terminal: {
+    layers: [
+      { char: "█", color: colors.black },
+      { char: "░", color: colors.grey },
+    ],
+  },
+};
+
 export const wall: Sprite = {
   name: "wall_solid",
   terminal: { layers: [{ char: "█", color: colors.silver }] },
