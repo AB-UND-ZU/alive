@@ -1,3 +1,6 @@
+import { EQUIPPABLE } from "../../engine/components/equippable";
+import { ITEM } from "../../engine/components/item";
+import { STATS } from "../../engine/components/stats";
 import { BEHAVIOUR, Pattern } from "../../engine/components/behaviour";
 import { LOCKABLE } from "../../engine/components/lockable";
 import { POSITION } from "../../engine/components/position";
@@ -6,6 +9,7 @@ import { isDead } from "../../engine/systems/damage";
 import { rage } from "../../game/assets/ui";
 import {
   advanceUntil,
+  countItems,
   findEntityAt,
   holdMove,
   trigger,
@@ -240,4 +244,39 @@ describe("gate guard", () => {
       expect(guard[BEHAVIOUR].patterns).toHaveLength(0);
     });
   });
+});
+
+it("arms the Water Guard to defend the igloo and replenish HP", () => {
+  const { world } = createCreatureWorld(
+    `|♀          |
+|██████████ |
+|█ G   P  █ |
+|██████████ |`,
+    { G: "waterGuard", P: "diamondPrism" }
+  );
+  const guard = getCreature(world, "waterGuard");
+  const prism = getCreature(world, "diamondPrism");
+  const equipment = world.assertComponents(guard, [EQUIPPABLE])[EQUIPPABLE];
+  expect(
+    world.assertByIdAndComponents(equipment.weapon!, [ITEM])[ITEM]
+  ).toMatchObject({ weapon: "sword", material: "gold" });
+  expect(
+    world.assertByIdAndComponents(equipment.offhand!, [ITEM])[ITEM]
+  ).toMatchObject({ offhand: "shield", material: "diamond" });
+  const potion = { consume: "potion", stat: "hp", material: "gold" } as const;
+  teleport(world, prism, { x: 20, y: 20 });
+  guard[STATS].hp = 10;
+  advanceUntil(world, () => guard[STATS].hp > 10, 30000);
+  expect(countItems(world, guard, potion)).toBe(Infinity);
+  guard[BEHAVIOUR].patterns.unshift({
+    name: "watch",
+    memory: {
+      origin: { ...guard[POSITION] },
+      center: { x: 6, y: 2 },
+      radius: 9,
+      ratio: 1,
+    },
+  });
+  teleport(world, prism, { x: guard[POSITION].x + 1, y: guard[POSITION].y });
+  advanceUntil(world, () => prism[STATS].hp < prism[STATS].maxHp, 5000);
 });

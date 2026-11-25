@@ -2581,7 +2581,7 @@ describe("worm cave encounter", () => {
 });
 
 describe("fire chief worm quest", () => {
-  it("points to the cave, rewards a worm kill, then focuses the letter delivery on the glacier guard", () => {
+  it("points to the cave, rewards a worm kill, then focuses the letter delivery on the Water Chief", () => {
     const { world, hero, bait } = setup();
     const sign = world.assertComponents(getIdentifier(world, "worm_sign")!, [
       POSITION,
@@ -2661,6 +2661,9 @@ describe("fire chief worm quest", () => {
     ).toBe(true);
     const guard = createNpc(world, "waterGuard", { x: 28, y: 28 });
     registerEntity(world, guard);
+    guard[FOG]!.visibility = "visible";
+    const waterChief = createNpc(world, "waterChief", { x: 30, y: 28 });
+    registerEntity(world, waterChief);
     const existingBoat = createCell(world, { x: 14, y: 13 }, "boat", "visible");
     existingBoat.all.forEach((entity) => {
       if (entity[POSITION]) registerEntity(world, entity);
@@ -2673,7 +2676,11 @@ describe("fire chief worm quest", () => {
     expect(
       chief[POPUP]!.lines[0].every((line) => line.length <= frameWidth - 2)
     ).toBe(true);
-    expect(chief[POPUP]?.targets[0].identifier).toBe("waterGuard");
+    expect(chief[POPUP]?.targets[0]).toMatchObject({
+      unit: "waterChief",
+      identifier: "waterChief",
+    });
+    expect(chief[POPUP]?.focuses[0].identifier).toBe("waterChief");
     expect(
       chief[POPUP]?.lines
         .flat(2)
@@ -2688,15 +2695,15 @@ describe("fire chief worm quest", () => {
     expect(chief[POPUP]).toBeDefined();
     expect(isQuestCompleted(world, hero, chief)).toBe(false);
     questSequence(world, hero, "waypointQuest", {
-      identifier: "waterGuard",
+      identifier: "waterChief",
       highlight: "quest",
       distance: 2,
     });
     step(world, 2);
     expect(getIdentifier(world, "focus")?.[FOCUSABLE]?.pendingTarget).toBe(
-      world.getEntityId(guard)
+      world.getEntityId(waterChief)
     );
-    guard[FOG]!.visibility = "visible";
+    waterChief[FOG]!.visibility = "visible";
     expect(isQuestCompleted(world, hero, chief)).toBe(true);
     removePopup(world, chief);
     step(world, 2);

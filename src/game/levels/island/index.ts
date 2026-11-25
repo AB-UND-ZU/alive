@@ -131,7 +131,7 @@ import {
   getEmptyCastable,
 } from "../../../engine/components/castable";
 import { MOVABLE } from "../../../engine/components/movable";
-import { pixelCircle } from "../../math/tracing";
+import { pixelCircle, pointToDegree } from "../../math/tracing";
 import { aspectRatio } from "../../../renderers/interface/dimensions";
 import generateHaven from "../../../engine/wfc/haven";
 import { disposeEntity } from "../../../engine/systems/map";
@@ -206,7 +206,7 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
   const glacierRadius = size * 0.07;
   const glacierRatio = 0.3;
   const iglooOffset = size * 0.085;
-  const iglooRadius = 8;
+  const iglooRadius = 9;
   const ilexRatio = 0.6;
   const oakRatio = 0.6;
   const oceanDepth = -70;
@@ -336,6 +336,16 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         iglooAngle,
         iglooOffset,
         glacierRatio
+      );
+
+      const iglooGate = angledOffset(
+        size,
+        iglooPoint,
+        pointToDegree({
+          x: signedDistance(iglooPoint.x, glacierCenter.x, size) * aspectRatio,
+          y: signedDistance(iglooPoint.y, glacierCenter.y, size),
+        }),
+        iglooRadius
       );
 
       // preload world matrizes
@@ -695,6 +705,15 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         objectsMap[x][y] = objects;
         return cell;
       });
+
+      // Reserve the three-cell landing before the shoreline is drawn.
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          const { x, y } = combine(size, iglooGate, { x: dx, y: dy });
+          rawMap[x][y] = "sand";
+          objectsMap[x][y] = [];
+        }
+      }
 
       // third pass: place shallow water and ensure is surrounded by sand
       yield "water";
@@ -1815,20 +1834,6 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         });
       }
 
-      for (let dx = -1; dx <= 1; dx++)
-        for (let dy = -1; dy <= 1; dy++) {
-          const position = combine(size, glacierCenter, { x: dx, y: dy });
-          world.metadata.gameEntity[LEVEL].cells[position.x][position.y] =
-            "snow";
-          objectsMap[position.x][position.y] = [];
-        }
-      initializeArea(
-        world,
-        combine(size, glacierCenter, { x: -1, y: -1 }),
-        combine(size, glacierCenter, { x: 1, y: 1 })
-      );
-      createNpc(world, "waterGuard", glacierCenter);
-
       // set snow for glacier
       const glacierStorm = entities.createAnchor(world, {
         [POSITION]: { x: 0, y: 0 },
@@ -2405,6 +2410,33 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
           chestData.equipments
         );
       }
+
+      initializeArea(
+        world,
+        combine(size, iglooGate, { x: -1, y: -1 }),
+        combine(size, iglooGate, { x: 1, y: 1 })
+      );
+      for (const dy of [-1, 1]) {
+        const origin = combine(size, iglooGate, { x: 0, y: dy });
+        const guard = createNpc(
+          world,
+          "waterGuard",
+          origin,
+          dy === -1 ? "waterGuardNorth" : "waterGuardSouth"
+        );
+        guard[BEHAVIOUR].patterns.unshift({
+          name: "watch",
+          memory: {
+            origin,
+            center: iglooPoint,
+            radius: iglooRadius,
+            ratio: aspectRatio,
+          },
+        });
+      }
+      objectsMap[iglooPoint.x][iglooPoint.y] = [];
+      initializeArea(world, iglooPoint, iglooPoint);
+      createNpc(world, "waterChief", iglooPoint);
 
       // console.log(
       //   stringifyMap(worldMap, { x: size / 2, y: size / 2 }, objectsMap)

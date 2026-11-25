@@ -2244,8 +2244,8 @@ export const fireChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
         construction.variants.some((variant) => variant.cell === "boat")
       )!.parts;
       createPopup(world, entity, {
-        targets: [{ unit: "waterGuard", identifier: "waterGuard", amount: 1 }],
-        focuses: [{ identifier: "waterGuard", highlight: "quest" }],
+        targets: [{ unit: "waterChief", identifier: "waterChief", amount: 1 }],
+        focuses: [{ identifier: "waterChief", highlight: "quest" }],
         lines: [
           [
             createText("Time to move on"),
@@ -2286,7 +2286,7 @@ export const fireChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               ...createItemName({ stackable: "letter" }),
               ...createText(" to its"),
             ],
-            [...createUnitName("waterGuard"), ...createText(".")],
+            [...createUnitName("waterChief"), ...createText(".")],
           ],
         ],
         tabs: ["quest"],

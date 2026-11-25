@@ -702,7 +702,8 @@ export const marchLinePredicate = (
 export const createNpc = (
   world: World,
   npcKey: NpcType,
-  position: Position
+  position: Position,
+  identifier: string = npcKey
 ) => {
   const npcUnit = generateNpcData(npcKey);
   const npcEntity = entities.createVillager(world, {
@@ -754,7 +755,7 @@ export const createNpc = (
     },
   });
   populateInventory(world, npcEntity, npcUnit.items, npcUnit.equipments);
-  setIdentifier(world, npcEntity, npcKey);
+  setIdentifier(world, npcEntity, identifier);
   return npcEntity;
 };
 

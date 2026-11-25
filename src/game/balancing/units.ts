@@ -166,6 +166,40 @@ const banditDrops = (stat: "hp" | "mp"): UnitDefinition["drops"] => [
   },
 ];
 
+const townChief = (
+  faction: "earth" | "fire" | "water",
+  color: string
+): UnitDefinition => ({
+  faction,
+  scratch: colors.silver,
+  stats: {
+    hp: 40,
+  },
+  equipments: [
+    {
+      weapon: "sword",
+      element: faction,
+      amount: 1,
+      bound: true,
+    },
+    {
+      amount: Infinity,
+      consume: "potion",
+      material: "iron",
+      stat: "hp",
+      bound: true,
+    },
+  ],
+  drops: [],
+  patternNames: [],
+  sprite: {
+    ...recolorSprite(bandit, { [colors.white]: color }),
+    name: "Chief",
+  },
+  remains: "tombstone2",
+  evaporate: { sprite: ghost, fast: false },
+});
+
 export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   guide: {
     faction: "nomad",
@@ -266,36 +300,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     remains: "tombstone1",
     evaporate: { sprite: ghost, fast: false },
   },
-  earthChief: {
-    faction: "earth",
-    scratch: colors.silver,
-    stats: {
-      hp: 40,
-    },
-    equipments: [
-      {
-        weapon: "sword",
-        element: "earth",
-        amount: 1,
-        bound: true,
-      },
-      {
-        amount: Infinity,
-        consume: "potion",
-        material: "iron",
-        stat: "hp",
-        bound: true,
-      },
-    ],
-    drops: [],
-    patternNames: [],
-    sprite: {
-      ...recolorSprite(bandit, { [colors.white]: colors.lime }),
-      name: "Chief",
-    },
-    remains: "tombstone2",
-    evaporate: { sprite: ghost, fast: false },
-  },
+  earthChief: townChief("earth", colors.lime),
   earthGuard: {
     faction: "earth",
     scratch: colors.silver,
@@ -398,36 +403,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     remains: "tombstone1",
     evaporate: { sprite: ghost, fast: false },
   },
-  fireChief: {
-    faction: "fire",
-    scratch: colors.silver,
-    stats: {
-      hp: 40,
-    },
-    equipments: [
-      {
-        weapon: "sword",
-        element: "fire",
-        amount: 1,
-        bound: true,
-      },
-      {
-        amount: Infinity,
-        consume: "potion",
-        material: "iron",
-        stat: "hp",
-        bound: true,
-      },
-    ],
-    drops: [],
-    patternNames: [],
-    sprite: {
-      ...recolorSprite(bandit, { [colors.white]: colors.red }),
-      name: "Chief",
-    },
-    remains: "tombstone2",
-    evaporate: { sprite: ghost, fast: false },
-  },
+  fireChief: townChief("fire", colors.red),
   fireGuard: {
     faction: "fire",
     scratch: colors.silver,
@@ -536,13 +512,21 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     remains: "tombstone1",
     evaporate: { sprite: ghost, fast: false },
   },
+  waterChief: townChief("water", colors.blue),
   waterGuard: {
     faction: "water",
     scratch: colors.silver,
     stats: { hp: 40 },
     equipments: [
-      { weapon: "sword", material: "iron", amount: 1, bound: true },
-      { offhand: "shield", material: "iron", amount: 1, bound: true },
+      { weapon: "sword", material: "gold", amount: 1, bound: true },
+      { offhand: "shield", material: "diamond", amount: 1, bound: true },
+      {
+        consume: "potion",
+        material: "gold",
+        stat: "hp",
+        amount: Infinity,
+        bound: true,
+      },
     ],
     drops: [],
     patternNames: [],

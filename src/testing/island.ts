@@ -6,6 +6,7 @@
 import { assertHero, createTestWorld } from "./harness";
 import { seedRandom } from "./env";
 import { pixelCircle } from "../game/math/tracing";
+import { aspectRatio } from "../renderers/interface/dimensions";
 import { wormRadius } from "../game/levels/island/areas";
 import { islandNpcDistribution } from "../game/levels/island/units";
 import { grass } from "../game/assets/sprites";
@@ -20,7 +21,7 @@ import { initializeCell } from "../engine/systems/initialize";
 import { getSequence } from "../engine/systems/sequence";
 import { orientationPoints } from "../engine/components/orientable";
 import { rotateOrientation } from "../game/math/path";
-import { assertIdentifierAndComponents } from "../engine/utils";
+import { assertIdentifierAndComponents, getIdentifiers } from "../engine/utils";
 import { findPath } from "../game/math/path";
 import { combine, getDistance, normalize } from "../game/math/std";
 import { executeCommand } from "../game/assets/commands";
@@ -129,23 +130,58 @@ export const describeIslandSeeds = (seeds: number[]) =>
       expect(failedAttempts).toBeLessThan(islandTries);
     });
 
-    it("leaves the jetty boat for the player to build and places a water guard on glacier", () => {
+    it("leaves an open entrance between the water guards and a boat site at the jetty", () => {
       const level = world.metadata.gameEntity[LEVEL];
       expect(level.objects.flat(2)).not.toContain("boat");
-      const guard = assertIdentifierAndComponents(world, "waterGuard", [
+      const [north, south] = ["waterGuardNorth", "waterGuardSouth"].map((id) =>
+        assertIdentifierAndComponents(world, id, [
+          POSITION,
+          "BELONGABLE",
+          "BEHAVIOUR",
+        ])
+      );
+      const chief = assertIdentifierAndComponents(world, "waterChief", [
         POSITION,
-        "BELONGABLE",
       ]);
-      expect(guard[POSITION]).toEqual({ x: level.size / 2, y: level.size / 2 });
-      expect(guard.BELONGABLE.faction).toBe("water");
-      expect(isImmersible(world, guard[POSITION])).toBe(false);
-      for (const dx of [-1, 0, 1]) {
-        for (const dy of [-1, 0, 1]) {
-          expect(
-            level.cells[guard[POSITION].x + dx][guard[POSITION].y + dy]
-          ).toBe("snow");
-        }
+      expect(getIdentifiers(world, "waterChief")).toHaveLength(1);
+      const entrance = combine(level.size, north[POSITION], { x: 0, y: 1 });
+      expect(south[POSITION]).toEqual(
+        combine(level.size, north[POSITION], { x: 0, y: 2 })
+      );
+      for (const guard of [north, south]) {
+        expect(guard.BELONGABLE.faction).toBe("water");
+        expect(isImmersible(world, guard[POSITION])).toBe(false);
+        const watch = guard.BEHAVIOUR.patterns.find(
+          (pattern) => pattern.name === "watch"
+        );
+        expect(watch?.memory.origin).toEqual(guard[POSITION]);
+        const { center, radius, ratio } = watch!.memory;
+        expect(ratio).toBe(aspectRatio);
+        expect(getDistance(center, entrance, level.size)).toBeCloseTo(
+          radius,
+          0
+        );
+        expect(getDistance(center, chief[POSITION], level.size)).toBeLessThan(
+          radius
+        );
+        const glacierCenter = { x: level.size / 2, y: level.size / 2 };
+        expect(getDistance(entrance, glacierCenter, level.size)).toBeLessThan(
+          getDistance(center, glacierCenter, level.size)
+        );
       }
+      for (const dx of [-1, 0, 1]) {
+        expect(
+          isWalkable(
+            world,
+            combine(level.size, north[POSITION], { x: dx, y: 1 })
+          )
+        ).toBe(true);
+      }
+      expect(level.biomes[chief[POSITION].x][chief[POSITION].y]).toBe(
+        "glacier"
+      );
+      expect(isImmersible(world, chief[POSITION])).toBe(false);
+
       const jettyGuard = assertIdentifierAndComponents(
         world,
         "fireJettyGuard",
