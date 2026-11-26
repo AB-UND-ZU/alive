@@ -79,7 +79,7 @@ describe("dormant plants", () => {
     registerEntity(world, trunk);
     const worm = trunk[INVENTORY].items[0];
     const id = world.getEntityId(trunk);
-    trunk[BURNABLE]!.burning = true;
+    world.assertByIdAndComponents(id, [BURNABLE])[BURNABLE].burning = true;
     advanceUntil(world, () => !world.getEntityById(id), 15000);
     expect(world.getEntityById(worm)).toBeUndefined();
   });
