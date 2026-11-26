@@ -72,6 +72,7 @@ describe("buying from a trader", () => {
     expect(popup).toBe(trader);
     expect(getTab(world, popup)).toBe("buy");
     expect(popup[POPUP].deals).toHaveLength(purchasableItems.length);
+    expect(popup[POPUP].deals.slice(-2).map((deal) => deal.item.stackable)).toEqual(["sand", "gravel"]);
     expect(hero[ACTIONABLE].trade).toBe(world.getEntityId(trader));
     expect(playedSounds).toContain("open");
   });

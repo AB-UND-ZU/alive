@@ -177,8 +177,6 @@ export const purchasableItems: Omit<Item, "amount" | "carrier" | "bound">[] = [
   { stackable: "stick" },
   { stackable: "resource", material: "wood" },
   { stackable: "plank" },
-  { stackable: "sand" },
-  { stackable: "gravel" },
   { stackable: "ore" },
   { stackable: "resource", material: "iron" },
   { stackable: "nugget" },
@@ -186,6 +184,8 @@ export const purchasableItems: Omit<Item, "amount" | "carrier" | "bound">[] = [
   { stackable: "charge" },
   { stackable: "worm" },
   { stackable: "thorn" },
+  { stackable: "sand" },
+  { stackable: "gravel" },
 ];
 
 /* balance: <count> * <coins> ~= 20
