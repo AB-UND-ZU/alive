@@ -4,6 +4,7 @@ import { POSITION } from "../../engine/components/position";
 import { BELONGABLE } from "../../engine/components/belongable";
 import { BUMPABLE } from "../../engine/components/bumpable";
 import { RENDERABLE } from "../../engine/components/renderable";
+import { LAYER } from "../../engine/components/layer";
 import { knockEntity } from "../../engine/systems/damage";
 import { attackUntil, createCombatWorld, getUnit } from "./helpers";
 
@@ -103,6 +104,17 @@ describe("knockback", () => {
     expect(unit[BUMPABLE]).toEqual(
       expect.objectContaining({ orientation: "left" })
     );
+  });
+
+  it("only knocks units sharing the source's building layer", () => {
+    const { world, hero, prism } = setup();
+    const start = { ...prism[POSITION] };
+    world.assertComponents(prism, [LAYER])[LAYER].structure = 123;
+    knockEntity(world, prism, "right", 2, hero);
+    expect(prism[POSITION]).toEqual(start);
+    world.assertComponents(hero, [LAYER])[LAYER].structure = 123;
+    knockEntity(world, prism, "right", 2, hero);
+    expect(prism[POSITION].x).toBe(start.x + 2);
   });
 
   it("doesn't affect the fire tribe", () => {

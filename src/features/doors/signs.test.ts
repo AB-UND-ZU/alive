@@ -10,6 +10,7 @@ import { PLAYER } from "../../engine/components/player";
 import { POPUP } from "../../engine/components/popup";
 import { POSITION } from "../../engine/components/position";
 import { STATS } from "../../engine/components/stats";
+import { knockEntity } from "../../engine/systems/damage";
 import { getTab, isInPopup } from "../../engine/systems/popup";
 import { getPrompt, interact, setup } from "./helpers";
 
@@ -68,6 +69,14 @@ describe("signs", () => {
     interact(world, 30);
     expect(hero[PLAYER].popup).toBeUndefined();
   });
+  it("closes when the reading hero is knocked away", () => {
+    const { world, hero } = setupSign("guide_sign");
+    interact(world, 30);
+    expect(isInPopup(world, hero)).toBeTruthy();
+    knockEntity(world, hero, "left", 1);
+    expect(isInPopup(world, hero)).toBeFalsy();
+  });
+
   it("closes when the reading hero gets hit", () => {
     const corridor = `
 |███████|

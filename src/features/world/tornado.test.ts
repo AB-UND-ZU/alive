@@ -12,6 +12,7 @@ import {
 } from "../../engine/components/sequencable";
 import { SPRITE } from "../../engine/components/sprite";
 import { STATS } from "../../engine/components/stats";
+import { getLootable } from "../../engine/systems/collect";
 import { getTempo } from "../../engine/systems/movement";
 import { moveEntity, registerEntity } from "../../engine/systems/map";
 import { createSequence } from "../../engine/systems/sequence";
@@ -113,6 +114,16 @@ describe("tornado", () => {
     advance(world, 100);
     expect(getTempo(world, eye)).toBe(0);
     expect(getTempo(world, storm[POSITION])).toBe(-2);
+  });
+
+  it("sweeps loose items into its eye", () => {
+    const world = createAreaWorld("| ♀    c      |", { legend: { c: "coin_one" }, size: 24 });
+    const drop = getLootable(world, { x: 6, y: 0 })!;
+    const eye = { x: 8, y: 0 };
+    addTornado(world, eye, 2);
+    advance(world, 1000);
+    expect(getLootable(world, eye)).toBe(drop);
+    expect(drop.AFFECTABLE).toBeUndefined();
   });
 
   it("stays calm without a radius", () => {

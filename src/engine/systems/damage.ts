@@ -971,10 +971,7 @@ export default function setupDamage(world: World) {
         }
 
         // close popup on target hits
-        const activePopup = getActivePopup(world, targetEntity);
-        if (activePopup && activePopup[IDENTIFIABLE]?.name !== "use") {
-          closePopup(world, targetEntity, activePopup);
-        }
+        interruptPopup(world, targetEntity);
 
         // create hit marker
         if (!absorbed && !(healing && displayedDamage === 0)) {

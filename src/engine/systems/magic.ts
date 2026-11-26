@@ -22,6 +22,7 @@ import { EXERTABLE } from "../components/exertable";
 import { Entity } from "ecs";
 import { AFFECTABLE, getEmptyAffectable } from "../components/affectable";
 import {
+  knockEntity,
   applyProcs,
   calculateDamage,
   calculateHealing,
@@ -72,6 +73,9 @@ import { SHOOTABLE } from "../components/shootable";
 import { DROPPABLE } from "../components/droppable";
 import { getHasteInterval } from "./movement";
 import { findAdjacentDroppable } from "./drop";
+import { HOOKABLE } from "../components/hookable";
+import { LOOTABLE } from "../components/lootable";
+import { isLootable } from "./collect";
 import { SWIMMABLE } from "../components/swimmable";
 import { getBlockable } from "./action";
 import { getEquipmentStats } from "../../game/balancing/equipment";
@@ -664,6 +668,19 @@ export default function setupMagic(world: World) {
       }
 
       if (waiting) continue;
+
+      const spell = castableEntity[CASTABLE];
+      if (spell.knock) {
+        for (const drop of getCellEntities(world, entity[POSITION])) {
+          if (!drop[HOOKABLE] || !drop[LOOTABLE]?.disposable || !isLootable(world, drop)) continue;
+          const id = world.getEntityId(drop);
+          if (!hasTriggered(world, spell.affected[id], spell.retrigger || spell.reproc)) continue;
+          const direction = entity[ORIENTABLE]?.facing ||
+            relativeOrientations(world, castableEntity[POSITION], drop[POSITION])[0];
+          knockEntity(world, drop, direction, spell.knock, casterEntity);
+          spell.affected[id] = { generation: worldGeneration, delta: worldDelta };
+        }
+      }
 
       // prevent cascades from affecting terrain
       if (castableEntity[CASTABLE].cascade) continue;
