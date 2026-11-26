@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { animated, useSpring } from "@react-spring/three";
 import { immersibleHeight, stack, stackHeight } from "../../interface/segments";
 import { ORIENTABLE } from "../../../engine/components/orientable";
+import { POSITION } from "../../../engine/components/position";
 import { MOVABLE } from "../../../engine/components/movable";
 
 export default function Swimming({
@@ -19,13 +20,16 @@ export default function Swimming({
 }) {
   const dimensions = useDimensions();
   const facing = entity[ORIENTABLE]?.facing;
+  const { x, y } = entity[POSITION];
+  const lastWaterCell = useRef({ x, y });
+  const moved = lastWaterCell.current.x !== x || lastWaterCell.current.y !== y;
   const activeRef = useRef(false);
   const [black, setBlack] = useState(!isVisible && !active);
   const [spring, api] = useSpring(
     () => ({
       opacity: isVisible ? 1 : 0,
       scaleY: active ? 1 : 0,
-      translateX: active
+      translateX: active || !moved
         ? 0
         : facing === "left"
         ? dimensions.aspectRatio
@@ -34,7 +38,7 @@ export default function Swimming({
         : 0,
       translateY: active ? (dimensions.aspectRatio - 1) / 2 : -0.5,
       config:
-        (!active && facing === "down") || !entity[MOVABLE]
+        (!active && moved && facing === "down") || !entity[MOVABLE]
           ? { duration: 0 }
           : entity[MOVABLE].spring,
       delay: active ? 100 : 0,
@@ -42,7 +46,7 @@ export default function Swimming({
         setBlack(result.value.opacity === 0 || result.value.scaleY === 0);
       },
     }),
-    [active, entity, isVisible, facing]
+    [active, entity, isVisible, facing, moved]
   );
 
   useEffect(() => {
@@ -57,8 +61,9 @@ export default function Swimming({
       });
       api.start({ translateX: 0 });
     }
+    if (active) lastWaterCell.current = { x, y };
     activeRef.current = active;
-  }, [active, api, dimensions.aspectRatio, facing]);
+  }, [active, api, dimensions.aspectRatio, facing, x, y]);
 
   if (black && !active) return null;
 
