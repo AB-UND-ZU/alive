@@ -28,6 +28,7 @@ import { npcSequence } from "../../game/assets/utils";
 import { getSequence } from "../../engine/systems/sequence";
 import { CellType } from "../../bindings/creation";
 import { buildConstructions } from "../../game/balancing/building";
+import { applySnow, isSnowy } from "../../engine/systems/freeze";
 import { getEquipmentStats } from "../../game/balancing/equipment";
 import { getResource, holdUntil, setupTools } from "./helpers";
 
@@ -93,6 +94,15 @@ const hammerPlot = (world: World, target: { x: number; y: number }) => {
 };
 
 describe("hammer", () => {
+  it("clears snow with an active hammer plan", () => {
+    const { world, target } = setup([woodHammer, ...fence.parts]);
+    selectPlan(world, "fence");
+    applySnow(world, target);
+    step(world);
+    expect(isSnowy(world, target)).toBe(true);
+    holdUntil(world, "right", () => !isSnowy(world, target));
+  });
+
   it("opens the build menu", () => {
     const { world, hero } = setup([woodHammer]);
 

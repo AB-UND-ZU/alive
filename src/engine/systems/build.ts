@@ -9,7 +9,7 @@ import {
   Orientation,
   orientationPoints,
 } from "../components/orientable";
-import { isControllable } from "./freeze";
+import { isControllable, isSnowy } from "./freeze";
 import { getLootable } from "./collect";
 import { ITEM } from "../components/item";
 import { EQUIPPABLE } from "../components/equippable";
@@ -210,6 +210,9 @@ export default function setupBuild(world: World) {
 
       if (!targetOrientation) continue;
 
+      const targetPosition = add(entity[POSITION], orientationPoints[targetOrientation]);
+      if (isSnowy(world, targetPosition)) continue;
+
       const currentOrientation = entity[ORIENTABLE].facing;
       const construction = getSelectedConstruction(world, entity);
 
@@ -246,8 +249,6 @@ export default function setupBuild(world: World) {
         }
       }
       entity[ORIENTABLE].facing = targetOrientation;
-      const delta = orientationPoints[targetOrientation];
-      const targetPosition = add(entity[POSITION], delta);
       const walkable = isWalkable(world, targetPosition);
       const lootable = getLootable(world, targetPosition);
 

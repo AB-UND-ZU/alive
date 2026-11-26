@@ -11,15 +11,15 @@ import { ACTIONABLE } from "../components/actionable";
 import { EQUIPPABLE } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
 import { CONDITIONABLE } from "../components/conditionable";
-import { isControllable } from "./freeze";
-import { Orientation } from "../components/orientable";
+import { isControllable, isSnowy } from "./freeze";
+import { Orientation, orientationPoints } from "../components/orientable";
 import { HOOKABLE } from "../components/hookable";
 import { isWalkable } from "./movement";
 import { isSubmerged } from "./immersion";
 import { BUMPABLE } from "../components/bumpable";
 import { BAITABLE } from "../components/baitable";
 import { attemptBubbleAbsorb } from "./magic";
-import { getDistance } from "../../game/math/std";
+import { add, getDistance } from "../../game/math/std";
 import { LEVEL } from "../components/level";
 import { play } from "../../game/sound";
 
@@ -56,6 +56,7 @@ export default function setupFishing(world: World) {
       EQUIPPABLE,
       INVENTORY,
       MOVABLE,
+      POSITION,
       RENDERABLE,
     ])) {
       const entityId = world.getEntityId(entity);
@@ -76,7 +77,7 @@ export default function setupFishing(world: World) {
       const targetOrientation: Orientation | null =
         entity[MOVABLE].pendingOrientation || entity[MOVABLE].orientations[0];
 
-      if (!targetOrientation) continue;
+      if (!targetOrientation || isSnowy(world, add(entity[POSITION], orientationPoints[targetOrientation]))) continue;
 
       if (!condition.orientation) {
         condition.orientation = targetOrientation;

@@ -16,6 +16,7 @@ import { HOOKABLE } from "../../engine/components/hookable";
 import { POSITION } from "../../engine/components/position";
 import { registerEntity } from "../../engine/systems/map";
 import { createCell } from "../../bindings/creation";
+import { applySnow, isSnowy } from "../../engine/systems/freeze";
 import { fishingDistributionLevels } from "../../game/balancing/fishing";
 import { getEquipmentStats } from "../../game/balancing/equipment";
 import { collectLoot, holdUntil, setupTools } from "./helpers";
@@ -55,6 +56,17 @@ const cast = (world: World) => {
 };
 
 describe("hook", () => {
+  it("clears snow before choosing a fishing direction", () => {
+    const { world, hero } = setupTools(lake, [woodHook, worms]);
+    const shore = { x: 1, y: 5 };
+    applySnow(world, shore);
+    step(world);
+    expect(isSnowy(world, shore)).toBe(true);
+    act(world, "skill");
+    holdUntil(world, "right", () => !isSnowy(world, shore));
+    expect(hero[CONDITIONABLE].hook?.orientation).toBeUndefined();
+  });
+
   it("needs a worm as bait", () => {
     const { world, hero } = setupTools(lake, [woodHook]);
 

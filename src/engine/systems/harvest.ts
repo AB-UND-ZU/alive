@@ -443,9 +443,8 @@ export const canHarvest = (
     toolEntity &&
     resource &&
     !trenchResources.includes(resource) &&
-    !(
-      pavingResources.includes(resource) && toolEntity[ITEM].material === "wood"
-    ) &&
+    (getEquipmentStats(toolEntity[ITEM]).farming >= 2 ||
+      resource === "grass" || resource === "bush" || resource in plantConfigs) &&
     harvestTools[resource] === "shovel"
   );
 };

@@ -104,7 +104,7 @@ describe("shovel", () => {
     ["grass", ","],
     ["stump", "S"],
   ] as const)("digs up %s and drops its yield", (resource, char) => {
-    const { world, hero, position } = digOn(ground(char), "wood", {
+    const { world, hero, position } = digOn(ground(char), resource === "stump" ? "iron" : "wood", {
       S: "stump",
     });
     const { yields } = getHarvestConfig(resource);
@@ -118,6 +118,15 @@ describe("shovel", () => {
       yields[0].amount
     );
   });
+
+  it.each(["stump", "post", "footing", "hinge"] as const)(
+    "keeps %s in place with a farming level one shovel",
+    (resource) => {
+      const { world, position } = digOn(ground("S"), "wood", { S: resource === "hinge" ? "fence_hinge" : resource });
+      expect(getResource(world, position)?.[HARVESTABLE].resource).toBe(resource);
+      expect(playedSounds).not.toContain("dig");
+    }
+  );
 
   it.each([
     ["sand", "░"],
