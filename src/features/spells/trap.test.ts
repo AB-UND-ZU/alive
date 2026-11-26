@@ -461,9 +461,9 @@ describe("trap spell", () => {
     const tick = world.metadata.gameEntity[REFERENCE].tick;
     const { duration, magic } = getAbilityStats(trap);
     arm();
-    advanceTo(world, startedAt + duration * tick - 200);
+    advanceTo(world, startedAt + (duration - 1) * tick);
     moveEntity(world, enemies[0], center);
-    step(world);
+    advanceUntil(world, () => !!spell[SEQUENCABLE].states.aura?.args.memory?.triggered, tick);
 
     advanceTriggerTo(world, spell, 500);
     expect(enemies[0][STATS].hp).toBe(99 - magic);
