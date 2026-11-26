@@ -16,7 +16,7 @@ test("unavailable Markdown reports an error while navigation remains usable", as
 });
 
 for (const width of [1440, 390]) {
-  test(`navigation keeps the current page and scroll until Markdown is ready at ${width}px`, async ({
+  test(`navigation releases the previous article while Markdown loads at ${width}px`, async ({
     page,
   }, testInfo) => {
     await page.setViewportSize({ width, height: 844 });
@@ -36,9 +36,6 @@ for (const width of [1440, 390]) {
       await main.evaluate((node) => {
         node.dataset.navigationMarker = "current";
       });
-      const controls = await main.locator(".PageControls").textContent();
-      await page.evaluate(() => window.scrollTo(0, 300));
-      const scroll = await page.evaluate(() => window.scrollY);
       await page.screenshot({
         path: testInfo.outputPath("before-navigation.png"),
       });
@@ -47,11 +44,9 @@ for (const width of [1440, 390]) {
         .evaluate((link) => link.click());
       await expect.poll(() => requested).toBe(true);
       await expect(main).toHaveAttribute("aria-busy", "true");
-      await expect(page.locator("h1")).toHaveAccessibleName("Interface");
-      await expect(main).toHaveAttribute("data-navigation-marker", "current");
-      expect(await main.locator(".PageControls").textContent()).toBe(controls);
-      await expect(main).not.toContainText("Loading...");
-      expect(await page.evaluate(() => window.scrollY)).toBe(scroll);
+      await expect(page).toHaveURL(/touch\.html$/);
+      await expect(page).toHaveTitle(/^Touch /);
+      await expect(main.locator("h1, .PageControls")).toHaveCount(0);
       await page.screenshot({
         path: testInfo.outputPath("pending-navigation.png"),
       });
@@ -100,7 +95,7 @@ test("a superseded request cannot replace the latest page", async ({
   }
 });
 
-test("a failed navigation keeps the current content and can recover", async ({
+test("a failed navigation identifies the requested page and can recover", async ({
   page,
 }) => {
   await page.goto("/game-design/controls/interface.html");
@@ -111,7 +106,8 @@ test("a failed navigation keeps the current content and can recover", async ({
   await expect(page.getByRole("alert")).toContainText(
     "Could not load wiki/touch.md"
   );
-  await expect(page.locator("h1")).toHaveAccessibleName("Interface");
+  await expect(page).toHaveTitle(/^Touch /);
+  await expect(page.locator("main h1")).toHaveCount(0);
   await page.locator('nav a[aria-label="Keyboard/Mouse"]').click();
   await expect(page.locator("h1")).toHaveAccessibleName("Keyboard/Mouse");
   await expect(page.getByRole("alert")).toHaveCount(0);

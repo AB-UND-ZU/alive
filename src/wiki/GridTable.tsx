@@ -42,6 +42,14 @@ const emptyCell = (value: ReactNode): boolean => {
   }
   return false;
 };
+// Measure labels without copying the sprite trees in each table cell.
+const labelText = (node: Node): string => {
+  if (node.nodeType === Node.TEXT_NODE) return node.textContent || "";
+  if (!(node instanceof Element) || node.matches(".Pixels, .SpriteState:not(.StateIdle)"))
+    return "";
+  return Array.from(node.childNodes, labelText).join("");
+};
+
 export function GridTable({
   headers,
   rows,
@@ -95,11 +103,7 @@ export function GridTable({
         const texts = Array.from(cell.querySelectorAll(".Text"));
         if (texts.length)
           return texts.map((text) => text.textContent || "").join(" ");
-        const visible = cell.cloneNode(true) as HTMLElement;
-        visible
-          .querySelectorAll(".SpriteState:not(.StateIdle), .Pixels")
-          .forEach((state) => state.remove());
-        return visible.textContent || "";
+        return labelText(cell);
       })
     );
     const minima = content.map((values, column) =>

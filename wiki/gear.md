@@ -4,7 +4,7 @@
 popup gear inspect use equip
 ```
 
-Gear holds equipped weapons, shields, accessories, spells, skills and tools.
+Gear holds equipped weapons, shields, accessories, spells, skills and tools. Select an item in Contents to compare its variants.
 
 [[key:G]] Open gear.
 

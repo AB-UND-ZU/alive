@@ -16,7 +16,6 @@ test("visible equipment uses native equipment layers on Scout", () => {
     )
   ).toBe(true);
   expect(composeCharacterPixels(portrait!.layers).some(Boolean)).toBe(true);
-  expect(equippedPortrait(item)).toBe(portrait);
 });
 test("stat-only equipment does not invent a visible overlay", () => {
   expect(equippedPortrait({ accessory: "ring", material: "iron" })).toBeNull();

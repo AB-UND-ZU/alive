@@ -1,5 +1,3 @@
 # Equipped Preview
 
-`equippedPortrait` creates an isolated native world, changes the hero to Scout, and equips one item through `createItemInInventory`. It reads the same `getSegments` compositor as the game. Only equipment that adds a visible segment produces a portrait; stat-only equipment leaves the cell empty.
-
-Portraits are cached by item data. The catalog shows these at the normal one-cell size, below the enlarged item sprite.
+The Gear catalog stacks equipment with the Scout sprite for its one-cell portraits. A sword faces down in front of the Scout. Offhand equipment appears behind the Scout. Stat-only equipment leaves the cell empty.

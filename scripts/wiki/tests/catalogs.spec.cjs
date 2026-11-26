@@ -199,7 +199,10 @@ test("catalogs show native adds, complete accessory upgrades and multi-cell plan
   await page.goto("/game-design/cells/units.html");
   await expect(page.locator('[data-catalog-unit="sign"]')).toHaveCount(1);
   await page.goto("/game-design/items/gear.html");
+  await expect(page.locator("[data-catalog-item]")).toHaveCount(0);
   for (const name of ["torch", "boots"]) {
+    await page.locator(`.CatalogIndex a[href="#${name}"]`).click();
+    await expect(page.locator("[data-catalog-item]")).toHaveCount(1);
     const entry = page.locator(`[data-catalog-item="${name}"]`);
     await expect(entry.locator("thead th.GridValue")).toHaveText([
       new RegExp(name, "i"),

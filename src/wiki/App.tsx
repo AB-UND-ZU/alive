@@ -1307,20 +1307,17 @@ function WikiHeader({ navigate }: { navigate: Navigate }) {
 
 function App() {
   const [route, setRoute] = useState(currentRoute);
-  const requestedPage =
+  const page =
     manifest.pages.find((p) => p.route === route) || manifest.pages[0];
   const [loaded, setLoaded] = useState<WikiPage>();
   const [error, setError] = useState("");
-  const page = loaded
-    ? manifest.pages.find((page) => page.route === loaded.route)!
-    : requestedPage;
   useEffect(() => {
     const controller = new AbortController();
     setError("");
     const url = sourceFiles(
-      requestedPage.source.startsWith("wiki/")
-        ? "./wiki/pages/" + requestedPage.source.slice(5)
-        : "./" + requestedPage.source.slice(4)
+      page.source.startsWith("wiki/")
+        ? "./wiki/pages/" + page.source.slice(5)
+        : "./" + page.source.slice(4)
     ) as string;
     void fetch(url, { signal: controller.signal })
       .then(async (response) => {
@@ -1328,7 +1325,7 @@ function App() {
           !response.ok ||
           response.headers.get("content-type")?.includes("text/html")
         )
-          throw new Error(`Could not load ${requestedPage.source}`);
+          throw new Error(`Could not load ${page.source}`);
         return response.text();
       })
       .then((text) => {
@@ -1336,10 +1333,10 @@ function App() {
           setAudioActive(false);
           muteAudio();
           setLoaded({
-            ...requestedPage,
+            ...page,
             tokens: parseMarkdown(
               text,
-              requestedPage,
+              page,
               manifest.pages,
               manifest.references
             ),
@@ -1351,8 +1348,8 @@ function App() {
           setError(String(cause.message || cause));
       });
     return () => controller.abort();
-  }, [requestedPage]);
-  const ready = loaded?.source === requestedPage.source;
+  }, [page]);
+  const ready = loaded?.source === page.source;
   const navigate: Navigate = (path) => {
     setAudioActive(false);
     muteAudio();
@@ -1459,14 +1456,14 @@ function App() {
                 <Text>{error}</Text>
               </p>
             )}
-            {loaded && (
+            {ready && loaded && (
               <Markdown
                 tokens={loaded.tokens}
                 navigate={navigate}
                 source={page.source}
               />
             )}
-            {loaded && (
+            {ready && loaded && (
               <div className="PageControls">
                 {back && (
                   <Button onClick={() => navigate(back.route)}>
