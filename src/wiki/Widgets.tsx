@@ -62,10 +62,13 @@ import {
   MentionStyle,
   ReferenceLink,
 } from "./references";
-import { Fragment, useContext, useLayoutEffect, useState } from "react";
+import { Fragment, useContext, useState } from "react";
 import { commandItems, commandSignatures } from "../game/assets/commands";
 import { craftingIngredients } from "../game/balancing/crafting";
-import { brewingDurationFactor, brewingRecipes } from "../game/balancing/brewing";
+import {
+  brewingDurationFactor,
+  brewingRecipes,
+} from "../game/balancing/brewing";
 import { getLevelStats } from "../engine/systems/leveling";
 import { classDefinitions } from "../game/balancing/classes";
 import { displayedClasses } from "../game/assets/pixels";
@@ -147,29 +150,6 @@ type CatalogIndexEntry = {
   kind?: "item" | "unit";
   group?: string;
 };
-function GearComparison() {
-  const [anchor, setAnchor] = useState(() => window.location.hash.slice(1));
-  useLayoutEffect(() => {
-    const update = () => setAnchor(window.location.hash.slice(1));
-    window.addEventListener("hashchange", update);
-    return () => window.removeEventListener("hashchange", update);
-  }, []);
-  const group = itemCatalogFamilies("gear").find(
-    ({ name, keys }) => referenceId(name) === anchor || keys.some((key) => referenceId(key) === anchor)
-  );
-  useLayoutEffect(() => {
-    document.getElementById(anchor)?.scrollIntoView();
-  }, [anchor]);
-  return group ? (
-    <ItemCatalogEntry
-      name={group.name}
-      definition={group.entries[0].definition}
-      title={group.title}
-      family={group.entries.length > 1 ? group.entries : undefined}
-    />
-  ) : null;
-}
-
 function CatalogIndex({ entries }: { entries: CatalogIndexEntry[] }) {
   const {
     link,
@@ -731,7 +711,7 @@ export function Widget({ name }: { name: string }) {
               redirected: Boolean(category && itemPage(item) !== category),
             }))}
         />
-        {category === "gear" ? <GearComparison /> : itemCatalogFamilies(category).map((group) => (
+        {itemCatalogFamilies(category).map((group) => (
           <ItemCatalogEntry
             key={group.name}
             name={group.name}

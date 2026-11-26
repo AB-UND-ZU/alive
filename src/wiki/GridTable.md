@@ -1,6 +1,6 @@
 # Grid Tables
 
-Uses inner vertical rules, a double header separator and single row separators. The first column is a row header by default.
+Horizontal rules use a single DOS font run per table section. The table uses inner vertical rules, a double header separator and single row separators. The first column is a row header by default.
 
 | State | Value |
 | ----- | ----- |

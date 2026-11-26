@@ -11,9 +11,7 @@ import {
   useState,
 } from "react";
 import {
-  Pixels,
   Text,
-  textSprites,
   NativeRule,
   TableContext,
   TextColorContext,
@@ -45,7 +43,10 @@ const emptyCell = (value: ReactNode): boolean => {
 // Measure labels without copying the sprite trees in each table cell.
 const labelText = (node: Node): string => {
   if (node.nodeType === Node.TEXT_NODE) return node.textContent || "";
-  if (!(node instanceof Element) || node.matches(".Pixels, .SpriteState:not(.StateIdle)"))
+  if (
+    !(node instanceof Element) ||
+    node.matches(".Pixels, .SpriteState:not(.StateIdle)")
+  )
     return "";
   return Array.from(node.childNodes, labelText).join("");
 };
@@ -205,15 +206,15 @@ export function GridTable({
     return (
       <tr className="GridRule" key={key} aria-hidden="true">
         <td className="GridFrozenRule">
-          <Pixels rows={[textSprites(line.repeat(widths[0]), colors.silver)]} />
+          <Text continuous>{line.repeat(widths[0])}</Text>
         </td>
         {widths.length > 1 && (
           <>
             <td className="GridFrozenEdge">
-              <Pixels rows={[textSprites(middle, colors.silver)]} />
+              <Text>{middle}</Text>
             </td>
             <td colSpan={headers.length * 2 - 3}>
-              <Pixels rows={[textSprites(rest, colors.silver)]} />
+              <Text continuous>{rest}</Text>
             </td>
           </>
         )}
