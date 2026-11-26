@@ -6,6 +6,8 @@ import { SPAWNABLE } from "../../engine/components/spawnable";
 import { STATS } from "../../engine/components/stats";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { getLevelStats } from "../../engine/systems/leveling";
+import { displayedClasses } from "../../game/assets/pixels";
+import { isClassUnlocked } from "../../game/classUnlocks";
 import { getDialog, say, setupHero } from "./helpers";
 
 jest.mock("../../engine/utils", () => ({
@@ -141,6 +143,16 @@ describe("mod command", () => {
       power: classStats.power,
       armor: classStats.armor,
     });
+  });
+
+  it("unlocks every playable class and restores the starting choice with lock", () => {
+    const { world } = setup();
+
+    say(world, "/mod unlock");
+    expect(displayedClasses.filter(isClassUnlocked)).toEqual(displayedClasses);
+
+    say(world, "/mod lock");
+    expect(displayedClasses.filter(isClassUnlocked)).toEqual(["rogue"]);
   });
 
   it("rejects an unknown mod", () => {

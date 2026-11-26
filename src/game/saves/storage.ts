@@ -1,11 +1,13 @@
+import { checkClassUnlocks } from "../classUnlocks";
 import { World } from "../../engine";
-import { restoreSnapshot, WorldSnapshot } from "../../engine/snapshot";
+import { WorldSnapshot } from "../../engine/snapshot";
 import {
   compareVersions,
   createSave,
   isLoadable,
   saveVersion,
   getSummary,
+  restoreSavedWorld,
   SaveGame,
   SaveSummary,
   setSaveSummaries,
@@ -134,6 +136,7 @@ export const loadSaveSummaries = async (
 };
 
 export const storeGame = async (world: World, snapshot?: WorldSnapshot) => {
+  checkClassUnlocks(world);
   const save = createSave(world, undefined, snapshot);
   world.metadata.saveId = save.id;
 
@@ -156,10 +159,7 @@ export const restoreGame = async (id: string) => {
   );
   if (!save) throw new Error(`Save ${id} not found!`);
 
-  const world = restoreSnapshot(upgradeSave(save).snapshot);
-  world.metadata.saveId = save.id;
-
-  return world;
+  return restoreSavedWorld(save);
 };
 
 export const eraseGame = (id: string) =>

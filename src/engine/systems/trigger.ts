@@ -79,6 +79,7 @@ import {
   closePopup,
   existingItem,
   getDeal,
+  getPickedClass,
   getTab,
   getTabSelections,
   isInPopup,
@@ -111,7 +112,6 @@ import { worldLoading } from "../../game/assets/loading";
 import { getSelectedLevel, levelConfig } from "../../game/levels";
 import {
   centerLayer,
-  displayedClasses,
   hairColors,
   pixelFrame,
 } from "../../game/assets/pixels";
@@ -232,8 +232,6 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
   const levelName = getSelectedLevel(world, warp);
   if (!levelName) return;
 
-  // don't set class stats in test mode
-  const classIndex = warp[POPUP].tabs.indexOf("class");
   const styleIndex = warp[POPUP].tabs.indexOf("style");
   enterPortal(
     world,
@@ -241,12 +239,7 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
     entity,
     {
       level: levelName,
-      classKey:
-        classIndex === -1
-          ? undefined
-          : TEST_MODE
-          ? displayedClasses[warp[POPUP].selections[classIndex][0] ?? 0]
-          : "rogue",
+      classKey: getPickedClass(warp),
       hairColor:
         styleIndex === -1
           ? undefined

@@ -108,6 +108,27 @@ describe("buying from a trader", () => {
     expect(playedSounds).not.toContain("deny");
   });
 
+  it("sells an Ingot for 1000 coins and a Diamond for 500", () => {
+    const { world, hero, trader } = setup();
+    giveItems(world, hero, [{ stackable: "coin", amount: 1500 }]);
+    openStation(world);
+    const goldRow = purchasableItems.findIndex(
+      (item) => item.material === "gold"
+    );
+
+    selectRow(world, trader, goldRow + 1);
+    act(world, "right");
+    expect(countItems(world, hero, { stackable: "ingot" })).toBe(1);
+    expect(countItems(world, hero, { stackable: "coin" })).toBe(500);
+
+    selectRow(world, trader, goldRow + 2);
+    act(world, "right");
+    expect(
+      countItems(world, hero, { stackable: "resource", material: "diamond" })
+    ).toBe(1);
+    expect(countItems(world, hero, { stackable: "coin" })).toBe(0);
+  });
+
   it("adds bought items to an existing stack", () => {
     const { world, hero, trader } = setup();
     giveItems(world, hero, [

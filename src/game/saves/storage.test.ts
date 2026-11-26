@@ -1,9 +1,21 @@
 import {
   assertHero,
   createAreaWorld,
+  giveItems,
   holdMove,
   step,
 } from "../../testing/harness";
+import {
+  isClassUnlocked,
+  loadClassUnlocks,
+  setClassesUnlocked,
+} from "../classUnlocks";
+import { createCell, createNpc } from "../../bindings/creation";
+import { createPopup } from "../../engine/systems/popup";
+import { POPUP } from "../../engine/components/popup";
+import { craftingIngredients } from "../balancing/crafting";
+import { getTraderDeals } from "../balancing/trading";
+import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
 import { createSystems, preloadLevel } from "../../engine/ecs";
 import { createSnapshot } from "../../engine/snapshot";
@@ -67,6 +79,60 @@ describe("save storage", () => {
     expect(getSaveSummaries()).toEqual([getSummary(save)]);
     expect(fake.read("alive", "summaries")).toEqual([getSummary(save)]);
     expect(readSaves()).toEqual([save]);
+  });
+
+  it("offers current recipes and trader stock on a previously saved island", async () => {
+    const world = createAreaWorld(area, { level: "LEVEL_ISLAND" });
+    const bench = createCell(world, { x: 2, y: 2 }, "bench", "visible").cell;
+    const trader = createNpc(world, "earthTrader", { x: 3, y: 2 });
+    const benchId = world.getEntityId(bench);
+    const traderId = world.getEntityId(trader);
+    bench[POPUP]!.ingredients = craftingIngredients.filter(
+      ({ item }) => item.stackable !== "gem"
+    );
+    createPopup(world, trader, {
+      tabs: ["buy", "sell"],
+      deals: getTraderDeals().filter(
+        ({ item }) => item.stackable !== "ingot" && item.material !== "diamond"
+      ),
+    });
+
+    const saved = await storeGame(world);
+    const loaded = await restoreGame(saved.id);
+    expect(loaded.assertByIdAndComponents(benchId, [POPUP])[POPUP].ingredients)
+      .toEqual(craftingIngredients);
+    expect(loaded.assertByIdAndComponents(traderId, [POPUP])[POPUP].deals)
+      .toEqual(getTraderDeals());
+  });
+
+  it("keeps earned classes when their save is erased", async () => {
+    setClassesUnlocked(false);
+    try {
+      const world = createAreaWorld(area);
+      const hero = world.assertComponents(assertHero(world), [
+        PLAYER, "INVENTORY", POSITION,
+      ]);
+      giveItems(world, hero, [
+        { stackable: "resource", material: "diamond", amount: 5 },
+      ]);
+      hero[PLAYER].defeatedUnits.woodChest = 1;
+      await storeGame(world);
+      expect(isClassUnlocked("???")).toBe(false);
+      expect(isClassUnlocked("knight")).toBe(false);
+      expect(isClassUnlocked("mage")).toBe(false);
+
+      hero[PLAYER].defeatedUnits.chestBoss = 1;
+      hero[PLAYER].defeatedUnits.fireNomad = 2;
+      giveItems(world, hero, [{ stackable: "gem", amount: 1 }]);
+      const save = await storeGame(world);
+      await eraseGame(save.id);
+      loadClassUnlocks();
+      expect(isClassUnlocked("???")).toBe(true);
+      expect(isClassUnlocked("knight")).toBe(true);
+      expect(isClassUnlocked("mage")).toBe(true);
+    } finally {
+      setClassesUnlocked(false);
+    }
   });
 
   it("lists stored saves after reloading, latest first", async () => {

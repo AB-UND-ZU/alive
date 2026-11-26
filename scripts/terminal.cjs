@@ -1,6 +1,6 @@
 const { buildSync } = require("esbuild");
-const { mkdtempSync, rmSync } = require("fs");
-const { tmpdir } = require("os");
+const { mkdirSync, mkdtempSync, rmSync } = require("fs");
+const { homedir, tmpdir } = require("os");
 const { join } = require("path");
 const { spawnSync } = require("child_process");
 
@@ -25,9 +25,21 @@ try {
     define: { "process.env.NODE_ENV": '"production"' },
     logLevel: "error",
   });
+  const dataDirectory = join(
+    process.env.XDG_DATA_HOME || join(homedir(), ".local", "share"),
+    "alive"
+  );
+  try {
+    mkdirSync(dataDirectory, { recursive: true });
+  } catch {}
   const result = spawnSync(
     process.execPath,
-    [outfile, ...process.argv.slice(2)],
+    [
+      "--experimental-webstorage",
+      "--localstorage-file=" + join(dataDirectory, "terminal.storage"),
+      outfile,
+      ...process.argv.slice(2),
+    ],
     {
       stdio: "inherit",
       env: { ...process.env, NODE_PATH: join(__dirname, "../node_modules") },

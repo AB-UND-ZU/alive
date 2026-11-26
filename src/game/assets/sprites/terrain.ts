@@ -94,15 +94,20 @@ export const ironMine: Sprite = {
   },
 };
 
-export const ironMineDisplay: Sprite = {
+const mineDisplay = (color: string): Sprite => ({
   name: "Mine",
   layers: [
     { char: "\u0106", color: colors.grey },
     { char: "\u0107", color: colors.grey },
-    { char: "÷", color: colors.silver },
+    { char: "÷", color },
     { char: "·", color: colors.grey },
   ],
-};
+});
+
+export const ironMineDisplay = mineDisplay(colors.silver);
+export const goldMineDisplay = mineDisplay(colors.yellow);
+export const diamondMineDisplay = mineDisplay(colors.aqua);
+export const rubyMineDisplay = mineDisplay(colors.fuchsia);
 
 export const goldMine: Sprite = {
   name: "Gold",
@@ -137,16 +142,6 @@ export const goldMine: Sprite = {
       { char: "·", color: colors.grey },
     ],
   },
-};
-
-export const goldMineDisplay: Sprite = {
-  name: "Mine",
-  layers: [
-    { char: "\u0106", color: colors.grey },
-    { char: "\u0107", color: colors.grey },
-    { char: "÷", color: colors.yellow },
-    { char: "·", color: colors.grey },
-  ],
 };
 
 export const diamondMine: Sprite = {

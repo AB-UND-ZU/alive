@@ -75,6 +75,7 @@ import { ENTERABLE } from "../../engine/components/enterable";
 import { createText } from "./ui";
 import { updateShoreline } from "../../engine/systems/water";
 import { isCell } from "../../engine/systems/harvest";
+import { setClassesUnlocked } from "../classUnlocks";
 
 export type CommandCall = {
   handler: string;
@@ -369,6 +370,8 @@ export const commandMods = [
   "pve",
   "god",
   "reset",
+  "lock",
+  "unlock",
 ];
 const executeMod = (world: World, entity: Entity, mod: string) => {
   if (mod === "walk") {
@@ -395,6 +398,9 @@ const executeMod = (world: World, entity: Entity, mod: string) => {
     entity[STATS].armor = 99;
     entity[STATS].wisdom = 99;
     entity[STATS].resist = 99;
+  } else if (mod === "lock" || mod === "unlock") {
+    setClassesUnlocked(mod === "unlock");
+    rerenderEntity(world, entity);
   } else if (mod === "reset") {
     const stats = getLevelStats(
       entity[SPAWNABLE].classKey,

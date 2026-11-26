@@ -9,6 +9,8 @@
 | `restoreGame` | Read and upgrade a save, then restore its snapshot without systems |
 | `eraseGame` | Delete the summary and snapshot in one transaction |
 
+Loading a game refreshes standard workbench recipes and town trader stock. Class unlocks are stored separately from saves, so deleting a slot keeps its earned classes.
+
 The caller installs systems and preloads a restored world. Erasing from the popup removes the cached summary separately. Storage failures reject the returned promise; World displays save failures in the pause screen.
 
 `storeGame` requests persistent browser storage. The browser may decline; clearing site data still removes saves. See [saved games](index.md) and [snapshots](../../engine/snapshot.md).

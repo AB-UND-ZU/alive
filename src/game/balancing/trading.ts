@@ -190,12 +190,17 @@ export const purchasableItems: Omit<Item, "amount" | "carrier" | "bound">[] = [
   { stackable: "resource", material: "iron" },
   { stackable: "nugget" },
   { stackable: "resource", material: "gold" },
+  { stackable: "ingot" },
+  { stackable: "resource", material: "diamond" },
   { stackable: "charge" },
   { stackable: "worm" },
   { stackable: "thorn" },
   { stackable: "sand" },
   { stackable: "gravel" },
 ];
+
+export const getTraderDeals = (): Deal[] =>
+  purchasableItems.map((item) => getTraderDeal(item));
 
 /* balance: <count> * <coins> ~= 20
 - item <avg> * <freq> / <stack> = <count> → <coins>

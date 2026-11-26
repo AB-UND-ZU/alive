@@ -73,6 +73,7 @@ import {
   cactus1,
   spore,
   ingot,
+  diamondGem,
   nugget,
   worm,
   fishing,
@@ -125,6 +126,8 @@ import {
   aura,
   bubble,
   diamond,
+  diamondMine,
+  diamondMineDisplay,
   gold,
   goldMine,
   goldMineDisplay,
@@ -132,6 +135,8 @@ import {
   ironMine,
   ironMineDisplay,
   ruby,
+  rubyMine,
+  rubyMineDisplay,
   skillSlot,
   soil,
   stats,
@@ -665,6 +670,13 @@ export const entitySprites: Record<
         }),
         ...createText("."),
       ],
+    ],
+  },
+  gem: {
+    sprite: diamondGem,
+    getDescription: () => [
+      createText("A pristine jewel"),
+      createText("of immense value."),
     ],
   },
   nugget: {
@@ -1720,10 +1732,14 @@ export const materialSprites: Partial<
     sprite: {
       iron: { default: ironMine },
       gold: { default: goldMine },
+      diamond: { default: diamondMine },
+      ruby: { default: rubyMine },
     },
     display: {
       iron: { default: ironMineDisplay },
       gold: { default: goldMineDisplay },
+      diamond: { default: diamondMineDisplay },
+      ruby: { default: rubyMineDisplay },
     },
   },
 };

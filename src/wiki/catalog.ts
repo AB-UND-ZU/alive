@@ -364,7 +364,7 @@ const resourceFamilies = [
   {
     name: "materials",
     title: "Materials",
-    keys: ["wood", "iron", "gold", "diamond", "ruby"],
+    keys: ["wood", "iron", "gold", "diamond", "gem", "ruby"],
   },
   {
     name: "gathered",

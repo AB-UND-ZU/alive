@@ -17,7 +17,8 @@ are shared with the renderer so camera framing and terminal bounds agree.
 Interactive audio uses native Web Audio, playing the normal game sounds on the host machine. Pause mutes the shared gain; quitting releases the audio device.
 
 The build wrapper bundles this entry point to a temporary directory and
-removes the bundle on exit. Browser CSS is omitted. The wrapper leaves jsfxr
+removes the bundle on exit. Node keeps localStorage in `terminal.storage` beside `terminal.save`,
+so erasing the save preserves unlocked classes. Browser CSS is omitted. The wrapper leaves jsfxr
 external for its CommonJS initialization, and native Web Audio external so it
 can load its platform binary.
 

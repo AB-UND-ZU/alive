@@ -124,7 +124,7 @@ import { BEHAVIOUR } from "../../../engine/components/behaviour";
 import { initializeArea } from "../../../engine/systems/initialize";
 import { createSequence } from "../../../engine/systems/sequence";
 import { SHOOTABLE } from "../../../engine/components/shootable";
-import { getTraderDeal, purchasableItems } from "../../balancing/trading";
+import { getTraderDeals } from "../../balancing/trading";
 import { POI } from "../../../engine/components/poi";
 import {
   CASTABLE,
@@ -1869,7 +1869,7 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
 
       const openTrader = (trader: ReturnType<typeof createNpc>) =>
         createPopup(world, trader, {
-          deals: purchasableItems.map((item) => getTraderDeal(item)),
+          deals: getTraderDeals(),
 
           tabs: ["buy", "sell"],
         });

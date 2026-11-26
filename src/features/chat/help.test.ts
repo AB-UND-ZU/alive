@@ -80,10 +80,12 @@ describe("list command", () => {
     expect(lines).toEqual([
       "/mod fly",
       "/mod god",
+      "/mod lock",
       "/mod pve",
       "/mod pvp",
       "/mod reset",
       "/mod swim",
+      "/mod unlock",
       "/mod walk",
     ]);
   });

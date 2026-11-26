@@ -63,6 +63,7 @@ import { getCraftingDeal } from "../../game/balancing/crafting";
 import { getIdentifierAndComponents, setHighlight, TEST_MODE } from "../utils";
 import { FOCUSABLE } from "../components/focusable";
 import { TRACKABLE } from "../components/trackable";
+import { checkClassUnlocks, isClassUnlocked, loadClassUnlocks } from "../../game/classUnlocks";
 import { displayedClasses, hairColors } from "../../game/assets/pixels";
 import { credits } from "../../game/assets/credits";
 import {
@@ -181,6 +182,14 @@ export const setVerticalIndex = (
 
 export const getTabSelections = (world: World, popupEntity: Entity): number[] =>
   popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] || [];
+
+export const getPickedClass = (popupEntity: Entity) => {
+  const popup: Popup = popupEntity[POPUP];
+  const tab = popup.tabs.indexOf("class");
+  if (tab === -1) return;
+  const key = displayedClasses[popup.selections[tab][0] ?? 0];
+  return isClassUnlocked(key) ? key : "rogue";
+};
 
 export const pushTabSelection = (
   world: World,
@@ -757,6 +766,10 @@ export const openPopup = (
   popupEntity: Entity,
   instant = false
 ) => {
+  if (popupEntity[POPUP].tabs.includes("class")) {
+    loadClassUnlocks();
+    checkClassUnlocks(world);
+  }
   if (popupEntity[POPUP].tabs.includes("load") && !popupEntity[RESTORABLE]) {
     addRestorable(world, popupEntity, {});
   }
@@ -1733,7 +1746,7 @@ export default function setupPopup(world: World) {
       } else if (tab === "class" || tab === "style") {
         if (!addEntity) {
           // ignore
-        } else if (verticalIndex === 0 || TEST_MODE || tab === "style") {
+        } else if (tab === "style" || isClassUnlocked(displayedClasses[verticalIndex])) {
           popTabSelection(world, addEntity);
           pushTabSelection(world, addEntity);
           // proceed to next tab

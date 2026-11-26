@@ -692,7 +692,7 @@ export const diamond: Sprite = {
 };
 
 export const diamondGem: Sprite = {
-  name: "Diamond",
+  name: "Gem",
   terminal: { layers: [{ char: "■", color: colors.aqua }] },
   layers: [
     { char: "\u0103", color: colors.aqua },

@@ -90,6 +90,7 @@ export const craftables = [
   "spore",
   "thorn",
   "ingot",
+  "gem",
   "nugget",
   "worm",
   "salmon",

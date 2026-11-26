@@ -27,6 +27,10 @@ export const craftingIngredients: Ingredients[] = [
     item: { stackable: "ingot", amount: 1 },
     parts: [{ stackable: "resource", material: "gold", amount: 10 }],
   },
+  {
+    item: { stackable: "gem", amount: 1 },
+    parts: [{ stackable: "resource", material: "diamond", amount: 5 }],
+  },
 
   {
     item: { consume: "bucket", material: "iron", amount: 1 },

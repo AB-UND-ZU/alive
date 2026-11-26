@@ -16,6 +16,7 @@ import {
   getVerticalIndex,
   isInPopup,
 } from "../../engine/systems/popup";
+import { isClassUnlocked, setClassesUnlocked } from "../../game/classUnlocks";
 import { craftingIngredients } from "../../game/balancing/crafting";
 import { closeStation, getShopper, openStation, selectRow } from "./helpers";
 
@@ -83,6 +84,22 @@ describe("crafting at a bench", () => {
     ).toBe(1);
     expect(playedSounds).toContain("pickup");
     expect(playedSounds).not.toContain("deny");
+  });
+
+  it("crafts one Gem from five Diamonds", () => {
+    const { world, hero } = setup();
+    const diamond = { stackable: "resource", material: "diamond" } as const;
+    giveItems(world, hero, [{ ...diamond, amount: 5 }]);
+    const popup = openStation(world);
+    const gem = findRecipe(({ item }) => item.stackable === "gem");
+    selectRow(world, popup, gem.row);
+
+    act(world, "right");
+
+    expect(countItems(world, hero, { stackable: "gem" })).toBe(1);
+    expect(isClassUnlocked("mage")).toBe(true);
+    setClassesUnlocked(false);
+    expect(countItems(world, hero, diamond)).toBe(0);
   });
 
   it("spends every part of a multi part recipe", () => {

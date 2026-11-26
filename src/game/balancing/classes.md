@@ -1,6 +1,6 @@
 # Class Data
 
-Defines initial appearance, equipment and stats for each class key. Availability in the normal class-selection dialog is separate from having a data definition.
+Defines initial appearance, equipment and stats for each class key. The menu checks [class unlocks](../../../wiki/classes.md) before picking a class or starting a game. Unlocks are stored independently of save slots.
 
 | Export           | Contract                                                                 |
 | ---------------- | ------------------------------------------------------------------------ |

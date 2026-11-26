@@ -8,7 +8,13 @@ import { PLAYER } from "../../engine/components/player";
 import { SOUL } from "../../engine/components/soul";
 import { SPAWNABLE } from "../../engine/components/spawnable";
 import { STATS } from "../../engine/components/stats";
-import { createSnapshot, WorldSnapshot } from "../../engine/snapshot";
+import { POPUP } from "../../engine/components/popup";
+import { NPC } from "../../engine/components/npc";
+import { SPRITE } from "../../engine/components/sprite";
+import { bench } from "../assets/sprites";
+import { craftingIngredients } from "../balancing/crafting";
+import { getTraderDeals } from "../balancing/trading";
+import { createSnapshot, restoreSnapshot, WorldSnapshot } from "../../engine/snapshot";
 import { ClassKey } from "../balancing/classes";
 import packageJson from "../../../package.json";
 
@@ -152,6 +158,26 @@ export const createSave = (
     deaths: player[PLAYER].deaths,
     snapshot: snapshot ?? createSnapshot(world),
   };
+};
+
+export const restoreSavedWorld = (save: SaveGame) => {
+  const world = restoreSnapshot(upgradeSave(save).snapshot);
+  world.metadata.saveId = save.id;
+
+  // A save captures the recipes and stock that existed when the island was built.
+  for (const entity of world.getEntities([POPUP])) {
+    const popup = entity[POPUP];
+    if (entity[SPRITE] === bench && popup.tabs.includes("craft")) {
+      popup.ingredients = craftingIngredients;
+    } else if (
+      entity[NPC]?.type.endsWith("Trader") &&
+      popup.tabs.includes("buy") &&
+      popup.deals.every((deal) => deal.stock === Infinity)
+    ) {
+      popup.deals = getTraderDeals();
+    }
+  }
+  return world;
 };
 
 export const getSummary = ({ snapshot, ...summary }: SaveGame): SaveSummary =>

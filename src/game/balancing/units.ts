@@ -496,7 +496,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     faction: "fire",
     scratch: colors.silver,
     stats: {
-      hp: 50,
+      hp: 75,
       armor: 1,
       resist: 1,
     },

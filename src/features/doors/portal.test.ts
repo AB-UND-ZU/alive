@@ -15,6 +15,7 @@ import { assertIdentifierAndComponents } from "../../engine/utils";
 import { moveEntity } from "../../engine/systems/map";
 import { getMotion, sampleMotion } from "../../engine/motion";
 import { ACTIONABLE } from "../../engine/components/actionable";
+import { setClassesUnlocked } from "../../game/classUnlocks";
 import { LEVEL } from "../../engine/components/level";
 import { MOVABLE } from "../../engine/components/movable";
 import { PLAYER } from "../../engine/components/player";
@@ -110,7 +111,7 @@ describe("portals", () => {
     expect(canWarp(world, hero, portal)).toBe(false);
   });
 
-  it("warps the hero with class and items into the next level", () => {
+  it.each(["rogue", "knight"] as const)("warps the chosen %s and their items into the next level", (key) => {
     jest.useFakeTimers();
     try {
       const { world, hero } = setup(area, { level: "LEVEL_MENU" });
@@ -119,9 +120,11 @@ describe("portals", () => {
       moveEntity(world, departingFocus, { x: 1, y: 2 });
       const portal = getPortal(world);
       giveItems(world, hero, [{ consume: "key", material: "iron", amount: 1 }]);
+      if (key === "knight") hero[PLAYER].defeatedUnits.fireNomad = 1;
       interact(world, 30);
       expect(portal[POPUP].tabs).toEqual(["class", "style", "warp"]);
 
+      if (key === "knight") press(world, "down");
       press(world, "right", 2);
       selectLevel(world, portal, "LEVEL_TUTORIAL");
       press(world, "right");
@@ -146,11 +149,12 @@ describe("portals", () => {
         : focus[POSITION];
       expect(start).toMatchObject(player[POSITION]);
       expect(player).toHaveProperty(MOVABLE);
-      expect(player[SPAWNABLE].classKey).toBe("rogue");
+      expect(player[SPAWNABLE].classKey).toBe(key);
       expect(getItems(generated, player)).toContainEqual(
         expect.objectContaining({ consume: "key", material: "iron" })
       );
     } finally {
+      setClassesUnlocked(false);
       jest.useRealTimers();
     }
   });

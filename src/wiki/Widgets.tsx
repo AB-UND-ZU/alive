@@ -108,6 +108,7 @@ import {
   SlotLabel,
   Input,
   ItemView,
+  UnitView,
   Pixels,
   PlainTable,
   Text,
@@ -816,6 +817,13 @@ export function Widget({ name }: { name: string }) {
                 />
               </span>
             )),
+          ],
+          [
+            "Unlock",
+            "Available at start",
+            <><Text>Defeat </Text><UnitView unit="fireNomad" fullName /></>,
+            <><Text>Collect one </Text><ItemView item={{ stackable: "gem" }} /></>,
+            <Literal>Defeat the Chest Boss</Literal>,
           ],
           [
             "Extra stats",

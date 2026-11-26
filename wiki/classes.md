@@ -4,7 +4,7 @@
 popup class style
 ```
 
-Rogue is available in normal play. The other class choices are enabled in Test Mode. The table shows levels 1–10.
+Pick a class at the menu portal. Unlocked classes stay available after you erase a save.
 
 ```widget
 classes

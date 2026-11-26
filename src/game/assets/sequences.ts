@@ -134,7 +134,6 @@ import {
   smokeThick,
   levelProgress,
   freeze,
-  hostileBar,
   xpDot,
   rain,
   crackle,
@@ -168,8 +167,7 @@ import {
   popupBlocked,
   star,
   blocked,
-  chief,
-  diamondGem,
+  woodChest,
   snowflake,
   bootsSlot,
   zapParticle,
@@ -366,6 +364,7 @@ import {
   gearTitles,
   getDefeated,
   getTab,
+  getPickedClass,
   getTabSelections,
   getVerticalIndex,
   updatePopupSelection,
@@ -435,6 +434,7 @@ import {
   onSameLayer,
 } from "../../engine/systems/enter";
 import { Spawnable, SPAWNABLE } from "../../engine/components/spawnable";
+import { isClassUnlocked } from "../classUnlocks";
 import { ClassKey } from "../balancing/classes";
 import { levelConfig } from "../levels";
 import { getActiveViewable } from "../../renderers/interface/hooks";
@@ -5497,32 +5497,25 @@ export const displayEquip = displayPopupView((world, entity, state) => {
 });
 
 const classOverscan = Math.max(6 - displayedClasses.length, 1);
-const classUnlock: Partial<Record<ClassKey, Sprite[][]>> = {
-  rogue: [],
-  knight: [
-    [
-      ...createText("Defeat a ", colors.grey),
-      mergeSprites(chief, hostileBar, createText("/", colors.grey)[0]),
-      ...createText("Chief", colors.maroon),
-    ],
+const getClassHint = (key: ClassKey) => {
+  if (key === "???")
+    return [
+      [
+        ...createText("?¿¿?¿ ? ", colors.grey),
+        woodChest,
+        ...createText("¿??¿¿?", colors.grey),
+      ],
+      createText("¿? ¿¿?¿??", colors.grey),
+    ];
+  return [
+    key === "knight"
+      ? [...createText("Defeat the ", colors.grey), ...createUnitName("fireNomad")]
+      : [
+          ...createText("Collect one ", colors.grey),
+          ...createItemName({ stackable: "gem" }, colors.aqua),
+        ],
     createText("to unlock", colors.grey),
-  ],
-  mage: [
-    [
-      ...createText("Get a ", colors.grey),
-      diamondGem,
-      ...createText("Diamond", colors.aqua),
-    ],
-    createText("to unlock", colors.grey),
-  ],
-  "???": [
-    [
-      ...createText("?¿¿?¿ ? ", colors.grey),
-      missing,
-      ...createText("¿??¿¿?", colors.grey),
-    ],
-    createText("¿? ¿¿?¿??", colors.grey),
-  ],
+  ];
 };
 
 export const displayClass = displayPopupView((world, entity, state) => {
@@ -5542,7 +5535,7 @@ export const displayClass = displayPopupView((world, entity, state) => {
   const chosenIndex = firstIndex ?? 0;
 
   const selectedClass = displayedClasses[verticalIndex];
-  const selectedAvailable = TEST_MODE || selectedClass === "rogue";
+  const selectedAvailable = isClassUnlocked(selectedClass);
   const lines = overlay(
     bodyPixels,
     classPixels[displayedClasses[verticalIndex]] || [],
@@ -5578,7 +5571,7 @@ export const displayClass = displayPopupView((world, entity, state) => {
 
     const selected = verticalIndex === rowIndex;
     const chosen = chosenIndex === rowIndex;
-    const available = TEST_MODE || className === "rogue";
+    const available = isClassUnlocked(className);
     const classSprite = entitySprites[className].sprite;
     const classTitle = createText(
       available || selected
@@ -5616,7 +5609,7 @@ export const displayClass = displayPopupView((world, entity, state) => {
   ]);
   const details = selectedAvailable
     ? getEntityDescription({}, entitySprites[selectedClass])
-    : classUnlock[selectedClass];
+    : getClassHint(selectedClass);
   return {
     icon: popupIdles[getTab(world, entity)],
     content,
@@ -5661,13 +5654,8 @@ export const displayStyle = displayPopupView((world, entity, state) => {
 
   const selectedStyle = hairColors[verticalIndex];
   const heroEntity = getIdentifierAndComponents(world, "hero", [SPAWNABLE]);
-  const classIndex = entity[POPUP].tabs.indexOf("class");
   const selectedClass =
-    classIndex === -1 && heroEntity
-      ? heroEntity[SPAWNABLE].classKey
-      : TEST_MODE
-      ? displayedClasses[entity[POPUP].verticalIndezes[classIndex]]
-      : "rogue";
+    getPickedClass(entity) ?? heroEntity?.[SPAWNABLE].classKey ?? "rogue";
   const lines = overlay(
     bodyPixels,
     recolorPixels(classPixels[selectedClass] || [], {

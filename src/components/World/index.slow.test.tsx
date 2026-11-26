@@ -9,6 +9,7 @@ import { MOVABLE } from "../../engine/components/movable";
 import { POSITION } from "../../engine/components/position";
 import { TypedEntity } from "../../engine/entities";
 import { getSaveSummaries, SaveGame, setSaveSummaries } from "../../game/saves";
+import { isClassUnlocked, setClassesUnlocked } from "../../game/classUnlocks";
 import { storeGame } from "../../game/saves/storage";
 import { installFakeIndexedDB } from "../../game/saves/testing";
 import {
@@ -381,6 +382,21 @@ describe("World", () => {
     expect(readSaves().map(({ id }) => id)).toEqual([game.metadata.saveId]);
     expect(context.suspended).toBe(false);
     expect(ecs().metadata.initial).toBe(false);
+  });
+
+  it("recognizes an earned class when loading a saved game", async () => {
+    const world = createAreaWorld(area);
+    assertHero(world).PLAYER!.defeatedUnits.chestBoss = 1;
+    const save = await storeGame(world);
+    setClassesUnlocked(false);
+    try {
+      renderGame();
+      await act(async () => { await ecs().metadata.loadGame(save.id); });
+      expect(isClassUnlocked("???")).toBe(true);
+      expect(isClassUnlocked("knight")).toBe(false);
+    } finally {
+      setClassesUnlocked(false);
+    }
   });
 
   it("loads a save from the continue portal into a running world", async () => {
