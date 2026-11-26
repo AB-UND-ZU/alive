@@ -8,6 +8,11 @@ import { aura } from "../game/assets/sprites";
 import { commandItems } from "../game/assets/commands";
 import { getItemSellPrice } from "../game/balancing/trading";
 import { Item } from "../engine/components/item";
+import { Resource } from "../engine/components/harvestable";
+import { buildConstructions } from "../game/balancing/building";
+import { fishingDistributionLevels } from "../game/balancing/fishing";
+import { harvestTools, pavingResources } from "../game/balancing/harvesting";
+import { CellReference, HarvestTarget } from "./CellReference";
 import { Sprite } from "../engine/components/sprite";
 import { UnitStat } from "../engine/components/stats";
 import { Faction } from "../engine/components/belongable";
@@ -246,6 +251,65 @@ export function CatalogDescription({ rows }: { rows: Sprite[][] }) {
           })}
       </MentionStyle>
     </p>
+  );
+}
+
+function ToolTargets({ item }: { item: Partial<Item> }) {
+  const stats = getItemStats(item);
+  const label =
+    item.tool === "hook"
+      ? "Catches"
+      : item.tool === "hammer"
+      ? "Build"
+      : item.tool === "shovel"
+      ? "Ground"
+      : "Harvest";
+  const rows =
+    item.tool === "hook"
+      ? fishingDistributionLevels[stats.fishing || 0].map(([chance, fish]) => (
+          <span>
+            <ItemView item={fish} />
+            <Text>{` ${chance}%`}</Text>
+          </span>
+        ))
+      : item.tool === "hammer"
+      ? buildConstructions
+          .filter((plan) => plan.level <= (stats.build || 0))
+          .map((plan) => (
+            <ReferenceLink name="building" sprite>
+              <Text
+                color={colors.grey}
+                prefix={<Pixels rows={[[plan.sprite]]} />}
+              >
+                {plan.variants[0].cell === "campfire"
+                  ? "Fireplace"
+                  : displayName(plan.sprite.name)}
+              </Text>
+            </ReferenceLink>
+          ))
+      : item.tool === "shovel"
+      ? [
+          "air",
+          "soil",
+          "soil_wet",
+          ...(item.material !== "wood" ? [...pavingResources, "sand"] : []),
+          ...(item.material === "gold"
+            ? ["beach", "water_shallow", "water_deep"]
+            : []),
+        ].map((cell) => <CellReference cell={cell} />)
+      : Object.entries(harvestTools)
+          .filter(([, tool]) => item.tool === tool)
+          .map(([resource]) => (
+            <HarvestTarget resource={resource as Resource} />
+          ));
+  return (
+    <Frame label={label} title={label} className="DropDialog" compact>
+      <div className="CatalogLines">
+        {rows.map((row, index) => (
+          <div key={index}>{row}</div>
+        ))}
+      </div>
+    </Frame>
   );
 }
 
@@ -527,6 +591,9 @@ export function ItemCatalogEntry({
                   )),
                 ],
               ]
+            : []),
+          ...(definition.tool
+            ? [["Targets", ...variants.map((item) => <ToolTargets item={item} />)]]
             : []),
           [
             "Obtained from",

@@ -65,7 +65,7 @@ import {
 import { Fragment, useContext, useLayoutEffect, useState } from "react";
 import { commandItems, commandSignatures } from "../game/assets/commands";
 import { craftingIngredients } from "../game/balancing/crafting";
-import { brewingRecipes } from "../game/balancing/brewing";
+import { brewingDurationFactor, brewingRecipes } from "../game/balancing/brewing";
 import { getLevelStats } from "../engine/systems/leveling";
 import { classDefinitions } from "../game/balancing/classes";
 import { displayedClasses } from "../game/assets/pixels";
@@ -904,6 +904,7 @@ export function Widget({ name }: { name: string }) {
                                     String(
                                       stat === "hp" ? stats.maxHp : stats.maxMp
                                     ).padStart(2, " "),
+            String(r.duration * brewingDurationFactor),
                                     statConfig[stat].color
                                   ),
                                   statConfig[stat].sprite,
@@ -926,7 +927,7 @@ export function Widget({ name }: { name: string }) {
   if (name === "crafting")
     return (
       <PlainTable
-        headers={["Result", "Ingredients"]}
+        headers={["Result", "Ingredients", "World ticks"]}
         rows={craftingIngredients.map((r) => [
           <ItemView item={r.item} amount />,
           <Parts items={r.parts} />,

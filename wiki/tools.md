@@ -4,7 +4,7 @@
 popup equip:tool
 ```
 
-Equip a tool and choose a direction when prompted.
+Equip a tool and choose a direction when prompted. The targets below show what each material can work with.
 
 [[key:Shift]] Use the selected tool.
 
