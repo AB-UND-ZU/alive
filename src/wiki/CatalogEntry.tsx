@@ -593,7 +593,12 @@ export function ItemCatalogEntry({
               ]
             : []),
           ...(definition.tool
-            ? [["Targets", ...variants.map((item) => <ToolTargets item={item} />)]]
+            ? [
+                [
+                  "Targets",
+                  ...variants.map((item) => <ToolTargets item={item} />),
+                ],
+              ]
             : []),
           [
             "Obtained from",

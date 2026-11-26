@@ -904,7 +904,6 @@ export function Widget({ name }: { name: string }) {
                                     String(
                                       stat === "hp" ? stats.maxHp : stats.maxMp
                                     ).padStart(2, " "),
-            String(r.duration * brewingDurationFactor),
                                     statConfig[stat].color
                                   ),
                                   statConfig[stat].sprite,
@@ -927,7 +926,7 @@ export function Widget({ name }: { name: string }) {
   if (name === "crafting")
     return (
       <PlainTable
-        headers={["Result", "Ingredients", "World ticks"]}
+        headers={["Result", "Ingredients"]}
         rows={craftingIngredients.map((r) => [
           <ItemView item={r.item} amount />,
           <Parts items={r.parts} />,
@@ -937,11 +936,12 @@ export function Widget({ name }: { name: string }) {
   if (name === "brewing")
     return (
       <PlainTable
-        headers={["Result", "Ingredients"]}
+        headers={["Result", "Ingredients", "World ticks"]}
         rows={brewingRecipes.flatMap((r) =>
           r.options.map((parts) => [
             <ItemView item={r.item} amount />,
             <Parts items={parts} />,
+            String(r.duration * brewingDurationFactor),
           ])
         )}
       />
