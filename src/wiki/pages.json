@@ -41,7 +41,7 @@
   {"source": "wiki/chat.md", "title": "Chat", "route": "game-design/interactions/chat.html", "aliases": ["chat.html"], "chapter": "Gameplay", "group": "Interactions", "navigation": true},
   {"source": "wiki/dialogs.md", "title": "Dialogs", "route": "game-design/interactions/dialogs.html", "aliases": ["dialogs.html", "tips.html"], "chapter": "Gameplay", "group": "Interactions", "navigation": true},
   {"source": "wiki/signs.md", "title": "Signs", "route": "game-design/interactions/signs.html", "aliases": ["signs.html"], "chapter": "Gameplay", "group": "Interactions", "navigation": true},
-  {"source": "wiki/shops.md", "title": "Shops", "route": "game-design/interactions/shops.html", "aliases": ["shops.html", "trading.html", "game-design/items/trading.html"], "chapter": "Gameplay", "group": "Interactions", "navigation": true},
+  {"source": "wiki/trading.md", "title": "Trading", "route": "game-design/interactions/trading.html", "aliases": ["game-design/interactions/shops.html", "shops.html", "trading.html", "game-design/items/trading.html"], "chapter": "Gameplay", "group": "Interactions", "navigation": true},
   {"source": "wiki/quests.md", "title": "Quests", "route": "game-design/interactions/quests.html", "aliases": ["quests.html"], "chapter": "Gameplay", "group": "Interactions", "navigation": true},
   {"source": "wiki/crafting.md", "title": "Crafting", "route": "game-design/interactions/crafting.html", "aliases": ["crafting.html", "making.html"], "chapter": "Gameplay", "group": "Interactions", "navigation": true},
   {"source": "wiki/brewing.md", "title": "Brewing", "route": "game-design/interactions/brewing.html", "aliases": ["brewing.html"], "chapter": "Gameplay", "group": "Interactions", "navigation": true},

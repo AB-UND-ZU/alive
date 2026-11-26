@@ -30,7 +30,7 @@ export function AcquisitionSources({ item }: { item: Partial<Item> }) {
       source.kind === "naturalUnit"
         ? "natural"
         : source.kind === "shopNpc"
-        ? "shops"
+        ? "trading"
         : source.kind === "world"
         ? "levels"
         : source.kind;
@@ -66,7 +66,7 @@ export function AcquisitionSources({ item }: { item: Partial<Item> }) {
               className={kind === "drop" ? "DropDialog" : ""}
             >
               {sources.map((source, index) => {
-                if (source.kind === "shops" || source.kind === "shopNpc")
+                if (source.kind === "trading" || source.kind === "shopNpc")
                   return (
                     <div key={index}>
                       {source.key && (

@@ -44,7 +44,7 @@ export type Acquisition = {
     | "crafting"
     | "brewing"
     | "forging"
-    | "shops"
+    | "trading"
     | "fishing"
     | "world"
     | "shopNpc";
@@ -131,7 +131,7 @@ function buildSources() {
         ? getItemBuyPrice(item).filter((price) => price.amount > 0)
         : [];
       const sell = getItemSellPrice(item).filter((price) => price.amount > 0);
-      if (buy.length || sell.length) add(item, { kind: "shops", buy, sell });
+      if (buy.length || sell.length) add(item, { kind: "trading", buy, sell });
     }
   fishingDistributionLevels.forEach((distribution, fishingLevel) =>
     distribution.forEach(([chance, item]) =>

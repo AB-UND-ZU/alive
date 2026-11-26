@@ -73,9 +73,9 @@ test("the letter's chest drop is specific to bandit camps", () => {
   expect(frame).toHaveTextContent("(Bandit Camp)");
 });
 
-test("Shops show both native prices and Fishing shows every supported level chance", () => {
+test("Trading shows both native prices and Fishing shows every supported level chance", () => {
   renderSources({ stackable: "ore" });
-  const shops = within(screen.getByLabelText("Shops"));
+  const shops = within(screen.getByLabelText("Trading"));
   for (const [label, amount] of [
     ["(Buy)", "2"],
     ["(Sell)", "1"],

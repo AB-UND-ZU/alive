@@ -10,7 +10,7 @@ test("acquisition sources use compact titled native frames with complete drops a
   const drop = page.locator('.CatalogSources [aria-label="Drop"]').first();
   await expect(drop).not.toContainText("Most enemies");
   await expect(drop).not.toContainText("%");
-  const shops = page.locator('.CatalogSources [aria-label="Shops"]').first();
+  const shops = page.locator('.CatalogSources [aria-label="Trading"]').first();
   await expect(shops).toContainText("(Buy)");
   await expect(shops).toContainText("(Sell)");
   const levels = page.locator('.CatalogSources [aria-label="Levels"]').first();

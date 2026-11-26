@@ -120,7 +120,7 @@ export function parseMarkdown(
       const name =
         (
           {
-            "wiki/trading.md": "wiki/shops.md",
+            "wiki/shops.md": "wiki/trading.md",
             "wiki/levels.md": "wiki/portals.md",
             "wiki/tips.md": "wiki/dialogs.md",
           } as Record<string, string>

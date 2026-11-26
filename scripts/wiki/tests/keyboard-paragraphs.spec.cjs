@@ -12,7 +12,7 @@ for (const width of [1440, 390, 360]) {
       "chat",
       "quests",
       "savegames",
-      "shops",
+      "trading",
       "skills",
       "spells",
       "harvesting",

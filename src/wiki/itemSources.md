@@ -23,7 +23,7 @@ export type Acquisition = {
     | "crafting"
     | "brewing"
     | "forging"
-    | "shops"
+    | "trading"
     | "fishing"
     | "world"
     | "shopNpc";

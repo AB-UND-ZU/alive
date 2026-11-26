@@ -3,7 +3,7 @@ import { catalogItems, itemCatalogFamilies, itemPage } from "./catalog";
 import { obtainedFrom, itemSourceIdentity } from "./itemSources";
 
 describe("item acquisition", () => {
-  it("reads actual recipes, shops, quests, natural loot and drops", () => {
+  it("reads actual recipes, trading, quests, natural loot and drops", () => {
     expect(obtainedFrom(commandItems.wood)).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -11,7 +11,7 @@ describe("item acquisition", () => {
           parts: [{ amount: 10, stackable: "stick" }],
         }),
         expect.objectContaining({
-          kind: "shops",
+          kind: "trading",
           buy: [{ stackable: "coin", amount: 20 }],
           sell: [{ stackable: "coin", amount: 10 }],
         }),
@@ -111,12 +111,12 @@ it("retains all native fishing levels and exact buy/sell prices", () => {
     { kind: "fishing", fishingLevel: 3, chance: 14 },
   ]);
   expect(obtainedFrom({ stackable: "ore" })).toContainEqual({
-    kind: "shops",
+    kind: "trading",
     buy: [{ stackable: "coin", amount: 2 }],
     sell: [{ stackable: "coin", amount: 1 }],
   });
   expect(obtainedFrom({ stackable: "salmon" })).toContainEqual({
-    kind: "shops",
+    kind: "trading",
     buy: [],
     sell: [{ stackable: "coin", amount: 4 }],
   });

@@ -212,7 +212,8 @@ for (const page of manifest.pages.filter(
   if (name.endsWith("s")) features[name.slice(0, -1)] = features[name];
 }
 const featureAliases: Record<string, string> = {
-  trading: "shops",
+  shops: "trading",
+  igloo: "structures#igloo",
   tips: "dialogs",
   world: "island",
   aura: "stats#aura",

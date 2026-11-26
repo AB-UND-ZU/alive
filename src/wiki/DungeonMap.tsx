@@ -47,7 +47,7 @@ const roomNotes: Record<
     icons: [getUnitSprite("guide"), dummy],
     units: ["dummy"],
     features: [
-      ["shops", "Shops"],
+      ["trading", "Trading"],
       ["crafting", "Crafting"],
     ],
   },
