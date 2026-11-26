@@ -563,10 +563,10 @@ export const applyEffects = (
     targetBurn > 0 &&
     targetBurn > curentBurn &&
     !isDead(world, targetEntity)
-    if (targetEntity[BURNABLE]) targetEntity[BURNABLE].burning = true;
   ) {
     hasAffected = true;
     targetEntity[AFFECTABLE].burn = targetBurn;
+    if (targetEntity[BURNABLE]) targetEntity[BURNABLE].burning = true;
   }
 
   // freeze affected units
@@ -723,11 +723,11 @@ export const knockEntity = (
       slide -= 1;
       target = newTarget;
     }
-      if (!entity[MOVABLE] && !entity[BUMPABLE] && entity[LOOTABLE]?.disposable)
-        world.addComponentToEntity(entity, BUMPABLE, { generation: 0 });
 
     // move or bump of not moved
     if (slide < amount) {
+      if (!entity[MOVABLE] && !entity[BUMPABLE] && entity[LOOTABLE]?.disposable)
+        world.addComponentToEntity(entity, BUMPABLE, { generation: 0 });
       moveEntity(world, entity, target);
       rerenderEntity(world, entity);
     } else if (entity[BUMPABLE]) {
