@@ -523,6 +523,9 @@ test("the damage tool keeps fractional health with distinct attacker and defende
     exact: true,
   });
   await expect(trueRow).toHaveCount(1);
+  const matrix = page.getByRole("table").filter({ has: page.getByRole("columnheader", { name: "Offense / Defense" }) });
+  const third = matrix.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "3", exact: true }) });
+  await expect(third.getByRole("cell")).toHaveText(["3.00", "2.00", "1.00", "0.50", "0.33", "0.25"]);
   const tool = page.locator("[data-widget=damage]");
   await expect(tool.locator(".LargePreview")).toHaveCount(2);
   await tool

@@ -7,7 +7,7 @@ import { FarmingProgression } from "./FarmingProgression";
 import { Sounds } from "./Sounds";
 import { WarpMap, PortalPreview } from "./WarpMap";
 import { Literal, TableContext } from "./visuals";
-import { Damage } from "./Damage";
+import { Damage, DamageTable } from "./Damage";
 import { CellReference, HarvestTarget } from "./CellReference";
 import { Resource } from "../engine/components/harvestable";
 import { WorldPlants, worldPlantGroups } from "./WorldPlants";
@@ -799,6 +799,7 @@ export function Widget({ name }: { name: string }) {
     );
   }
   if (name === "world-plants") return <WorldPlants />;
+  if (name === "damage-table") return <DamageTable />;
   if (name === "damage") return <Damage />;
   if (name === "classes") {
     const portraits = displayedClasses.map((key) =>

@@ -21,6 +21,12 @@ const newHp = Math.max(0, defenderStats.hp - damage);
 - Zero or negative base damage deals no damage.
 - Health keeps fractional damage between hits. The displayed health changes at whole-point thresholds.
 
+Find offense on the left and defense across the top.
+
+```widget
+damage-table
+```
+
 ## Calculate A Hit
 
 ```widget

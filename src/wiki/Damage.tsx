@@ -11,12 +11,41 @@ import { getItemStats } from "../game/balancing/equipment";
 import { getStatColor, mergeSprites } from "../game/assets/ui";
 import { none } from "../game/assets/sprites";
 import { colors } from "../game/assets/colors";
-import { Text, Stepper, Choice, Button, StatLabel, ItemView } from "./visuals";
+import {
+  Text,
+  Stepper,
+  Choice,
+  Button,
+  StatLabel,
+  ItemView,
+  PlainTable,
+} from "./visuals";
 import "./Damage.css";
 type DamageKind = "melee" | "magic" | "true";
 const sword: Partial<Item> = { weapon: "sword", material: "iron" };
 const wand: Partial<Item> = { weapon: "wand", skill: "wand", material: "iron" };
 const shield: Partial<Item> = { offhand: "shield", material: "iron" };
+export function DamageTable() {
+  const [world] = useState(createWorld);
+  const values = [0, 1, 2, 3, 4, 5];
+  const attacker = { STATS: emptyUnitStats } as TypedEntity;
+  return (
+    <PlainTable
+      headers={["Offense / Defense", ...values.map(String)]}
+      rows={values.map((melee) => [
+        String(melee),
+        ...values.map((armor) => {
+          const defender = {
+            STATS: { ...emptyUnitStats, hp: 10, maxHp: 10, armor },
+          } as TypedEntity;
+          const { hp } = calculateDamage(world, { melee }, attacker, defender);
+          return (10 - hp).toFixed(2);
+        }),
+      ])}
+    />
+  );
+}
+
 export function Damage() {
   const [power, setPower] = useState(1),
     [wisdom, setWisdom] = useState(0),
