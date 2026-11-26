@@ -18,6 +18,7 @@ import { createSequence } from "../../engine/systems/sequence";
 import { none } from "../../game/assets/sprites";
 import { copy } from "../../game/math/std";
 import { advance, createAreaWorld } from "../../testing/harness";
+import { playedSounds } from "../../testing/env";
 import { assertUnit } from "./helpers";
 
 const addTornado = (world: World, position: Position, radius: number) => {
@@ -81,6 +82,7 @@ describe("tornado", () => {
     advance(world, 1000);
 
     expect(hero[POSITION]).toEqual(eye);
+    expect(playedSounds.filter((sound) => sound === "tornado")).toHaveLength(2);
 
     advance(world, 3000);
 
@@ -123,5 +125,6 @@ describe("tornado", () => {
 
     expect(hero[POSITION]).toEqual(start);
     expect(world.getEntities([EXERTABLE])).toHaveLength(0);
+    expect(playedSounds).not.toContain("tornado");
   });
 });

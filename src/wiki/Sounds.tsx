@@ -14,7 +14,7 @@ import {
 } from "./catalog";
 import { Button, Pixels, PlainTable, Text } from "./visuals";
 
-import { disc } from "../game/assets/templates/particles";
+import { disc, windSide } from "../game/assets/templates/particles";
 import * as sprites from "../game/assets/sprites";
 import { getStatSprite, quest, info, forge } from "../game/assets/ui";
 import { getItemSprite } from "../game/assets/utils";
@@ -43,6 +43,7 @@ export const soundReferences: Record<
   extinguish: { sprite: sprites.fire, target: "fireplace" },
   fountain: { sprite: sprites.fountainHealing, target: "stat:hp" },
   countdown: { sprite: sprites.spawnerPulse, target: "dungeon" },
+  tornado: { sprite: windSide.iron.air, target: "terrain" },
   tumbleweed: { sprite: sprites.tumbleweed, target: "unit:tumbleweed" },
   beam: { sprite: itemSprite("beam"), target: "item:beam" },
   wave: { sprite: itemSprite("wave"), target: "item:wave" },

@@ -129,7 +129,7 @@ class Presets extends Params {
   hit(options: SoundOptions) {
     const intensity = Math.min(((options.intensity || 1) + 4) ** 0.7 - 2, 5);
     const variant = options.variant || 1;
-    this.sound_vol = Math.sqrt(intensity) / 48;
+    this.sound_vol = Math.sqrt(intensity) / 56;
     this.wave_type = waveforms.NOISE;
     this.p_base_freq = 1.5 - frnd(0.2) * intensity ** 2;
     this.p_freq_ramp = -0.5 - frnd(0.2) * (intensity / 2);
@@ -267,12 +267,28 @@ class Presets extends Params {
 
   countdown(options: SoundOptions) {
     const go = options.variant === 2;
-    this.wave_type = waveforms.SINE;
-    this.sound_vol = 1 / 80;
+    this.wave_type = waveforms.SQUARE;
+    this.sound_vol = 1 / 64;
+    this.p_lpf_freq = 0.23;
     this.p_base_freq = go ? 0.47 : 0.3318;
     this.p_env_attack = 0.045;
     this.p_env_sustain = go ? 0.23 : 0.14;
     this.p_env_decay = 0.13;
+    return this;
+  }
+
+  tornado() {
+    this.wave_type = waveforms.NOISE;
+    this.sound_vol = 1 / 48;
+    this.p_env_attack = 0.32;
+    this.p_env_sustain = 0.18;
+    this.p_env_decay = 0.4;
+    this.p_base_freq = 0.19 + frnd(0.05);
+    this.p_lpf_freq = 0.15 + frnd(0.02);
+    this.p_lpf_resonance = 0.36;
+    this.p_hpf_freq = 0.045;
+    this.p_pha_offset = 0.2;
+    this.p_pha_ramp = -0.12;
     return this;
   }
 
@@ -1069,7 +1085,7 @@ class Presets extends Params {
     this.p_env_decay = 0.08;
     this.p_base_freq = 0.2 + frnd(0.002);
     this.p_freq_ramp = 0.08;
-    this.p_lpf_freq = 0.15;
+    this.p_lpf_freq = 0.19;
 
     return this;
   }
@@ -1082,7 +1098,7 @@ class Presets extends Params {
     this.p_env_decay = 0.1;
     this.p_base_freq = 0.21 + frnd(0.002);
     this.p_freq_ramp = -0.15;
-    this.p_lpf_freq = 0.15;
+    this.p_lpf_freq = 0.19;
 
     return this;
   }
@@ -1372,6 +1388,7 @@ const soundVariants = {
   fountain: [1, 2],
   countdown: [1, 2],
   tumbleweed: [],
+  tornado: [],
   beam: [3],
   wave: [],
   slash: [],
