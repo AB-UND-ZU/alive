@@ -20,7 +20,7 @@ test("acquisition sources use compact titled native frames with complete drops a
     /island\.html$/
   );
 });
-test("timers list each native haste interval and the multiline assignment", async ({
+test("timers list each native haste interval and the movement formula", async ({
   page,
 }) => {
   await page.goto("/game-design/world/timers.html");
@@ -58,7 +58,7 @@ test("timers list each native haste interval and the multiline assignment", asyn
     "Sequence",
   ]);
   await expect(page.locator(".CodeSemantic")).toContainText(
-    "const tickMs = Math.floor(\n"
+    "Math.floor(1350 / (Math.max(haste, -5) + 6) + 125)"
   );
 });
 test("Dungeon legend follows the map from top to bottom and labels Waves", async ({

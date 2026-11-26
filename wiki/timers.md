@@ -7,9 +7,7 @@ timers
 ```
 
 ```ts src/engine/systems/movement.ts
-const tickMs = Math.floor(
-  1350 / (Math.max(haste, -5) + 6) + 125
-);
+Math.floor(1350 / (Math.max(haste, -5) + 6) + 125)
 ```
 
-The formula gives milliseconds per reference tick. Popup selection uses [[data:175 ms]]; chat input uses [[data:10 ms]].
+Base hero haste is 2 (293 ms), or 3 for a Rogue (275 ms). Haste bottoms out at -5 (1475 ms). Popup selection takes 175 ms and chat input takes 10 ms.
