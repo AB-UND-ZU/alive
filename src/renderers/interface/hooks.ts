@@ -31,7 +31,7 @@ export type WorldContext = {
   suspended: boolean;
   setSuspended: React.Dispatch<React.SetStateAction<boolean>>;
   paused: boolean;
-  setPaused: React.Dispatch<React.SetStateAction<boolean>>;
+  setPaused: (action: React.SetStateAction<boolean>, background?: boolean) => void;
   flipped: boolean;
   setFlipped: React.Dispatch<React.SetStateAction<boolean>>;
   saveStatus?: SaveStatus;

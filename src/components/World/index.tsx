@@ -71,6 +71,7 @@ export default function World({
   const [flipped, setFlipped] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>();
   const pauseRef = useRef(paused);
+  const pendingSave = useRef<() => void>();
   const suspendedRef = useRef(suspended);
   const generation = useRef<AbortController>();
   const activeWorld = useRef<WorldType>();
@@ -254,21 +255,35 @@ export default function World({
     activeWorld.current = ecs;
   }, [ecs]);
 
-  const saveGame = useCallback(() => {
+  const saveGame = useCallback((afterPaint = true) => {
+    if (pendingSave.current) {
+      if (!afterPaint) pendingSave.current();
+      return;
+    }
     if (suspendedRef.current || !canSave(ecs)) return;
 
     setSaveStatus({ saving: true });
-    storeGame(ecs).then(
-      (save) => setSaveStatus({ saving: false, name: save.name }),
-      (error) => {
-        console.error("Saving failed:", error);
-        setSaveStatus({ saving: false, failed: true });
-      }
-    );
+    const write = () => {
+      if (pendingSave.current !== write) return;
+      pendingSave.current = undefined;
+      storeGame(ecs).then(
+        (save) => {
+          if (activeWorld.current === ecs) setSaveStatus({ saving: false, name: save.name });
+        },
+        (error) => {
+          console.error("Saving failed:", error);
+          if (activeWorld.current === ecs) setSaveStatus({ saving: false, failed: true });
+        }
+      );
+    };
+    pendingSave.current = write;
+    // Snapshotting can occupy a whole frame on a large island.
+    if (afterPaint && !document.hidden) requestAnimationFrame(() => setTimeout(write, 0));
+    else write();
   }, [ecs]);
 
   const handlePause = useCallback(
-    (action: React.SetStateAction<boolean>) => {
+    (action: React.SetStateAction<boolean>, background = false) => {
       const newPause =
         typeof action === "function" ? action(pauseRef.current) : action;
 
@@ -278,8 +293,9 @@ export default function World({
       // toggle sound and save when pausing
       if (newPause) {
         suspendAudio();
-        if (!pauseRef.current) saveGame();
+        if (!pauseRef.current || (background && pendingSave.current)) saveGame(!background);
       } else {
+        pendingSave.current?.();
         ensureAudio();
       }
 
@@ -290,7 +306,7 @@ export default function World({
   );
 
   const openMenu = useCallback(() => {
-    saveGame();
+    saveGame(false);
     actions.openMenu();
     handlePause(false);
   }, [saveGame, actions, handlePause]);

@@ -1061,7 +1061,7 @@ export default function Controls({
   const handleDeactivate = useCallback(() => {
     releaseTouch();
     pointer.current = undefined;
-    setPaused(true);
+    setPaused(true, true);
   }, [releaseTouch, setPaused]);
 
   const handleVisibility = useCallback(() => {

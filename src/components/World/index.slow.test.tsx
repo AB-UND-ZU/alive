@@ -51,6 +51,7 @@ const levelName = () => ecs().metadata.gameEntity[LEVEL].name;
 // storage settles in promises, which fake timers don't run
 const flush = () =>
   act(async () => {
+    jest.advanceTimersByTime(20);
     for (let index = 0; index < 20; index += 1) await Promise.resolve();
   });
 
@@ -148,13 +149,23 @@ describe("World", () => {
     pause();
 
     expect(context.saveStatus).toEqual({ saving: true });
-    expect(saveText()).toBe("Saving...");
+    expect(readSaves()).toEqual([]);
+    expect(ecs().metadata.saveId).toBeUndefined();
 
     await flush();
 
     const [save] = readSaves();
     expect(ecs().metadata.saveId).toBe(save.id);
     expect(saveText()).toBe(save.name);
+  });
+
+  it("flushes a pending pause save when the page hides before its next paint", async () => {
+    renderGame(true);
+    pause();
+    fireEvent(window, new Event("pagehide"));
+    expect(ecs().metadata.saveId).toBeDefined();
+    await flush();
+    expect(readSaves()).toHaveLength(1);
   });
 
   it("doesn't save when pausing an already paused game", async () => {

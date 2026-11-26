@@ -85,6 +85,15 @@ it("centers a bounded game viewport inside full-width terminal chrome", () => {
   expect(rows[14][55]).toBe("│");
 });
 
+it("shows a disabled Saving button until the write finishes", () => {
+  const { world } = setup();
+  const frame = getTerminalFrame(world, 80, 40, undefined, {
+    paused: true, saving: true, selection: 2,
+  });
+  expect(frameToText(frame)).toContain("Saving");
+  expect(getPauseActions(world, true)[2].disabled).toBe(true);
+});
+
 it("renders the game's pause actions and saved-game name with an inverted selection", () => {
   const { world } = setup();
   const frame = getTerminalFrame(world, 80, 40, undefined, {

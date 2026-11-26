@@ -89,6 +89,7 @@ export const runTerminal = async () => {
   let saved: SaveGame | undefined;
   let pauseSelection = 0;
   let saveFailed = false;
+  let saving = false;
   try {
     saved = upgradeSave(deserialize(readFileSync(savePath())) as SaveGame);
     setSaveSummaries([getSummary(saved)]);
@@ -252,6 +253,7 @@ export const runTerminal = async () => {
               ? saved.name
               : undefined,
           failed: saveFailed,
+          saving,
         }}
       />
     );
@@ -289,6 +291,13 @@ export const runTerminal = async () => {
     process.stdin.pause();
     process.stdout.write("\x1b[0m\x1b[?25h\x1b[?1049l");
   };
+  const savePausedGame = () => {
+    if (!canSave(world)) return;
+    saving = true;
+    render();
+    save();
+    saving = false;
+  };
   const keypress = (_text: string, key: Key) => {
     if (key.ctrl && key.name === "c") {
       stop();
@@ -307,12 +316,12 @@ export const runTerminal = async () => {
       } else if (key.name === "down" || (key.name === "s" && !key.ctrl)) {
         pauseSelection = (pauseSelection + 1) % actions.length;
       } else if (key.ctrl && key.name === "s") {
-        save();
+        savePausedGame();
       } else if (key.name === "return" || key.name === "enter") {
         const action = actions[pauseSelection];
         if (!action.disabled) {
           if (action.name === "RESUME") paused = false;
-          else if (action.name === "SAVE") save();
+          else if (action.name === "SAVE") savePausedGame();
           else {
             save();
             void generate({ level: "LEVEL_MENU" });
@@ -327,7 +336,7 @@ export const runTerminal = async () => {
       paused = true;
       pauseSelection = 0;
       input.stop();
-      save();
+      savePausedGame();
       render();
       return;
     }

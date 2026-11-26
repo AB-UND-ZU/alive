@@ -13,6 +13,7 @@ Dialog tabs keep the web renderer's five-letter labels and cell positions. Tabs 
 export type TerminalSession = {
   paused?: boolean;
   suspended?: boolean;
+  saving?: boolean;
   saveName?: string;
   selection?: number;
   failed?: boolean;

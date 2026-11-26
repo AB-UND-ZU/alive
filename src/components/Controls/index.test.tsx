@@ -590,7 +590,7 @@ describe("pausing", () => {
     fireEvent(document, new Event("visibilitychange"));
     hidden.mockRestore();
 
-    expect(setPaused).toHaveBeenCalledWith(true);
+    expect(setPaused).toHaveBeenCalledWith(true, true);
   });
 
   it.each(["blur", "pagehide"])(
@@ -603,7 +603,7 @@ describe("pausing", () => {
 
       fireEvent(window, new Event(type));
 
-      expect(setPaused).toHaveBeenCalledWith(true);
+      expect(setPaused).toHaveBeenCalledWith(true, true);
       expect(hero[MOVABLE].orientations).toEqual([]);
     }
   );

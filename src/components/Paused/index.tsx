@@ -19,7 +19,7 @@ const pauseButtonWidth = 8;
 
 // name of the current game's save, same as in the saves list
 const getSaveText = (ecs: WorldType, saveStatus?: SaveStatus) => {
-  if (saveStatus?.saving) return createText("Saving...", colors.grey);
+  if (saveStatus?.saving) return [];
   if (saveStatus?.failed) return createText("Failed!", colors.red);
 
   const name =
@@ -179,7 +179,7 @@ export default function Paused({ preparingMap = false }: { preparingMap?: boolea
                 <PauseButton
                   id="pause-save"
                   onClick={handleSave}
-                  button={createButton("SAVE", pauseButtonWidth, !saveable)}
+                  button={createButton(saveStatus?.saving ? "Saving" : "SAVE", pauseButtonWidth, !saveable)}
                 />
                 <Row
                   cells={addBackground(

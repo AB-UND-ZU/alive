@@ -61,6 +61,7 @@ export type TerminalSession = {
   paused?: boolean;
   suspended?: boolean;
   loading?: Sprite[];
+  saving?: boolean;
   saveName?: string;
   selection?: number;
   failed?: boolean;
@@ -78,13 +79,13 @@ export const getTerminalLayout = (columns: number, rows: number) => {
   };
 };
 
-export const getPauseActions = (world: World) => [
+export const getPauseActions = (world: World, saving = false) => [
   { name: "RESUME", palette: "lime" as const, disabled: false },
   ...(world.metadata.gameEntity[LEVEL].name === "LEVEL_MENU"
     ? []
     : [
         { name: "MENU", palette: "red" as const, disabled: false },
-        { name: "SAVE", palette: "white" as const, disabled: !canSave(world) },
+        { name: saving ? "Saving" : "SAVE", palette: "white" as const, disabled: saving || !canSave(world) },
       ]),
 ];
 
@@ -408,7 +409,7 @@ export const getTerminalFrame = (
         left + 1,
         2000
       );
-    const actions = getPauseActions(world);
+    const actions = getPauseActions(world, session.saving);
     const overlay: Sprite[][] = [
       createText("█▀▄ █▀▄ █ █ ▄▀▀ ▄▀▀"),
       createText("█▄█ █▄█ █ █ █▄▄ █▄▄"),
@@ -434,7 +435,7 @@ export const getTerminalFrame = (
     if (actions.length > 1)
       overlay.push(
         createText(
-          session.failed ? "Failed!" : session.saveName || "",
+          session.saving ? "" : session.failed ? "Failed!" : session.saveName || "",
           session.failed ? colors.red : colors.grey
         )
       );

@@ -146,7 +146,7 @@ export default function BrowserPreview({
           return;
         }
         if (session.paused) {
-          const actions = getPauseActions(world);
+          const actions = getPauseActions(world, session.saveStatus?.saving);
           if (["Escape", " ", "r", "R"].includes(event.key)) {
             session.setPaused(false);
           } else if (["ArrowUp", "w", "W"].includes(event.key)) {
@@ -159,7 +159,7 @@ export default function BrowserPreview({
           ) {
             setPauseSelection((selection) => (selection + 1) % actions.length);
           } else if (event.ctrlKey && event.key.toLowerCase() === "s") {
-            session.saveGame();
+            if (!session.saveStatus?.saving) session.saveGame();
           } else if (event.key === "Enter") {
             const action = actions[selectionRef.current];
             if (!action.disabled) {
@@ -195,7 +195,7 @@ export default function BrowserPreview({
     const stop = () => {
       input.stop();
       setFocused(false);
-      if (interactiveSession) contextRef.current.setPaused(true);
+      if (interactiveSession) contextRef.current.setPaused(true, true);
     };
     const visibility = () => {
       if (document.hidden) stop();
@@ -238,6 +238,7 @@ export default function BrowserPreview({
           ? {
               paused: context.paused,
               selection: pauseSelection,
+              saving: context.saveStatus?.saving,
               saveName: context.saveStatus?.name,
               failed: context.saveStatus?.failed,
             }
