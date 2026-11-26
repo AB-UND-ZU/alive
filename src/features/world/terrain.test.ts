@@ -35,9 +35,9 @@ const terrainArea = (terrain: string) => `
 
 describe("terrain", () => {
   it.each([
-    ["faster on paths", "▒", 2],
-    ["slower on sand", "░", -1],
-    ["slower in shallow water", "~", -2],
+    ["faster on paths", "▒", 3],
+    ["slower on sand", "░", -2],
+    ["slower in shallow water", "~", -6],
   ])("walks %s", (_, terrain, tempo) => {
     const world = createAreaWorld(terrainArea(terrain));
     const interval = getHasteInterval(world, tempo + 2);
@@ -191,7 +191,7 @@ describe("terrain", () => {
     expect(findEntityAt(world, hero[POSITION], [SWIMMABLE])).toBe(hero);
   });
 
-  it("keeps water open under units and opaque walls", () => {
+  it("keeps natural snow off occupants but lets a spell freeze the terrain underneath", () => {
     const layout = `| ♀≈≈≈█0 |`;
     const world = createAreaWorld(layout);
     const hero = assertUnit(world);
@@ -203,9 +203,10 @@ describe("terrain", () => {
       const position = { x: 2 + index, y: 0 };
       const water = findEntityAt(world, position, [IMMERSIBLE])!;
       moveEntity(world, occupant, position);
-      freezeTerrain(world, water);
       coverSnow(world, position);
       expect(water[IMMERSIBLE]).toBeDefined();
+      freezeTerrain(world, water);
+      expect(water[IMMERSIBLE]).toBeUndefined();
       expect(isSnowy(world, position)).toBe(false);
     }
   });

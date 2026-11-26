@@ -151,6 +151,11 @@ export const restoreSnapshot = (snapshot: WorldSnapshot) => {
   });
 
   for (const entity of restored) {
+    // Older terrain and tornadoes stored the previous movement modifiers.
+    const tempo = entity.TEMPO;
+    if (tempo?.amount === 2) tempo.amount = 3;
+    else if (tempo?.amount === -1) tempo.amount = -2;
+    else if (tempo?.amount === -2 && !entity.HARVESTABLE) tempo.amount = -6;
     const npc = entity[NPC];
     const patterns = entity[BEHAVIOUR]?.patterns;
     if (

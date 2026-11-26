@@ -5,6 +5,7 @@ import { FREEZABLE } from "../../engine/components/freezable";
 import { IMMERSIBLE } from "../../engine/components/immersible";
 import { Spell } from "../../engine/components/item";
 import { STATS } from "../../engine/components/stats";
+import { moveEntity } from "../../engine/systems/map";
 import { getEntityStats } from "../../engine/systems/damage";
 import { applySnow, isSnowy, isFrozen } from "../../engine/systems/freeze";
 import { getSequence } from "../../engine/systems/sequence";
@@ -117,6 +118,20 @@ describe("water spells", () => {
     expect(dummy[AFFECTABLE].freeze).toBeGreaterThan(0);
     expect(dummy[AFFECTABLE].freeze).toBeLessThanOrEqual(freeze);
     expect(isFrozen(world, dummy)).toBe(true);
+  });
+
+  it("freeze a unit and the water it stands in on the same wave", () => {
+    const area = "| ♀≈D |";
+    const item = { spell: "wave", material: "wood", element: "water" } as const;
+    const { world } = createSpellWorld(area, item, { size: 20 });
+    const dummy = getUnit(world, area, "D");
+    const position = findInArea(area, "≈");
+    const water = findEntityAt(world, position, [FREEZABLE])!;
+    moveEntity(world, dummy, position);
+
+    cast(world, "right");
+    advanceUntil(world, () => isFrozen(world, dummy));
+    expect(isFrozen(world, water)).toBe(true);
   });
 
   it("freeze water into walkable ice", () => {

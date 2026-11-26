@@ -1241,7 +1241,7 @@ export const createCell = (
           [RENDERABLE]: { generation: 0 },
           [SEQUENCABLE]: { states: {} },
           [SPRITE]: sand,
-          [TEMPO]: { amount: -1 },
+          [TEMPO]: { amount: -2 },
         })
       );
     }
@@ -1380,7 +1380,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: cell === "beach" ? beach : sand,
-      [TEMPO]: { amount: -1 },
+      [TEMPO]: { amount: -2 },
     });
     all.push(tileEntity);
     return { cell: tileEntity, all };
@@ -1404,7 +1404,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: path,
-      [TEMPO]: { amount: 2 },
+      [TEMPO]: { amount: 3 },
     });
     all.push(pavingEntity);
     return { cell: pavingEntity, all };
@@ -1434,7 +1434,7 @@ export const createCell = (
       [REFILLABLE]: { element: "water" },
       [RENDERABLE]: { generation: 0 },
       [SPRITE]: deep ? waterDeep : waterShallow,
-      [TEMPO]: { amount: -2 },
+      [TEMPO]: { amount: -6 },
     });
     all.push(waterEntity);
     return { cell: waterEntity, all };
@@ -1770,7 +1770,7 @@ export const createCell = (
           [RENDERABLE]: { generation: 0 },
           [SEQUENCABLE]: { states: {} },
           [SPRITE]: path,
-          [TEMPO]: { amount: 2 },
+          [TEMPO]: { amount: 3 },
         })
       );
     }
@@ -1787,7 +1787,7 @@ export const createCell = (
           [RENDERABLE]: { generation: 0 },
           [SEQUENCABLE]: { states: {} },
           [SPRITE]: sand,
-          [TEMPO]: { amount: -1 },
+          [TEMPO]: { amount: -2 },
         })
       );
     }
@@ -1995,7 +1995,7 @@ export const createCell = (
           [RENDERABLE]: { generation: 0 },
           [SEQUENCABLE]: { states: {} },
           [SPRITE]: sand,
-          [TEMPO]: { amount: -1 },
+          [TEMPO]: { amount: -2 },
         })
       );
     }
@@ -2374,7 +2374,7 @@ export const createCell = (
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: beach,
-        [TEMPO]: { amount: -1 },
+        [TEMPO]: { amount: -2 },
       })
     );
     const scoutSprite = {
@@ -2445,7 +2445,7 @@ export const createCell = (
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: sand,
-        [TEMPO]: { amount: -1 },
+        [TEMPO]: { amount: -2 },
       })
     );
     const signEntity = createSign(world, { x, y }, [
@@ -2594,7 +2594,7 @@ export const createCell = (
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: sand,
-        [TEMPO]: { amount: -1 },
+        [TEMPO]: { amount: -2 },
       })
     );
     const wormSign = createSign(world, { x, y }, [
@@ -2628,7 +2628,7 @@ export const createCell = (
         [REFILLABLE]: { element: "water" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: waterShallow,
-        [TEMPO]: { amount: -2 },
+        [TEMPO]: { amount: -6 },
       });
       all.push(waterEntity);
     }
@@ -2809,7 +2809,7 @@ export const createCell = (
           [RENDERABLE]: { generation: 0 },
           [SEQUENCABLE]: { states: {} },
           [SPRITE]: sand,
-          [TEMPO]: { amount: -1 },
+          [TEMPO]: { amount: -2 },
         })
       );
     }
@@ -2919,7 +2919,7 @@ export const createCell = (
           [RENDERABLE]: { generation: 0 },
           [SEQUENCABLE]: { states: {} },
           [SPRITE]: path,
-          [TEMPO]: { amount: 2 },
+          [TEMPO]: { amount: 3 },
         })
       );
     }
@@ -2994,7 +2994,7 @@ export const createCell = (
           [RENDERABLE]: { generation: 0 },
           [SEQUENCABLE]: { states: {} },
           [SPRITE]: path,
-          [TEMPO]: { amount: 2 },
+          [TEMPO]: { amount: 3 },
         })
       );
     }
@@ -3126,7 +3126,7 @@ export const createCell = (
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: sand,
-        [TEMPO]: { amount: -1 },
+        [TEMPO]: { amount: -2 },
       })
     );
     return { cell: chestEntity, all };
@@ -3141,7 +3141,7 @@ export const createCell = (
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: beach,
-        [TEMPO]: { amount: -1 },
+        [TEMPO]: { amount: -2 },
       })
     );
     const chestEntity = createChest(world, "woodChest", { x, y }, [
@@ -3183,7 +3183,7 @@ export const createCell = (
           [RENDERABLE]: { generation: 0 },
           [SEQUENCABLE]: { states: {} },
           [SPRITE]: sand,
-          [TEMPO]: { amount: -1 },
+          [TEMPO]: { amount: -2 },
         })
       );
     }
@@ -4378,7 +4378,7 @@ export const createCell = (
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: sand,
-        [TEMPO]: { amount: -1 },
+        [TEMPO]: { amount: -2 },
       })
     );
     const wormEntity = createWormBait(world, { x, y }, visibility);

@@ -24,7 +24,6 @@ import { add } from "../../game/math/std";
 import { PLAYER } from "../components/player";
 import { isDead } from "./damage";
 import { getSwimmables } from "./immersion";
-import { SWIMMABLE } from "../components/swimmable";
 import { extinguishEntity } from "./burn";
 import { queueMessage } from "../../game/assets/utils";
 import { ice, jetty, snow, snowCover, waterDeep } from "../../game/assets/sprites";
@@ -98,7 +97,7 @@ const frozenSprites: Record<Immersible["type"], Sprite> = {
 
 // swap sprites when freezing
 export const freezeTerrain = (world: World, entity: Entity) => {
-  if (isFrozen(world, entity) || blocksIce(world, entity[POSITION]))
+  if (isFrozen(world, entity))
     return entity;
 
   entity[FREEZABLE].frozen = true;
@@ -124,10 +123,9 @@ export const freezeTerrain = (world: World, entity: Entity) => {
       disposeEntity(world, liquidEntity);
     }
 
-    // lift up immersed units
+    // Refresh immersion and the unit sprite after the terrain changes.
     const swimmables = getSwimmables(world, entity[POSITION]);
     for (const swimmableEntity of swimmables) {
-      swimmableEntity[SWIMMABLE].swimming = false;
       rerenderEntity(world, swimmableEntity);
     }
   }
@@ -145,7 +143,7 @@ export const thawTerrain = (world: World, entity: Entity) => {
 
   // replace ice with water terrain
   if (entity[TEMPO]) {
-    entity[TEMPO].amount = -2;
+    entity[TEMPO].amount = -6;
 
     addImmersible(world, entity, { type: "water", deep: true });
     const { x, y } = entity[POSITION];
@@ -153,10 +151,9 @@ export const thawTerrain = (world: World, entity: Entity) => {
     updateWalkable(world, entity[POSITION]);
     updateShoreline(world, entity[POSITION]);
 
-    // lift up immersed units
+    // Refresh immersion and the unit sprite after the terrain changes.
     const swimmables = getSwimmables(world, entity[POSITION]);
     for (const swimmableEntity of swimmables) {
-      swimmableEntity[SWIMMABLE].swimming = true;
       rerenderEntity(world, swimmableEntity);
     }
   }

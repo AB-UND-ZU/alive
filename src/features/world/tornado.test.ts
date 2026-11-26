@@ -109,13 +109,13 @@ describe("tornado", () => {
     const eye = { x: 3, y: 3 };
     const storm = addTornado(world, eye, 2);
     advance(world, 100);
-    expect(getTempo(world, eye)).toBe(-2);
-    expect(getTempo(world, { x: 4, y: 4 })).toBe(-2);
+    expect(getTempo(world, eye)).toBe(-6);
+    expect(getTempo(world, { x: 4, y: 4 })).toBe(-6);
     expect(getTempo(world, { x: 5, y: 3 })).toBe(0);
     moveEntity(world, storm, { x: 7, y: 3 });
     advance(world, 100);
     expect(getTempo(world, eye)).toBe(0);
-    expect(getTempo(world, storm[POSITION])).toBe(-2);
+    expect(getTempo(world, storm[POSITION])).toBe(-6);
   });
 
   it("sweeps loose items into its eye", () => {

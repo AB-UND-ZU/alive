@@ -8,7 +8,7 @@ timers
 
 ```ts src/engine/systems/movement.ts
 const tickMs = Math.floor(
-  1000 / (Math.max(haste, -4) + 5) + 100
+  1350 / (Math.max(haste, -5) + 6) + 125
 );
 ```
 
