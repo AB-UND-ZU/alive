@@ -25,6 +25,12 @@ const openArea = `
 `;
 
 describe("walking", () => {
+  it("uses the world clock at zero haste and floors the slowed and class clocks", () => {
+    const world = createAreaWorld(openArea);
+    expect([-8, -5, 0, 2, 3].map((haste) => getHasteInterval(world, haste)))
+      .toEqual([1475, 1475, 350, 293, 275]);
+  });
+
   it("walks faster with more haste", () => {
     const world = createAreaWorld(openArea);
     const hero = assertUnit(world);

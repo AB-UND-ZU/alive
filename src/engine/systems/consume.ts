@@ -236,7 +236,6 @@ export default function setupConsume(world: World) {
   for (const entity of world.getEntities([PLAYER, STATS])) {
     const entityId = world.getEntityId(entity);
     const equipmentStats = getEntityEquipmentStats(world, entity);
-    entityHaste[entityId] = getEntityHaste(world, entity);
     entityVision[entityId] =
       getSequence(world, entity, "vision")?.args.light?.visibility ??
       getEntityVision(world, entity).visibility;

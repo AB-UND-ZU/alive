@@ -3,9 +3,12 @@ import {
   createAreaWorld,
   findEntityAt,
   getItems,
+  giveItems,
+  step,
   walk,
 } from "../../testing/harness";
 import { MAX_STAT_VALUE, STATS } from "../../engine/components/stats";
+import { getEntityDisplayStats } from "../../engine/systems/damage";
 import { PLAYER } from "../../engine/components/player";
 import { LOOTABLE } from "../../engine/components/lootable";
 import {
@@ -34,6 +37,17 @@ const setup = () => {
 
 afterEach(() => {
   jest.restoreAllMocks();
+});
+
+it("shows the same equipped health and mana limits in the HUD and stats dialog", () => {
+  const { world, hero } = setup();
+  giveItems(world, hero, [
+    { accessory: "amulet", material: "wood", amount: 1 },
+    { accessory: "ring", material: "wood", amount: 1 },
+  ]);
+  step(world, 30);
+  expect(hero[STATS]).toMatchObject({ maxHp: 12, maxMp: 6 });
+  expect(getEntityDisplayStats(world, hero)).toMatchObject({ maxHp: 12, maxMp: 6 });
 });
 
 describe("stat pickups", () => {

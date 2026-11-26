@@ -46,6 +46,7 @@ import { frameToAnsi, frameToText } from "./frame";
 import { startTerminalAudio } from "./audio";
 import { setAudioActive } from "../../game/sound/resumable";
 import { loadSounds } from "../../game/sound";
+import { heroBaseHaste } from "../../engine/components/stats";
 import { classDefinitions } from "../../game/balancing/classes";
 import { getHasteInterval } from "../../engine/systems/movement";
 import { frameHeight, popupDelay } from "../../game/assets/utils";
@@ -265,7 +266,7 @@ export const runTerminal = async () => {
     await loadSounds(
       {
         move: Object.values(classDefinitions).map(({ stats }) =>
-          getHasteInterval(world, stats.haste)
+          getHasteInterval(world, heroBaseHaste + stats.haste)
         ),
         open: [(frameHeight - 1) * popupDelay],
       },

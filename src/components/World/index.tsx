@@ -18,6 +18,7 @@ import {
   WorldProvider,
 } from "../../renderers/interface/hooks";
 import { loadSounds } from "../../game/sound";
+import { heroBaseHaste } from "../../engine/components/stats";
 import { classDefinitions } from "../../game/balancing/classes";
 import { getHasteInterval } from "../../engine/systems/movement";
 import { frameHeight, popupDelay } from "../../game/assets/utils";
@@ -221,7 +222,7 @@ export default function World({
         await loadSounds(
           {
             move: Object.values(classDefinitions).map(({ stats }) =>
-              getHasteInterval(ecs, stats.haste)
+              getHasteInterval(ecs, heroBaseHaste + stats.haste)
             ),
             open: [(frameHeight - 1) * popupDelay],
           },
