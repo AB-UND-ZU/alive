@@ -222,7 +222,7 @@ it("pauses the standalone session when the browser loses focus", () => {
     </WorldProvider>
   );
   fireEvent.blur(window);
-  expect(setPaused).toHaveBeenCalledWith(true);
+  expect(setPaused).toHaveBeenCalledWith(true, true);
 });
 
 it("keeps a browser direction held through the first movement tick and stops on keyup", () => {
