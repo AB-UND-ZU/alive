@@ -1532,14 +1532,41 @@ export default function setupAi(world: World) {
             movements = fleeingOrientations;
           }
 
-          // don't run into spikes
-          entity[MOVABLE].orientations = movements.filter((movingOrientation) =>
-            isMovable(
-              world,
-              entity,
-              add(entity[POSITION], orientationPoints[movingOrientation])
-            )
-          );
+          const canFly = (direction: Orientation) =>
+            isMovable(world, entity, add(entity[POSITION], orientationPoints[direction]));
+          entity[MOVABLE].orientations = movements.filter(canFly);
+
+          if (!sidestepped && flee) {
+            let escape: Position[] = pattern.memory.escape || [];
+            if (escape[0]?.x === entity[POSITION].x && escape[0].y === entity[POSITION].y) {
+              escape.shift();
+            }
+            if (!escape.length && !entity[MOVABLE].orientations.length) {
+              const exit = orientations.find(canFly);
+              if (exit) {
+                const forward = orientationPoints[exit];
+                const side = orientationPoints[rotateOrientation(exit, 1)];
+                const depth = random(3, 5);
+                for (const offset of shuffle(range(-depth, depth))) {
+                  const target = combine(size, entity[POSITION], {
+                    x: forward.x * depth + side.x * offset,
+                    y: forward.y * depth + side.y * offset,
+                  });
+                  if (!isPathable(world, target)) continue;
+                  escape = findPath(world.metadata.gameEntity[LEVEL].walkable, entity[POSITION], target);
+                  if (escape.length) break;
+                }
+                entity[MOVABLE].orientations = [exit];
+              }
+            }
+            if (escape.length) {
+              const direction = relativeOrientations(world, entity[POSITION], escape[0])[0];
+              if (direction && canFly(direction)) {
+                entity[MOVABLE].orientations = [direction];
+              } else escape = [];
+            }
+            pattern.memory.escape = escape;
+          } else delete pattern.memory.escape;
           break;
         } else if (pattern.name === "shout") {
           if (!entity[TOOLTIP]) continue;

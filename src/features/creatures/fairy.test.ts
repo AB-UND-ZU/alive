@@ -35,6 +35,20 @@ describe("fairy", () => {
     );
   });
 
+  it("backs out of a dead end and continues flying around cover", () => {
+    const { world, fairy } = setup(`
+|           |
+|           |
+|   ████    |
+|♀    F█    |
+|   ████    |
+|           |
+`);
+    const start = { ...fairy[POSITION] };
+    advanceUntil(world, () => fairy[POSITION].x <= start.x - 3, 5000);
+    advanceUntil(world, () => fairy[POSITION].y !== start.y, 5000);
+  });
+
   it("hovers in place while the hero is far away", () => {
     const { world, fairy } = setup(`
 |♀              F|
