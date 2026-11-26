@@ -90,7 +90,7 @@ it("shows a disabled Saving button until the write finishes", () => {
   const frame = getTerminalFrame(world, 80, 40, undefined, {
     paused: true, saving: true, selection: 2,
   });
-  expect(frameToText(frame)).toContain("Saving");
+  expect(frameToText(frame)).toContain("SAVING");
   expect(getPauseActions(world, true)[2].disabled).toBe(true);
 });
 

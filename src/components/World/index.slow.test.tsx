@@ -51,7 +51,7 @@ const levelName = () => ecs().metadata.gameEntity[LEVEL].name;
 // storage settles in promises, which fake timers don't run
 const flush = () =>
   act(async () => {
-    jest.advanceTimersByTime(20);
+    jest.advanceTimersByTime(200);
     for (let index = 0; index < 20; index += 1) await Promise.resolve();
   });
 
@@ -150,6 +150,7 @@ describe("World", () => {
 
     expect(context.saveStatus).toEqual({ saving: true });
     expect(readSaves()).toEqual([]);
+    act(() => jest.advanceTimersByTime(100));
     expect(ecs().metadata.saveId).toBeUndefined();
 
     await flush();

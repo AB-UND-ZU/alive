@@ -179,7 +179,7 @@ export default function Paused({ preparingMap = false }: { preparingMap?: boolea
                 <PauseButton
                   id="pause-save"
                   onClick={handleSave}
-                  button={createButton(saveStatus?.saving ? "Saving" : "SAVE", pauseButtonWidth, !saveable)}
+                  button={createButton(saveStatus?.saving ? "SAVING" : "SAVE", pauseButtonWidth, !saveable)}
                 />
                 <Row
                   cells={addBackground(

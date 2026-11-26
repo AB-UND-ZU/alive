@@ -24,6 +24,7 @@ import {
   canSave,
   createSave,
   getSummary,
+  pauseSaveDelay,
   SaveGame,
   setSaveSummaries,
   upgradeSave,
@@ -86,16 +87,17 @@ export const runTerminal = async () => {
     stopped = false;
   let input = createTerminalInput(world, openTerminalLink),
     clock = createFrameClock(world);
-  let state = { stickyCastables: {} };
+  let state = { castableQuadrants: {} };
   let saved: SaveGame | undefined;
   let pauseSelection = 0;
   let saveFailed = false;
-  let saving = false;
+  let saveAt = 0;
   try {
     saved = upgradeSave(deserialize(readFileSync(savePath())) as SaveGame);
     setSaveSummaries([getSummary(saved)]);
   } catch {}
   const save = (snapshot?: WorldSnapshot) => {
+    saveAt = 0;
     if (!canSave(world)) return;
     try {
       saved = createSave(world, undefined, snapshot);
@@ -113,7 +115,7 @@ export const runTerminal = async () => {
     input.stop();
     input = createTerminalInput(world, openTerminalLink);
     clock = createFrameClock(world);
-    state = { stickyCastables: {} };
+    state = { castableQuadrants: {} };
     world.metadata.setFlipped = (value) => {
       flipped = value;
     };
@@ -254,7 +256,7 @@ export const runTerminal = async () => {
               ? saved.name
               : undefined,
           failed: saveFailed,
-          saving,
+          saving: !!saveAt,
         }}
       />
     );
@@ -292,12 +294,8 @@ export const runTerminal = async () => {
     process.stdin.pause();
     process.stdout.write("\x1b[0m\x1b[?25h\x1b[?1049l");
   };
-  const savePausedGame = () => {
-    if (!canSave(world)) return;
-    saving = true;
-    render();
-    save();
-    saving = false;
+  const savePausedGame = (delay = 0) => {
+    if (canSave(world) && !saveAt) saveAt = performance.now() + delay;
   };
   const keypress = (_text: string, key: Key) => {
     if (key.ctrl && key.name === "c") {
@@ -309,7 +307,7 @@ export const runTerminal = async () => {
     const popup =
       hero && world.getEntityByIdAndComponents(hero[PLAYER].popup, [POPUP]);
     if (paused) {
-      const actions = getPauseActions(world);
+      const actions = getPauseActions(world, !!saveAt);
       if (key.name === "escape" || key.name === "space" || key.name === "r") {
         paused = false;
       } else if (key.name === "up" || key.name === "w") {
@@ -337,7 +335,7 @@ export const runTerminal = async () => {
       paused = true;
       pauseSelection = 0;
       input.stop();
-      savePausedGame();
+      savePausedGame(pauseSaveDelay);
       render();
       return;
     }
@@ -353,6 +351,7 @@ export const runTerminal = async () => {
   let previous = performance.now();
   const timer = setInterval(() => {
     const now = performance.now();
+    if (saveAt && (!paused || now >= saveAt)) save();
     setAudioActive(!paused && !suspended);
     clock.advance(
       now - previous,

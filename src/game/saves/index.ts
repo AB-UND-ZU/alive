@@ -12,6 +12,7 @@ import { createSnapshot, WorldSnapshot } from "../../engine/snapshot";
 import { ClassKey } from "../balancing/classes";
 import packageJson from "../../../package.json";
 
+export const pauseSaveDelay = 150;
 export const saveVersion = packageJson.version;
 
 export type SaveItem = Omit<Item, "carrier" | "amount" | "bound">;

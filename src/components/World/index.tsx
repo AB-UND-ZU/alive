@@ -27,7 +27,7 @@ import { createLevel, createSystems, preloadLevel } from "../../engine/ecs";
 import { LevelName } from "../../engine/components/level";
 import { levelConfig } from "../../game/levels";
 import { useDimensions } from "../Dimensions";
-import { canSave } from "../../game/saves";
+import { canSave, pauseSaveDelay } from "../../game/saves";
 import {
   eraseGame,
   loadSaveSummaries,
@@ -256,7 +256,7 @@ export default function World({
     activeWorld.current = ecs;
   }, [ecs]);
 
-  const saveGame = useCallback((afterPaint = true) => {
+  const saveGame = useCallback((afterPaint = true, delay = 0) => {
     if (pendingSave.current) {
       if (!afterPaint) pendingSave.current();
       return;
@@ -279,7 +279,7 @@ export default function World({
     };
     pendingSave.current = write;
     // Snapshotting can occupy a whole frame on a large island.
-    if (afterPaint && !document.hidden) requestAnimationFrame(() => setTimeout(write, 0));
+    if (afterPaint && !document.hidden) requestAnimationFrame(() => setTimeout(write, delay));
     else write();
   }, [ecs]);
 
@@ -294,7 +294,7 @@ export default function World({
       // toggle sound and save when pausing
       if (newPause) {
         suspendAudio();
-        if (!pauseRef.current || (background && pendingSave.current)) saveGame(!background);
+        if (!pauseRef.current || (background && pendingSave.current)) saveGame(!background, pauseSaveDelay);
       } else {
         pendingSave.current?.();
         ensureAudio();

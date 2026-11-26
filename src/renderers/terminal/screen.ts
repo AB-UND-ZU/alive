@@ -85,7 +85,7 @@ export const getPauseActions = (world: World, saving = false) => [
     ? []
     : [
         { name: "MENU", palette: "red" as const, disabled: false },
-        { name: saving ? "Saving" : "SAVE", palette: "white" as const, disabled: saving || !canSave(world) },
+        { name: saving ? "SAVING" : "SAVE", palette: "white" as const, disabled: saving || !canSave(world) },
       ]),
 ];
 

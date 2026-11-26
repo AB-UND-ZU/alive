@@ -158,7 +158,7 @@ describe("Paused", () => {
     );
 
     expect(isDisabled("pause-save")).toBe(true);
-    expect(overlay()[overlay().length - 2]).toContain("Saving");
+    expect(overlay()[overlay().length - 2]).toContain("SAVING");
 
     click("pause-save");
 
