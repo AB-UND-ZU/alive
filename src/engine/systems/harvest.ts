@@ -1,5 +1,6 @@
 import { bumpEntity } from "../motion";
 import { Entity } from "ecs";
+import { LIQUID } from "../components/liquid";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -371,7 +372,7 @@ export const isCell = (world: World, entity: Entity) =>
 
 export const canPlow = (world: World, entity: Entity, position: Position) =>
   !getCellEntities(world, position).some(
-    (cell) => isCell(world, cell) && cell !== entity
+    (cell) => isCell(world, cell) && !cell[LIQUID] && cell !== entity
   );
 
 export const canTrench = (world: World, entity: Entity, position: Position) => {

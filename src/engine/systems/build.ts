@@ -37,7 +37,10 @@ import {
 } from "../../game/assets/ui";
 import { IMMERSIBLE } from "../components/immersible";
 import { LIQUID } from "../components/liquid";
-import { isEnterable } from "./enter";
+import { COLLIDABLE } from "../components/collidable";
+import { FOG } from "../components/fog";
+import { LOCKABLE } from "../components/lockable";
+import { ENTERABLE } from "../components/enterable";
 import { play } from "../../game/sound";
 
 export const canPlot = (world: World, entity: Entity, position: Position) => {
@@ -48,7 +51,8 @@ export const canPlot = (world: World, entity: Entity, position: Position) => {
   return construction.grounds.some((ground) => {
     const cells = getCellEntities(world, position).filter(
       (cell) =>
-        isCell(world, cell) && !isEnterable(world, cell) && !(LIQUID in cell)
+        isCell(world, cell) && cell[FOG]?.type !== "air" && !cell[LIQUID] &&
+        (!cell[ENTERABLE] || cell[COLLIDABLE] || cell[LOCKABLE])
     );
     if (ground === "air" && cells.length === 0) return true;
     if (

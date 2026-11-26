@@ -17,6 +17,8 @@ import { Material } from "../../engine/components/item";
 import { POSITION, Position } from "../../engine/components/position";
 import { getHarvestConfig } from "../../game/balancing/harvesting";
 import { getEquipmentStats } from "../../game/balancing/equipment";
+import { canPlow } from "../../engine/systems/harvest";
+import { createBubble } from "../../engine/systems/water";
 import { GivenItem } from "../../testing/harness";
 import {
   collectAdjacentLoot,
@@ -62,6 +64,12 @@ const ground = (cell: string) => `
 `;
 
 describe("shovel", () => {
+  it("allows digging while a rain drop is on the ground", () => {
+    const { world, hero } = setupTools(ground(" "), [sword]);
+    createBubble(world, hero[POSITION], "rain");
+    expect(canPlow(world, hero, hero[POSITION])).toBe(true);
+  });
+
   it("digs dry soil into empty ground", () => {
     const { world, hero, position } = digOn(ground(" "), "wood");
 

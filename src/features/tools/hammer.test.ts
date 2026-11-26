@@ -22,7 +22,7 @@ import { STATS } from "../../engine/components/stats";
 import { jetty as jettySprite } from "../../game/assets/sprites";
 import { getTab } from "../../engine/systems/popup";
 import { POPUP } from "../../engine/components/popup";
-import { createNpc } from "../../bindings/creation";
+import { createNpc, createCell } from "../../bindings/creation";
 import { registerEntity } from "../../engine/systems/map";
 import { npcSequence } from "../../game/assets/utils";
 import { getSequence } from "../../engine/systems/sequence";
@@ -141,6 +141,18 @@ describe("hammer", () => {
     expect(hero[CONDITIONABLE].build).toBeUndefined();
     expect(playedSounds).toContain("deny");
   });
+
+  it.each([["house", true], ["wall", false], ["house_left", false]] as const)(
+    "allows an indoor plot only on empty floor (%s)",
+    (cell, allowed) => {
+      const { world, target } = setup([woodHammer, ...fence.parts]);
+      for (const entity of createCell(world, target, cell, "visible").all)
+        registerEntity(world, entity);
+      selectPlan(world, "fence");
+      placePlot(world);
+      expect(!!getPlot(world, target)).toBe(allowed);
+    }
+  );
 
   it("selects an affordable plan and previews it", () => {
     const { world, hero } = setup([woodHammer, ...fence.parts]);
