@@ -8,7 +8,7 @@ import { none } from "../game/assets/sprites";
 import { normalize } from "../game/math/std";
 import { spawnArea } from "../game/levels/island/areas";
 import { createPopup } from "../engine/systems/popup";
-import { purchasableItems, getItemBuyPrice } from "../game/balancing/trading";
+import { purchasableItems, getTraderDeal } from "../game/balancing/trading";
 import { commandItems } from "../game/assets/commands";
 import { createAreaWorld, assertHero, act } from "../testing/harness";
 import {
@@ -462,11 +462,7 @@ export const createPreviewWorld = (name: SceneName, option = "") => {
     if (merchant.BEHAVIOUR) merchant.BEHAVIOUR.patterns = [];
     createPopup(world, merchant, {
       tabs: ["buy", "sell"],
-      deals: purchasableItems.map((item) => ({
-        item: { ...item, amount: 1 },
-        stock: 9,
-        prices: getItemBuyPrice(item),
-      })),
+      deals: purchasableItems.map((item) => getTraderDeal(item, 9)),
     });
     items.push(
       { stackable: "coin", amount: 99 },

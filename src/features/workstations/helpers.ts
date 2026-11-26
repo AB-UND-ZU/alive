@@ -3,8 +3,7 @@ import { ACTIONABLE } from "../../engine/components/actionable";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { FORGABLE } from "../../engine/components/forgable";
 import { INVENTORY } from "../../engine/components/inventory";
-import { Item } from "../../engine/components/item";
-import { Deal, Popup, POPUP } from "../../engine/components/popup";
+import { Popup, POPUP } from "../../engine/components/popup";
 import { MOVABLE } from "../../engine/components/movable";
 import { PLAYER } from "../../engine/components/player";
 import { Position, POSITION } from "../../engine/components/position";
@@ -23,7 +22,6 @@ import {
   hittingOffset,
   hittingWidth,
 } from "../../game/balancing/forging";
-import { getItemBuyPrice } from "../../game/balancing/trading";
 import {
   act,
   advanceUntil,
@@ -48,15 +46,7 @@ export const getShopper = (world: World) =>
     STATS,
   ]);
 
-/** Trader deal for an item, priced like the shops in the levels. */
-export const getTraderDeal = (
-  item: Omit<Item, "amount" | "carrier" | "bound">,
-  stock = Infinity
-): Deal => ({
-  item: { ...item, amount: 1 },
-  stock,
-  prices: getItemBuyPrice(item),
-});
+export { getTraderDeal } from "../../game/balancing/trading";
 
 /** Place a guide with a shop popup, like the traders in the levels. */
 export const createShop = (

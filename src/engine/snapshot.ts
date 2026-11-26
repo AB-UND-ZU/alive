@@ -4,6 +4,8 @@ import { Sprite } from "./components/sprite";
 import { BEHAVIOUR } from "./components/behaviour";
 import { NPC } from "./components/npc";
 import { STATS } from "./components/stats";
+import { getTraderDeal } from "../game/balancing/trading";
+import { POPUP } from "./components/popup";
 import { unitDefinitions } from "../game/balancing/units";
 import { INVENTORY } from "./components/inventory";
 import { ITEM } from "./components/item";
@@ -158,6 +160,26 @@ export const restoreSnapshot = (snapshot: WorldSnapshot) => {
     else if (tempo?.amount === -2 && !entity.HARVESTABLE) tempo.amount = -6;
     const npc = entity[NPC];
     if (npc && String(npc.type) === "banditArcher") npc.type = "banditRogue";
+    const popup = entity[POPUP];
+    if (npc?.type.endsWith("Trader") && popup?.tabs.includes("buy")) {
+      const { deals } = popup;
+      if (
+        deals[deals.length - 2]?.item.stackable !== "sand" ||
+        deals[deals.length - 1]?.item.stackable !== "gravel"
+      ) {
+        const buyTab = popup.tabs.indexOf("buy");
+        const selected = deals[popup.verticalIndezes[buyTab]];
+        const grounds = (["sand", "gravel"] as const).map((stackable) =>
+          deals.find((deal) => deal.item.stackable === stackable) ||
+          getTraderDeal({ stackable })
+        );
+        popup.deals = [
+          ...deals.filter((deal) => !grounds.includes(deal)),
+          ...grounds,
+        ];
+        if (selected) popup.verticalIndezes[buyTab] = popup.deals.indexOf(selected);
+      }
+    }
     const patterns = entity[BEHAVIOUR]?.patterns;
     if (
       npc &&

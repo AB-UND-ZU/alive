@@ -140,6 +140,15 @@ export const getItemBuyPrice = (
   item: Omit<Item, "amount" | "carrier" | "bound">
 ): Deal["prices"] => getItemPrice(item);
 
+export const getTraderDeal = (
+  item: Omit<Item, "amount" | "carrier" | "bound">,
+  stock = Infinity
+): Deal => ({
+  item: { ...item, amount: 1 },
+  stock,
+  prices: getItemBuyPrice(item),
+});
+
 export const getItemSellPrice = (
   item: Omit<Item, "amount" | "carrier" | "bound">
 ): Deal["prices"] => {

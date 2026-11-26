@@ -22,6 +22,9 @@ import { createItemAsDrop, createItemInInventory } from "./systems/drop";
 import { INVENTORY } from "./components/inventory";
 import { ITEM } from "./components/item";
 import { FOG } from "./components/fog";
+import { createNpc } from "../bindings/creation";
+import { getTraderDeal } from "../game/balancing/trading";
+import { createPopup } from "./systems/popup";
 import { CASTABLE } from "./components/castable";
 import { REFERENCE } from "./components/reference";
 import { RENDERABLE } from "./components/renderable";
@@ -45,6 +48,21 @@ const getEntityIds = (world: World) =>
   world.getEntities([]).map((entity) => world.getEntityId(entity));
 
 describe("world snapshot", () => {
+  it("restores missing trader goods while preserving the existing stock and selected row", () => {
+    const world = createAreaWorld("|♀     |");
+    const sand = getTraderDeal({ stackable: "sand" }, 2);
+    const apple = getTraderDeal({ stackable: "apple" }, 4);
+    const trader = createNpc(world, "earthTrader", { x: 3, y: 0 });
+    createPopup(world, trader, { tabs: ["buy", "sell"], deals: [sand, apple] });
+    const id = world.getEntityId(trader);
+    world.assertByIdAndComponents(id, ["POPUP"]).POPUP.verticalIndezes[0] = 1;
+    const loaded = store(world);
+    const popup = loaded.assertByIdAndComponents(id, ["POPUP"]).POPUP;
+    expect(popup.deals).toEqual([apple, sand, getTraderDeal({ stackable: "gravel" })]);
+    expect(popup.verticalIndezes[0]).toBe(0);
+    expect(store(loaded).assertByIdAndComponents(id, ["POPUP"]).POPUP.deals).toEqual(popup.deals);
+  });
+
   it("loads a retired bandit archer as a rogue", () => {
     const world = createAreaWorld("|♀|");
     const bandit = world.createEntity();

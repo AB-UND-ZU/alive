@@ -29,7 +29,7 @@ import { add, combine } from "../../math/std";
 import { createSequence } from "../../../engine/systems/sequence";
 import { none } from "../../assets/sprites";
 import { createPopup } from "../../../engine/systems/popup";
-import { getItemBuyPrice, purchasableItems } from "../../balancing/trading";
+import { getTraderDeal, purchasableItems } from "../../balancing/trading";
 import { TRACKABLE } from "../../../engine/components/trackable";
 
 export const menuSize = 42;
@@ -126,14 +126,7 @@ export function* generateMenu(world: World) {
     );
 
     createPopup(world, traderEntity, {
-      deals: purchasableItems.map((item) => ({
-        item: {
-          ...item,
-          amount: 1,
-        },
-        stock: Infinity,
-        prices: getItemBuyPrice(item),
-      })),
+      deals: purchasableItems.map((item) => getTraderDeal(item)),
 
       tabs: ["buy", "sell"],
     });
