@@ -260,7 +260,7 @@ export const unlockDoor = (world: World, entity: Entity, lockable: Entity) => {
   // open doors without locks
   if (lockable[LOCKABLE].material === "wood") {
     openDoor(world, lockable);
-    play(world, entity, "door");
+    play(world, lockable, "door", { actor: entity });
     return;
   }
 
@@ -533,7 +533,7 @@ export const performPlot = (
   registerEntity(world, plotEntity);
 
   populateInventory(world, plotEntity, construction.parts);
-  play(world, entity, "build", { notes: 4, spacing: 70 });
+  play(world, plotEntity, "build", { actor: entity, notes: 4, spacing: 70 });
 };
 
 export const getSelectedConstruction = (world: World, entity: Entity) => {
@@ -693,7 +693,7 @@ export const castConditionable = (
         hookable[HOOKABLE].hooked = undefined;
         hookable[HOOKABLE].catching = entityId;
         hookable[HOOKABLE].escaping = false;
-        play(world, entity, "fish", { variant: 6 });
+        play(world, hookable, "fish", { actor: entity, variant: 6 });
       }
     } else {
       // stow hook
@@ -850,7 +850,7 @@ export const castSpell = (
       "spell",
       "castBeam1",
       {
-        memory: { heard: play(world, entity, "beam", { variant: 3 }) },
+        memory: { heard: play(world, spellEntity, "beam", { actor: entity, variant: 3 }) },
         progress: 0,
         range: spellStats.range,
         duration: spellStats.duration,

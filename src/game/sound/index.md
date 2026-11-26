@@ -9,16 +9,17 @@ Synthesizes sound effects from named presets. `play` does nothing until the game
 | soundPresets  | Native game preset names derived from their methods |
 | SoundPreset   | Name of a native game preset                        |
 | loadSounds    | Load the preset catalog once before menu generation |
-| play          | Play the selected preset, synthesizing it if needed |
+| play          | Returns whether the cue is audible and accepted for playback |
 
 | Option    | Meaning                                      |
 | --------- | -------------------------------------------- |
+| actor     | Unit that caused a cue at another entity, for immediate player feedback |
 | delay     | Delay before playback, in milliseconds       |
 | intensity | Preset-specific strength                     |
 | offset    | Elapsed playback time in milliseconds for an ongoing cue |
 | volume    | Relative playback gain, defaults to 1        |
 | variant   | Preset variation, typed per preset           |
-| seed      | One of 4 random characters, picked if absent |
+| seed      | One of the four numeric seeds (0–3), picked if absent |
 | notes     | Number of notes to synthesize                |
 | spacing   | Milliseconds between notes                   |
 | pattern   | True entries play; false entries leave rests |
@@ -56,6 +57,7 @@ type SoundOptions = {
 
 ```ts src/game/sound/index.ts
 export type SfxOptions<P extends SoundPreset> = SoundOptions & {
+  actor?: Entity;
   offset?: number;
   volume?: number;
   variant?: SoundVariant<P>;

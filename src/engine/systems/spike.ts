@@ -76,7 +76,7 @@ export const stingEntity = (world: World, entity: Entity, target: Entity) => {
       rerenderEntity(world, rootEntity);
     }
 
-    play(world, target, "magic", { intensity: damage });
+    play(world, target, "magic", { actor: entity, intensity: damage });
     displayedDamage = damage;
   }
 

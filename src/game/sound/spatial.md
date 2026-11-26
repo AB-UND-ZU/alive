@@ -10,3 +10,16 @@ Listener and emitter movement fade active voices to their new gain and pan over 
 ```ts src/game/sound/spatial.ts
 export type SoundSource = NonNullable<ReturnType<typeof getSoundSource>>;
 ```
+
+## Voice
+
+```ts src/game/sound/spatial.ts
+type Voice = {
+  source: SoundSource;
+  gain: GainNode;
+  panner: StereoPannerNode;
+  master: GainNode;
+  output: BiquadFilterNode;
+  volume: number;
+};
+```

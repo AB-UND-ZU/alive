@@ -82,6 +82,7 @@ type SoundOptions = {
 };
 
 export type SfxOptions<P extends SoundPreset> = SoundOptions & {
+  actor?: Entity;
   offset?: number;
   volume?: number;
   variant?: SoundVariant<P>;
@@ -1540,6 +1541,7 @@ export const play = <P extends SoundPreset>(
   origin: Entity | undefined,
   preset: P,
   {
+    actor = origin,
     offset = 0,
     volume = 1,
     delay = 0,
@@ -1558,7 +1560,7 @@ export const play = <P extends SoundPreset>(
     return true;
   }
 
-  if (source && source.origin !== source.listener) delay += 50 * Math.random() ** 2;
+  if (source && actor !== source.listener) delay += 50 * Math.random() ** 2;
   const cents = preset === "level" || preset === "fountain" || preset === "totem"
     ? 0 : random(-3, 3) * 5;
   const playbackRate = 2 ** (cents / 1200);

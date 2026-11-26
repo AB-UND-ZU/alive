@@ -7,7 +7,7 @@ import { Position, POSITION } from "../../engine/components/position";
 import { PLAYER } from "../../engine/components/player";
 import { SOUL } from "../../engine/components/soul";
 import { aspectRatio } from "../../renderers/interface/dimensions";
-import { signedDistance } from "../math/std";
+import { normalize, signedDistance } from "../math/std";
 
 const hearingRange = 10;
 
@@ -87,13 +87,14 @@ const cutoff = (
 function outputFor(source: SoundSource, master: GainNode) {
   const { world, origin, listener } = source;
   const { x, y } = source.position;
+  const { map, size } = world.metadata.gameEntity.LEVEL;
   const layer =
     source.weather || origin.MOVABLE?.flying
       ? undefined
       : LAYER in origin
       ? origin[LAYER].structure
       : Object.values<Entity>(
-          world.metadata.gameEntity.LEVEL.map[x]?.[y] ?? {}
+          map[normalize(x, size)]?.[normalize(y, size)] ?? {}
         ).find((cell) => cell.ENTERABLE)?.FRAGMENT?.structure;
   let layers = outputs.get(world);
   if (!layers) outputs.set(world, (layers = new Map()));

@@ -205,7 +205,7 @@ describe("sound", () => {
     const hero = assertHero(world);
     play(world, hero, "move", { seed: 0 });
     play(world, hero, "hit", { ...options });
-    play(world, hero, "harvest", { ...options });
+    play(world, emitter, "harvest", { ...options, actor: hero });
     expect(starts).toEqual([0.1, 0.1, 0.1125, 0.1625, 0.2125, 0.1405, 0, 0.1, 0.1]);
   });
 

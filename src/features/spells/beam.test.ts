@@ -30,6 +30,18 @@ describe("beam spell", () => {
     expect(playedSounds.filter((preset) => preset === "beam")).toHaveLength(1);
   });
 
+  it("plays a nearby beam impact after the caster moves out of earshot", () => {
+    const area = createArea(24, 3, { D: { x: 2, y: 1 }, "♀": { x: 4, y: 1 } });
+    const { world, hero } = createSpellWorld(area, beam, { size: 64 });
+    const caster = getUnit(world, area, "D");
+    const hp = hero.STATS.hp;
+    castAs(world, caster, beam, "right");
+    moveEntity(world, caster, { x: 26, y: 1 });
+    advance(world, 900);
+    expect(hero.STATS.hp).toBeLessThan(hp);
+    expect(playedSounds).toContain("magic");
+  });
+
   it("hits hostile units in a line in the facing direction only", () => {
     const area = `
 |        |

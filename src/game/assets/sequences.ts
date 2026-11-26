@@ -947,7 +947,8 @@ export const toolCondition: Sequence<ConditionSequence> = (
       targetOrientation &&
       progress > tick / 2
     ) {
-      play(world, entity, "harvest", {
+      play(world, targetEntity, "harvest", {
+        actor: entity,
         variant:
           toolEntity[ITEM].tool === "hammer"
             ? 3
@@ -1472,7 +1473,7 @@ export const hookCondition: Sequence<ConditionSequence> = (
       [SWIMMABLE]: { swimming: false },
     });
     registerEntity(world, baitEntity);
-    play(world, entity, "fish", { variant: 2 });
+    play(world, baitEntity, "fish", { actor: entity, variant: 2 });
 
     updated = true;
   }
@@ -2119,6 +2120,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   if (!abort && !finished && !state.args.memory?.heard && progress !== state.args.progress) {
     state.args.memory ??= {};
     state.args.memory.heard = play(world, entity, "beam", {
+      actor: casterEntity,
       variant: 3,
       offset: state.elapsed,
     });
@@ -2473,6 +2475,7 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
       updated = true;
       state.args.memory = { position, target };
       play(world, entity, "dash", {
+        actor: casterEntity,
         variant: 1,
         intensity: teleportTicks * dashTime,
       });

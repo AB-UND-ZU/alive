@@ -230,6 +230,7 @@
 | [SoundBuffer](game/sound/resumable.md#type-soundbuffer) | `src/game/sound/resumable.ts` |
 | [SoundOptions](game/sound/index.md#type-soundoptions) | `src/game/sound/index.ts` |
 | [SoundPreset](game/sound/index.md#type-soundpreset) | `src/game/sound/index.ts` |
+| [SoundProgress](game/sound/index.md#type-soundprogress) | `src/game/sound/index.ts` |
 | [SoundSource](game/sound/spatial.md#type-soundsource) | `src/game/sound/spatial.ts` |
 | [SoundVariant](game/sound/index.md#type-soundvariant) | `src/game/sound/index.ts` |
 | [Spawnable](engine/components/spawnable.md#type-spawnable) | `src/engine/components/spawnable.ts` |
@@ -281,6 +282,7 @@
 | [ViewState](game/assets/popupView.md#type-viewstate) | `src/game/assets/popupView.ts` |
 | [Viewable](engine/components/viewable.md#type-viewable) | `src/engine/components/viewable.ts` |
 | [VisionSequence](engine/components/sequencable.md#type-visionsequence) | `src/engine/components/sequencable.ts` |
+| [Voice](game/sound/spatial.md#type-voice) | `src/game/sound/spatial.ts` |
 | [VortexSequence](engine/components/sequencable.md#type-vortexsequence) | `src/engine/components/sequencable.ts` |
 | [Warpable](engine/components/warpable.md#type-warpable) | `src/engine/components/warpable.ts` |
 | [Weapon](engine/components/item.md#type-weapon) | `src/engine/components/item.ts` |

@@ -485,7 +485,7 @@ export const triggerZap = (
 
   const zapped = ordered.slice(0, count);
   const zapCounts: Record<number, number> = {};
-  const zapPositions = [];
+  const zapTargets = [];
 
   for (const zapTarget of zapped) {
     const zapRoot = getRoot(world, zapTarget);
@@ -503,9 +503,7 @@ export const triggerZap = (
     // add hit marker
     const zapId = world.getEntityId(zapRoot);
     if (!(zapId in zapCounts)) {
-      const index = zapPositions.length;
-      play(world, zapTarget, "spark", { variant: index + 1, delay: index * 35 });
-      zapPositions.push(zapTarget[POSITION]);
+      zapTargets.push(zapTarget);
       zapCounts[zapId] = 0;
     }
     zapCounts[zapId] += 1;
@@ -535,9 +533,16 @@ export const triggerZap = (
     castableEntity,
     "flash",
     "lightningFlash",
-    { targets: zapPositions }
+    { targets: zapTargets.map((target) => target[POSITION]) }
   );
-  play(world, fragmentEntity, "zap", { variant: 2 });
+  play(world, fragmentEntity, "zap", { actor: attackerEntity, variant: 2 });
+  zapTargets.forEach((target, index) =>
+    play(world, target, "spark", {
+      actor: attackerEntity,
+      variant: index + 1,
+      delay: index * 35,
+    })
+  );
 
   delete attackerEntity[CONDITIONABLE]?.zap;
   rerenderEntity(world, attackerEntity);
@@ -953,7 +958,8 @@ export default function setupDamage(world: World) {
               targetOrientation
             );
 
-            play(world, entity, "hit", {
+            play(world, fragmentEntity, "hit", {
+              actor: entity,
               intensity: damage,
               variant: targetEntity[PLAYER] ? 1 : 2,
             });

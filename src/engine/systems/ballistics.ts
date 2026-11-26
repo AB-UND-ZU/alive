@@ -112,8 +112,6 @@ export const shootArrow = (
 
   spendItem(world, entity, { stackable: "arrow", amount: 1 });
 
-  play(world, entity, "arrow", { variant: 1 });
-
   const tick =
     world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[
       REFERENCE
@@ -158,6 +156,7 @@ export const shootArrow = (
     [SPRITE]: sprite,
   });
   registerEntity(world, shotEntity);
+  play(world, shotEntity, "arrow", { actor: origin, variant: 1 });
 
   // let arrow move
   createSequence<"arrow", ArrowSequence>(
@@ -268,7 +267,10 @@ export default function setupBallistics(world: World) {
             fragmentEntity[SHOOTABLE].shots += 1;
           }
           hit = true;
-          play(world, entity, "arrow", { variant: 3 });
+          play(world, fragmentEntity, "arrow", {
+            actor: world.getEntityById(isFlying?.args.caster),
+            variant: 3,
+          });
           disposeEntity(world, entity, false);
 
           // add hit marker

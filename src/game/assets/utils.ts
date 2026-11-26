@@ -799,7 +799,7 @@ export const renderPopup = (
       typedRow > Math.ceil(state.args.contentIndex / (frameWidth - 2)) - 1 &&
       typedChars?.includes(true)
     ) {
-      play(world, "text", {
+      play(world, undefined, "text", {
         notes: typedChars.length,
         spacing: contentDelay,
         pattern: typedChars,

@@ -332,7 +332,7 @@ export const summonTotem = (world: World, entity: Entity, totem: Entity) => {
       element: totem[ITEM].element,
     }
   );
-  play(world, totemEntity, "totem");
+  play(world, totemEntity, "totem", { actor: entity });
 };
 
 export const hasTriggered = (
@@ -593,7 +593,7 @@ export default function setupMagic(world: World) {
             }
 
             // play sound
-            play(world, casterEntity ?? fragmentEntity, "magic", { intensity: damage });
+            play(world, fragmentEntity, "magic", { actor: casterEntity, intensity: damage });
 
             // add hit marker
             createAmountMarker(
