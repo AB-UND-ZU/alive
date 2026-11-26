@@ -88,6 +88,21 @@ describe("preset waveforms", () => {
     }
   );
 
+  it("holds the aura note through the start of the following pulse", () => {
+    play(undefined, undefined, "totem", { variant: 2, seed: 1 });
+    const samples: number[] = synthesized.mock.results[0].value.normalized;
+    const sampleRate = buffers.mock.calls[0][2];
+    const crossings = (start: number) => {
+      const offset = Math.round(start * sampleRate);
+      return samples.slice(offset, offset + sampleRate / 5).filter(
+        (sample, i) => sample > 0 && samples[offset + i - 1] <= 0
+      ).length;
+    };
+    expect(crossings(0.2)).toBeGreaterThan(40);
+    expect(Math.abs(crossings(1) - crossings(0.2))).toBeLessThanOrEqual(1);
+    expect(buffers.mock.calls[0][1] / sampleRate).toBeGreaterThan(1.125);
+  });
+
   it("keeps the prompt cue shorter and quieter than a danger warning", () => {
     play(undefined, undefined, "prompt", { seed: 3 });
     play(undefined, undefined, "danger", { seed: 3 });

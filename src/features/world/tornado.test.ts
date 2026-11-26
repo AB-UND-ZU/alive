@@ -85,10 +85,12 @@ describe("tornado", () => {
     advance(world, 1000);
 
     expect(hero[POSITION]).toEqual(eye);
-    expect(playedSounds.filter((sound) => sound === "tornado")).toHaveLength(2);
 
-    advance(world, 3000);
+    advance(world, 10000);
 
+    const gusts = playedSounds.filter((sound) => sound === "tornado");
+    expect(gusts.length).toBeGreaterThan(0);
+    expect(gusts.length).toBeLessThan(20);
     expect(hero[POSITION]).toEqual(eye);
     expect(hero[STATS].hp).toBe(hero[STATS].maxHp);
   });
@@ -125,13 +127,10 @@ describe("tornado", () => {
     addTornado(world, eye, 2);
     advance(world, 1000);
     expect(getLootable(world, eye)).toBe(drop);
+    expect(getMotion(drop)).toMatchObject({ fromX: 6, x: 8 });
     expect(drop.AFFECTABLE).toBeUndefined();
   });
 
-    expect(getMotion(drop)).toMatchObject({ fromX: 6, x: 8 });
-  it("stays calm without a radius", () => {
-    const world = createAreaWorld(area, { size: 24 });
-    const hero = assertUnit(world);
   it.each([false, true])("picks up a loose coin after knock=%s", (knocked) => {
     const world = createAreaWorld("| ♀ c    |", { legend: { c: "coin_one" } });
     const hero = assertUnit(world);
@@ -144,6 +143,9 @@ describe("tornado", () => {
     expect(getLootable(world, position)).toBeUndefined();
   });
 
+  it("stays calm without a radius", () => {
+    const world = createAreaWorld(area, { size: 24 });
+    const hero = assertUnit(world);
     const start = { ...hero[POSITION] };
     addTornado(world, { x: start.x + 1, y: start.y }, 0);
 

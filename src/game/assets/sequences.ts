@@ -1629,7 +1629,11 @@ export const tornadoSpin: Sequence<TornadoSequence> = (
   let updated = false;
 
   const tick = world.metadata.gameEntity[REFERENCE].tick;
-  if (radius > 0 && Math.floor(state.args.generation * tornadoSpeed / tick) !== Math.floor(state.elapsed / tick)) {
+  if (
+    radius > 0 &&
+    Math.floor(state.args.generation * tornadoSpeed / tick) !== Math.floor(state.elapsed / tick) &&
+    random(0, 4) === 0
+  ) {
     play(world, entity, "tornado", { volume: Math.min(1, radius / 3) });
   }
 

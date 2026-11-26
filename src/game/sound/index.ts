@@ -279,16 +279,16 @@ class Presets extends Params {
 
   tornado() {
     this.wave_type = waveforms.NOISE;
-    this.sound_vol = 1 / 48;
-    this.p_env_attack = 0.32;
-    this.p_env_sustain = 0.18;
-    this.p_env_decay = 0.4;
-    this.p_base_freq = 0.19 + frnd(0.05);
-    this.p_lpf_freq = 0.15 + frnd(0.02);
-    this.p_lpf_resonance = 0.36;
-    this.p_hpf_freq = 0.045;
-    this.p_pha_offset = 0.2;
-    this.p_pha_ramp = -0.12;
+    this.sound_vol = 1 / 24;
+    this.p_env_attack = 0.52 + frnd(0.12);
+    this.p_env_sustain = 0.22 + frnd(0.08);
+    this.p_env_decay = 0.69 + frnd(0.12);
+    this.p_base_freq = 0.17 + frnd(0.04);
+    this.p_freq_ramp = -0.015;
+    this.p_lpf_freq = 0.095 + frnd(0.018);
+    this.p_lpf_ramp = 0.012;
+    this.p_lpf_resonance = 0.62;
+    this.p_hpf_freq = 0.025;
     return this;
   }
 
@@ -820,15 +820,12 @@ class Presets extends Params {
       this.p_vib_strength = 0.04;
       this.p_vib_speed = 0.3;
     } else {
-      // soft swell with each aura pulse
-      this.sound_vol = 1 / 36;
-      this.p_env_attack = 0.40;
-      this.p_env_sustain = 0.40;
-      this.p_env_decay = 0.59;
-      this.p_base_freq = 0.304 + frnd(0.002);
-      this.p_freq_ramp = 0.063;
-      this.p_vib_strength = 0.05;
-      this.p_vib_speed = 0.3;
+      // Let the quiet tail overlap the next pulse of the same note.
+      this.sound_vol = 0.9 / 40;
+      this.p_env_attack = 0.26;
+      this.p_env_sustain = 0.32;
+      this.p_env_decay = 0.66;
+      this.p_base_freq = 0.2705;
     }
 
     return this;
