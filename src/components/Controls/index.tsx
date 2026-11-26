@@ -74,6 +74,7 @@ import Keyboard, {
 import { TEST_MODE } from "../../engine/utils";
 import {
   createText,
+  mergeSprites,
   Palette,
   createButton,
   getButtonSeparator,
@@ -83,6 +84,11 @@ import {
   getActionActivations,
   getActionName,
 } from "../../renderers/interface/actions";
+
+const bottomEdge = mergeSprites(
+  createText("▄", colors.black)[0],
+  createText("─", frameColor)[0]
+);
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -1292,7 +1298,7 @@ export default function Controls({
       />
       <Row
         className="ControlsEdge"
-        cells={createText("─".repeat(dimensions.renderedColumns), frameColor)}
+        cells={repeat(bottomEdge, dimensions.renderedColumns)}
       />
       {Array.from({ length: dimensions.hudRows - 4 }).map((_, index) => (
         <Row key={index} />
