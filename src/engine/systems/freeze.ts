@@ -173,7 +173,7 @@ export const freezeMomentum = (
   orientation?: Orientation
 ) => {
   const freezable = getFreezables(world, entity[POSITION])[0];
-  const frozen = freezable && isFrozen(world, freezable);
+  const frozen = !entity[MOVABLE].flying && freezable && isFrozen(world, freezable);
   const lockable = getLockable(world, entity[POSITION]);
   const walkthrough = lockable && lockable[LOCKABLE].type !== "gate";
   const sliding = frozen || walkthrough;

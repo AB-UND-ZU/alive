@@ -49,6 +49,43 @@ describe("terrain", () => {
     expect(Math.abs(average - interval)).toBeLessThan(FRAME);
   });
 
+  it("can only step towards shore when thawing water surrounds it", () => {
+    const world = createAreaWorld(`
+|♀          |
+| ~~~~~~~~~ |
+| ~~~~~~~~~ |
+| ~~~~~~~~~ |
+| ~~~~~~~~~ |
+| ~~~~~~~~~ |
+| ~~~~~~~~~ |
+| ~~~~~~~~~ |
+|           |
+`);
+    const hero = assertUnit(world);
+    const center = { x: 5, y: 3 };
+    const ice = findEntityAt(world, center, [IMMERSIBLE])!;
+    freezeTerrain(world, ice);
+    moveEntity(world, hero, center);
+    thawTerrain(world, ice);
+    hold(world, ["down"]);
+    step(world, 45);
+    expect(hero[POSITION]).toEqual(center);
+    hold(world, ["up"]);
+    advanceUntil(world, () => hero[POSITION].y === 0, 3000);
+  });
+
+  it("flies over ice without accumulating momentum", () => {
+    const world = createAreaWorld(terrainArea("%"));
+    const hero = assertUnit(world);
+    hero[MOVABLE].flying = true;
+    hold(world, ["right"]);
+    advanceUntil(world, () => hero[POSITION].x === 3, 1000);
+    hold(world, []);
+    step(world, 45);
+    expect(hero[POSITION].x).toBe(3);
+    expect(hero[MOVABLE].momentum).toBeUndefined();
+  });
+
   it("slides over ice until reaching solid ground", () => {
     const world = createAreaWorld(`
 |            |

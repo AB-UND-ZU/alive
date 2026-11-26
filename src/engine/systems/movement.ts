@@ -13,6 +13,7 @@ import {
   ORIENTABLE,
   Orientation,
   orientationPoints,
+  orientations,
 } from "../components/orientable";
 import {
   getAttackable,
@@ -42,7 +43,8 @@ import { SPRITE } from "../components/sprite";
 import { getClickable } from "./click";
 import { CLICKABLE } from "../components/clickable";
 import { getSpikable } from "./spike";
-import { getOverlappingCell } from "../../game/math/matrix";
+import { relativeOrientations } from "../../game/math/path";
+import { getOverlappingCell, iterateMatrixFromCenter } from "../../game/math/matrix";
 import { STRUCTURABLE } from "../components/structurable";
 import { FRAGMENT } from "../components/fragment";
 import { BUMPABLE } from "../components/bumpable";
@@ -371,6 +373,23 @@ export default function setupMovement(world: World) {
               isImmersible(world, limb[POSITION]))
           ) {
             continue;
+          }
+          // A thaw can strand a walker in deep water. Only allow a step towards shore.
+          if (
+            !limb[MOVABLE].flying && !limb[MOVABLE].swimming &&
+            isImmersible(world, limb[POSITION]) && isPassable(world, position) &&
+            isSubmerged(world, limb[POSITION]) &&
+            orientations.every((side) =>
+              isSubmerged(world, combine(size, limb[POSITION], orientationPoints[side]))
+            )
+          ) {
+            const shore = iterateMatrixFromCenter(
+              world.metadata.gameEntity[LEVEL].cells,
+              limb[POSITION],
+              (x, y) => isWalkable(world, { x, y })
+            );
+            if (shore && relativeOrientations(world, limb[POSITION], shore, 1)[0] === orientation)
+              continue;
           }
           obstructed = true;
           break;
