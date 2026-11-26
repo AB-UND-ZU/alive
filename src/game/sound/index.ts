@@ -1,3 +1,4 @@
+import type { Entity } from "ecs";
 import type { World } from "../../engine/ecs";
 import type { Position } from "../../engine/components/position";
 import { getSoundSource } from "./spatial";
@@ -83,6 +84,7 @@ type SoundOptions = {
 
 export type SfxOptions<P extends SoundPreset> = SoundOptions & {
   position?: Position;
+  actor?: Entity;
   volume?: number;
   variant?: SoundVariant<P>;
   seed?: Seed;
@@ -1543,6 +1545,7 @@ export const play = <P extends SoundPreset>(
   preset: P,
   {
     position,
+    actor,
     volume = 1,
     delay = 0,
     notes = 1,
@@ -1553,14 +1556,14 @@ export const play = <P extends SoundPreset>(
 ) => {
   if (!isPlaying()) return;
   const source =
-    world && position && getSoundSource(world, position, preset, options.variant);
+    world && position && getSoundSource(world, position, preset, options.variant, actor);
   if (position && !source) return;
   if (soundStub) {
     soundStub.played.push(preset);
     return;
   }
 
-  if (position) delay += 50 * Math.random() ** 2;
+  if (source && !source.playerAction) delay += 50 * Math.random() ** 2;
   const cents = (Math.random() * 2 - 1) * 10;
   const playbackRate = 2 ** (cents / 1200);
 

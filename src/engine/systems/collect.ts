@@ -172,7 +172,7 @@ export const collectItem = (
     // play sound
     if (!(stat && !material)) {
       const options = pickupOptions[(stackable || consume)!];
-      play(world, "pickup", { position: target[POSITION], ...options });
+      play(world, "pickup", { position: target[POSITION], actor: entity, ...options });
     }
 
     // update walkable

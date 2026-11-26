@@ -41,7 +41,8 @@ export function getSoundSource(
   world: World,
   position: Position,
   preset: SoundPreset,
-  variant?: number
+  variant?: number,
+  actor?: Entity
 ) {
   const hero =
     world.getEntity([PLAYER, SOUL, POSITION]) ||
@@ -55,7 +56,8 @@ export function getSoundSource(
     preset === "rain" || (preset === "bubble" && variant === 2)
       ? isInside(world, hero)
       : undefined;
-  return { world, position: copy(position), near, ...mix, rainIndoors };
+  const playerAction = actor ? actor === hero : position === hero[POSITION];
+  return { world, position: copy(position), near, ...mix, rainIndoors, playerAction };
 }
 
 export type SoundSource = NonNullable<ReturnType<typeof getSoundSource>>;

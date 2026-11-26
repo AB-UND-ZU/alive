@@ -947,6 +947,7 @@ export const toolCondition: Sequence<ConditionSequence> = (
       progress > tick / 2
     ) {
       play(world, "harvest", {
+        actor: entity,
         position: targetEntity[POSITION],
         variant:
           toolEntity[ITEM].tool === "hammer"
@@ -1472,7 +1473,7 @@ export const hookCondition: Sequence<ConditionSequence> = (
       [SWIMMABLE]: { swimming: false },
     });
     registerEntity(world, baitEntity);
-    play(world, "fish", { position: baitEntity[POSITION], variant: 2 });
+    play(world, "fish", { position: baitEntity[POSITION], actor: entity, variant: 2 });
 
     updated = true;
   }

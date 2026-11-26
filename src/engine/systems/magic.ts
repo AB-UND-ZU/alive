@@ -587,7 +587,7 @@ export default function setupMagic(world: World) {
             }
 
             // play sound
-            play(world, "magic", { position: fragmentEntity[POSITION], intensity: damage });
+            play(world, "magic", { position: fragmentEntity[POSITION], actor: casterEntity, intensity: damage });
 
             // add hit marker
             createAmountMarker(

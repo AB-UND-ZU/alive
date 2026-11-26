@@ -953,6 +953,7 @@ export default function setupDamage(world: World) {
             );
 
             play(world, "hit", {
+              actor: entity,
               position: targetPosition,
               intensity: damage,
               variant: targetEntity[PLAYER] ? 1 : 2,

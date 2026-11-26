@@ -260,7 +260,7 @@ export const unlockDoor = (world: World, entity: Entity, lockable: Entity) => {
   // open doors without locks
   if (lockable[LOCKABLE].material === "wood") {
     openDoor(world, lockable);
-    play(world, "door", { position: lockable[POSITION] });
+    play(world, "door", { position: lockable[POSITION], actor: entity });
     return;
   }
 
@@ -533,7 +533,7 @@ export const performPlot = (
   registerEntity(world, plotEntity);
 
   populateInventory(world, plotEntity, construction.parts);
-  play(world, "build", { position: plotEntity[POSITION], notes: 4, spacing: 70 });
+  play(world, "build", { position: plotEntity[POSITION], actor: entity, notes: 4, spacing: 70 });
 };
 
 export const getSelectedConstruction = (world: World, entity: Entity) => {
@@ -693,7 +693,7 @@ export const castConditionable = (
         hookable[HOOKABLE].hooked = undefined;
         hookable[HOOKABLE].catching = entityId;
         hookable[HOOKABLE].escaping = false;
-        play(world, "fish", { position: hookable[POSITION], variant: 6 });
+        play(world, "fish", { position: hookable[POSITION], actor: entity, variant: 6 });
       }
     } else {
       // stow hook

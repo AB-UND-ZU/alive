@@ -189,7 +189,11 @@ describe("sound", () => {
     random.mockReturnValue(0.9);
     play(world, "talk", options);
 
-    expect(starts).toEqual([0.1, 0.1, 0.1125, 0.1625, 0.2125, 0.1405]);
+    const hero = assertHero(world);
+    play(world, "move", { position: hero.POSITION, seed: 0 });
+    play(world, "hit", { ...options, actor: hero });
+    play(world, "harvest", { ...options, actor: hero });
+    expect(starts).toEqual([0.1, 0.1, 0.1125, 0.1625, 0.2125, 0.1405, 0, 0.1, 0.1]);
   });
 
   it("varies pitch between plays of cached sounds and keeps each chord in tune", () => {
