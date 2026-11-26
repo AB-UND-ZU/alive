@@ -49,15 +49,17 @@ it.each([
   expect(completeCommand(world, input)).toBe(expected);
 });
 
-it("suggests stats from the current class and level for both commands", () => {
+it("suggests the current class and level values for /give", () => {
   const { world, hero } = setup();
   hero.SPAWNABLE!.classKey = "rogue";
-  hero.STATS.level = 1;
-  expect(completeCommand(world, "/give hp ")).toBe("25 ");
+  for (const level of [0, 1]) {
+    hero.STATS.level = level;
+    expect(completeCommand(world, "/give hp ")).toBe("25 ");
+  }
   hero.STATS.level = 2;
   const next = completeCommand(world, "/give hp ");
   expect(Number(next)).toBeGreaterThan(25);
-  expect(completeCommand(world, "/stat hp ")).toBe(next);
+  expect(completeCommand(world, "/stat hp ")).toBe("");
 });
 
 it("cycles only through visible item variants and supported potion stats", () => {

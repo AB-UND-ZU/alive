@@ -172,8 +172,8 @@ const executeHelp = (world: World, entity: Entity, command: string) => {
 
 const classStat = (entity: Entity, stat: UnitStat) => {
   const level = entity[STATS].level;
-  const stats = getLevelStats(entity[SPAWNABLE].classKey, level);
   if (stat === "level") return level;
+  const stats = getLevelStats(entity[SPAWNABLE].classKey, Math.max(1, level));
   if (stat === "hp") return stats.maxHp;
   if (stat === "mp") return stats.maxMp;
   if (stat === "xp") return 0;
@@ -193,9 +193,9 @@ const executeGive = (
   }
 
   const item = { ...commandItems[itemName] };
-  const amount = amountText === undefined
-    ? item.stat ? classStat(entity, item.stat) : 1
-    : parseInt(amountText);
+  const amount = amountText !== undefined
+    ? parseInt(amountText)
+    : item.stat ? classStat(entity, item.stat) : 1;
 
   if (isNaN(amount)) {
     return `No number "${amountText}"!`;
@@ -714,8 +714,7 @@ export const completeCommand = (
         .getEntities([IDENTIFIABLE, POSITION])
         .map((entity) => entity[IDENTIFIABLE].name);
     const item = commandItems[words[1]];
-    const actor = words.length === 3 && item?.stat &&
-      (command === "give" || command === "stat") &&
+    const actor = command === "give" && words.length === 3 && item?.stat &&
       world.getEntity([PLAYER, STATS, SPAWNABLE]);
     const defaultStat = actor && item.stat ? String(classStat(actor, item.stat)) : undefined;
     const hasSprite = (variant: Omit<Item, "amount" | "carrier" | "bound">) =>
@@ -767,7 +766,7 @@ export const completeCommand = (
         materials,
         elements,
       ],
-      stat: [[...unitStats, ...npcTypes, ...commandStats], defaultStat ? [defaultStat] : []],
+      stat: [[...unitStats, ...npcTypes, ...commandStats]],
       mod: [commandMods],
       list: [commandLists],
       new: [cellNames, ["1"], orientations],
