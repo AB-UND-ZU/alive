@@ -256,14 +256,4 @@ function Entity({
   );
 }
 
-const MemoizedEntity = React.memo(
-  Entity,
-  (prevProps, nextProps) =>
-    prevProps.generation === nextProps.generation &&
-    prevProps.inRadius === nextProps.inRadius &&
-    prevProps.inside === nextProps.inside &&
-    prevProps.castShadow === nextProps.castShadow &&
-    prevProps.outside === nextProps.outside
-);
-
-export default MemoizedEntity;
+export default React.memo(Entity);

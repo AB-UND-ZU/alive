@@ -1,5 +1,6 @@
 import Entity from ".";
 import {
+  advance,
   assertHero,
   createAreaWorld,
   FRAME,
@@ -26,12 +27,15 @@ import { raf } from "@react-spring/rafz";
 import * as THREE from "three";
 import { PARTICLE } from "../../../engine/components/particle";
 import { REFERENCE } from "../../../engine/components/reference";
-import { SEQUENCABLE } from "../../../engine/components/sequencable";
-import { smokeLight } from "../../../game/assets/sprites";
+import { SEQUENCABLE, WeatherSequence } from "../../../engine/components/sequencable";
+import { none, smokeLight } from "../../../game/assets/sprites";
 import { particleHeight } from "../../interface/segments";
 import { LightingContext } from "./CoveredLight";
 import { createCell } from "../../../bindings/creation";
 import { LIGHT } from "../../../engine/components/light";
+import { createSequence } from "../../../engine/systems/sequence";
+import { moveEntity, registerEntity } from "../../../engine/systems/map";
+import { saveAndLoad } from "../../../testing/saves";
 
 // the font is loaded over the network, provide it from disk instead.
 // glyphs are tagged with their char to be found in the scene
@@ -109,6 +113,68 @@ describe("Entity", () => {
 
     expect(container.position.x).toBeCloseTo(3 * aspectRatio);
     expect(container.position.y).toBeCloseTo(-2);
+  });
+
+  it("keeps falling rain over its landing cell when the camera changes wrapped copies", async () => {
+    const original = createAreaWorld(area, { size: 240 });
+    const position = { x: 239, y: 0 };
+    moveEntity(original, assertHero(original), position);
+    const anchor = entities.createAnchor(original, {
+      POSITION: { ...position },
+      RENDERABLE: { generation: 0 },
+      SEQUENCABLE: { states: {} },
+      SPRITE: none,
+    });
+    registerEntity(original, anchor);
+    createSequence<"weather", WeatherSequence>(
+      original,
+      anchor,
+      "weather",
+      "weatherStorm",
+      {
+        position,
+        start: -200,
+        end: Infinity,
+        intensity: 100,
+        generation: -1,
+        drops: [],
+        type: "rain",
+      }
+    );
+    advance(original, 500);
+    const world = saveAndLoad(original);
+    const storm = world.assertByIdAndComponents(original.getEntityId(anchor), [
+      POSITION, SPRITE, RENDERABLE,
+    ]);
+    const context = createWorldContext(world);
+    const draw = (x: number, y: number) => (
+      <WorldProvider value={context}>
+        <Entity
+          entity={storm}
+          x={x}
+          y={y}
+          generation={getEntityGeneration(world, storm)}
+          inRadius
+          inside={false}
+          outside={false}
+        />
+      </WorldProvider>
+    );
+    const renderer = await ReactThreeTestRenderer.create(draw(239, 0));
+    try {
+      const glyph = renderer.scene.findAll(
+        (node) => ["│", "|"].includes(node.instance.userData?.char)
+      )[0];
+      const before = glyph.instance.getWorldPosition(new THREE.Vector3());
+      await renderer.update(draw(-1, 240));
+      const after = glyph.instance.getWorldPosition(new THREE.Vector3());
+      expect(after.x - before.x).toBeCloseTo(
+        -240 * world.metadata.dimensions.aspectRatio
+      );
+      expect(after.y - before.y).toBe(-240);
+    } finally {
+      await renderer.unmount();
+    }
   });
 
   describe("particles", () => {
