@@ -1,7 +1,11 @@
 import { materials } from "../../engine/components/item";
+import { moveEntity } from "../../engine/systems/map";
+import { playedSounds } from "../../testing/env";
+import { advance } from "../../testing/harness";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import {
   cast,
+  castAs,
   createArea,
   createSpellWorld,
   getUnit,
@@ -13,6 +17,19 @@ const { magic, range } = getAbilityStats(beam);
 const beamFrames = 120;
 
 describe("beam spell", () => {
+  it("picks up a running beam once when the hero enters hearing range", () => {
+    const area = createArea(24, 3, { D: { x: 2, y: 1 }, "♀": { x: 22, y: 1 } });
+    const { world, hero } = createSpellWorld(area, beam, { size: 64 });
+    const caster = getUnit(world, area, "D");
+    castAs(world, caster, beam, "up");
+    advance(world, 250);
+    expect(playedSounds).not.toContain("beam");
+
+    moveEntity(world, hero, { x: 6, y: 1 });
+    advance(world, 500);
+    expect(playedSounds.filter((preset) => preset === "beam")).toHaveLength(1);
+  });
+
   it("hits hostile units in a line in the facing direction only", () => {
     const area = `
 |        |

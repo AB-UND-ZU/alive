@@ -85,6 +85,7 @@ type SoundOptions = {
 export type SfxOptions<P extends SoundPreset> = SoundOptions & {
   position?: Position;
   actor?: Entity;
+  offset?: number;
   volume?: number;
   variant?: SoundVariant<P>;
   seed?: Seed;
@@ -1546,6 +1547,7 @@ export const play = <P extends SoundPreset>(
   {
     position,
     actor,
+    offset = 0,
     volume = 1,
     delay = 0,
     notes = 1,
@@ -1554,13 +1556,13 @@ export const play = <P extends SoundPreset>(
     ...options
   }: SfxOptions<P> = {}
 ) => {
-  if (!isPlaying()) return;
+  if (!isPlaying()) return false;
   const source =
     world && position && getSoundSource(world, position, preset, options.variant, actor);
-  if (position && !source) return;
+  if (position && !source) return false;
   if (soundStub) {
     soundStub.played.push(preset);
-    return;
+    return true;
   }
 
   if (source && !source.playerAction) delay += 50 * Math.random() ** 2;
@@ -1585,7 +1587,9 @@ export const play = <P extends SoundPreset>(
       getAudioTime(delay + (note - 1) * spacing),
       (gain / cached.gain) * volume,
       source,
-      playbackRate
+      playbackRate,
+      offset / 1000
     );
   }
+  return true;
 };

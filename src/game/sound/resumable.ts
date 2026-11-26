@@ -70,7 +70,8 @@ export type SoundBuffer = {
     time: number,
     volume?: number,
     origin?: SoundSource,
-    playbackRate?: number
+    playbackRate?: number,
+    offset?: number
   ) => void;
 };
 
@@ -106,8 +107,9 @@ export const createSoundBuffer = (
   }
 
   return {
-    play: (time, volume = 1, origin, playbackRate = 1) => {
+    play: (time, volume = 1, origin, playbackRate = 1, offset = 0) => {
       if (context !== audioContext) return;
+      if (offset > 0 && offset >= buffer.duration) return;
       const source = context.createBufferSource();
       source.buffer = buffer;
       source.playbackRate.value = playbackRate;
@@ -121,7 +123,13 @@ export const createSoundBuffer = (
         gainNode.connect(master);
       }
       source.connect(gainNode);
-      source.start(Math.max(time, context.currentTime));
+      const start = Math.max(time, context.currentTime);
+      if (offset > 0) {
+        const volume = gainNode.gain.value;
+        gainNode.gain.setValueAtTime(0, start);
+        gainNode.gain.linearRampToValueAtTime(volume, start + 0.01);
+      }
+      source.start(start, offset);
     },
   };
 };

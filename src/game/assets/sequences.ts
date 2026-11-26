@@ -2126,6 +2126,16 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   let finished = progress > state.args.duration;
   let updated = false;
 
+  if (!abort && !finished && !state.args.memory?.heard && progress !== state.args.progress) {
+    state.args.memory ??= {};
+    state.args.memory.heard = play(world, "beam", {
+      position: entity[POSITION],
+      actor: casterEntity,
+      variant: 3,
+      offset: state.elapsed,
+    });
+  }
+
   // create edge particles
   if (!state.particles.start) {
     updated = true;

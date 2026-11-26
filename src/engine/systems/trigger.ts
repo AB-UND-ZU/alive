@@ -850,6 +850,7 @@ export const castSpell = (
       "spell",
       "castBeam1",
       {
+        memory: { heard: play(world, "beam", { position: entity[POSITION], variant: 3 }) },
         progress: 0,
         range: spellStats.range,
         duration: spellStats.duration,
@@ -858,7 +859,6 @@ export const castSpell = (
         element: item[ITEM].element,
       }
     );
-    play(world, "beam", { position: entity[POSITION], variant: 3 });
   } else if (item[ITEM].spell === "bolt" || item[ITEM].skill === "wand") {
     // ensure wand proccing only once like melee weapons
     if (item[ITEM].skill === "wand") {

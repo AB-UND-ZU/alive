@@ -23,6 +23,7 @@ describe("sound", () => {
   let synthesized: jest.SpyInstance;
   let buffers: jest.SpyInstance;
   let starts: number[];
+  let offsets: number[];
   let sources: AudioBufferSourceNode[];
   let gains: { gain: { value: number } }[];
 
@@ -32,6 +33,7 @@ describe("sound", () => {
     synthesized = jest.spyOn(synthesis, "synthesizeSound");
     buffers = jest.spyOn(AudioContext.prototype, "createBuffer");
     starts = [];
+    offsets = [];
     sources = [];
     const createBufferSource = AudioContext.prototype.createBufferSource;
     jest
@@ -39,7 +41,10 @@ describe("sound", () => {
       .mockImplementation(function (this: unknown) {
         const node = createBufferSource.call(this);
         sources.push(node);
-        node.start = (time: number) => starts.push(time);
+        node.start = (time: number, offset: number) => {
+          starts.push(time);
+          offsets.push(offset);
+        };
         return node;
       });
     gains = [];
@@ -162,6 +167,11 @@ describe("sound", () => {
     const started = starts.length;
     play(world, "beam", { position: { x: 0, y: 10 } });
     expect(starts).toHaveLength(started);
+  });
+
+  it("seeks into a beam that is already sounding when it becomes audible", () => {
+    play(undefined, "beam", { offset: 375, variant: 3 });
+    expect(offsets).toEqual([0.375]);
   });
 
   it("schedules the cached notes of a melody on the audio clock", () => {

@@ -16,6 +16,8 @@ Synthesizes sound effects from named presets. `play` does nothing until the game
 | delay     | Delay before playback, in milliseconds       |
 | intensity | Preset-specific strength                     |
 | position  | Tile where the sound starts in the given world |
+| actor     | Unit responsible for a sound emitted on another tile |
+| offset    | Elapsed playback time in milliseconds for an ongoing cue |
 | volume    | Relative playback gain, defaults to 1        |
 | variant   | Preset variation, typed per preset           |
 | seed      | One of 4 random characters, picked if absent |
@@ -57,6 +59,8 @@ type SoundOptions = {
 ```ts src/game/sound/index.ts
 export type SfxOptions<P extends SoundPreset> = SoundOptions & {
   position?: Position;
+  actor?: Entity;
+  offset?: number;
   volume?: number;
   variant?: SoundVariant<P>;
   seed?: Seed;

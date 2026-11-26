@@ -23,7 +23,8 @@ export type SoundBuffer = {
     time: number,
     volume?: number,
     origin?: SoundSource,
-    playbackRate?: number
+    playbackRate?: number,
+    offset?: number
   ) => void;
 };
 ```

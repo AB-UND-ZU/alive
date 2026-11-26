@@ -128,7 +128,9 @@ jest.mock("./game/sound", () => {
         (world && getSoundSource(world, options.position, preset, options.variant))
       ) {
         env.playedSounds.push(preset);
+        return true;
       }
+      return false;
     },
   };
 });
