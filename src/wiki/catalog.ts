@@ -324,8 +324,12 @@ export function unitComparisonStats(key: UnitKey) {
   return { stats, attacks, bonuses: getEntityEquipmentStats(world, entity) };
 }
 export const unitFamily = (key: string) => {
+  if (["rose", "violet", "clover", "ilexTulip", "oakLily"].includes(key))
+    return "plants";
+  if (/Tower$/.test(key)) return "towers";
+  if (/^(fence|palisade)/.test(key)) return "fences";
+  if (isContainer(key)) return "containers";
   if (key === "tumbleweed") return key;
-  if (/chest/i.test(key)) return "chest";
   const name = unitDefinitions[key as UnitKey]?.sprite.name;
   if (name && /^[A-Z][A-Za-z ]+$/.test(name) && !/^\?+$/.test(name))
     return name.toLowerCase();
@@ -344,7 +348,15 @@ export const unitGroups = (keys: UnitKey[]) => {
     const family = unitFamily(key);
     groups.set(family, [...(groups.get(family) || []), key]);
   }
-  return [...groups.values()];
+  return [...groups.values()].map((group) =>
+    unitFamily(group[0]) === "containers"
+      ? [
+          ...group.filter((key) => key === "pot"),
+          ...group.filter((key) => key === "box"),
+          ...group.filter((key) => key !== "pot" && key !== "box"),
+        ]
+      : group
+  );
 };
 
 const resourceFamilies = [
@@ -440,9 +452,11 @@ export function itemCatalogFamilies(category?: string) {
   ];
 }
 export const itemOverviewGroup = (key: string) =>
-  [...resourceFamilies, ...foodFamilies, ...gearFamilies].find((group) =>
-    group.keys.includes(key)
-  )?.title;
+  ["worm", "pearl", "seastar"].includes(key)
+    ? "Fishing"
+    : [...resourceFamilies, ...foodFamilies, ...gearFamilies].find((group) =>
+        group.keys.includes(key)
+      )?.title;
 export const unitOverviewGroup = (key: UnitKey) => {
   const unit = unitDefinitions[key];
   return ["ilexTulip", "oakLily", "oakTower"].includes(key)

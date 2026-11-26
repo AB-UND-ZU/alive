@@ -598,28 +598,23 @@ export function Widget({ name }: { name: string }) {
           "Element",
           <Text>{"Sword\nEffect"}</Text>,
           <Text>{"Shield\nEffect"}</Text>,
+          "Ring",
+          "Amulet",
           <Text>{"Spell\nEffect"}</Text>,
         ]}
         rows={elements.map((element) => [
           <ItemView item={commandItems[element]} />,
-          <div className="CatalogLines">
-            {Object.entries(
-              gearStats.default?.sword?.wood?.[element] || {}
-            ).map(([stat, value]) => (
-              <div key={stat}>
-                <StatLabel stat={stat as keyof DisplayStats} value={value} />
-              </div>
-            ))}
-          </div>,
-          <div className="CatalogLines">
-            {Object.entries(
-              gearStats.default?.shield?.wood?.[element] || {}
-            ).map(([stat, value]) => (
-              <div key={stat}>
-                <StatLabel stat={stat as keyof DisplayStats} value={value} />
-              </div>
-            ))}
-          </div>,
+          ...(["sword", "shield", "ring", "amulet"] as const).map((slot) => (
+            <div className="CatalogLines">
+              {Object.entries(
+                gearStats.default?.[slot]?.wood?.[element] || {}
+              ).map(([stat, value]) => (
+                <div key={stat}>
+                  <StatLabel stat={stat as keyof DisplayStats} value={value} />
+                </div>
+              ))}
+            </div>
+          )),
           <div className="CatalogLines">
             {Array.from(
               new Set(
@@ -653,14 +648,12 @@ export function Widget({ name }: { name: string }) {
             },
           }))}
         />
-        {entries.map(([key, item]) => (
-          <ItemCatalogEntry
-            key={key}
-            name={key}
-            definition={item}
-            title={displayName(key)}
-          />
-        ))}
+        <ItemCatalogEntry
+          name="spirits"
+          title="Spirits"
+          definition={entries[0][1]}
+          family={entries.map(([name, definition]) => ({ name, definition }))}
+        />
       </div>
     );
   }
@@ -672,7 +665,8 @@ export function Widget({ name }: { name: string }) {
             .filter(
               ([, item]) =>
                 !category ||
-                itemCategory(item) === category ||
+                (itemCategory(item) === category &&
+                  itemPage(item) !== "elements") ||
                 itemPage(item) === category
             )
             .map(([key, item]) => ({
@@ -725,13 +719,7 @@ export function Widget({ name }: { name: string }) {
     );
   if (name === "unit-catalog" || kind === "units") {
     const keys = (Object.keys(unitDefinitions) as UnitKey[]).filter(
-      (key) =>
-        (!category || unitPage(key, unitDefinitions[key]) === category) &&
-        !(
-          category === "containers" &&
-          /chest/i.test(key) &&
-          !/^(wood|iron|gold|diamond|ruby)Chest$/.test(key)
-        )
+      (key) => !category || unitPage(key, unitDefinitions[key]) === category
     );
     const groups = unitGroups(keys);
     return (

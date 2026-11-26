@@ -84,7 +84,7 @@ test("container comparison keeps default chests and bosses show reward contents"
   page,
 }) => {
   await page.goto("/game-design/cells/containers.html");
-  const chests = page.locator('[data-catalog-family="chest"]');
+  const chests = page.locator('[data-catalog-family="containers"]');
   await expect(
     chests.locator('thead th:not(:first-child) a[href*="#woodchest"]')
   ).toHaveCount(1);
@@ -93,7 +93,7 @@ test("container comparison keeps default chests and bosses show reward contents"
   ).toHaveCount(1);
   await expect(
     chests.locator('thead th:not(:first-child) a[href*="#oakchest"]')
-  ).toHaveCount(0);
+  ).toHaveCount(1);
   await expect(
     page.getByRole("heading", { name: "Quest rewards" })
   ).toHaveCount(0);

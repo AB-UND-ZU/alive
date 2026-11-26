@@ -195,9 +195,9 @@ test("category indexes link to canonical plant and element entries without dupli
   await expect(page.locator('[data-catalog-item="fire"]')).toHaveCount(0);
   await expect(
     page.locator('.CatalogIndex a[href$="elements.html#water"]')
-  ).toHaveCount(1);
+  ).toHaveCount(0);
   await page.goto("/game-design/items/elements.html#fire");
-  await expect(page.locator('[data-catalog-item="fire"]')).toBeVisible();
+  await expect(page.locator('[data-catalog-item="spirits"] #fire')).toBeVisible();
 });
 
 test("long commands wrap inside the native phone chat", async ({ page }) => {

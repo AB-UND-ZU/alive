@@ -76,7 +76,7 @@ test("container drops remain in a single family comparison with native dialogs",
   page,
 }) => {
   await page.goto("/game-design/cells/containers.html");
-  const chest = page.locator('[data-catalog-family="chest"]');
+  const chest = page.locator('[data-catalog-family="containers"]');
   await expect(chest.locator("table")).toHaveCount(1);
   await expect(chest.locator(".DropDialog")).not.toHaveCount(0);
   await expect(page.locator('[data-unit="chestBoss"]')).toHaveCount(0);

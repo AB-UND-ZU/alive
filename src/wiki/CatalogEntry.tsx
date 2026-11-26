@@ -714,6 +714,34 @@ export function UnitCatalogEntry({ keys }: { keys: UnitKey[] }) {
             "Faction",
             ...units.map((unit) => <FactionLabel faction={unit.faction} />),
           ],
+          ...(unitPage(keys[0], units[0]) === "npcs"
+            ? [
+                [
+                  "Interaction",
+                  ...keys.map((key) => {
+                    const page = key.endsWith("Trader")
+                      ? "Trading"
+                      : key === "waterSmith"
+                      ? "Forging"
+                      : key === "waterDruid"
+                      ? "Brewing"
+                      : [
+                          "earthGuard",
+                          "fireGuard",
+                          "fireJettyGuard",
+                          "waterGuard",
+                        ].includes(key)
+                      ? "Dialogs"
+                      : "Quests";
+                    return (
+                      <ReferenceLink name={page.toLowerCase()}>
+                        <Text>{page}</Text>
+                      </ReferenceLink>
+                    );
+                  }),
+                ],
+              ]
+            : []),
           ...stats.map((stat) => [
             <StatLabel stat={stat as keyof DisplayStats} />,
             ...comparisons.map(({ stats }) => {
