@@ -33,7 +33,7 @@ const bow = [
   { stackable: "arrow" as const, amount: 3 },
 ];
 
-/** Bandit archer in line with the hero, carrying arrows to shoot. */
+/** Rogue with a bow in line with the hero, carrying arrows to shoot. */
 const setupArcher = (items = [] as Parameters<typeof setupHero>[1]) => {
   const area = `
 |                    |
@@ -41,12 +41,13 @@ const setupArcher = (items = [] as Parameters<typeof setupHero>[1]) => {
 |                    |
 `;
   const { world, hero } = setupHero(area, items, {
-    legend: { B: "banditArcher" },
+    legend: { B: "banditRogue" },
     size: 24,
   });
   const archer = getUnit(world, area, "B") as TypedEntity<
     "INVENTORY" | "POSITION" | "STATS"
   >;
+  world.assertComponents(archer, ["BEHAVIOUR"]).BEHAVIOUR.patterns = [{ name: "archer", memory: {} }];
   giveItems(world, archer, [{ stackable: "arrow", amount: 5 }]);
   return { world, hero, archer };
 };

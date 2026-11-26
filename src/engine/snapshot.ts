@@ -157,6 +157,7 @@ export const restoreSnapshot = (snapshot: WorldSnapshot) => {
     else if (tempo?.amount === -1) tempo.amount = -2;
     else if (tempo?.amount === -2 && !entity.HARVESTABLE) tempo.amount = -6;
     const npc = entity[NPC];
+    if (npc && String(npc.type) === "banditArcher") npc.type = "banditRogue";
     const patterns = entity[BEHAVIOUR]?.patterns;
     if (
       npc &&

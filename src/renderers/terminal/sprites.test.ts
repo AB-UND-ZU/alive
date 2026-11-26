@@ -729,7 +729,6 @@ it("keeps class and equipped NPC references as silver human characters", () => {
     "earthDruid",
     "earthGuard",
     "banditKnight",
-    "banditArcher",
   ] as const) {
     expect(projectSprite(getUnitSprite(unit))).toMatchObject({
       char: "♀",

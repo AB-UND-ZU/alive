@@ -126,47 +126,6 @@ describe("tutorial boss", () => {
   });
 });
 
-describe("bandit archer", () => {
-  it("moves into line with the hero and aims with rage", () => {
-    const { world, hero, bandit } = setup("banditArcher");
-
-    advanceUntil(world, () => bandit[TOOLTIP].idle === rage, 3000);
-
-    expect(bandit[POSITION].y).toBe(hero[POSITION].y);
-    expect(bandit[ORIENTABLE].facing).toBe("left");
-  });
-
-  it("never looses an arrow as it carries none", () => {
-    const { world, hero } = setup("banditArcher");
-
-    const projectiles = trace(
-      world,
-      12,
-      () => world.getEntities([PROJECTILE]).length
-    );
-
-    expect(Math.max(...projectiles)).toBe(0);
-    expect(hero[STATS].hp).toBe(hero[STATS].maxHp);
-  });
-
-  it("backs off from a hero standing next to it", () => {
-    const { world, hero, bandit } = setup(
-      "banditArcher",
-      `
-|          |
-|    ♀B    |
-|          |
-`
-    );
-
-    advanceUntil(
-      world,
-      () => distanceBetween(world, bandit[POSITION], hero[POSITION]) > 2,
-      3000
-    );
-  });
-});
-
 describe("bandit camp", () => {
   it("whistles by the fire, watches at three cells, and chases as a group at two", () => {
     const { world, hero } = createCreatureWorld("|♀     R*K|", {

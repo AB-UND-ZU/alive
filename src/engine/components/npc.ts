@@ -26,7 +26,6 @@ export const npcTypes = [
   "banditMage",
   "banditKnight",
   "banditRogue",
-  "banditArcher",
   "prism",
   "goldPrism",
   "diamondPrism",

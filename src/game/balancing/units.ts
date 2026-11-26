@@ -630,26 +630,6 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: bandit,
     evaporate: { sprite: ghost, fast: false },
   },
-  banditArcher: {
-    faction: "wild",
-    scratch: colors.silver,
-    stats: {
-      hp: 20,
-    },
-    equipments: [
-      {
-        skill: "bow",
-        material: "wood",
-        amount: 1,
-        bound: true,
-      },
-    ],
-    drops: [],
-    patternNames: ["archer"],
-    sprite: { ...bandit, name: "Bandit" },
-    remains: "tombstone1",
-    evaporate: { sprite: ghost, fast: false },
-  },
   tutorialBoss: {
     faction: "wild",
     scratch: colors.silver,

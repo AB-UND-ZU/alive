@@ -45,6 +45,14 @@ const getEntityIds = (world: World) =>
   world.getEntities([]).map((entity) => world.getEntityId(entity));
 
 describe("world snapshot", () => {
+  it("loads a retired bandit archer as a rogue", () => {
+    const world = createAreaWorld("|♀|");
+    const bandit = world.createEntity();
+    world.addComponentToEntity(bandit, "NPC", { type: "banditRogue" });
+    Object.assign(bandit.NPC!, { type: "banditArcher" });
+    expect(store(world).assertById(world.getEntityId(bandit)).NPC?.type).toBe("banditRogue");
+  });
+
   it("loads an island with a missing loot item and preserves its remaining items", () => {
     const world = createAreaWorld("| ♀       |", {
       size: 48,

@@ -324,10 +324,10 @@ describe("village defenders", () => {
 |   G   B    |
 |            |
 `,
-        { G: "earthGuard", B: "banditArcher" }
+        { G: "earthGuard", B: "banditRogue" }
       );
       const guard = getCreature(world, "earthGuard");
-      const archer = getCreature(world, "banditArcher");
+      const archer = getCreature(world, "banditRogue");
       toughen(hero);
       archer[BEHAVIOUR].patterns = [];
       advanceTicks(world, 2);
@@ -356,11 +356,11 @@ describe("village defenders", () => {
     const { world } = createCreatureWorld("|♀ E    G  B |", {
       E: "eye",
       G: "waterGuard",
-      B: "banditArcher",
+      B: "banditRogue",
     });
     const first = getCreature(world, "eye");
     const guard = getCreature(world, "waterGuard");
-    const shooter = getCreature(world, "banditArcher");
+    const shooter = getCreature(world, "banditRogue");
     first[BEHAVIOUR].patterns = [];
     shooter[BEHAVIOUR].patterns = [];
     advanceTicks(world, 3);
