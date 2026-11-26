@@ -352,7 +352,7 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
       soundLever[TOOLTIP].changed = true;
     } else {
       unmuteAudio();
-      play(world, "lever", { intensity: 1 });
+      play(world, undefined, "lever", { intensity: 1 });
       soundLever[SPRITE] = leverOn;
       soundLever[TOOLTIP].dialogs = [createDialog("Sound on")];
       soundLever[TOOLTIP].changed = true;
@@ -365,13 +365,13 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
   if (controlsLever[CLICKABLE].clicked) {
     if (controlsLever[SPRITE] === leverOn) {
       world.metadata.setFlipped(true);
-      play(world, "lever", { intensity: 2 });
+      play(world, undefined, "lever", { intensity: 2 });
       controlsLever[SPRITE] = leverOff;
       controlsLever[TOOLTIP].dialogs = [createDialog("Right side")];
       controlsLever[TOOLTIP].changed = true;
     } else {
       world.metadata.setFlipped(false);
-      play(world, "lever", { intensity: 1 });
+      play(world, undefined, "lever", { intensity: 1 });
       controlsLever[SPRITE] = leverOn;
       controlsLever[TOOLTIP].dialogs = [createDialog("Left side")];
       controlsLever[TOOLTIP].changed = true;
@@ -588,7 +588,7 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
     });
 
     unlockLever[SPRITE] = leverOn;
-    play(world, "lever", { position: unlockLever[POSITION], intensity: 1 });
+    play(world, unlockLever, "lever", { intensity: 1 });
     rerenderEntity(world, unlockLever);
   }
 

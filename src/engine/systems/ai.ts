@@ -230,8 +230,7 @@ function playRage(world: World, entity: TypedEntity<"POSITION">, charged = false
     (hash, char) => (hash * 33 + char.charCodeAt(0)) % 1009,
     150
   );
-  play(world, "danger", {
-    position: entity[POSITION],
+  play(world, entity, "danger", {
     variant: (pitch % 72) + 1,
     intensity: charged || type.toLowerCase().includes("boss") ? 2 : 1,
   });
@@ -2036,7 +2035,7 @@ export default function setupAi(world: World) {
               entity[STATS].hp = hp;
               createAmountMarker(world, entity, healing, "up", "heal");
               if (healing > 0) {
-                play(world, "pickup", { position: entity[POSITION], ...pickupOptions.hp });
+                play(world, entity, "pickup", { ...pickupOptions.hp });
               }
             }
 
@@ -2351,8 +2350,7 @@ export default function setupAi(world: World) {
           // show countdown
           if (countdown !== undefined && countdown <= 3 * 4 && nextSpawn) {
             if (countdown % 4 === 0) {
-              play(world, "countdown", {
-                position: entity[POSITION],
+              play(world, entity, "countdown", {
                 variant: countdown === 0 ? 2 : 1,
               });
             }
@@ -2390,7 +2388,7 @@ export default function setupAi(world: World) {
             entity[STATS].hp = hp;
             if (healing > 0) {
               createAmountMarker(world, entity, healing, "up", "heal");
-              play(world, "pickup", { position: entity[POSITION], ...pickupOptions.hp });
+              play(world, entity, "pickup", { ...pickupOptions.hp });
             }
           } else if (pattern.memory.heal) {
             delete pattern.memory.heal;
@@ -4682,8 +4680,7 @@ export default function setupAi(world: World) {
               detached: [],
             });
             entity[ORIENTABLE].facing = "up";
-            play(world, "talk", {
-              position: entity[POSITION],
+            play(world, entity, "talk", {
               variant: 1,
               intensity: 3,
             });
@@ -4867,8 +4864,7 @@ export default function setupAi(world: World) {
             tooltip.idle = sprite;
             tooltip.changed = true;
             if (sprite)
-              play(world, "danger", {
-                position: entity[POSITION],
+              play(world, entity, "danger", {
                 intensity: sprite === rage2 ? 2 : 1,
               });
           };
@@ -5196,8 +5192,7 @@ export default function setupAi(world: World) {
               warn(undefined);
               nextPhase(memory.surfacePhase);
               if (memory.surfacePhase === "rage") {
-                play(world, "talk", {
-                  position: entity[POSITION],
+                play(world, entity, "talk", {
                   variant: 1,
                   intensity: 3,
                 });
@@ -5439,7 +5434,7 @@ export default function setupAi(world: World) {
                     exertables: [],
                   }
                 );
-                play(world, "slash", { position: entity[POSITION] });
+                play(world, entity, "slash");
                 memory.slashes -= 1;
                 if (memory.slashes === 0) {
                   memory.ticks = 0;
@@ -5961,7 +5956,7 @@ export default function setupAi(world: World) {
                   exertables: [],
                 }
               );
-              play(world, "slash", { position: entity[POSITION] });
+              play(world, entity, "slash");
               memory.nextAttack = memory.ticks + 2;
             }
             delete memory.queuedAttack;

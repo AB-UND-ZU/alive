@@ -1,13 +1,13 @@
 import type { SoundPreset } from ".";
 import type { World } from "../../engine/ecs";
 import type { Entity } from "ecs";
-import { isInside } from "../../engine/components/layer";
+import { LAYER } from "../../engine/components/layer";
 import { LIGHT } from "../../engine/components/light";
 import { Position, POSITION } from "../../engine/components/position";
 import { PLAYER } from "../../engine/components/player";
 import { SOUL } from "../../engine/components/soul";
 import { aspectRatio } from "../../renderers/interface/dimensions";
-import { copy, signedDistance } from "../math/std";
+import { signedDistance } from "../math/std";
 
 const hearingRange = 10;
 
@@ -19,16 +19,14 @@ const nearDistances: Partial<Record<SoundPreset, number>> = {
   slide: 1,
 };
 
-function mixAt(
-  source: Position,
-  listener: Entity,
-  size: number,
-  near: number
-) {
+function mixAt(source: Position, listener: Entity, size: number, near: number) {
   const x = signedDistance(listener[POSITION].x, source.x, size) * aspectRatio;
   const y = signedDistance(listener[POSITION].y, source.y, size);
   const distance = Math.hypot(x, y);
-  const beyondSight = Math.max(0, distance - (listener[LIGHT]?.visibility ?? 0));
+  const beyondSight = Math.max(
+    0,
+    distance - (listener[LIGHT]?.visibility ?? 0)
+  );
   const effectiveDistance = (2 * distance) / 3 + beyondSight;
   const edge = Math.max(0, Math.min(1, (hearingRange - distance) / 2));
   return {
@@ -39,62 +37,95 @@ function mixAt(
 
 export function getSoundSource(
   world: World,
-  position: Position,
-  preset: SoundPreset,
-  variant?: number,
-  actor?: Entity
+  origin: Entity,
+  preset: SoundPreset
 ) {
-  const hero =
+  const listener =
     world.getEntity([PLAYER, SOUL, POSITION]) ||
     world.getEntity([PLAYER, POSITION]);
-  if (!hero) return;
+  if (!listener || !origin[POSITION]) return;
   const near = nearDistances[preset] ?? 1.5;
-  const mix = mixAt(position, hero, world.metadata.gameEntity.LEVEL.size, near);
-  if (!mix.volume) return;
-  // Bubble variant 2 is rain landing on water.
-  const rainIndoors =
-    preset === "rain" || (preset === "bubble" && variant === 2)
-      ? isInside(world, hero)
-      : undefined;
-  const playerAction = actor ? actor === hero : position === hero[POSITION];
-  return { world, position: copy(position), near, ...mix, rainIndoors, playerAction };
+  const mix = mixAt(
+    origin[POSITION],
+    listener,
+    world.metadata.gameEntity.LEVEL.size,
+    near
+  );
+  if (mix.volume)
+    return {
+      world,
+      origin,
+      position: origin[POSITION],
+      listener,
+      near,
+      ...mix,
+      weather: preset === "rain",
+    };
 }
 
 export type SoundSource = NonNullable<ReturnType<typeof getSoundSource>>;
-
-const voices = new Set<{
+type Voice = {
   source: SoundSource;
   gain: GainNode;
   panner: StereoPannerNode;
+  master: GainNode;
+  output: BiquadFilterNode;
   volume: number;
-}>();
+};
+const voices = new Map<Entity, Set<Voice>>();
+let outputs = new WeakMap<World, Map<number | undefined, BiquadFilterNode>>();
 
-let rainFilters = new WeakMap<World, BiquadFilterNode>();
+const cutoff = (
+  listener: Entity,
+  layer: number | undefined,
+  filter: BiquadFilterNode
+) =>
+  listener[LAYER]?.structure && listener[LAYER].structure !== layer
+    ? 1350
+    : filter.context.sampleRate / 2;
 
-const rainCutoff = (filter: BiquadFilterNode, indoors: boolean) =>
-  indoors ? 1350 : filter.context.sampleRate / 2;
-
-export function setRainIndoors(world: World, indoors: boolean) {
-  const filter = rainFilters.get(world);
-  if (filter) {
-    filter.frequency.setTargetAtTime(
-      rainCutoff(filter, indoors),
-      filter.context.currentTime,
-      0.12
-    );
-  }
-}
-
-function rainOutput(world: World, indoors: boolean, master: GainNode) {
-  let filter = rainFilters.get(world);
+function outputFor(source: SoundSource, master: GainNode) {
+  const { world, origin, listener } = source;
+  const { x, y } = source.position;
+  const layer =
+    source.weather || origin.MOVABLE?.flying
+      ? undefined
+      : LAYER in origin
+      ? origin[LAYER].structure
+      : Object.values<Entity>(
+          world.metadata.gameEntity.LEVEL.map[x]?.[y] ?? {}
+        ).find((cell) => cell.ENTERABLE)?.FRAGMENT?.structure;
+  let layers = outputs.get(world);
+  if (!layers) outputs.set(world, (layers = new Map()));
+  let filter = layers.get(layer);
   if (!filter) {
     filter = master.context.createBiquadFilter();
     filter.Q.value = -3;
-    filter.frequency.value = rainCutoff(filter, indoors);
+    filter.frequency.value = cutoff(listener, layer, filter);
     filter.connect(master);
-    rainFilters.set(world, filter);
+    layers.set(layer, filter);
   }
   return filter;
+}
+
+export function changeSoundLayer(world: World, mover: Entity) {
+  if (mover[PLAYER])
+    outputs
+      .get(world)
+      ?.forEach((filter, layer) =>
+        filter.frequency.setTargetAtTime(
+          cutoff(mover, layer, filter),
+          filter.context.currentTime,
+          0.12
+        )
+      );
+  voices.get(mover)?.forEach((voice) => {
+    const output = outputFor(voice.source, voice.master);
+    if (output === voice.output) return;
+    voice.panner.disconnect(voice.output);
+    voice.panner.connect(output);
+    voice.output = output;
+  });
 }
 
 export function trackSound(
@@ -108,15 +139,15 @@ export function trackSound(
   const stereoVolume = volume * Math.SQRT2;
   gain.gain.value = stereoVolume * source.volume;
   panner.pan.value = source.pan;
-  panner.connect(
-    source.rainIndoors === undefined
-      ? master
-      : rainOutput(source.world, source.rainIndoors, master)
-  );
-  const voice = { source, gain, panner, volume: stereoVolume };
-  voices.add(voice);
+  const output = outputFor(source, master);
+  panner.connect(output);
+  const playing = voices.get(source.origin) ?? new Set<Voice>();
+  voices.set(source.origin, playing);
+  const voice = { source, gain, panner, master, output, volume: stereoVolume };
+  playing.add(voice);
   return () => {
-    voices.delete(voice);
+    playing.delete(voice);
+    if (!playing.size) voices.delete(source.origin);
   };
 }
 
@@ -127,30 +158,33 @@ function fade(param: AudioParam, target: number, now: number, end: number) {
   param.linearRampToValueAtTime(target, end);
 }
 
-export function moveSoundListener(
-  world: World,
-  hero: Entity,
-  animate: boolean
-) {
-  if (!voices.size) return;
-  const size = world.metadata.gameEntity.LEVEL.size;
+export function moveSound(world: World, mover: Entity, animate: boolean) {
+  const moving = voices.get(mover);
+  if (!voices.size || (!moving && !mover[PLAYER])) return;
   const tick = animate
-    ? hero.MOVABLE?.spring?.duration ??
-      world.getEntityByIdAndComponents(hero.MOVABLE?.reference, ["REFERENCE"])
+    ? mover.MOVABLE?.spring?.duration ??
+      world.getEntityByIdAndComponents(mover.MOVABLE?.reference, ["REFERENCE"])
         ?.REFERENCE.tick ??
       0
     : 0;
-  for (const { source, gain, panner, volume } of voices) {
-    if (source.world !== world) continue;
-    const mix = mixAt(source.position, hero, size, source.near);
-    const now = gain.context.currentTime;
-    const end = now + tick / 1000;
-    fade(gain.gain, mix.volume * volume, now, end);
-    fade(panner.pan, mix.pan, now, end);
-  }
+  if (moving && !(LAYER in mover)) changeSoundLayer(world, mover);
+  const groups = mover[PLAYER] ? voices.values() : [moving!];
+  for (const group of groups)
+    for (const { source, gain, panner, volume } of group) {
+      if (source.world !== world) continue;
+      const mix = mixAt(
+        source.position,
+        source.listener,
+        world.metadata.gameEntity.LEVEL.size,
+        source.near
+      );
+      const now = gain.context.currentTime;
+      fade(gain.gain, mix.volume * volume, now, now + tick / 1000);
+      fade(panner.pan, mix.pan, now, now + tick / 1000);
+    }
 }
 
 export function clearSoundSources() {
   voices.clear();
-  rainFilters = new WeakMap();
+  outputs = new WeakMap();
 }

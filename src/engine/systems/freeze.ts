@@ -401,7 +401,7 @@ export default function setupFreeze(world: World) {
     // remove snow
     for (const entity of world.getEntities([CLICKABLE, COVERABLE, POSITION])) {
       if (entity[COVERABLE].type === "snow" && entity[CLICKABLE].clicked) {
-        play(world, "snow", { position: entity[POSITION] });
+        play(world, entity, "snow");
         disposeEntity(world, entity);
       }
     }

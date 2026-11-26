@@ -1,3 +1,4 @@
+import type { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -74,12 +75,11 @@ export const weatherIntensity: Record<Weather, number> = {
 
 export const bubbleSound = (
   world: World,
-  position: Position,
+  entity: Entity,
   type: Liquid["type"]
 ) => {
   if (type !== "drop" || random(0, 4) === 0) {
-    play(world, type === "drop" ? "rain" : "bubble", {
-      position,
+    play(world, entity, type === "drop" ? "rain" : "bubble", {
       variant: type === "bubble" ? 1 : 2,
       delay: random(0, 100),
     });
@@ -104,9 +104,6 @@ export const createBubble = (
       : bubbleType === "rain" && immersed
       ? "splash"
       : "drop";
-
-  // play sound in proximity
-  if (audible) bubbleSound(world, position, droppedType);
 
   // water soil
   const soil = getFarmable(world, position);
@@ -133,7 +130,11 @@ export const createBubble = (
   });
 
   // don't show drops in buildings
-  if (getEnterable(world, position)) return;
+  const roof = getEnterable(world, position);
+  if (roof) {
+    if (audible) bubbleSound(world, roof, droppedType);
+    return;
+  }
 
   const bubbleEntity = entities.createSplash(world, {
     [FOG]: { visibility: "hidden", type: "object" },
@@ -151,6 +152,7 @@ export const createBubble = (
     {}
   );
   registerEntity(world, bubbleEntity);
+  if (audible) bubbleSound(world, bubbleEntity, droppedType);
 };
 
 export const applyWaterCell = (world: World, position: Position) => {

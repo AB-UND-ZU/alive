@@ -455,7 +455,7 @@ export const performForgeHit = (world: World, entity: Entity) => {
     const { damage, hp } = calculateDamage(world, { true: 1 }, {}, heroEntity);
     heroEntity[STATS].hp = hp;
 
-    play(world, "magic", { intensity: damage });
+    play(world, undefined, "magic", { intensity: damage });
 
     // add hit marker
     createAmountMarker(world, heroEntity, -damage, "up", "true");
@@ -465,11 +465,11 @@ export const performForgeHit = (world: World, entity: Entity) => {
   ) {
     // miss
     forge.lastAction = "miss";
-    play(world, "anvil");
-    play(world, "cling");
+    play(world, undefined, "anvil");
+    play(world, undefined, "cling");
   } else {
     forge.lastAction = "hit";
-    play(world, "anvil");
+    play(world, undefined, "anvil");
   }
 
   const perfect = hitIndex === hittingOffset + (forge.target ?? step.offset);

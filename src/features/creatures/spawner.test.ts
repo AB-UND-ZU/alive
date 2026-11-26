@@ -47,8 +47,8 @@ describe("mob spawner", () => {
 
     advanceUntil(world, () => getSpawned(world).length === 1, 5000);
     const beeps = playback.mock.calls
-      .filter(([, name]) => name === "countdown")
-      .map(([, , options]) => options?.variant);
+      .filter(([, , name]) => name === "countdown")
+      .map(([, , , options]) => options?.variant);
     playback.mockRestore();
     expect(beeps).toEqual([1, 1, 1, 2]);
     expect(getCreatures(world, "prism")).toHaveLength(1);

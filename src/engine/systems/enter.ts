@@ -1,4 +1,4 @@
-import { setRainIndoors } from "../../game/sound/spatial";
+import { changeSoundLayer } from "../../game/sound/spatial";
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -97,11 +97,11 @@ export default function setupEnter(world: World) {
 
       if (currentStructure !== previousStructure) {
         entity[LAYER].structure = currentStructure;
+        changeSoundLayer(world, entity);
         rerenderEntity(world, entity);
 
         // trigger rerender for enterables
         if (entity[PLAYER]) {
-          setRainIndoors(world, isInside(world, entity));
           const enterableEntities = world
             .getEntities([ENTERABLE, RENDERABLE, FRAGMENT, LAYER])
             .filter(

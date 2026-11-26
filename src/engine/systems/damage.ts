@@ -179,7 +179,7 @@ export const triggerSpear = (
     REFERENCE,
   ])[REFERENCE].tick;
 
-  play(world, "spear", { position: entity[POSITION] });
+  play(world, entity, "spear");
 
   // create spear slash
   createSequence<"slash", SlashSequence>(
@@ -503,6 +503,8 @@ export const triggerZap = (
     // add hit marker
     const zapId = world.getEntityId(zapRoot);
     if (!(zapId in zapCounts)) {
+      const index = zapPositions.length;
+      play(world, zapTarget, "spark", { variant: index + 1, delay: index * 35 });
       zapPositions.push(zapTarget[POSITION]);
       zapCounts[zapId] = 0;
     }
@@ -535,12 +537,7 @@ export const triggerZap = (
     "lightningFlash",
     { targets: zapPositions }
   );
-  play(world, "zap", { position: fragmentEntity[POSITION], variant: 2 });
-
-  // electric spark on each hit target in quick succession
-  zapPositions.forEach((position, index) => {
-    play(world, "spark", { position, variant: index + 1, delay: index * 35 });
-  });
+  play(world, fragmentEntity, "zap", { variant: 2 });
 
   delete attackerEntity[CONDITIONABLE]?.zap;
   rerenderEntity(world, attackerEntity);
@@ -649,7 +646,7 @@ export const applyProcs = (
       attackerEntity[STATS].hp = hp;
       hasAffected = true;
       createAmountMarker(world, attackerEntity, drain, "up", "heal");
-      play(world, "pickup", { position: attackerEntity[POSITION], ...pickupOptions.hp });
+      play(world, attackerEntity, "pickup", { ...pickupOptions.hp });
     }
   }
 
@@ -956,9 +953,7 @@ export default function setupDamage(world: World) {
               targetOrientation
             );
 
-            play(world, "hit", {
-              actor: entity,
-              position: targetPosition,
+            play(world, entity, "hit", {
               intensity: damage,
               variant: targetEntity[PLAYER] ? 1 : 2,
             });

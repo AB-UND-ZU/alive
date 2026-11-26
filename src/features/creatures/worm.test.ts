@@ -296,10 +296,10 @@ describe("worm cave encounter", () => {
     try {
       const { world } = startFight();
       advanceUntil(world, () =>
-        play.mock.calls.some(([, name]) => name === "wave")
+        play.mock.calls.some(([, , name]) => name === "wave")
       );
       expect(
-        play.mock.calls.find(([, name]) => name === "wave")?.[2]?.intensity
+        play.mock.calls.find(([, , name]) => name === "wave")?.[3]?.intensity
       ).toBe(1.25);
     } finally {
       play.mockRestore();

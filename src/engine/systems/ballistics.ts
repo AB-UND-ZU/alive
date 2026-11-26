@@ -112,7 +112,7 @@ export const shootArrow = (
 
   spendItem(world, entity, { stackable: "arrow", amount: 1 });
 
-  play(world, "arrow", { position: entity[POSITION], variant: 1 });
+  play(world, entity, "arrow", { variant: 1 });
 
   const tick =
     world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[
@@ -268,7 +268,7 @@ export default function setupBallistics(world: World) {
             fragmentEntity[SHOOTABLE].shots += 1;
           }
           hit = true;
-          play(world, "arrow", { position: entity[POSITION], variant: 3 });
+          play(world, entity, "arrow", { variant: 3 });
           disposeEntity(world, entity, false);
 
           // add hit marker
@@ -312,8 +312,8 @@ export default function setupBallistics(world: World) {
           getSequence(world, entity, "arrow")?.args.caster !==
             world.getEntityId(shootable))
       ) {
-        play(world, "arrow", { position: entity[POSITION], variant: 2 });
-        play(world, "arrow", { position: entity[POSITION], variant: 4, delay: 160 });
+        play(world, entity, "arrow", { variant: 2 });
+        play(world, entity, "arrow", { variant: 4, delay: 160 });
         const targetPosition = add(
           entity[POSITION],
           orientationPoints[oppositeOrientation]

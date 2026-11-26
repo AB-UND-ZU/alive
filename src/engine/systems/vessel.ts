@@ -81,7 +81,7 @@ export const stopVessel = (world: World, vessel: Entity) => {
     vessel[MOVABLE].orientations.length > 0 &&
     isImmersible(world, vessel[POSITION])
   ) {
-    bubbleSound(world, vessel[POSITION], "bubble");
+    bubbleSound(world, vessel, "bubble");
   }
   vessel[MOVABLE].orientations = [];
   vessel[MOVABLE].pendingOrientation = undefined;
@@ -227,7 +227,7 @@ export default function setupVessel(world: World) {
           mount[MOUNTABLE].medium === "water" &&
           isImmersible(world, mount[POSITION])
         ) {
-          bubbleSound(world, mount[POSITION], "bubble");
+          bubbleSound(world, mount, "bubble");
         }
         // instantly start movement
         if (!mountOrientation) {

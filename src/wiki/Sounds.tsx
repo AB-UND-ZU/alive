@@ -104,7 +104,7 @@ export function Sounds() {
     setAudioActive(true);
     unmuteAudio();
     await ensureAudio();
-    play(undefined, name);
+    play(undefined, undefined, name);
     setLast(name);
   };
   return (

@@ -122,8 +122,8 @@ describe("quests", () => {
     const playback = jest.spyOn(sound, "play");
     press(world, "right");
     const delays = playback.mock.calls
-      .filter(([, name]) => name === "pickup")
-      .map(([, , options]) => options?.delay);
+      .filter(([, , name]) => name === "pickup")
+      .map(([, , , options]) => options?.delay);
     playback.mockRestore();
 
     expect(delays).toHaveLength(2);

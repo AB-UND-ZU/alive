@@ -136,7 +136,7 @@ export default function setupFishing(world: World) {
         hookable[HOOKABLE].hooked = entityId;
         hookable[HOOKABLE].casting = undefined;
         entity[BAITABLE].caught = hookableId;
-        play(world, "fish", { position: entity[POSITION], variant: 3 });
+        play(world, entity, "fish", { variant: 3 });
         bumpEntity(world, entity, "down");
         rerenderEntity(world, entity);
       }
@@ -191,7 +191,7 @@ export default function setupFishing(world: World) {
         (!entity[HOOKABLE].catching && entity[HOOKABLE].escaping)
       ) {
         // escape
-        if (entity[HOOKABLE].hooked) play(world, "escape", { position: entity[POSITION], notes: 4, spacing: 110 });
+        if (entity[HOOKABLE].hooked) play(world, entity, "escape", { notes: 4, spacing: 110 });
         entity[HOOKABLE].hooked = undefined;
         entity[HOOKABLE].catching = undefined;
         entity[HOOKABLE].escaping = false;
@@ -199,7 +199,7 @@ export default function setupFishing(world: World) {
       } else if (!entity[HOOKABLE].escaping && baitEntity) {
         // escape on next movement
         entity[HOOKABLE].escaping = true;
-        play(world, "fish", { position: entity[POSITION], variant: 4 });
+        play(world, entity, "fish", { variant: 4 });
         bumpEntity(world, baitEntity, "down");
         rerenderEntity(world, baitEntity);
 

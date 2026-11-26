@@ -61,7 +61,7 @@ describe("preset waveforms", () => {
   afterEach(() => jest.restoreAllMocks());
 
   it("keeps the original sample rate without silent tails", () => {
-    play(undefined, "wave", { seed: 2 });
+    play(undefined, undefined, "wave", { seed: 2 });
 
     const rendered = synthesized.mock.results[0].value.normalized;
     const [, length, sampleRate] = buffers.mock.calls[0];
@@ -74,7 +74,7 @@ describe("preset waveforms", () => {
   it.each([0, 1, 2, 3] as const)(
     "keeps orb beam sweeps audible without sharp clicks for seed %s",
     (seed) => {
-      play(undefined, "beam", { variant: 3, seed });
+      play(undefined, undefined, "beam", { variant: 3, seed });
       const samples: number[] = synthesized.mock.results[0].value.normalized;
       let largestStep = 0;
       let energy = 0;
@@ -89,8 +89,8 @@ describe("preset waveforms", () => {
   );
 
   it("keeps the prompt cue shorter and quieter than a danger warning", () => {
-    play(undefined, "prompt", { seed: 3 });
-    play(undefined, "danger", { seed: 3 });
+    play(undefined, undefined, "prompt", { seed: 3 });
+    play(undefined, undefined, "danger", { seed: 3 });
 
     const [prompt, danger] = synthesized.mock.results.map(
       ({ value }) => value.normalized as number[]

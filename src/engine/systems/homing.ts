@@ -128,7 +128,7 @@ export const shootHoming = (
   discEntity[EXERTABLE].castable = world.getEntityId(discEntity);
   registerEntity(world, discEntity);
 
-  play(world, "disc", { position: origin });
+  play(world, discEntity, "disc");
 
   return discEntity;
 };

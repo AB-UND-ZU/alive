@@ -1,6 +1,5 @@
 import type { Entity } from "ecs";
 import type { World } from "../../engine/ecs";
-import type { Position } from "../../engine/components/position";
 import { getSoundSource } from "./spatial";
 import { Consumable, Stackable } from "../../engine/components/item";
 import { NpcType } from "../../engine/components/npc";
@@ -83,8 +82,6 @@ type SoundOptions = {
 };
 
 export type SfxOptions<P extends SoundPreset> = SoundOptions & {
-  position?: Position;
-  actor?: Entity;
   offset?: number;
   volume?: number;
   variant?: SoundVariant<P>;
@@ -1543,10 +1540,9 @@ export const loadSounds = (
 
 export const play = <P extends SoundPreset>(
   world: World | undefined,
+  origin: Entity | undefined,
   preset: P,
   {
-    position,
-    actor,
     offset = 0,
     volume = 1,
     delay = 0,
@@ -1558,15 +1554,16 @@ export const play = <P extends SoundPreset>(
 ) => {
   if (!isPlaying()) return false;
   const source =
-    world && position && getSoundSource(world, position, preset, options.variant, actor);
-  if (position && !source) return false;
+    world && origin && getSoundSource(world, origin, preset);
+  if (origin && !source) return false;
   if (soundStub) {
     soundStub.played.push(preset);
     return true;
   }
 
-  if (source && !source.playerAction) delay += 50 * Math.random() ** 2;
-  const cents = (Math.random() * 2 - 1) * 10;
+  if (source && source.origin !== source.listener) delay += 50 * Math.random() ** 2;
+  const cents = preset === "level" || preset === "fountain" || preset === "totem"
+    ? 0 : random(-3, 3) * 5;
   const playbackRate = 2 ** (cents / 1200);
 
   for (let note = 1; note <= notes; note += 1) {

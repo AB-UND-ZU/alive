@@ -402,7 +402,7 @@ export default function setupMovement(world: World) {
       }
 
       if (movedOrientation) {
-        if (pushSound) play(world, "push", { position: entity[POSITION] });
+        if (pushSound) play(world, entity, "push");
         const delta = orientationPoints[movedOrientation];
         const rootPosition = combine(size, entity[POSITION], delta);
         const boat = entity[MOUNTABLE]?.medium === "water";
@@ -411,7 +411,7 @@ export default function setupMovement(world: World) {
           entityReference >= (nextSail[entityId] ?? 0) &&
           isImmersible(world, entity[POSITION])
         ) {
-          play(world, "sail", { position: entity[POSITION] });
+          play(world, entity, "sail");
           nextSail[entityId] = entityReference + 5;
         }
 
@@ -421,8 +421,7 @@ export default function setupMovement(world: World) {
             : getTempo(world, rootPosition) < 0
             ? 2
             : 1;
-          play(world, "move", {
-            position: entity[POSITION],
+          play(world, entity, "move", {
             intensity: movableReference[REFERENCE].tick,
             variant,
             volume: getCellEntities(world, rootPosition).some(
@@ -433,10 +432,9 @@ export default function setupMovement(world: World) {
           entity[MOVABLE].flying &&
           entity[BEHAVIOUR]?.patterns.some((pattern) => pattern.name === "tumbleweed")
         ) {
-          play(world, "tumbleweed", { position: rootPosition });
+          play(world, entity, "tumbleweed");
         } else if (entity[NPC] && entity[FOG]?.visibility === "visible") {
-          play(world, "slide", {
-            position: rootPosition,
+          play(world, entity, "slide", {
             intensity: movableReference[REFERENCE].tick,
             variant: npcVariants[entity[NPC].type],
           });

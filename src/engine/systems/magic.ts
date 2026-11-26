@@ -171,9 +171,9 @@ export const attemptBubbleAbsorb = (world: World, entity: Entity) => {
 
     if (entity[CONDITIONABLE].block.amount <= 0) {
       delete entity[CONDITIONABLE].block;
-      play(world, "block", { position: entity[POSITION], variant: 3 });
+      play(world, entity, "block", { variant: 3 });
     } else {
-      play(world, "block", { position: entity[POSITION], variant: 2 });
+      play(world, entity, "block", { variant: 2 });
     }
     return true;
   }
@@ -236,7 +236,7 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
     { facing: "right", tick, rotate: true }
   );
 
-  play(world, "slash", { position: entity[POSITION] });
+  play(world, entity, "slash");
 };
 
 const totemUnits = {
@@ -332,7 +332,7 @@ export const summonTotem = (world: World, entity: Entity, totem: Entity) => {
       element: totem[ITEM].element,
     }
   );
-  play(world, "totem", { position: target });
+  play(world, totemEntity, "totem");
 };
 
 export const hasTriggered = (
@@ -557,7 +557,7 @@ export default function setupMagic(world: World) {
             if (healing > 0) {
               targetEntity[STATS].hp = hp;
               createAmountMarker(world, fragmentEntity, healing, "up", "heal");
-              play(world, "pickup", { position: fragmentEntity[POSITION], ...pickupOptions.hp });
+              play(world, fragmentEntity, "pickup", { ...pickupOptions.hp });
               hasAffected = true;
             }
           }
@@ -593,7 +593,7 @@ export default function setupMagic(world: World) {
             }
 
             // play sound
-            play(world, "magic", { position: fragmentEntity[POSITION], actor: casterEntity, intensity: damage });
+            play(world, casterEntity ?? fragmentEntity, "magic", { intensity: damage });
 
             // add hit marker
             createAmountMarker(
@@ -759,7 +759,7 @@ export default function setupMagic(world: World) {
           previousStats += 1;
         } else continue;
 
-        play(world, "pickup", {
+        play(world, undefined, "pickup", {
           delay,
           ...pickupOptions[statName as "hp" | "maxHp" | "mp" | "maxMp"],
         });
@@ -799,7 +799,7 @@ export default function setupMagic(world: World) {
         rerenderEntity(world, rootEntity);
       }
 
-      play(world, "magic", { position: entity[POSITION], intensity: damage });
+      play(world, entity, "magic", { intensity: damage });
 
       // add hit marker
       createAmountMarker(world, entity, -damage, "up", "true");

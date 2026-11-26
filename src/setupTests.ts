@@ -122,10 +122,9 @@ jest.mock("./game/sound", () => {
   return {
     ...actual,
     loadSounds: jest.fn(() => Promise.resolve()),
-    play: (...[world, preset, options]: Parameters<typeof import("./game/sound").play>) => {
+    play: (...[world, origin, preset]: Parameters<typeof import("./game/sound").play>) => {
       if (
-        !options?.position ||
-        (world && getSoundSource(world, options.position, preset, options.variant))
+        !origin || (world && getSoundSource(world, origin, preset))
       ) {
         env.playedSounds.push(preset);
         return true;

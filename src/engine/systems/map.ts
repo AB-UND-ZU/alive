@@ -1,5 +1,4 @@
-import { moveSoundListener } from "../../game/sound/spatial";
-import { PLAYER } from "../components/player";
+import { moveSound } from "../../game/sound/spatial";
 import { moveMotion } from "../motion";
 import { Entity } from "ecs";
 import { World } from "../ecs";
@@ -241,7 +240,7 @@ export const moveEntity = (
   entity[POSITION].x = normalize(position.x, size);
   entity[POSITION].y = normalize(position.y, size);
   registerEntity(world, entity);
-  if (entity[PLAYER]) moveSoundListener(world, entity, animate);
+  moveSound(world, entity, animate);
 };
 
 // Object.values() of each cell is cached until the cell changes. A changed

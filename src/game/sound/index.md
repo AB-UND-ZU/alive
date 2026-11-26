@@ -15,8 +15,6 @@ Synthesizes sound effects from named presets. `play` does nothing until the game
 | --------- | -------------------------------------------- |
 | delay     | Delay before playback, in milliseconds       |
 | intensity | Preset-specific strength                     |
-| position  | Tile where the sound starts in the given world |
-| actor     | Unit responsible for a sound emitted on another tile |
 | offset    | Elapsed playback time in milliseconds for an ongoing cue |
 | volume    | Relative playback gain, defaults to 1        |
 | variant   | Preset variation, typed per preset           |
@@ -31,7 +29,7 @@ With multiple notes, the note index selects each variant. Every note is schedule
 
 `variant` only accepts the values listed for its preset, so new values need to be added to that list. A sound with additional synthesis parameters, such as a new `intensity`, is synthesized when played and kept.
 
-Use `play(world, "hit", { position })` for a sound on the map and `play(world, "confirm")` for centered UI feedback. Distance and stereo use the hero’s position in that world. Moving the hero adjusts ongoing sounds through [spatial playback](spatial.md). All positions and playback volumes share the same cached samples. Buffers retain the original 44,100 samples per second and leave out their silent tail.
+Use `play(world, attacker, "hit")` for a sound on the map and `play(world, undefined, "confirm")` for centered UI feedback. Moving the listener or the emitting entity adjusts ongoing sounds through [spatial playback](spatial.md). All positions and playback volumes share the same cached samples. Buffers retain the original 44,100 samples per second and leave out their silent tail.
 <!-- source-types -->
 
 ## Seed
@@ -58,8 +56,6 @@ type SoundOptions = {
 
 ```ts src/game/sound/index.ts
 export type SfxOptions<P extends SoundPreset> = SoundOptions & {
-  position?: Position;
-  actor?: Entity;
   offset?: number;
   volume?: number;
   variant?: SoundVariant<P>;

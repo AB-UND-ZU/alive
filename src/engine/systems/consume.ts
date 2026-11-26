@@ -203,7 +203,7 @@ export const consumeItem = (
   // hurt like true damage to shake screen, gains play existing pickup sounds
   if (entity[PLAYER] && amount < 0) {
     entity[PLAYER].receivedStats.true -= amount;
-    play(world, "hit", { position: entity[POSITION], intensity: -amount, variant: 1 });
+    play(world, entity, "hit", { intensity: -amount, variant: 1 });
   }
 
   if (consumption.countable === "xp") {

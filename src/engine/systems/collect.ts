@@ -172,7 +172,7 @@ export const collectItem = (
     // play sound
     if (!(stat && !material)) {
       const options = pickupOptions[(stackable || consume)!];
-      play(world, "pickup", { position: target[POSITION], actor: entity, ...options });
+      play(world, entity, "pickup", { ...options });
     }
 
     // update walkable
@@ -306,7 +306,7 @@ export const equipItem = (
       });
       return;
     } else {
-      play(world, "equip", { notes: 4, spacing: 45, delay });
+      play(world, undefined, "equip", { notes: 4, spacing: 45, delay });
       queueMessage(world, entity, {
         line: [
           ...createText("Equipped:", colors.black, colors.yellow),
