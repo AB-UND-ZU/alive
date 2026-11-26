@@ -12,6 +12,7 @@ import {
   WeatherSequence,
 } from "../../engine/components/sequencable";
 import { SPRITE } from "../../engine/components/sprite";
+import { getSceneFrame } from "../../renderers/interface/frame";
 import { getActiveViewable } from "../../renderers/interface/hooks";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { PARTICLE } from "../../engine/components/particle";
@@ -134,6 +135,20 @@ describe("weather", () => {
       }
     }
   );
+
+  it("keeps falling snow over its landing cell between a viewpoint change and the next storm update", () => {
+    const world = createAreaWorld(meadow, { size: 96 });
+    const hero = assertHero(world);
+    const storm = addStorm(world, "snow");
+    storm[SEQUENCABLE].states.weather!.args.start = -200;
+    advance(world, 800);
+    const snowfall = () => getSceneFrame(world, 33, 17)
+      .filter((entry) => entry.entity === storm && entry.particle);
+    const before = snowfall();
+    expect(before.length).toBeGreaterThan(0);
+    moveEntity(world, hero, { x: hero[POSITION].x + 2, y: hero[POSITION].y });
+    expect(snowfall().map(({ x }) => x)).toEqual(before.map(({ x }) => x - 2));
+  });
 
   it("lands rain at the end of its fall and keeps the splash lifetime when loaded", () => {
     let world = createAreaWorld(meadow, { size: 48 });
