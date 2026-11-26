@@ -11,7 +11,7 @@ import {
 import { ATTACKABLE } from "../engine/components/attackable";
 import { BEHAVIOUR } from "../engine/components/behaviour";
 import { BELONGABLE } from "../engine/components/belongable";
-import { BURNABLE } from "../engine/components/burnable";
+import addBurnable, { BURNABLE } from "../engine/components/burnable";
 import { COLLECTABLE } from "../engine/components/collectable";
 import { COLLIDABLE } from "../engine/components/collidable";
 import { CONDITIONABLE } from "../engine/components/conditionable";
@@ -793,6 +793,7 @@ export const createChest = (
     [STATS]: chestData.stats,
     [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
   });
+  if (unitKey === "rotten") addBurnable(world, chestEntity);
   populateInventory(world, chestEntity, items || chestData.items);
 
   if (chestData.harvestable.maximum > 0) {
@@ -3494,6 +3495,7 @@ export const createCell = (
       });
     }
     all.push(mobEntity);
+    if (mobUnit.harvestable.resource === "plant") addBurnable(world, mobEntity);
     populateInventory(world, mobEntity, mobUnit.items, mobUnit.equipments);
 
     if (mobUnit.harvestable.maximum > 0) {

@@ -1,6 +1,6 @@
 # Plants
 
-Inspect plants to see their name and available actions. Harvest them with the matching tool; some plants attack when approached.
+Inspect plants to see their name and available actions. Harvest them with the matching tool; some plants attack when approached. Rotten wood and the rose, violet and clover creatures burn without dropping loot.
 
 ```widget
 units plants

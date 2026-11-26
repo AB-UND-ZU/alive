@@ -450,6 +450,7 @@ export default function setupDrop(world: World) {
       SEQUENCABLE,
       POSITION,
     ])) {
+      if (entity[BURNABLE]?.burning || entity[BURNABLE]?.combusted) continue;
       if (isDecaying(world, entity)) {
         play(world, "die", {
           position: entity[POSITION],
@@ -628,7 +629,7 @@ export default function setupDrop(world: World) {
 
     // replace decayed entities, increase slay counter and evaporate unit
     for (const entity of world.getEntities([DROPPABLE, RENDERABLE, POSITION])) {
-      if (!isDecayed(world, entity)) continue;
+      if (!isDecayed(world, entity) || entity[BURNABLE]?.combusted) continue;
       const rootEntity = getRoot(world, entity);
 
       if (isDead(world, entity) || isDead(world, rootEntity)) {

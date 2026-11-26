@@ -77,6 +77,7 @@ import { NPC } from "../components/npc";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { closePopup, getActivePopup } from "./popup";
 import { Affectable, AFFECTABLE } from "../components/affectable";
+import { BURNABLE } from "../components/burnable";
 import { extinguishEntity } from "./burn";
 import { FRAGMENT } from "../components/fragment";
 import { isFragment } from "./enter";
@@ -565,6 +566,7 @@ export const applyEffects = (
     targetBurn > 0 &&
     targetBurn > curentBurn &&
     !isDead(world, targetEntity)
+    if (targetEntity[BURNABLE]) targetEntity[BURNABLE].burning = true;
   ) {
     hasAffected = true;
     targetEntity[AFFECTABLE].burn = targetBurn;

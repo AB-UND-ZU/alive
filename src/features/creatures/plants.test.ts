@@ -1,3 +1,8 @@
+import { createChest } from "../../bindings/creation";
+import { applyEffects } from "../../engine/systems/damage";
+import { registerEntity } from "../../engine/systems/map";
+import { BURNABLE } from "../../engine/components/burnable";
+import { INVENTORY } from "../../engine/components/inventory";
 import { ATTACKABLE } from "../../engine/components/attackable";
 import { BELONGABLE } from "../../engine/components/belongable";
 import { NpcType } from "../../engine/components/npc";
@@ -52,6 +57,32 @@ describe("dormant plants", () => {
       expect(hero[STATS].hp).toBe(hero[STATS].maxHp);
     }
   );
+
+  it.each(["rose", "violet", "clover"] as NpcType[])(
+    "destroys a burning %s and its inventory even on a lethal hit",
+    (type) => {
+      const { world, plant } = setup(type);
+      const id = world.getEntityId(plant);
+      const items = [...plant[INVENTORY].items];
+      awaken(world, plant);
+      applyEffects(world, plant, 3, 0);
+      expect(plant[BURNABLE]?.burning).toBe(true);
+      plant[STATS].hp = 0;
+      advanceUntil(world, () => !world.getEntityById(id), 15000);
+      expect(items.every((item) => !world.getEntityById(item))).toBe(true);
+    }
+  );
+
+  it("burns rotten wood without releasing its worm", () => {
+    const { world } = setup("rose");
+    const trunk = createChest(world, "rotten", { x: 6, y: 0 }, [{ stackable: "worm", amount: 1 }]);
+    registerEntity(world, trunk);
+    const worm = trunk[INVENTORY].items[0];
+    const id = world.getEntityId(trunk);
+    trunk[BURNABLE]!.burning = true;
+    advanceUntil(world, () => !world.getEntityById(id), 15000);
+    expect(world.getEntityById(worm)).toBeUndefined();
+  });
 
   it("wakes up with rage and becomes vulnerable after being touched", () => {
     const { world, plant } = setup("rose");
