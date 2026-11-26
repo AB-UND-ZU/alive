@@ -148,7 +148,7 @@ test("Savegames documents local saves and Play is an Intro menu item", async ({
   await save.click();
   await expect(page).toHaveURL(/savegames.html$/);
   await expect(page.locator("h1")).toHaveAccessibleName("Savegames");
-  await expect(page.locator("main")).toContainText("Pausing saves");
+  await expect(page.locator("main")).toContainText("shows SAVING until the save finishes");
   await page
     .locator("nav")
     .getByRole("link", { name: "Play", exact: true })

@@ -186,7 +186,7 @@ test("game-frame sound is silent for autoplay, audible during interaction and si
     .toBe(0);
 });
 
-test("a sound sample replayed during a pending navigation cannot leak into the next page", async ({
+test("leaving Sounds immediately removes playback controls and mutes audio while the next page loads", async ({
   page,
 }) => {
   await observeOutputGain(page);
@@ -202,8 +202,6 @@ test("a sound sample replayed during a pending navigation cannot leak into the n
     await route.continue();
   });
   try {
-    await page.locator('nav a[aria-label="Savegames"]').click();
-    await expect.poll(() => requested).toBe(true);
     await page
       .locator('[data-widget="sounds"]')
       .getByRole("button", { name: "Play", exact: true })
@@ -213,6 +211,10 @@ test("a sound sample replayed during a pending navigation cannot leak into the n
       .poll(() => page.evaluate(() => window.soundStub.played.length))
       .toBeGreaterThan(0);
     const samples = await page.evaluate(() => window.soundStub.played.length);
+    await page.locator('nav a[aria-label="Savegames"]').click();
+    await expect.poll(() => requested).toBe(true);
+    await expect(page.locator('[data-widget="sounds"]')).toHaveCount(0);
+    expect(await page.evaluate(() => window.__audioOutput.gain.value)).toBe(0);
     release();
     await expect(page.locator("h1")).toHaveAccessibleName("Savegames");
     expect(await page.evaluate(() => window.__audioOutput.gain.value)).toBe(0);

@@ -30,6 +30,7 @@ import {
   aura,
   mapHouse,
   mapFortress,
+  iglooRoofLeftUp,
 } from "../game/assets/sprites";
 import { doorClosed } from "../game/assets/templates/units";
 import { getItemSprite } from "../game/assets/utils";
@@ -38,6 +39,7 @@ import { shop, forge, brew, craft } from "../game/assets/ui";
 export const featureSprites: Record<string, Sprite> = {
   "wood house": mapHouse,
   "desert fort": mapFortress,
+  igloo: iglooRoofLeftUp,
   level: mapDiscovery,
   levels: mapDiscovery,
   chair: chairRight,

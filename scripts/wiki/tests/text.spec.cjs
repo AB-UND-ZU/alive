@@ -15,7 +15,7 @@ test("technical inline code keeps constants and wraps without changing copied so
   for (const [route, source] of [
     ["/development/wiki/app.html", "development/<group>/<source>.html"],
     ["/development/wiki/scenes.html", "Dimensions.topHudRows"],
-    ["/development/wiki/equippedpreview.html", "createItemInInventory"],
+    ["/development/wiki/catalog.html", "getEntityDisplayStats"],
   ]) {
     await page.goto(route);
     const code = page
