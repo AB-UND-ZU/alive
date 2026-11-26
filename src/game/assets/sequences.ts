@@ -489,6 +489,7 @@ import {
   getStatSprite,
   mergeSprites,
   parseSprite,
+  rage2,
   recolorSprite,
   getFacingLayers,
   shaded,
@@ -2310,6 +2311,15 @@ export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
     state.particles[name] = world.getEntityId(particle);
     updated = true;
   };
+
+  if (!triggered && progress <= 1) {
+    if (!state.particles.placement)
+      place("placement", rage2, { x: 0, y: -1 }, particleHeight);
+  } else if (state.particles.placement) {
+    disposeEntity(world, world.assertById(state.particles.placement));
+    delete state.particles.placement;
+    updated = true;
+  }
 
   const caster = world.getEntityByIdAndComponents(entity[CASTABLE].caster, [
     POSITION,

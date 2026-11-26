@@ -20,6 +20,7 @@ import {
 } from "../../engine/systems/map";
 import { createBubble } from "../../engine/systems/water";
 import { createCell } from "../../bindings/creation";
+import { rage2 } from "../../game/assets/ui";
 import { rain, warnOn, warnOff } from "../../game/assets/sprites";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { combine } from "../../game/math/std";
@@ -126,6 +127,17 @@ describe("trap spell", () => {
     expect(getTrapAreas(world, spell)).toHaveLength(9);
     advanceTriggerTo(world, spell, 1500);
     expect(getTrapAreas(world, spell)).toHaveLength(0);
+  });
+
+  it("briefly shows a placement warning above the trap", () => {
+    const { world, spell } = setup();
+    const particles = spell[SEQUENCABLE].states.aura!.particles;
+    const marker = world.assertByIdAndComponents(particles.placement, [SPRITE, PARTICLE]);
+    expect(marker[SPRITE]).toBe(rage2);
+    expect(marker[PARTICLE].offsetY).toBe(-1);
+    advance(world, 500);
+    expect(particles.placement).toBeUndefined();
+    expect(spell.TOOLTIP).toBeUndefined();
   });
 
   it("arms all nine cells only after its caster leaves the cast cell", () => {
