@@ -4,7 +4,7 @@
 popup build
 ```
 
-Choose a plan, variant, and suitable ground. The [[item:hammer]] build stat must meet the plan level. Structures may need work after placement.
+Choose a plan, variant, and suitable ground. The [[item:hammer]] build stat must meet the plan level. Build on clear ground, including an empty spot inside a house. Some structures need repairs after placement.
 
 ## Hammer
 

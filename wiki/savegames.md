@@ -6,7 +6,7 @@ popup pause load
 
 [[key:Escape]] Pause and save the game.
 
-Pausing saves the current game in this browser. Use Continue in the main menu to load it.
+The pause screen opens immediately and shows SAVING until the save finishes. Use Continue in the main menu to load it.
 
 | Action | Result |
 | --- | --- |
