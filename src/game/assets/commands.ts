@@ -576,7 +576,7 @@ const executeNew = (
     } else {
       const { all } = createCell(world, target, cell, "hidden");
       all.forEach((unit) => {
-        registerEntity(world, unit);
+        if (unit[POSITION]) registerEntity(world, unit);
       });
       world.metadata.gameEntity[LEVEL].cells[target.x][target.y] =
         cell === "water" ? "water_deep" : cell;

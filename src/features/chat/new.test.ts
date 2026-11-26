@@ -61,6 +61,17 @@ describe("new command", () => {
     );
   });
 
+  it("places loose ore in its positioned drop container", () => {
+    const { world } = setup();
+    say(world, "/new stone 2 right");
+    step(world);
+    for (const x of [2, 3]) {
+      expect(getCell(world, x, 1)).toBe("stone");
+      const drop = findEntityAt(world, { x, y: 1 }, ["INVENTORY"])!;
+      expect(world.assertByIdAndComponents(drop.INVENTORY.items[0], ["ITEM"]).ITEM.stackable).toBe("ore");
+    }
+  });
+
   it("places shallow water and a beach on the edge of a new pool", () => {
     const { world } = setup();
 
