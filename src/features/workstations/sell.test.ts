@@ -47,6 +47,14 @@ const setup = (items: GivenItem[]) => {
 
 const sellPrice = (item: GivenItem) => getItemSellPrice(item)[0].amount;
 
+it.each(["sand", "gravel"] as const)("offers %s for one coin and cannot buy it back", (stackable) => {
+  const item = { stackable };
+  expect(purchasableItems).toContainEqual(item);
+  expect(getItemBuyPrice(item)[0].amount).toBe(1);
+  expect(sellPrice({ ...item, amount: 1 })).toBe(0);
+});
+
+
 describe("selling to a trader", () => {
   it("lists the carried items on the sell tab", () => {
     const { world, hero, popup } = setup([

@@ -42,7 +42,7 @@ Talk to [[unit:earthChief]] and complete these stages in order.
 
 After the worm quest, use the rewarded [[item:hammer wood]] to choose a boat. Craft its [[item:1 plank]] and [[item:1 iron]], place a Plot in shallow water, then select Repair to finish it. The jetty guard steps aside when approached and returns to its post after you leave. Sail to the water guard in the glacier's center; the quest focuses on that guard.
 
-[[unit:fireDruid]] requests one of: [[item:2 juice]], [[item:2 curry]], [[item:2 crystal]], [[item:2 mineral]], [[item:10 thorn]], [[item:5 potion iron hp]] or [[item:5 potion iron mp]].
+[[unit:fireDruid]] requests one of: [[item:2 juice]], [[item:2 curry]], [[item:2 crystal]], [[item:2 mineral]], [[item:30 thorn]], [[item:5 potion iron hp]] or [[item:5 potion iron mp]].
 
 ## Nomad
 

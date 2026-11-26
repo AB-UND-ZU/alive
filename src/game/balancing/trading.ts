@@ -19,6 +19,8 @@ export const itemPrices: Partial<Record<Stackable, number>> = {
 
   stick: 2,
   ore: 2,
+  gravel: 1,
+  sand: 1,
 
   arrow: 4,
   charge: 4,
@@ -142,7 +144,7 @@ export const getItemSellPrice = (
   item: Omit<Item, "amount" | "carrier" | "bound">
 ): Deal["prices"] => {
   // prevent selling charges and small items
-  if (["charge", "flower", "berry"].includes(item.stackable!)) {
+  if (["charge", "flower", "berry", "sand", "gravel"].includes(item.stackable!)) {
     return [{ stackable: "coin", amount: 0 }];
   }
 
@@ -175,6 +177,8 @@ export const purchasableItems: Omit<Item, "amount" | "carrier" | "bound">[] = [
   { stackable: "stick" },
   { stackable: "resource", material: "wood" },
   { stackable: "plank" },
+  { stackable: "sand" },
+  { stackable: "gravel" },
   { stackable: "ore" },
   { stackable: "resource", material: "iron" },
   { stackable: "nugget" },

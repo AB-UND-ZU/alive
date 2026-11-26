@@ -15,7 +15,7 @@ const wishes = [
   { stackable: "curry", amount: 2 },
   { stackable: "crystal", amount: 2 },
   { stackable: "mineral", amount: 2 },
-  { stackable: "thorn", amount: 10 },
+  { stackable: "thorn", amount: 30 },
   { consume: "potion", material: "iron", stat: "hp", amount: 5 },
   { consume: "potion", material: "iron", stat: "mp", amount: 5 },
 ] as const;

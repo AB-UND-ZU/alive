@@ -2571,7 +2571,7 @@ export const fireDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
           ],
         ],
         [
-          { stackable: "thorn", amount: 10 },
+          { stackable: "thorn", amount: 30 },
           [
             [
               ...createText("Cut some "),
@@ -2580,7 +2580,7 @@ export const fireDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
             ],
             [
               ...createText("to get "),
-              ...createItemText({ stackable: "thorn", amount: 10 }),
+              ...createItemText({ stackable: "thorn", amount: 30 }),
               ...createText("."),
             ],
           ],
