@@ -386,7 +386,7 @@ export default function setupMovement(world: World) {
             const shore = iterateMatrixFromCenter(
               world.metadata.gameEntity[LEVEL].cells,
               limb[POSITION],
-              (x, y) => isWalkable(world, { x, y })
+              (x, y) => !isSubmerged(world, { x, y })
             );
             if (shore && relativeOrientations(world, limb[POSITION], shore, 1)[0] === orientation)
               continue;
