@@ -8,7 +8,7 @@ jest.setTimeout(120000);
 test("the seeded town references reveal interiors and complete NPC portraits with meaningful interactions", () => {
   const sample = prepareIslandMaps();
   expect(sample.seed).toBe(islandPreviewSeed);
-  for (const town of [sample.earth, sample.fire]) {
+  for (const town of [sample.earth, sample.fire, sample.glacier]) {
     expect(town.rows).toHaveLength(town.bounds.height);
     expect(town.rows.every((row) => row.length === town.bounds.width)).toBe(
       true
@@ -32,6 +32,9 @@ test("the seeded town references reveal interiors and complete NPC portraits wit
   expect(sample.fire.legend.map((entry) => entry.unit)).toContain("fireChief");
   expect(sample.fire.legend.map((entry) => entry.unit)).toContain(
     "fireJettyGuard"
+  );
+  expect(sample.glacier.legend.map((entry) => entry.unit)).toContain(
+    "waterChief"
   );
   if (process.env.WIKI_WORLD_SNAPSHOT === "true")
     require("node:fs").writeFileSync(

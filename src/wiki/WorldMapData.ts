@@ -26,12 +26,13 @@ export function prepareIslandMaps() {
   };
   const pack = (rows: Sprite[][]) => rows.map((row) => row.map(packSprite));
   const town = (identifier: string) => {
-    const owner = getIdentifierAndComponents(world, identifier, [
-      "POSITION",
-      "SEQUENCABLE",
-    ]);
-    if (!owner) throw Error(`Missing settlement ${identifier}`);
-    const memory = getSequence(world, owner, "npc")!.args.memory;
+    const owner = getIdentifierAndComponents(world, identifier, ["POSITION"]);
+    const memory =
+      identifier === "waterGuardNorth"
+        ? owner?.BEHAVIOUR?.patterns.find((pattern) => pattern.name === "watch")
+            ?.memory
+        : owner && getSequence(world, owner, "npc")?.args.memory;
+    if (!memory) throw Error(`Missing settlement ${identifier}`);
     const bounds = memory.topLeft
       ? {
           x: memory.topLeft.x - 1,
@@ -156,5 +157,6 @@ export function prepareIslandMaps() {
     sprites,
     earth,
     fire,
+    glacier: town("waterGuardNorth"),
   };
 }

@@ -145,6 +145,11 @@ export function WorldMap() {
 }
 
 const townRoles: Record<string, string> = {
+  waterChief: "Deliver the Fire Chief’s letter.",
+  waterGuard: "Guards the village gate.",
+  waterTrader: "Buy or sell goods.",
+  waterSmith: "Visit the anvil.",
+  waterDruid: "Visit the kettle.",
   earthChief: "Talk about Earth Town's quests.",
   earthGuard: "Speak at the town entrances.",
   earthSmith: "Unlock forging with the smith.",
@@ -153,11 +158,12 @@ const townRoles: Record<string, string> = {
   fireChief: "Talk about Fire Haven's quests.",
   fireGateGuard: "Speak at the haven gate.",
   fireJettyGuard: "Speak to the guard at the jetty.",
-  fireSmith: "Forge equipment with the smith.",
-  fireDruid: "Brew potions with the druid.",
+  fireSmith: "Hunt the requested enemies.",
+  fireDruid: "Bring the requested supplies.",
   fireTrader: "Buy and sell goods.",
   chick: "Town animal.",
-  goldPrism: "Hostile creature; fight it.",
+  diamondEye: "Hostile creature near the village.",
+  goldPrism: "Hostile creature near the town.",
   golem: "Hostile creature near the haven.",
 };
 const stations: Record<string, string> = {
@@ -165,9 +171,13 @@ const stations: Record<string, string> = {
   Anvil: "Forge equipment once unlocked.",
   Kettle: "Brew potions once unlocked.",
 };
-export function TownMap({ town }: { town: "earth" | "fire" }) {
+export function TownMap({ town }: { town: "earth" | "fire" | "glacier" }) {
   const sample = snapshot[town];
-  const name = town === "earth" ? "Earth Town" : "Fire Haven";
+  const name = {
+    earth: "Earth Town",
+    fire: "Fire Haven",
+    glacier: "Glacier Village",
+  }[town];
   return (
     <section className="TownMap" data-town={town}>
       <WorldDiagram

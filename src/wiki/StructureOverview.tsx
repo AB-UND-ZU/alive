@@ -18,13 +18,16 @@ import { createAreaWorld } from "../testing/harness";
 import { WaveFunctionCollapse } from "../engine/wfc/wfc";
 import { getDefinition } from "../engine/wfc/utils";
 import { townTiles } from "../engine/wfc/town";
+import { generateIgloo } from "../game/levels/island/igloos";
 import { havenTiles } from "../engine/wfc/haven";
 import { worldRows, WorldDiagram } from "./WorldDiagram";
 import { PlainTable, Text, ItemView, Pixels, Frame, Heading } from "./visuals";
 import { LargePreview } from "./LargePreview";
 import { ReferenceText, ReferenceLink } from "./references";
 
-export function createStructureSpecimen(fort: boolean) {
+const buildingNames = ["Wood House", "Desert Fort", "Igloo"];
+
+function settlementHouse(fort: boolean) {
   const width = 11,
     height = 9;
   const wfc = new WaveFunctionCollapse(getDefinition("air"));
@@ -35,16 +38,27 @@ export function createStructureSpecimen(fort: boolean) {
     forced.push([0, y, "air"], [width - 1, y, "air"]);
   const wave = wfc.generate(width, height, forced);
   if (!wave) throw Error("Native house generation failed");
-  const world = createAreaWorld("|♀|", { size: 32 });
   const tiles = fort ? havenTiles : townTiles;
-  for (let x = 0; x < width; x++)
-    for (let y = 0; y < height; y++) {
-      const cell = tiles[wfc.tileNames[wave.chosen[x][y]]];
+  return wave.chosen.map((column) =>
+    column.map((tile) => tiles[wfc.tileNames[tile]])
+  );
+}
+
+export function createStructureSpecimen(kind: boolean | "igloo") {
+  const world = createAreaWorld("|♀|", { size: 32 });
+  const cells =
+    kind === "igloo" ? generateIgloo(7, 5, 2) : settlementHouse(kind);
+  cells.forEach((column, x) =>
+    column.forEach((cell, y) => {
       if (cell)
         createCell(world, { x: x + 2, y: y + 2 }, cell as CellType, "visible");
-    }
+    })
+  );
   preloadLevel(world);
-  const building = assignBuilding(world, { x: 7, y: 7 });
+  const building = assignBuilding(
+    world,
+    kind === "igloo" ? { x: 5, y: 5 } : { x: 7, y: 7 }
+  );
   const positions = building.fragments.map((entity) => entity.POSITION!);
   if (!positions.length) throw Error("Native house has no fragments");
   const bounds = {
@@ -76,7 +90,11 @@ export function createStructureDevices() {
 let devices: ReturnType<typeof createStructureDevices> | undefined;
 let buildings: ReturnType<typeof createStructureSpecimen>[] | undefined;
 export function StructureOverview() {
-  buildings ||= [createStructureSpecimen(false), createStructureSpecimen(true)];
+  buildings ||= [
+    createStructureSpecimen(false),
+    createStructureSpecimen(true),
+    createStructureSpecimen("igloo"),
+  ];
   const { portal, lever } = (devices ||= createStructureDevices());
   return (
     <>
@@ -90,6 +108,7 @@ export function StructureOverview() {
         {Object.entries({
           "Wood House": mapHouse,
           "Desert Fort": mapFortress,
+          Igloo: buildings[2].outside[0][0],
           Doors: buildings[0].door!.SPRITE!,
           Boat: boat,
           Jetty: jetty,
@@ -107,15 +126,15 @@ export function StructureOverview() {
         ))}
       </Frame>
       <PlainTable
-        headers={["View", "Wood House", "Desert Fort"]}
+        headers={["View", ...buildingNames]}
         rows={[
           [
             "Outside",
             ...buildings.map((building, i) => (
-              <span id={i ? "desert-fort" : "wood-house"}>
+              <span id={buildingNames[i].toLowerCase().replace(" ", "-")}>
                 <WorldDiagram
                   rows={building.outside}
-                  label={(i ? "Desert Fort" : "Wood House") + " exterior"}
+                  label={buildingNames[i] + " exterior"}
                 />
               </span>
             )),
@@ -125,7 +144,7 @@ export function StructureOverview() {
             ...buildings.map((building, i) => (
               <WorldDiagram
                 rows={building.inside}
-                label={(i ? "Desert Fort" : "Wood House") + " interior"}
+                label={buildingNames[i] + " interior"}
               />
             )),
           ],
@@ -137,6 +156,7 @@ export function StructureOverview() {
               <ReferenceText text="Nomad" />
             </>,
             <ReferenceText text="Fire Haven" />,
+            <ReferenceText text="Glacier" />,
           ],
           [
             "Access",
@@ -206,6 +226,12 @@ const doorTypes = [
   "iron_door",
   "gold_door",
   "earth_door",
+  "wood_port",
+  "iron_port",
+  "fire_port",
+  "wood_frame",
+  "fence_door",
+  "palisade_door",
 ] as const;
 const structureGroups = [
   {
@@ -276,10 +302,11 @@ function StructureDetails() {
       <PlainTable
         headers={[
           "Name",
-          ...details.doors.map((door) => (
+          ...details.doors.map((door, index) => (
             <ReferenceLink name="doors" sprite>
               <Text prefix={<Pixels rows={[[door.SPRITE!]]} />}>
-                {`${door.LOCKABLE!.element || door.LOCKABLE!.material} door`
+                {doorTypes[index]
+                  .replace("_", " ")
                   .split(" ")
                   .map(displayName)
                   .join(" ")}

@@ -373,6 +373,7 @@ export function Widget({ name }: { name: string }) {
   if (name === "responsive") return <ResponsiveData />;
   if (name === "timers") return <TimerData />;
   if (name === "earth-town-map") return <TownMap town="earth" />;
+  if (name === "glacier-village-map") return <TownMap town="glacier" />;
   if (name === "fire-haven-map") return <TownMap town="fire" />;
   if (name === "levels") return <WarpMap />;
   if (name === "portal") return <PortalPreview />;

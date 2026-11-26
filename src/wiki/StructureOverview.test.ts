@@ -2,7 +2,7 @@ import {
   createStructureSpecimen,
   createStructureDevices,
 } from "./StructureOverview";
-test.each([false, true])(
+test.each([false, true, "igloo"] as const)(
   "native building factories expose exterior and interior views (fort=%s)",
   (fort) => {
     const specimen = createStructureSpecimen(fort);

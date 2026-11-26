@@ -81,7 +81,7 @@ test("Island town cutouts show interiors and their actual interaction legends un
       }
     )
   ).toBeVisible();
-  for (const town of ["earth", "fire"]) {
+  for (const town of ["earth", "fire", "glacier"]) {
     const section = page.locator(`[data-town="${town}"]`);
     await section.scrollIntoViewIfNeeded();
     await expect(section.locator(".WorldDiagram > .Pixels")).toHaveAttribute(

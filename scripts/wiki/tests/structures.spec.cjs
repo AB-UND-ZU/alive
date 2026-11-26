@@ -6,6 +6,8 @@ test("Structures compares native exterior and interior buildings and nonattackab
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("/game-design/cells/structures.html");
     for (const name of [
+      "Igloo exterior",
+      "Igloo interior",
       "Wood House exterior",
       "Desert Fort exterior",
       "Wood House interior",
