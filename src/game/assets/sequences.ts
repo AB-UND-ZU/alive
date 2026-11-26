@@ -1629,18 +1629,15 @@ export const tornadoSpin: Sequence<TornadoSequence> = (
   const finished = false;
   let updated = false;
 
-  const tick = world.metadata.gameEntity[REFERENCE].tick;
-  if (
-    radius > 0 &&
-    Math.floor(state.args.generation * tornadoSpeed / tick) !== Math.floor(state.elapsed / tick) &&
-    random(0, 4) === 0
-  ) {
-    play(world, entity, "tornado", { volume: Math.min(1, radius / 3) });
-  }
-
   // create new gusts in random direction
-  if (state.args.last !== nextGeneration && state.args.radius > 0) {
+  if (state.args.last !== nextGeneration && radius > 0) {
     const orientation = choice(...orientations);
+    if (nextGeneration % 2 === 0) {
+      play(world, entity, "tornado", {
+        variant: orientation === "up" || orientation === "right" ? 1 : 2,
+        volume: Math.min(1, radius / 3),
+      });
+    }
     state.args.last = nextGeneration;
     state.args.gusts.push(
       ...range(0, gustLength - 1).map((offset) => ({

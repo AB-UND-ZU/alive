@@ -89,8 +89,7 @@ describe("tornado", () => {
     advance(world, 10000);
 
     const gusts = playedSounds.filter((sound) => sound === "tornado");
-    expect(gusts.length).toBeGreaterThan(0);
-    expect(gusts.length).toBeLessThan(20);
+    expect(gusts).toHaveLength(11);
     expect(hero[POSITION]).toEqual(eye);
     expect(hero[STATS].hp).toBe(hero[STATS].maxHp);
   });

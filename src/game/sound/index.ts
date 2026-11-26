@@ -278,16 +278,17 @@ class Presets extends Params {
     return this;
   }
 
-  tornado() {
+  tornado(options: SoundOptions) {
+    const rising = options.variant !== 2;
     this.wave_type = waveforms.NOISE;
-    this.sound_vol = 1 / 24;
+    this.sound_vol = 1 / 52;
     this.p_env_attack = 0.52 + frnd(0.12);
-    this.p_env_sustain = 0.22 + frnd(0.08);
-    this.p_env_decay = 0.69 + frnd(0.12);
-    this.p_base_freq = 0.17 + frnd(0.04);
-    this.p_freq_ramp = -0.015;
-    this.p_lpf_freq = 0.095 + frnd(0.018);
-    this.p_lpf_ramp = 0.012;
+    this.p_env_sustain = 0.28 + frnd(0.08);
+    this.p_env_decay = 0.83 + frnd(0.09);
+    this.p_base_freq = (rising ? 0.16 : 0.22) + frnd(0.03);
+    this.p_freq_ramp = (rising ? 1 : -1) * (0.065 + frnd(0.01));
+    this.p_lpf_freq = (rising ? 0.09 : 0.14) + frnd(0.012);
+    this.p_lpf_ramp = rising ? 0.012 : -0.012;
     this.p_lpf_resonance = 0.62;
     this.p_hpf_freq = 0.025;
     return this;
@@ -295,7 +296,7 @@ class Presets extends Params {
 
   tumbleweed() {
     this.wave_type = waveforms.NOISE;
-    this.sound_vol = 1 / 115;
+    this.sound_vol = 1 / 160;
     this.p_base_freq = 0.56 + frnd(0.06);
     this.p_env_attack = 0.25;
     this.p_env_sustain = 0.16;
@@ -1386,7 +1387,7 @@ const soundVariants = {
   fountain: [1, 2],
   countdown: [1, 2],
   tumbleweed: [],
-  tornado: [],
+  tornado: [1, 2],
   beam: [3],
   wave: [],
   slash: [],
