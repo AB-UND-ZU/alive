@@ -59,7 +59,7 @@ import { ACTIONABLE } from "../components/actionable";
 
 const chatHaste = -1001;
 const popupHaste = -1002;
-export const boatHaste = 5;
+export const boatHaste = 12;
 
 export const getHasteInterval = (world: World, haste: number) =>
   haste === chatHaste

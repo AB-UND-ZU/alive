@@ -37,7 +37,7 @@ describe("terrain", () => {
   it.each([
     ["faster on paths", "▒", 3],
     ["slower on sand", "░", -2],
-    ["slower in shallow water", "~", -6],
+    ["slower in shallow water", "~", -4],
   ])("walks %s", (_, terrain, tempo) => {
     const world = createAreaWorld(terrainArea(terrain));
     const interval = getHasteInterval(world, tempo + 2);

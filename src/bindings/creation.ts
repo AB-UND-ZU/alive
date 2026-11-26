@@ -1434,7 +1434,7 @@ export const createCell = (
       [REFILLABLE]: { element: "water" },
       [RENDERABLE]: { generation: 0 },
       [SPRITE]: deep ? waterDeep : waterShallow,
-      [TEMPO]: { amount: -6 },
+      [TEMPO]: { amount: -4 },
     });
     all.push(waterEntity);
     return { cell: waterEntity, all };
@@ -2628,7 +2628,7 @@ export const createCell = (
         [REFILLABLE]: { element: "water" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: waterShallow,
-        [TEMPO]: { amount: -6 },
+        [TEMPO]: { amount: -4 },
       });
       all.push(waterEntity);
     }

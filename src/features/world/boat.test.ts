@@ -14,6 +14,7 @@ import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
 import { TypedEntity } from "../../engine/entities";
 import { playedSounds, resetPlayedSounds } from "../../testing/env";
+import { createSnapshot, restoreSnapshot } from "../../engine/snapshot";
 import { isMounting } from "../../engine/systems/vessel";
 import { addCell, assertUnit, hold } from "./helpers";
 
@@ -89,6 +90,29 @@ describe("boats", () => {
     expect(hero[POSITION]).toEqual(boat[POSITION]);
     expect(hero[PLAYER].mount).toBe(world.getEntityId(boat));
     expect(boat[MOUNTABLE].passenger).toBe(world.getEntityId(hero));
+  });
+
+  it("restores the 200 ms sailing interval for a boat saved on the slower curve", () => {
+    const { world, boat, hero } = setup();
+    mount(world);
+    const clockId = boat[MOVABLE].reference;
+    const clock = world.assertByIdAndComponents(clockId, [
+      "REFERENCE",
+    ]).REFERENCE;
+    expect(clock.tick).toBe(200);
+    Object.assign(clock, { tick: 247, delta: 123.5 });
+    for (const unit of [boat, hero]) unit[MOVABLE].spring = { duration: 247 };
+
+    const restored = restoreSnapshot(createSnapshot(world));
+    expect(
+      restored.assertByIdAndComponents(clockId, ["REFERENCE"]).REFERENCE
+    ).toMatchObject({ tick: 200, delta: 100 });
+    for (const unit of [hero, boat]) {
+      expect(
+        restored.assertByIdAndComponents(world.getEntityId(unit), [MOVABLE])
+          .MOVABLE.spring?.duration
+      ).toBe(200);
+    }
   });
 
   it("keeps a blocked empty boat silent", () => {

@@ -1691,7 +1691,7 @@ export const tornadoSpin: Sequence<TornadoSequence> = (
             })
           : entities.createArea(world, {
               [POSITION]: position,
-              [TEMPO]: { amount: -6 },
+              [TEMPO]: { amount: -4 },
             });
         registerEntity(world, area);
         state.args.exertables.push(world.getEntityId(area));

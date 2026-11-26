@@ -15,6 +15,7 @@ import { REFERENCE } from "./components/reference";
 import { RENDERABLE } from "./components/renderable";
 import { SEQUENCABLE } from "./components/sequencable";
 import { disposeFrame } from "./systems/map";
+import { boatHaste, getHasteInterval } from "./systems/movement";
 
 /**
  * Plain copy of all entities of a world. Shared objects stay shared within a
@@ -157,7 +158,28 @@ export const restoreSnapshot = (snapshot: WorldSnapshot) => {
     const tempo = entity.TEMPO;
     if (tempo?.amount === 2) tempo.amount = 3;
     else if (tempo?.amount === -1) tempo.amount = -2;
-    else if (tempo?.amount === -2 && !entity.HARVESTABLE) tempo.amount = -6;
+    else if (
+      tempo?.amount === -6 ||
+      (tempo?.amount === -2 && !entity.HARVESTABLE)
+    )
+      tempo.amount = -4;
+
+    if (entity.MOUNTABLE?.medium === "water" && entity.MOVABLE) {
+      // Boats saved at haste 5 on the new curve keep their own 247 ms clock.
+      const clock = world.getEntityByIdAndComponents(entity.MOVABLE.reference, [
+        REFERENCE,
+      ])?.REFERENCE;
+      if (clock?.tick === 247) {
+        const tick = getHasteInterval(world, boatHaste);
+        clock.delta *= tick / clock.tick;
+        clock.tick = tick;
+        entity.MOVABLE.spring = { duration: tick };
+        const rider = world.getEntityByIdAndComponents(entity.MOUNTABLE.passenger, [
+          "MOVABLE",
+        ]);
+        if (rider) rider.MOVABLE.spring = { duration: tick };
+      }
+    }
     const npc = entity[NPC];
     if (npc && String(npc.type) === "banditArcher") npc.type = "banditRogue";
     const popup = entity[POPUP];

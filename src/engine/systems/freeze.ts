@@ -143,7 +143,7 @@ export const thawTerrain = (world: World, entity: Entity) => {
 
   // replace ice with water terrain
   if (entity[TEMPO]) {
-    entity[TEMPO].amount = -6;
+    entity[TEMPO].amount = -4;
 
     addImmersible(world, entity, { type: "water", deep: true });
     const { x, y } = entity[POSITION];
