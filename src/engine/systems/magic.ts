@@ -465,13 +465,15 @@ export default function setupMagic(world: World) {
       if (burstTime !== undefined && burstTime >= trapBurstDuration) continue;
       const waiting = burstTime !== undefined && burstTime < 0;
 
+      const spear = castableEntity[SEQUENCABLE]?.states.slash?.name === "chargeSpear";
       const targetEntities = castableEntity[CASTABLE].melee
-        ? getAttackables(world, entity[POSITION])
+        ? getAttackables(world, entity[POSITION], spear)
         : getAffectables(world, entity[POSITION]);
 
-      for (const targetEntity of targetEntities) {
-        const rootEntity = getRoot(world, targetEntity);
-        const affectableId = world.getEntityId(rootEntity);
+      for (const hit of targetEntities) {
+        const rootEntity = getRoot(world, hit);
+        const targetEntity = hit[STATS] ? hit : rootEntity;
+        const affectableId = world.getEntityId(spear ? hit : rootEntity);
         const previousAffected =
           castableEntity[CASTABLE].affected[affectableId];
 
@@ -533,7 +535,7 @@ export default function setupMagic(world: World) {
           castableEntity[CASTABLE].drain ||
           casterEntity?.[CONDITIONABLE]?.zap;
         const fragmentEntity =
-          (castableEntity[CASTABLE].melee
+          (spear ? hit : castableEntity[CASTABLE].melee
             ? getAttackable(world, entity[POSITION], true)
             : getAffectable(world, entity[POSITION], true)) || targetEntity;
 

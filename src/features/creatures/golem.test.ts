@@ -10,6 +10,10 @@ import { createCell } from "../../bindings/creation";
 import {
   advanceUntil,
   findInArea,
+  giveItems,
+  face,
+  act,
+  advance,
   holdMove,
   step,
 } from "../../testing/harness";
@@ -241,6 +245,29 @@ describe("golem", () => {
       expect(world.getEntityId(golem)).toBeDefined();
     }
   );
+
+  it("damages both arms and the body when a spear crosses the unfolded golem", () => {
+    const { world, hero, golem, phases } = setup();
+    provoke(world, golem);
+    advanceUntil(world, () => phases().includes(11), 10000);
+    world.removeComponentFromEntity(golem, BEHAVIOUR, false);
+    golem[MOVABLE].orientations = [];
+    const arms = (["left", "right"] as const).map((side) =>
+      world.assertComponents(getFragment(world, add(golem[POSITION], orientationPoints[side]))!, [STATS])
+    );
+    const hp = golem[STATS].hp;
+    const armHp = arms.map(arm => arm[STATS].hp);
+    moveEntity(world, hero, add(golem[POSITION], { x: -2, y: 0 }));
+    delete world.assertComponents(hero, [EQUIPPABLE])[EQUIPPABLE].weapon;
+    giveItems(world, hero, [{ weapon: "spear", skill: "spear", material: "gold", amount: 1 }]);
+    step(world, 20);
+    face(world, "right");
+    act(world, "skill");
+    advance(world, 500);
+    const damage = arms.map((arm, i) => armHp[i] - arm[STATS].hp);
+    expect(damage).toEqual([1, 1]);
+    expect(hp - golem[STATS].hp).toBe(3);
+  });
 
   it("damages the arm hit by a beam over older terrain", () => {
     const { world, hero, golem, phases } = setup(true);

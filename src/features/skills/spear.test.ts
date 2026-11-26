@@ -5,6 +5,7 @@ import { getItemSprite } from "../../game/assets/utils";
 import { getFacingLayers } from "../../game/assets/ui";
 import { composeCharacterPixels } from "../../components/Row/characters";
 import { colors } from "../../game/assets/colors";
+import { moveEntity } from "../../engine/systems/map";
 import { STATS } from "../../engine/components/stats";
 import { playedSounds } from "../../testing/env";
 import {
@@ -122,6 +123,17 @@ describe("spear", () => {
       ).toContain(colors.silver);
     }
   );
+
+  it("hits a moving target only once during one thrust", () => {
+    const { world, units } = setup("iron");
+    const target = units[0];
+    face(world, "right");
+    act(world, "skill");
+    advanceUntil(world, () => getDamage(units)[0] > 0, 500);
+    moveEntity(world, target, { x: target.POSITION.x + 1, y: target.POSITION.y });
+    advance(world, 500);
+    expect(getDamage(units)[0]).toBe(2);
+  });
 
   it("stabs only in the facing direction", () => {
     const { world, units } = setup("iron");

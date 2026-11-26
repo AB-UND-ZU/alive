@@ -2024,32 +2024,19 @@ export const chargeSpear: Sequence<SlashSequence> = (world, entity, state) => {
     weaponEntity[ORIENTABLE].facing = orientation;
     rerenderEntity(world, weaponEntity);
 
-    // create individual damage areas along spear
     const delta = orientationPoints[orientation];
-    const { affected, ...castableData } = castableEntity[CASTABLE];
     for (let rangeIndex = 0; rangeIndex < spearRange; rangeIndex += 1) {
       const offset = {
         x: delta.x * (rangeIndex + 1),
         y: delta.y * (rangeIndex + 1),
       };
       const rangePosition = combine(size, castableEntity[POSITION], offset);
-      const rangeDamage = entities.createDamage(world, {
-        [BELONGABLE]: castableEntity[BELONGABLE],
-        [CASTABLE]: {
-          ...getEmptyCastable(world, entity),
-          ...castableData,
-        },
-        [EXERTABLE]: { castable: -1 },
-        [FRAGMENT]: { structure: world.getEntityId(entity) },
+      const area = entities.createEffect(world, {
+        [EXERTABLE]: { castable: state.args.castable },
         [ORIENTABLE]: { facing: orientation },
         [POSITION]: rangePosition,
-        [RENDERABLE]: { generation: 0 },
-        [SEQUENCABLE]: { states: {} },
-        [SPRITE]: none,
       });
-      const damageId = world.getEntityId(rangeDamage);
-      rangeDamage[EXERTABLE].castable = damageId;
-      state.args.exertables.push(damageId);
+      state.args.exertables.push(world.getEntityId(area));
 
       // create spear line and tip particles
       const spearParticle = entities.createFibre(world, {
