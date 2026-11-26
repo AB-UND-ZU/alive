@@ -6403,7 +6403,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
         } else if (index < progress || recipeStep.result) {
           const marked =
             recipeStep.result === "ace"
-              ? mergeSprites(item, createText("+", colors.lime)[0])
+              ? mergeSprites(item, createText("^", colors.lime)[0])
               : item;
           stepBar.push(...underline([marked], colors.lime));
         } else {

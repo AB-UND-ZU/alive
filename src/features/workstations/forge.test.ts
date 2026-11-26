@@ -216,7 +216,7 @@ describe("forging at an anvil", () => {
         { char: "_", color },
         ...getItemSprite(forge.steps[stepIndex].item).layers,
       ];
-      if (stepIndex === 1) expected.push({ char: "+", color: colors.lime });
+      if (stepIndex === 1) expected.push({ char: "^", color: colors.lime });
       expect(cell[SPRITE].layers.slice(-expected.length)).toEqual(expected);
     }
   });
