@@ -1,4 +1,5 @@
 import { giveItems, holdMove, step, walk } from "../../testing/harness";
+import { BELONGABLE } from "../../engine/components/belongable";
 import { STATS } from "../../engine/components/stats";
 import { POSITION } from "../../engine/components/position";
 import { isDead } from "../../engine/systems/damage";
@@ -26,6 +27,15 @@ describe("spikes", () => {
     expect(hero[STATS].hp).toBe(10 - unit[STATS].spike);
     expect(hero[POSITION]).toEqual({ x: 2, y: 1 });
     expect(unit[STATS].hp).toBe(10);
+  });
+
+  it("spares a friendly unit walking into spikes", () => {
+    const { world, hero, unit } = setup("dummy");
+    world.assertComponents(unit, [BELONGABLE])[BELONGABLE].faction = "earth";
+    unit[STATS].spike = 4;
+    holdMove(world, ["right"]);
+    step(world, 45);
+    expect(hero[STATS].hp).toBe(10);
   });
 
   it("are reduced by the hero's resist", () => {

@@ -14,6 +14,7 @@ import {
   getEntityStats,
   getLimbs,
   getRoot,
+  isCooperating,
   isFightable,
 } from "./damage";
 import { EQUIPPABLE } from "../components/equippable";
@@ -48,6 +49,7 @@ export const getSpikable = (world: World, position: Position) => {
 export const isStingable = (world: World, entity: Entity) => STATS in entity;
 
 export const stingEntity = (world: World, entity: Entity, target: Entity) => {
+  if (isCooperating(world, entity, getRoot(world, target))) return;
   let displayedDamage = 0;
 
   // burst active bubble
