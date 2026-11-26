@@ -724,6 +724,8 @@ export const knockEntity = (
       slide -= 1;
       target = newTarget;
     }
+      if (!entity[MOVABLE] && !entity[BUMPABLE] && entity[LOOTABLE]?.disposable)
+        world.addComponentToEntity(entity, BUMPABLE, { generation: 0 });
 
     // move or bump of not moved
     if (slide < amount) {

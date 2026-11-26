@@ -12,13 +12,15 @@ import {
 } from "../../engine/components/sequencable";
 import { SPRITE } from "../../engine/components/sprite";
 import { STATS } from "../../engine/components/stats";
+import { getMotion } from "../../engine/motion";
 import { getLootable } from "../../engine/systems/collect";
+import { knockEntity } from "../../engine/systems/damage";
 import { getTempo } from "../../engine/systems/movement";
 import { moveEntity, registerEntity } from "../../engine/systems/map";
 import { createSequence } from "../../engine/systems/sequence";
 import { none } from "../../game/assets/sprites";
 import { copy } from "../../game/math/std";
-import { advance, createAreaWorld } from "../../testing/harness";
+import { advance, advanceUntil, countItems, createAreaWorld, holdMove } from "../../testing/harness";
 import { playedSounds } from "../../testing/env";
 import { assertUnit } from "./helpers";
 
@@ -126,9 +128,22 @@ describe("tornado", () => {
     expect(drop.AFFECTABLE).toBeUndefined();
   });
 
+    expect(getMotion(drop)).toMatchObject({ fromX: 6, x: 8 });
   it("stays calm without a radius", () => {
     const world = createAreaWorld(area, { size: 24 });
     const hero = assertUnit(world);
+  it.each([false, true])("picks up a loose coin after knock=%s", (knocked) => {
+    const world = createAreaWorld("| ♀ c    |", { legend: { c: "coin_one" } });
+    const hero = assertUnit(world);
+    const drop = getLootable(world, { x: 3, y: 0 })!;
+    if (knocked) knockEntity(world, drop, "right", 1);
+    const position = { ...drop[POSITION] };
+    const amount = countItems(world, hero, { stackable: "coin" });
+    holdMove(world, ["right"]);
+    advanceUntil(world, () => countItems(world, hero, { stackable: "coin" }) === amount + 1, 4000);
+    expect(getLootable(world, position)).toBeUndefined();
+  });
+
     const start = { ...hero[POSITION] };
     addTornado(world, { x: start.x + 1, y: start.y }, 0);
 
