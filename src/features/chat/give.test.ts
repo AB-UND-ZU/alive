@@ -21,6 +21,14 @@ const setup = () => {
 };
 
 describe("give command", () => {
+  it("drops the class and level HP amount when omitted", () => {
+    const { world, hero } = setup();
+    hero.SPAWNABLE!.classKey = "rogue";
+    hero.STATS.level = 1;
+    say(world, "/give hp");
+    expect(getDrops(world)[0].item).toMatchObject({ stat: "hp", amount: 25 });
+  });
+
   it("drops a wooden sword next to the hero", () => {
     const { world, hero } = setup();
 

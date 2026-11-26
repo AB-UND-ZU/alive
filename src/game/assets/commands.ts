@@ -36,7 +36,7 @@ import {
   orientations,
 } from "../../engine/components/orientable";
 import { TRACKABLE } from "../../engine/components/trackable";
-import { accessories } from "../../engine/components/equippable";
+import { accessories, slots } from "../../engine/components/equippable";
 import {
   STATS,
   UnitStat,
@@ -170,11 +170,21 @@ const executeHelp = (world: World, entity: Entity, command: string) => {
   return `No command "${command}"!`;
 };
 
+const classStat = (entity: Entity, stat: UnitStat) => {
+  const level = entity[STATS].level;
+  const stats = getLevelStats(entity[SPAWNABLE].classKey, level);
+  if (stat === "level") return level;
+  if (stat === "hp") return stats.maxHp;
+  if (stat === "mp") return stats.maxMp;
+  if (stat === "xp") return 0;
+  return stats[stat];
+};
+
 const executeGive = (
   world: World,
   entity: Entity,
   itemName: string,
-  amountText = "1",
+  amountText?: string,
   material?: string,
   element?: string
 ) => {
@@ -183,7 +193,9 @@ const executeGive = (
   }
 
   const item = { ...commandItems[itemName] };
-  const amount = parseInt(amountText);
+  const amount = amountText === undefined
+    ? item.stat ? classStat(entity, item.stat) : 1
+    : parseInt(amountText);
 
   if (isNaN(amount)) {
     return `No number "${amountText}"!`;
@@ -702,6 +714,10 @@ export const completeCommand = (
         .getEntities([IDENTIFIABLE, POSITION])
         .map((entity) => entity[IDENTIFIABLE].name);
     const item = commandItems[words[1]];
+    const actor = words.length === 3 && item?.stat &&
+      (command === "give" || command === "stat") &&
+      world.getEntity([PLAYER, STATS, SPAWNABLE]);
+    const defaultStat = actor && item.stat ? String(classStat(actor, item.stat)) : undefined;
     const hasSprite = (variant: Omit<Item, "amount" | "carrier" | "bound">) =>
       getItemSprite(variant).name !== missing.name;
     const hasGiveSprite = (
@@ -718,7 +734,7 @@ export const completeCommand = (
         Object.keys(commandItems).filter((name) =>
           hasGiveSprite(commandItems[name])
         ),
-        item ? ["10"] : [],
+        item ? [defaultStat ?? (slots.some((slot) => item[slot]) ? "1" : "10")] : [],
         item
           ? [...materials, "default"].filter((value) =>
               hasGiveSprite({
@@ -751,7 +767,7 @@ export const completeCommand = (
         materials,
         elements,
       ],
-      stat: [[...unitStats, ...npcTypes, ...commandStats]],
+      stat: [[...unitStats, ...npcTypes, ...commandStats], defaultStat ? [defaultStat] : []],
       mod: [commandMods],
       list: [commandLists],
       new: [cellNames, ["1"], orientations],

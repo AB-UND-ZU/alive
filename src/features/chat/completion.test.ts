@@ -32,14 +32,14 @@ it.each([
   ["/new water_d", "eep "],
   ["hello", ""],
   ["/unknown x", ""],
-  ["/give sword ", "10 "],
+  ["/give sword ", "1 "],
+  ["/give berry ", "10 "],
   ["/new rock ", "1 "],
   ["/give sword 10 d", "iamond "],
   ["/give sword 10 def", ""],
   ["/give potion 10 r", ""],
   ["/give potion 10 wood h", "p "],
   ["/give potion 10 wood max", ""],
-  ["/stat hp ", ""],
   ["/tp 4,", ""],
   ["/pin new", ""],
   ["/cast z", ""],
@@ -47,6 +47,17 @@ it.each([
 ])("completes %s using valid command arguments", (input, expected) => {
   const { world } = setup();
   expect(completeCommand(world, input)).toBe(expected);
+});
+
+it("suggests stats from the current class and level for both commands", () => {
+  const { world, hero } = setup();
+  hero.SPAWNABLE!.classKey = "rogue";
+  hero.STATS.level = 1;
+  expect(completeCommand(world, "/give hp ")).toBe("25 ");
+  hero.STATS.level = 2;
+  const next = completeCommand(world, "/give hp ");
+  expect(Number(next)).toBeGreaterThan(25);
+  expect(completeCommand(world, "/stat hp ")).toBe(next);
 });
 
 it("cycles only through visible item variants and supported potion stats", () => {

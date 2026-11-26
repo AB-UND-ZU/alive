@@ -31,7 +31,7 @@ command-reference
 
 ## Try Commands
 
-Type `/gi`. Tab accepts the gray suggestion; on touch screens, swipe right over the dialog or keyboard. Type a longer prefix to narrow the suggested word. Up and Down choose a suggestion. From an empty line, Up recalls messages saved in this browser.
+Type `/gi`. Tab accepts the gray suggestion; on touch screens, swipe right over the dialog or keyboard. Type a longer prefix to narrow the suggested word. Up and Down choose a suggestion. For `/give`, gear defaults to one. Stat suggestions use your class and level. From an empty line, Up recalls messages saved in this browser.
 
 ```scene
 chat
