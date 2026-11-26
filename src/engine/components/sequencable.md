@@ -40,7 +40,6 @@ export type DropSequence = {
 ```ts src/engine/components/sequencable.ts
 export type WeatherSequence = {
   position: Position;
-  viewable: Position;
   start: number;
   end: number;
   intensity: number;

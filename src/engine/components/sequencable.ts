@@ -25,7 +25,6 @@ export type DropSequence = {
 };
 export type WeatherSequence = {
   position: Position;
-  viewable: Position;
   start: number;
   end: number;
   intensity: number;

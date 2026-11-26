@@ -17,7 +17,6 @@ import { Orientation, ORIENTABLE } from "../../engine/components/orientable";
 import { HOMING } from "../../engine/components/homing";
 import { POPUP } from "../../engine/components/popup";
 import { PARTICLE } from "../../engine/components/particle";
-import { STICKY } from "../../engine/components/sticky";
 import { SWIMMABLE } from "../../engine/components/swimmable";
 import { MOVABLE } from "../../engine/components/movable";
 import { BUMPABLE } from "../../engine/components/bumpable";
@@ -82,13 +81,13 @@ export type SceneSprite = {
   };
 };
 
-export type SceneState = { stickyCastables: Record<number, Position> };
+export type SceneState = { castableQuadrants: Record<number, Position> };
 
 export const getSceneFrame = (
   world: World,
   columns: number,
   rows: number,
-  state: SceneState = { stickyCastables: {} },
+  state: SceneState = { castableQuadrants: {} },
   {
     includeHidden = false,
     instant = false,
@@ -168,7 +167,7 @@ export const getSceneFrame = (
       viewable,
       structure,
     },
-    state.stickyCastables
+    state.castableQuadrants
   );
   for (const [x, y, inside, , entity] of entities) {
     const id = world.getEntityId(entity);
@@ -195,7 +194,6 @@ export const getSceneFrame = (
     let py = y - camera.y + (rows - 1) / 2;
     const animated =
       !instant &&
-      !entity[STICKY] &&
       (entity[MOVABLE]?.spring || entity[BUMPABLE]);
     const motion = animated && getMotion(entity);
     let movingFacing: Orientation | undefined;
@@ -224,16 +222,12 @@ export const getSceneFrame = (
       py += point.y;
     }
     const origin = motion || entity[POSITION];
-    const copyX = entity[STICKY]
-      ? 0
-      : Math.round(
-          (x - camera.x - signedDistance(camera.x, origin.x, size)) / size
-        );
-    const copyY = entity[STICKY]
-      ? 0
-      : Math.round(
-          (y - camera.y - signedDistance(camera.y, origin.y, size)) / size
-        );
+    const copyX = Math.round(
+      (x - camera.x - signedDistance(camera.x, origin.x, size)) / size
+    );
+    const copyY = Math.round(
+      (y - camera.y - signedDistance(camera.y, origin.y, size)) / size
+    );
     const add = (
       sprite: Sprite,
       key: string,

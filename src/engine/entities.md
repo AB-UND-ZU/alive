@@ -94,7 +94,6 @@ export type Entity = Record<LevelName, {}> & {
   [SPIKABLE]: Spikable;
   [SPRITE]: Sprite;
   [STATS]: Stats;
-  [STICKY]: Sticky;
   [STRUCTURABLE]: Structurable;
   [SWIMMABLE]: Swimmable;
   [TEMPO]: Tempo;

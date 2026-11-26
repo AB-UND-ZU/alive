@@ -28,7 +28,6 @@ import {
 import { add, combine } from "../../math/std";
 import { createSequence } from "../../../engine/systems/sequence";
 import { none } from "../../assets/sprites";
-import { STICKY } from "../../../engine/components/sticky";
 import { createPopup } from "../../../engine/systems/popup";
 import { getItemBuyPrice, purchasableItems } from "../../balancing/trading";
 import { TRACKABLE } from "../../../engine/components/trackable";
@@ -79,7 +78,6 @@ export function* generateMenu(world: World) {
     [POSITION]: { x: 0, y: 0 },
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [STICKY]: {},
     [SPRITE]: none,
   });
   createSequence<"weather", WeatherSequence>(
@@ -95,7 +93,6 @@ export function* generateMenu(world: World) {
       start: 0,
       end: Infinity,
       type: "snow",
-      viewable: { x: 0, y: 0 },
     }
   );
 

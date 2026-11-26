@@ -45,16 +45,9 @@ it("keeps repeated world cells when a viewport spans the map boundary", () => {
   ]);
 });
 
-it("centers sticky effects on the viewpoint and retains projectile wrap quadrants", () => {
+it("retains projectile wrap quadrants when the viewpoint moves", () => {
   const world = createWorld();
   const hero = assertHero(world);
-  const anchor = entities.createAnchor(world, {
-    POSITION: { x: 0, y: 0 },
-    RENDERABLE: { generation: 0 },
-    SEQUENCABLE: { states: {} },
-    STICKY: {},
-    SPRITE: none,
-  });
   const spell = entities.createSpell(world, {
     BELONGABLE: { faction: "unit" },
     CASTABLE: {
@@ -70,10 +63,6 @@ it("centers sticky effects on the viewpoint and retains projectile wrap quadrant
   });
   const quadrants: Record<number, Position> = {};
   const scene = collectScene(world, viewport, quadrants);
-  expect(scene.filter((entry) => entry[4] === anchor)).toHaveLength(1);
-  expect(scene.find((entry) => entry[4] === anchor)?.slice(0, 2)).toEqual([
-    2, 1,
-  ]);
   expect(scene.filter((entry) => entry[4] === spell)).toHaveLength(1);
   const first = scene.find((entry) => entry[4] === spell)!;
   expect(first[0]).toBe(-1);
@@ -84,9 +73,6 @@ it("centers sticky effects on the viewpoint and retains projectile wrap quadrant
     quadrants
   );
   expect(moved.find((entry) => entry[4] === spell)?.[0]).toBe(first[0]);
-  expect(moved.find((entry) => entry[4] === anchor)?.slice(0, 2)).toEqual([
-    8, 1,
-  ]);
 });
 
 it.each(["left", "up"] as const)(

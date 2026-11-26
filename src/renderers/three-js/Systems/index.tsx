@@ -81,7 +81,7 @@ export default function Systems({ onReady }: { onReady?: () => void }) {
     pause: paused,
   }));
   const clock = useMemo(() => (ecs ? createFrameClock(ecs) : undefined), [ecs]);
-  const stickyCastables = useRef<Record<number, Position>>({});
+  const castableQuadrants = useRef<Record<number, Position>>({});
 
   // rerender on explicit systems updates
   useRenderable([RENDERABLE], "renderer");
@@ -169,7 +169,7 @@ export default function Systems({ onReady }: { onReady?: () => void }) {
       viewable,
       structure,
     },
-    stickyCastables.current
+    castableQuadrants.current
   );
 
   return (

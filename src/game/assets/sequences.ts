@@ -3560,7 +3560,8 @@ export const weatherStorm: Sequence<WeatherSequence> = (
   const size = world.metadata.gameEntity[LEVEL].size;
   const viewable = getActiveViewable(world.getEntities([VIEWABLE, POSITION]));
   if (!viewable) return { finished, updated };
-  state.args.viewable = copy(viewable[POSITION]);
+  if (entity[POSITION].x !== viewable[POSITION].x || entity[POSITION].y !== viewable[POSITION].y)
+    moveEntity(world, entity, copy(viewable[POSITION]));
 
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
   const duration = state.args.end - state.args.start;

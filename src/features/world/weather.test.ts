@@ -12,11 +12,10 @@ import {
   WeatherSequence,
 } from "../../engine/components/sequencable";
 import { SPRITE } from "../../engine/components/sprite";
-import { STICKY } from "../../engine/components/sticky";
 import { getActiveViewable } from "../../renderers/interface/hooks";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { PARTICLE } from "../../engine/components/particle";
-import { moveEntity } from "../../engine/systems/map";
+import { moveEntity, registerEntity } from "../../engine/systems/map";
 import { signedDistance } from "../../game/math/std";
 import { saveAndLoad } from "../../testing/saves";
 import { coverSnow, isSnowy } from "../../engine/systems/freeze";
@@ -48,9 +47,9 @@ const addStorm = (world: World, type: Weather, end = Infinity) => {
     [POSITION]: { x: 0, y: 0 },
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [STICKY]: {},
     [SPRITE]: none,
   });
+  registerEntity(world, storm);
   createSequence<"weather", WeatherSequence>(
     world,
     storm,
@@ -64,7 +63,6 @@ const addStorm = (world: World, type: Weather, end = Infinity) => {
       start: 0,
       end,
       type,
-      viewable: { x: 0, y: 0 },
     }
   );
   return storm;
@@ -111,10 +109,10 @@ describe("weather", () => {
         const active = getActiveViewable(
           world.getEntities([VIEWABLE, POSITION])
         );
-        const weather = world
-          .getEntities([SEQUENCABLE])
-          .map((e) => e[SEQUENCABLE].states.weather)
-          .find(Boolean)!;
+        const anchor = world.getEntities([SEQUENCABLE, POSITION])
+          .find((entity) => entity[SEQUENCABLE].states.weather)!;
+        expect(anchor[POSITION]).toEqual(active[POSITION]);
+        const weather = anchor[SEQUENCABLE].states.weather!;
         expect(weather.args.drops.length).toBeGreaterThan(0);
         for (const drop of weather.args.drops) {
           expect(drop.position.x).toBeGreaterThanOrEqual(0);

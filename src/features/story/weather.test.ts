@@ -1,3 +1,4 @@
+import { registerEntity } from "../../engine/systems/map";
 import { entities, World } from "../../engine";
 import { BELONGABLE } from "../../engine/components/belongable";
 import { CASTABLE, getEmptyCastable } from "../../engine/components/castable";
@@ -12,7 +13,6 @@ import {
   WeatherSequence,
 } from "../../engine/components/sequencable";
 import { SPRITE } from "../../engine/components/sprite";
-import { STICKY } from "../../engine/components/sticky";
 import { createSequence, getSequence } from "../../engine/systems/sequence";
 import { none } from "../../game/assets/sprites";
 import { npcSequence } from "../../game/assets/utils";
@@ -40,9 +40,9 @@ const createStorm = (world: World, weather = true) => {
     [POSITION]: { x: 0, y: 0 },
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [STICKY]: {},
     [SPRITE]: none,
   });
+  registerEntity(world, storm);
   if (weather) {
     createSequence<"weather", WeatherSequence>(
       world,
@@ -57,7 +57,6 @@ const createStorm = (world: World, weather = true) => {
         start: 0,
         end: 0,
         type: "rain",
-        viewable: { x: 0, y: 0 },
         ratio: 1,
       }
     );

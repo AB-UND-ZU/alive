@@ -251,7 +251,6 @@
 | [Stats](engine/components/stats.md#type-stats) | `src/engine/components/stats.ts` |
 | [Stats](game/assets/ui.md#type-stats) | `src/game/assets/ui.ts` |
 | [StepAnimations](game/assets/utils.md#type-stepanimations) | `src/game/assets/utils.ts` |
-| [Sticky](engine/components/sticky.md#type-sticky) | `src/engine/components/sticky.ts` |
 | [Store](game/saves/testing.md#type-store) | `src/game/saves/testing.ts` |
 | [Structurable](engine/components/structurable.md#type-structurable) | `src/engine/components/structurable.ts` |
 | [Swimmable](engine/components/swimmable.md#type-swimmable) | `src/engine/components/swimmable.ts` |

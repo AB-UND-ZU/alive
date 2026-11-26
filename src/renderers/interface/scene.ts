@@ -7,7 +7,6 @@ import { SPRITE } from "../../engine/components/sprite";
 import { CASTABLE } from "../../engine/components/castable";
 import { DISPLACABLE } from "../../engine/components/displacable";
 import { HOMING } from "../../engine/components/homing";
-import { STICKY } from "../../engine/components/sticky";
 import { FRAGMENT } from "../../engine/components/fragment";
 import { TypedEntity } from "../../engine/entities";
 import { getCell } from "../../engine/systems/map";
@@ -50,7 +49,7 @@ export const collectScene = (
     viewable,
     structure,
   }: SceneViewport,
-  stickyCastables: Record<number, Position>
+  castableQuadrants: Record<number, Position>
 ): SceneEntity[] => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const flyingPadding = viewable?.[MOVABLE]?.flying ? 4 : 0;
@@ -98,12 +97,11 @@ export const collectScene = (
       for (const entityId in cell) {
         const entity = cell[entityId] as TypedEntity<"POSITION">;
 
-        // render castables and sticky separately
+        // render anchored spells separately
         if (
           !(RENDERABLE in entity) ||
           !(SPRITE in entity) ||
-          isAnchoredSpell(entity, Number(entityId)) ||
-          STICKY in entity
+          isAnchoredSpell(entity, Number(entityId))
         )
           continue;
 
@@ -126,7 +124,7 @@ export const collectScene = (
 
     if (!isAnchoredSpell(entity, entityId)) continue;
 
-    let castableQuadrant = stickyCastables[entityId];
+    let castableQuadrant = castableQuadrants[entityId];
 
     // check if quadrant has been calculated before
     if (!castableQuadrant) {
@@ -144,25 +142,12 @@ export const collectScene = (
         x: wrapX + quadrant.x,
         y: wrapY + quadrant.y,
       };
-      stickyCastables[entityId] = castableQuadrant;
+      castableQuadrants[entityId] = castableQuadrant;
     }
 
     renderableEntities.push([
       entity[POSITION].x + castableQuadrant.x * size,
       entity[POSITION].y + castableQuadrant.y * size,
-      !!structure,
-      entityId,
-      entity,
-    ]);
-  }
-
-  const stickyEntities = world.getEntities([STICKY, POSITION]);
-  for (const entity of stickyEntities) {
-    const entityId = world.getEntityId(entity);
-
-    renderableEntities.push([
-      position.x,
-      position.y,
       !!structure,
       entityId,
       entity,

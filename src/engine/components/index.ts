@@ -55,7 +55,6 @@ export { default as addSpawnable } from "./spawnable";
 export { default as addSpikable } from "./spikable";
 export { default as addSprite } from "./sprite";
 export { default as addStats } from "./stats";
-export { default as addSticky } from "./sticky";
 export { default as addStructurable } from "./structurable";
 export { default as addSwimmable } from "./swimmable";
 export { default as addTempo } from "./tempo";

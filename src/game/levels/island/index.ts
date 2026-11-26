@@ -122,7 +122,6 @@ import { islandNpcDistribution } from "./units";
 import { snowFill } from "../../../engine/systems/freeze";
 import { BEHAVIOUR } from "../../../engine/components/behaviour";
 import { initializeArea } from "../../../engine/systems/initialize";
-import { STICKY } from "../../../engine/components/sticky";
 import { createSequence } from "../../../engine/systems/sequence";
 import { SHOOTABLE } from "../../../engine/components/shootable";
 import { getItemBuyPrice, purchasableItems } from "../../balancing/trading";
@@ -1713,7 +1712,6 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         [POSITION]: { x: 0, y: 0 },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
-        [STICKY]: {},
         [SPRITE]: none,
       });
       setIdentifier(world, mainlandStorm, "storm");
@@ -1730,7 +1728,6 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
           start: 0,
           end: 0,
           type: "rain",
-          viewable: { x: 0, y: 0 },
           ratio: mainlandRatio,
         }
       );
@@ -2390,7 +2387,6 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         [POSITION]: { x: 0, y: 0 },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
-        [STICKY]: {},
         [SPRITE]: none,
       });
       createSequence<"weather", WeatherSequence>(
@@ -2406,7 +2402,6 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
           start: 0,
           end: Infinity,
           type: "snow",
-          viewable: { x: 0, y: 0 },
           ratio: glacierRatio,
         }
       );

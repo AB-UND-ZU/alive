@@ -60,7 +60,7 @@ export default function HtmlRenderer({
       releaseCameraMotion(world);
     };
   }, [world, clock]);
-  const sceneState = useMemo(() => ({ world, stickyCastables: {} }), [world]);
+  const sceneState = useMemo(() => ({ world, castableQuadrants: {} }), [world]);
   const loot = useMemo(
     () => ({
       world,

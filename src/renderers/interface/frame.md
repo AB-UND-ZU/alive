@@ -53,5 +53,5 @@ export type SceneSprite = {
 ## SceneState
 
 ```ts src/renderers/interface/frame.ts
-export type SceneState = { stickyCastables: Record<number, Position> };
+export type SceneState = { castableQuadrants: Record<number, Position> };
 ```

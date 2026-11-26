@@ -18,14 +18,13 @@ import { VIEWABLE } from "../../../engine/components/viewable";
 import { RENDERABLE } from "../../../engine/components/renderable";
 import { LEVEL } from "../../../engine/components/level";
 import { POSITION } from "../../../engine/components/position";
-import { STICKY } from "../../../engine/components/sticky";
 import { CASTABLE } from "../../../engine/components/castable";
 import { normalize } from "../../../game/math/std";
 import { entities } from "../../../engine";
 import { createSequence } from "../../../engine/systems/sequence";
 import { WeatherSequence } from "../../../engine/components/sequencable";
 import { none } from "../../../game/assets/sprites";
-import { moveEntity } from "../../../engine/systems/map";
+import { moveEntity, registerEntity } from "../../../engine/systems/map";
 import { TypedEntity } from "../../../engine/entities";
 import type { ReactThreeTest } from "@react-three/test-renderer";
 
@@ -73,7 +72,7 @@ const spawn = findInArea(area, "♀");
 const createWorld = () => createAreaWorld(area, { size: 48 });
 
 describe("Systems", () => {
-  it("anchors weather to the rendered viewpoint away from the map origin", async () => {
+  it("renders the weather anchor at its map position away from the map origin", async () => {
     const world = createAreaWorld(area, { size: 240 });
     const hero = assertHero(world);
     moveEntity(world, hero, { x: 190, y: 190 });
@@ -81,9 +80,9 @@ describe("Systems", () => {
       POSITION: { x: 0, y: 0 },
       RENDERABLE: { generation: 0 },
       SEQUENCABLE: { states: {} },
-      STICKY: {},
       SPRITE: none,
     });
+    registerEntity(world, storm);
     createSequence<"weather", WeatherSequence>(
       world,
       storm,
@@ -91,7 +90,6 @@ describe("Systems", () => {
       "weatherStorm",
       {
         position: { x: 190, y: 190 },
-        viewable: { x: 0, y: 0 },
         start: -200,
         end: Infinity,
         intensity: 100,
@@ -160,7 +158,7 @@ describe("Systems", () => {
       value <= Math.max(0, target) + radius + 1;
 
     for (const { entity, x, y } of visible) {
-      if (STICKY in entity || CASTABLE in entity) continue;
+      if (CASTABLE in entity) continue;
 
       expect(normalize(x, size)).toBe(entity[POSITION].x);
       expect(normalize(y, size)).toBe(entity[POSITION].y);

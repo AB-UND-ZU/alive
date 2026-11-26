@@ -70,7 +70,7 @@ export default function BrowserPreview({
       ),
     [world]
   );
-  const state = useMemo(() => ({ world, stickyCastables: {} }), [world]);
+  const state = useMemo(() => ({ world, castableQuadrants: {} }), [world]);
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
   const layout = sceneOnly

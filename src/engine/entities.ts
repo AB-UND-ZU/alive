@@ -56,7 +56,6 @@ import { Freezable, FREEZABLE } from "./components/freezable";
 import { Rechargable, RECHARGABLE } from "./components/rechargable";
 import { Warpable, WARPABLE } from "./components/warpable";
 import { Clickable, CLICKABLE } from "./components/clickable";
-import { Sticky, STICKY } from "./components/sticky";
 import { Coverable, COVERABLE } from "./components/coverable";
 import { Harvestable, HARVESTABLE } from "./components/harvestable";
 import { Conditionable, CONDITIONABLE } from "./components/conditionable";
@@ -146,7 +145,6 @@ export type Entity = Record<LevelName, {}> & {
   [SPIKABLE]: Spikable;
   [SPRITE]: Sprite;
   [STATS]: Stats;
-  [STICKY]: Sticky;
   [STRUCTURABLE]: Structurable;
   [SWIMMABLE]: Swimmable;
   [TEMPO]: Tempo;
@@ -192,7 +190,6 @@ export const createAnchor = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
-  STICKY,
   SPRITE,
 ]);
 

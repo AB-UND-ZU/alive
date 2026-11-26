@@ -2,7 +2,7 @@
 
 `collectScene` lists entities around a viewport as `[x, y, inside, id, entity]`. Coordinates preserve wrapped copies of the world. Fractional camera offsets, overscan and flying padding keep cells available during movement.
 
-Projectiles use a retained quadrant record so crossing a map seam does not jump their rendered position. Sticky effects are placed at the viewpoint. The caller owns that record and replaces it when changing worlds. Visibility and sprite projection are handled after enumeration.
+Projectiles use a retained quadrant record so crossing a map seam does not jump their rendered position. The caller owns that record and replaces it when changing worlds. Visibility and sprite projection are handled after enumeration.
 <!-- source-types -->
 
 ## SceneEntity

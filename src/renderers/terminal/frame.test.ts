@@ -249,7 +249,7 @@ it("resets ANSI colors for each row and after colored cells", () => {
 it("shifts the whole screen once for a new hit and restores it without actor bumps", () => {
   const world = createAreaWorld("| ♀ |");
   const hero = assertHero(world);
-  const state: TerminalState = { stickyCastables: {} };
+  const state: TerminalState = { castableQuadrants: {} };
   const frame = createTerminalFrame(
     [sprite("A", 0, 0), sprite("B", 1, 0)],
     3,
