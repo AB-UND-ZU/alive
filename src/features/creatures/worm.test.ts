@@ -76,6 +76,7 @@ import { getItemSprite } from "../../game/assets/utils";
 import { pixelCircle } from "../../game/math/tracing";
 import { getSegments, fixedHeight } from "../../renderers/interface/segments";
 import { getAffectable } from "../../engine/systems/magic";
+import { getMotion } from "../../engine/motion";
 import { shootHoming } from "../../engine/systems/homing";
 import { colors } from "../../game/assets/colors";
 import { RENDERABLE } from "../../engine/components/renderable";
@@ -1115,6 +1116,7 @@ describe("worm cave encounter", () => {
       .find((disc) => disc[HOMING].type === "wormTower")!;
     expect(disc).toBeDefined();
     expect(disc[POSITION]).toEqual(origin);
+    expect(getMotion(disc)).toBeUndefined();
     expect(world.getEntityById(id)).toBeDefined();
     expect(getSequence(world, tail, "evaporate")).toBeDefined();
     expect(getIdentifier(world, "worm:tower")).toBeUndefined();

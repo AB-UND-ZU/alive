@@ -91,7 +91,8 @@ const HOMING_TTL = 30;
 export const shootHoming = (
   world: World,
   caster: Entity,
-  homingData: Omit<Homing, "generation">
+  homingData: Omit<Homing, "generation">,
+  origin = caster[POSITION]
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const { sprite, orbit, ...castable } = discConfig[homingData.type];
@@ -120,14 +121,14 @@ export const shootHoming = (
       swimming: false,
     },
     [ORIENTABLE]: {},
-    [POSITION]: copy(caster[POSITION]),
+    [POSITION]: copy(origin),
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: sprite,
   });
   discEntity[EXERTABLE].castable = world.getEntityId(discEntity);
   registerEntity(world, discEntity);
 
-  play(world, "disc", { position: caster[POSITION] });
+  play(world, "disc", { position: origin });
 
   return discEntity;
 };

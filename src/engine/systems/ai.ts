@@ -4995,7 +4995,7 @@ export default function setupAi(world: World) {
             memory.afterHidden = after;
             nextPhase("retreat");
           };
-          const spawnTower = (position: Position) => {
+          const spawnTower = (position: Position, throughMouth = false) => {
             const rim = pixelCircle({ x: 0, y: 0 }, wormRadius - 3)
               .map((offset) => combine(size, center, offset))
               .filter(
@@ -5035,10 +5035,10 @@ export default function setupAi(world: World) {
                     Math.abs(getDistance(position, left, size) - 5) -
                     Math.abs(getDistance(position, right, size) - 5)
                 )[0];
-            const disc = shootHoming(world, entity, {
+            shootHoming(world, entity, {
               type: "wormTower",
               positions:
-                memory.phase === "rage"
+                throughMouth
                   ? [
                       combine(
                         size,
@@ -5049,8 +5049,7 @@ export default function setupAi(world: World) {
                     ]
                   : [target],
               ttl: 50,
-            });
-            moveEntity(world, disc, position);
+            }, position);
             return true;
           };
           const percentage = entity[STATS].hp / entity[STATS].maxHp;
@@ -5069,7 +5068,7 @@ export default function setupAi(world: World) {
             );
             if (
               memory.rageLowestThreshold > (memory.rageThreshold || 0) &&
-              spawnTower(memory.hole)
+              spawnTower(memory.hole, true)
             )
               memory.rageThreshold = (memory.rageThreshold || 0) + 1;
           }
