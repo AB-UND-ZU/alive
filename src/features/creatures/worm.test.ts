@@ -186,6 +186,15 @@ describe("worm cave encounter", () => {
     expect(room[VIEWABLE].active).toBe(false);
   });
 
+  it("returns to dry ground when displaced into the cave lake", () => {
+    const { world, room, bait } = setup();
+    const worm = world.assertComponents(bait, [POSITION]);
+    const water = { x: room[POSITION].x + 1, y: room[POSITION].y };
+    expect(isImmersible(world, water)).toBe(true);
+    moveEntity(world, worm, water);
+    advanceUntil(world, () => !isImmersible(world, worm[POSITION]), 10000);
+  });
+
   it("keeps the bait looking and roaming like a loose worm until it is hit", () => {
     const { world, hero, bait } = setup();
     const mob = world.assertComponents(bait, [

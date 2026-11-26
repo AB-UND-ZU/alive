@@ -124,7 +124,8 @@ import { COLLIDABLE } from "../components/collidable";
 import { NPC } from "../components/npc";
 import { getItemSprite, queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
-import { getImmersible, isImmersible, isSwimming } from "./immersion";
+import { iterateMatrixFromCenter } from "../../game/math/matrix";
+import { getImmersible, isImmersible, isSubmerged, isSwimming } from "./immersion";
 import { CLICKABLE } from "../components/clickable";
 import { AFFECTABLE, getEmptyAffectable } from "../components/affectable";
 import { HARVESTABLE } from "../components/harvestable";
@@ -676,6 +677,25 @@ export default function setupAi(world: World) {
 
           if (!wormItem[ORIENTABLE]) {
             world.addComponentToEntity(wormItem, ORIENTABLE, {});
+            continue;
+          }
+
+          // Knockback or a thaw can leave the worm several cells from dry ground.
+          if (isImmersible(world, entity[POSITION])) {
+            const deep = isSubmerged(world, entity[POSITION]);
+            const shore = iterateMatrixFromCenter(
+              world.metadata.gameEntity[LEVEL].cells,
+              entity[POSITION],
+              (x, y) => deep
+                ? !isSubmerged(world, { x, y })
+                : !isImmersible(world, { x, y }) && isWalkable(world, { x, y })
+            );
+            if (shore) {
+              const directions = relativeOrientations(world, entity[POSITION], shore, 1);
+              entity[MOVABLE].orientations = directions;
+              wormItem[ORIENTABLE].facing = directions[0];
+              rerenderEntity(world, wormItem);
+            }
             continue;
           }
 
