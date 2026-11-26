@@ -230,8 +230,13 @@ const doorTypes = [
   "iron_port",
   "fire_port",
   "wood_frame",
+  "wood_entry",
+  "iron_entry",
+  "gold_entry",
   "fence_door",
   "palisade_door",
+  "entrance",
+  "fire_entrance",
 ] as const;
 const structureGroups = [
   {

@@ -327,7 +327,7 @@ export const unitFamily = (key: string) => {
   if (["rose", "violet", "clover", "ilexTulip", "oakLily"].includes(key))
     return "plants";
   if (/Tower$/.test(key)) return "towers";
-  if (/^(fence|palisade)/.test(key)) return "fences";
+  if (/^(fence|palisade|barrier)/.test(key)) return "fences";
   if (isContainer(key)) return "containers";
   if (key === "tumbleweed") return key;
   const name = unitDefinitions[key as UnitKey]?.sprite.name;

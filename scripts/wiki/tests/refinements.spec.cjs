@@ -125,7 +125,7 @@ test("structure contents and all factory door colors have valid keys and station
     "workstations",
   ])
     await expect(page.locator("#" + id)).toBeAttached();
-  for (const name of ["wood door", "iron door", "gold door", "earth door"])
+  for (const name of ["wood door", "iron door", "gold door", "earth door", "wood frame", "iron entry", "fire entrance"])
     await expect(
       page.getByRole("columnheader").filter({ hasText: new RegExp(name, "i") })
     ).toHaveCount(1);
