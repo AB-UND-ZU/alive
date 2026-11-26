@@ -278,7 +278,7 @@ export function TimerData() {
       rows={[
         [
           "World reference",
-          <Literal>{`${getHasteInterval(world, -1)} ms`}</Literal>,
+          <Literal>{`${getHasteInterval(world, 0)} ms`}</Literal>,
         ],
         ...[-1, 0, 1, 2, 3, 4, 5].map((haste) => [
           <span>

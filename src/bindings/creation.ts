@@ -3044,7 +3044,7 @@ export const createCell = (
       generateUnitData("box");
     const frameEntity = entities.createFrame(world, {
       [REFERENCE]: {
-        tick: getHasteInterval(world, -1),
+        tick: getHasteInterval(world, 0),
         delta: 0,
         suspended: true,
         suspensionCounter: -1,

@@ -40,7 +40,7 @@ describe("terrain", () => {
     ["slower in shallow water", "~", -2],
   ])("walks %s", (_, terrain, tempo) => {
     const world = createAreaWorld(terrainArea(terrain));
-    const interval = getHasteInterval(world, tempo);
+    const interval = getHasteInterval(world, tempo + 2);
 
     // skip steps that start on the plain ground
     const steps = measureSteps(world, "right", 7).slice(3);

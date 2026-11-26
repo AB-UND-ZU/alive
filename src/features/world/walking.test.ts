@@ -28,8 +28,8 @@ describe("walking", () => {
   it("walks faster with more haste", () => {
     const world = createAreaWorld(openArea);
     const hero = assertUnit(world);
-    const normal = getHasteInterval(world, 0);
-    const fast = getHasteInterval(world, 5);
+    const normal = getHasteInterval(world, 2);
+    const fast = getHasteInterval(world, 7);
 
     // first steps include time spent standing still
     const normalSteps = measureSteps(world, "right", 5).slice(2);

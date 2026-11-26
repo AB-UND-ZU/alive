@@ -59,24 +59,12 @@ const chatHaste = -1001;
 const popupHaste = -1002;
 export const boatHaste = 5;
 
-// haste:-4 interval:1100
-// haste:-3 interval:600
-// haste:-2 interval:433
-// haste:-1 interval:350 (world)
-// haste:0 interval:300 (scout, mage, knight)
-// haste:1 interval:266 (hunter or others with haste)
-// haste:2 interval:242
-// haste:3 interval:225
-// haste:4 interval:211
-// haste:5 interval:200
-// haste:6 interval:190
-// haste:7 interval:183
 export const getHasteInterval = (world: World, haste: number) =>
   haste === chatHaste
     ? 10
     : haste === popupHaste
     ? 175
-    : Math.floor(1000 / (Math.max(haste, -4) + 5) + 100);
+    : Math.floor(1350 / (Math.max(haste, -5) + 6) + 125);
 
 export const setMovementOrientations = (
   world: World,

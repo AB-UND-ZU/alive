@@ -247,7 +247,7 @@ describe("unit comparison", () => {
     expect(guard.stats.hp).toBe(unitDefinitions.earthGuard.stats.hp);
     expect(guard.stats.armor).toBe(1);
     expect(guard.stats.haste).toBe(
-      (unitDefinitions.earthGuard.stats.haste || 0) + 3
+      unitDefinitions.earthGuard.stats.haste || 0
     );
   });
   it("uses NPC overrides for concealed contact weapons", () => {

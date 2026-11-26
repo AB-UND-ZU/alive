@@ -75,6 +75,8 @@ export const emptyUnitStats: UnitStats = {
 export const unitStats = Object.keys(emptyUnitStats) as (keyof UnitStats)[];
 export type UnitStat = (typeof unitStats)[number];
 
+export const heroBaseHaste = 2;
+
 export const MAX_STAT_VALUE = 99;
 
 export const STATS = "STATS";

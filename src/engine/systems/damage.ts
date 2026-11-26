@@ -44,6 +44,7 @@ import { BELONGABLE, neutrals, tribes } from "../components/belongable";
 import {
   attributes,
   emptyUnitStats,
+  heroBaseHaste,
   UnitStats,
   STATS,
 } from "../components/stats";
@@ -98,6 +99,8 @@ import { entities } from "..";
 import { SPRITE } from "../components/sprite";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { castSpell } from "./trigger";
+import { LAYER } from "../components/layer";
+import { LOOTABLE } from "../components/lootable";
 import { FOG } from "../components/fog";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { createText } from "../../game/assets/ui";
@@ -313,9 +316,12 @@ export const getEntityBaseStats = (
   const equipmentStats = getEntityEquipmentStats(world, entity);
   const entityStats = { ...(entity[STATS] || emptyUnitStats) };
   attributes.forEach((attribute) => {
-    entityStats[attribute] += equipmentStats[attribute];
+    // Consume already applies equipment capacity to the stored HP/MP limits.
+    if (!entity[PLAYER] || (attribute !== "maxHp" && attribute !== "maxMp"))
+      entityStats[attribute] += equipmentStats[attribute];
   });
 
+  if (entity[PLAYER]) entityStats.haste += heroBaseHaste;
   return entityStats;
 };
 
@@ -365,7 +371,6 @@ export const getEntityDisplayStats = (
   return {
     ...entityStats,
     vision: entityStats.vision + 3,
-    haste: entityStats.haste + 3,
   };
 };
 
@@ -671,6 +676,11 @@ export const applyProcs = (
   return hasAffected;
 };
 
+const interruptPopup = (world: World, entity: Entity) => {
+  const popup = getActivePopup(world, entity);
+  if (popup && popup[IDENTIFIABLE]?.name !== "use") closePopup(world, entity, popup);
+};
+
 export const knockEntity = (
   world: World,
   entity: Entity,
@@ -680,6 +690,7 @@ export const knockEntity = (
 ) => {
   // fire tribe has knock immunity
   if (
+    source?.[LAYER]?.structure !== entity[LAYER]?.structure ||
     entity[BELONGABLE]?.faction === "fire" ||
     entity[NPC]?.type === "wormTower"
   )
@@ -689,7 +700,8 @@ export const knockEntity = (
   if (!orientation) orientation = choice(...orientations);
   const delta = orientationPoints[orientation];
 
-  if (amount > 0 && !entity[FRAGMENT] && entity[MOVABLE]) {
+  if (amount > 0 && !entity[FRAGMENT] && (entity[MOVABLE] || entity[LOOTABLE]?.disposable)) {
+    interruptPopup(world, entity);
     let target = copy(entity[POSITION]);
     let slide = amount;
     let sting;
@@ -723,7 +735,7 @@ export const knockEntity = (
 
     // knock into spikes but prevent tornadoes killing all mobs in desert
     if (
-      sting &&
+      sting && entity[STATS] &&
       !(isNpc(world, entity) && entity[FOG]?.visibility !== "visible")
     ) {
       stingEntity(world, sting, entity);

@@ -272,7 +272,7 @@ export const createLevel = (world: World, name: LevelName, size: number) => {
     },
     [RENDERABLE]: { generation: -1 },
     [REFERENCE]: {
-      tick: getHasteInterval(world, -1),
+      tick: getHasteInterval(world, 0),
       delta: 0,
       suspended: false,
       suspensionCounter: -1,

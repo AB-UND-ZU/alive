@@ -42,7 +42,7 @@ import { TRACKABLE } from "../components/trackable";
 import { createSequence } from "./sequence";
 import { BELONGABLE } from "../components/belongable";
 import { getClassData } from "../../game/balancing/classes";
-import { STATS } from "../components/stats";
+import { heroBaseHaste, STATS } from "../components/stats";
 import { getHasteInterval } from "./movement";
 import { PUSHABLE } from "../components/pushable";
 import { AFFECTABLE, getEmptyAffectable } from "../components/affectable";
@@ -118,7 +118,7 @@ export const createHero = (world: World, halo: Entity) => {
   const frameId = world.getEntityId(
     entities.createFrame(world, {
       [REFERENCE]: {
-        tick: getHasteInterval(world, stats.haste),
+        tick: getHasteInterval(world, heroBaseHaste + stats.haste),
         delta: 0,
         suspended: true,
         suspensionCounter: -1,
@@ -282,7 +282,7 @@ export default function setupFate(world: World) {
         const frameId = world.getEntityId(
           entities.createFrame(world, {
             [REFERENCE]: {
-              tick: getHasteInterval(world, -1),
+              tick: getHasteInterval(world, 0),
               delta: 0,
               suspended: true,
               suspensionCounter: -1,
