@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Sprite } from "./sprite";
 
@@ -17,7 +17,7 @@ export const TOOLTIP = "TOOLTIP";
 
 export default function addTooltip(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   tooltip: Tooltip
 ) {
   world.addComponentToEntity(entity, TOOLTIP, tooltip);

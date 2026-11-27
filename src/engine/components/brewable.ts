@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Item } from "./item";
 
@@ -14,7 +14,7 @@ export const BREWABLE = "BREWABLE";
 
 export default function addBrewable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   brewable: Brewable
 ) {
   world.addComponentToEntity(entity, BREWABLE, brewable);

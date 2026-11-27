@@ -1,4 +1,3 @@
-import { Entity } from "ecs";
 import { entities, World } from "../../engine";
 import {
   Element,
@@ -45,7 +44,7 @@ import {
 } from "../../engine/components/stats";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { castSkill, castSpell } from "../../engine/systems/trigger";
-import { TypedEntity } from "../../engine/entities";
+import { requireComponent, TypedEntity } from "../../engine/entities";
 import { none, missing } from "./sprites";
 import {
   disposeEntity,
@@ -88,7 +87,7 @@ export type CommandCall = {
 export type CommandSignature = {
   executor: (
     world: World,
-    entity: Entity,
+    entity: TypedEntity,
     ...args: string[]
   ) => string | Sprite[] | void;
   minArgs: number;
@@ -160,7 +159,7 @@ const expandCommand = (commandOrShort: string) => {
 
 const helpDelay = 350;
 
-const executeHelp = (world: World, entity: Entity, command: string) => {
+const executeHelp = (world: World, entity: TypedEntity, command: string) => {
   if (!command) {
     return commandSignatures.help.usage;
   }
@@ -174,10 +173,10 @@ const executeHelp = (world: World, entity: Entity, command: string) => {
   return `No command "${command}"!`;
 };
 
-const classStat = (entity: Entity, stat: UnitStat) => {
-  const level = entity[STATS].level;
+const classStat = (entity: TypedEntity, stat: UnitStat) => {
+  const level = requireComponent(entity, STATS).level;
   if (stat === "level") return level;
-  const stats = getLevelStats(entity[SPAWNABLE].classKey, Math.max(1, level));
+  const stats = getLevelStats(requireComponent(entity, SPAWNABLE).classKey, Math.max(1, level));
   if (stat === "hp") return stats.maxHp;
   if (stat === "mp") return stats.maxMp;
   if (stat === "xp") return 0;
@@ -186,7 +185,7 @@ const classStat = (entity: Entity, stat: UnitStat) => {
 
 const executeGive = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   itemName: string,
   amountText?: string,
   material?: string,
@@ -231,7 +230,7 @@ const executeGive = (
     item.element = element as Element;
   }
 
-  const position = findAdjacentDroppable(world, entity[POSITION]);
+  const position = findAdjacentDroppable(world, requireComponent(entity, POSITION));
   createItemAsDrop(
     world,
     position,
@@ -264,19 +263,19 @@ const commandStats = ["view", "class", "hair"];
 const hairNames = hairColors.map(({ name }) => name.toLowerCase());
 const executeStat = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   stat: string,
   input?: string
 ) => {
   if (stat === "class" || stat === "hair") {
-    const appearance = entity[SPAWNABLE];
+    const appearance = requireComponent(entity, SPAWNABLE);
     if (stat === "class") {
       if (input === undefined) return `class = ${appearance.classKey}`;
       const next = classes.find((key) => key === input);
       if (!next) return `No class "${input}"!`;
       if (next === appearance.classKey) return;
       entity[STATS] = getChangedClassStats(
-        entity[STATS], appearance.classKey, next
+        requireComponent(entity, STATS), appearance.classKey, next
       );
       appearance.classKey = next;
     } else {
@@ -292,7 +291,7 @@ const executeStat = (
       appearance.classKey, appearance.hairColor
     );
     entity[SPRITE] = sprite;
-    entity[SWIMMABLE].sprite = swimming;
+    requireComponent(entity, SWIMMABLE).sprite = swimming;
     rerenderEntity(world, entity);
     return;
   }
@@ -310,25 +309,25 @@ const executeStat = (
     return `No amount "${input}"!`;
   }
 
-  let value = "";
+  let value: number | string = "";
 
   if (isStat) {
     if (isReading) {
-      value = entity[STATS][stat];
+      value = requireComponent(entity, STATS)[stat as UnitStat];
     } else {
-      entity[STATS][stat] = amount;
+      requireComponent(entity, STATS)[stat as UnitStat] = amount;
     }
   } else if (isUnit) {
     if (isReading) {
-      value = entity[PLAYER].defeatedUnits[stat] || 0;
+      value = requireComponent(entity, PLAYER).defeatedUnits[stat as NpcType] || 0;
     } else {
-      entity[PLAYER].defeatedUnits[stat] = amount;
+      requireComponent(entity, PLAYER).defeatedUnits[stat as NpcType] = amount;
     }
   } else if (stat === "view") {
     if (isReading) {
-      value = entity[VIEWABLE].priority;
+      value = requireComponent(entity, VIEWABLE).priority;
     } else {
-      entity[VIEWABLE].priority = amount;
+      requireComponent(entity, VIEWABLE).priority = amount;
     }
   }
 
@@ -341,7 +340,7 @@ const executeStat = (
 
 const executeCast = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   itemName: string,
   material = "wood",
   element = ""
@@ -371,15 +370,17 @@ const executeCast = (
     [ITEM]: { ...item, carrier: world.getEntityId(entity), bound: true },
   };
   if (item.spell) {
-    castSpell(world, entity as TypedEntity<"POSITION">, itemEntity);
+    castSpell(world, world.assertComponents(entity, [POSITION]), itemEntity);
   } else if (item.skill) {
-    castSkill(world, entity as TypedEntity<"POSITION">, itemEntity);
+    castSkill(world, entity, itemEntity);
   }
 };
 
-const executeTp = (world: World, entity: Entity, idOrLoc?: string) => {
-  if (!idOrLoc) return `${entity[POSITION].x},${entity[POSITION].y}`;
-
+const executeTp = (world: World, entity: TypedEntity, idOrLoc?: string) => {
+  if (!idOrLoc) {
+    const { x, y } = requireComponent(entity, POSITION);
+    return `${x},${y}`;
+  }
   const parts = idOrLoc.split(",");
   let position: Position;
   if (parts.length === 2) {
@@ -407,50 +408,55 @@ export const commandMods = [
   "lock",
   "unlock",
 ];
-const executeMod = (world: World, entity: Entity, mod: string) => {
+const executeMod = (world: World, entity: TypedEntity, mod: string) => {
   if (mod === "walk") {
-    entity[MOVABLE].swimming = false;
-    entity[MOVABLE].flying = false;
+    const movement = requireComponent(entity, MOVABLE);
+    movement.swimming = false;
+    movement.flying = false;
   } else if (mod === "fly") {
-    entity[MOVABLE].swimming = false;
-    entity[MOVABLE].flying = true;
+    const movement = requireComponent(entity, MOVABLE);
+    movement.swimming = false;
+    movement.flying = true;
   } else if (mod === "swim") {
-    entity[MOVABLE].swimming = true;
-    entity[MOVABLE].flying = false;
+    const movement = requireComponent(entity, MOVABLE);
+    movement.swimming = true;
+    movement.flying = false;
   } else if (mod === "pvp") {
-    entity[BELONGABLE].faction = "hostile";
+    requireComponent(entity, BELONGABLE).faction = "hostile";
   } else if (mod === "pve") {
-    entity[BELONGABLE].faction = "settler";
+    requireComponent(entity, BELONGABLE).faction = "settler";
   } else if (mod === "god") {
-    entity[STATS].maxHp = 99;
-    entity[STATS].hp = 99;
-    entity[STATS].maxMp = 99;
-    entity[STATS].mp = 99;
-    entity[STATS].maxXp = Infinity;
-    entity[STATS].haste = 99;
-    entity[STATS].power = 99;
-    entity[STATS].armor = 99;
-    entity[STATS].wisdom = 99;
-    entity[STATS].resist = 99;
+    const entityStats = requireComponent(entity, STATS);
+    entityStats.maxHp = 99;
+    entityStats.hp = 99;
+    entityStats.maxMp = 99;
+    entityStats.mp = 99;
+    entityStats.maxXp = Infinity;
+    entityStats.haste = 99;
+    entityStats.power = 99;
+    entityStats.armor = 99;
+    entityStats.wisdom = 99;
+    entityStats.resist = 99;
   } else if (mod === "lock" || mod === "unlock") {
     setUnlocks(mod === "unlock");
     rerenderEntity(world, entity);
   } else if (mod === "reset") {
+    const entityStats = requireComponent(entity, STATS);
     const stats = getLevelStats(
-      entity[SPAWNABLE].classKey,
-      entity[STATS].level
+      requireComponent(entity, SPAWNABLE).classKey,
+      entityStats.level
     );
-    entity[STATS].maxHp = stats.maxHp;
-    entity[STATS].hp = stats.maxHp;
-    entity[STATS].maxMp = stats.maxMp;
-    entity[STATS].mp = stats.maxMp;
-    entity[STATS].maxXp = stats.maxXp;
-    entity[STATS].xp = 0;
-    entity[STATS].haste = stats.haste;
-    entity[STATS].power = stats.power;
-    entity[STATS].armor = stats.armor;
-    entity[STATS].wisdom = stats.wisdom;
-    entity[STATS].resist = stats.resist;
+    entityStats.maxHp = stats.maxHp;
+    entityStats.hp = stats.maxHp;
+    entityStats.maxMp = stats.maxMp;
+    entityStats.mp = stats.maxMp;
+    entityStats.maxXp = stats.maxXp;
+    entityStats.xp = 0;
+    entityStats.haste = stats.haste;
+    entityStats.power = stats.power;
+    entityStats.armor = stats.armor;
+    entityStats.wisdom = stats.wisdom;
+    entityStats.resist = stats.resist;
   } else {
     return `No mod "${mod}"!`;
   }
@@ -466,7 +472,7 @@ export const commandLists = [
   "cast",
   "cell",
 ];
-const executeList = (world: World, entity: Entity, list: string) => {
+const executeList = (world: World, entity: TypedEntity, list: string) => {
   let lines: string[] | Sprite[][] = [];
 
   if (!list || list === "cmd") {
@@ -565,7 +571,7 @@ const executeList = (world: World, entity: Entity, list: string) => {
   });
 };
 
-const executeFocus = (world: World, entity: Entity, id: string) => {
+const executeFocus = (world: World, entity: TypedEntity, id: string) => {
   if (!id) {
     setHighlight(world);
     return;
@@ -582,7 +588,7 @@ const executeFocus = (world: World, entity: Entity, id: string) => {
 
 const executeNew = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   cellName: string,
   amountText = "1",
   direction?: string
@@ -608,7 +614,7 @@ const executeNew = (
   const size = world.metadata.gameEntity[LEVEL].size;
   const delta = orientationPoints[orientation];
   for (let offset = 0; offset < amount; offset += 1) {
-    const target = combine(size, entity[POSITION], {
+    const target = combine(size, requireComponent(entity, POSITION), {
       x: delta.x * (offset + 1),
       y: delta.y * (offset + 1),
     });
@@ -639,13 +645,13 @@ const executeNew = (
   }
 };
 
-const executePin = (world: World, entity: Entity, id: string, loc?: string) => {
+const executePin = (world: World, entity: TypedEntity, id: string, loc?: string) => {
   const existing = getIdentifier(world, id);
   if (existing) {
     return `Duplicate "${id}"!`;
   }
 
-  let position = copy(entity[POSITION]);
+  let position = copy(requireComponent(entity, POSITION));
 
   const parts = loc ? loc.split(",") : [];
   if (loc && parts.length === 2) {
@@ -844,7 +850,7 @@ export const parseCommand = (prompt: string): CommandCall | undefined => {
 
 export const executeCommand = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   command: CommandCall
 ) => {
   const signature = commandSignatures[command.handler];

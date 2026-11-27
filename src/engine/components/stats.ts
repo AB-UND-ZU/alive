@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Countable = {
@@ -81,6 +81,6 @@ export const MAX_STAT_VALUE = 99;
 
 export const STATS = "STATS";
 
-export default function addStats(world: World, entity: Entity, stats: Stats) {
+export default function addStats(world: World, entity: TypedEntity, stats: Stats) {
   world.addComponentToEntity(entity, STATS, stats);
 }

@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Shootable = {
@@ -9,7 +9,7 @@ export const SHOOTABLE = "SHOOTABLE";
 
 export default function addShootable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   shootable: Shootable
 ) {
   world.addComponentToEntity(entity, SHOOTABLE, shootable);

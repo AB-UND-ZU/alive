@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Revivable = {
@@ -9,7 +9,7 @@ export const REVIVABLE = "REVIVABLE";
 
 export default function addRevivable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   revivable: Revivable
 ) {
   world.addComponentToEntity(entity, REVIVABLE, revivable);

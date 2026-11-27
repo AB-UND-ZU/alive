@@ -1,4 +1,3 @@
-import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -33,7 +32,7 @@ import { rerenderEntity } from "./renderer";
 import { emptyUnitStats, STATS } from "../components/stats";
 import { getLockable } from "./action";
 import { invertOrientation } from "../../game/math/path";
-import { TypedEntity } from "../entities";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { getFragment } from "./enter";
 import { FRAGMENT } from "../components/fragment";
@@ -45,12 +44,12 @@ import { spendItem } from "./trigger";
 
 export const getProjectiles = (world: World, position: Position) =>
   getCellEntities(world, position).filter(
-    (target) => PROJECTILE in target
-  ) as Entity[];
+    (target) => hasComponent(target, PROJECTILE)
+  ) as TypedEntity<"POSITION" | "PROJECTILE">[];
 
-export const isShootable = (world: World, entity: Entity) =>
-  SHOOTABLE in entity &&
-  STATS in entity &&
+export const isShootable = (world: World, entity: TypedEntity) =>
+  hasComponent(entity, SHOOTABLE) &&
+  hasComponent(entity, STATS) &&
   (!isDead(world, entity) || isDecaying(world, entity)) &&
   !isDecayed(world, entity);
 
@@ -61,7 +60,7 @@ export const getShootable = (
 ) => {
   const targetEntity = getCellEntities(world, position).find((target) =>
     isShootable(world, target)
-  ) as Entity | undefined;
+  ) as TypedEntity | undefined;
 
   if (targetEntity) return targetEntity;
 
@@ -101,8 +100,8 @@ export const getStackableArrow = (world: World, position: Position) => {
 
 export const shootArrow = (
   world: World,
-  origin: Entity,
-  bow: Entity,
+  origin: TypedEntity,
+  bow: TypedEntity,
   overrides: TypedEntity = {}
 ) => {
   const entity = { ...origin, ...overrides } as TypedEntity<
@@ -129,9 +128,10 @@ export const shootArrow = (
     })
   );
   const hasShadow = !isImmersible(world, entity[POSITION]);
-  const material = bow[ITEM].material as Material;
+  const item = requireComponent(bow, ITEM);
+  const material = item.material as Material;
   const sprite = (hasShadow ? shotShadow : shot)[material].default;
-  const bowStats = getAbilityStats(bow[ITEM], entity[NPC]?.type);
+  const bowStats = getAbilityStats(item, entity[NPC]?.type);
   const { damage } = calculateDamage(world, bowStats, entity, emptyUnitStats);
   const shotEntity = entities.createShot(world, {
     [BELONGABLE]: { faction: entity[BELONGABLE].faction },
@@ -247,7 +247,7 @@ export default function setupBallistics(world: World) {
             {},
             targetEntity
           );
-          targetEntity[STATS].hp = hp;
+          requireComponent(targetEntity, STATS).hp = hp;
 
           // propagate damage
           const rootEntity = getRoot(world, targetEntity);
@@ -258,13 +258,13 @@ export default function setupBallistics(world: World) {
               {},
               rootEntity
             );
-            rootEntity[STATS].hp = hp;
+            requireComponent(rootEntity, STATS).hp = hp;
             rerenderEntity(world, rootEntity);
           }
 
           // increment arrow hit counter on target
           if (!isEnemy(world, entity)) {
-            fragmentEntity[SHOOTABLE].shots += 1;
+            requireComponent(fragmentEntity, SHOOTABLE).shots += 1;
           }
           hit = true;
           play(world, fragmentEntity, "arrow", {
@@ -299,8 +299,9 @@ export default function setupBallistics(world: World) {
       // stack into arrows
       const arrowStack = getStackableArrow(world, entity[POSITION]);
       if (arrowStack) {
-        arrowStack[ITEM].amount += 1;
-        const containerEntity = world.assertById(arrowStack[ITEM].carrier);
+        const item = requireComponent(arrowStack, ITEM);
+        item.amount += 1;
+        const containerEntity = world.assertById(item.carrier);
         rerenderEntity(world, containerEntity);
         disposeEntity(world, entity, false);
         continue;

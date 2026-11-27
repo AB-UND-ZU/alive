@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Item } from "./item";
 import { Sprite } from "./sprite";
@@ -102,6 +102,6 @@ export type Popup = {
 
 export const POPUP = "POPUP";
 
-export default function addPopup(world: World, entity: Entity, popup: Popup) {
+export default function addPopup(world: World, entity: TypedEntity, popup: Popup) {
   world.addComponentToEntity(entity, POPUP, popup);
 }

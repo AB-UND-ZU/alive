@@ -31,7 +31,7 @@ export type BiomeName = "jungle" | "desert" | "ocean" | "glacier";
 export type Level = {
   name: LevelName;
   // map[x][y][entityId] = entity
-  map: Record<number, Record<number, Record<string, Entity>>>;
+  map: Record<number, Record<number, Record<string, TypedEntity<"POSITION">>>>;
   walkable: Matrix<0 | 1>;
   biomes: Matrix<BiomeName>;
   cells: Matrix<CellType>;

@@ -1,5 +1,5 @@
 import { syncMovementSpring } from "../motion";
-import { Entity } from "ecs";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { POSITION, Position } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -24,41 +24,44 @@ import { bubbleSound } from "./water";
 import { getClickable } from "./click";
 
 export const getMountable = (world: World, position: Position) =>
-  getCellEntities(world, position).find((entity) => MOUNTABLE in entity) as
-    | Entity
+  getCellEntities(world, position).find((entity) => hasComponent(entity, MOUNTABLE)) as
+    | TypedEntity<"POSITION" | "MOUNTABLE">
     | undefined;
 
-export const isMounting = (world: World, entity: Entity) =>
+export const isMounting = (world: World, entity: TypedEntity) =>
   !!entity[PLAYER]?.mount;
 
-export const canMount = (world: World, entity: Entity, vessel: Entity) =>
-  !isMounting(world, entity) && !vessel[MOUNTABLE].passenger;
+export const canMount = (world: World, entity: TypedEntity, vessel: TypedEntity) =>
+  !isMounting(world, entity) && !requireComponent(vessel, MOUNTABLE).passenger;
 
-export const mountVessel = (world: World, entity: Entity, vessel: Entity) => {
+export const mountVessel = (world: World, entity: TypedEntity<"MOVABLE">, vessel: TypedEntity) => {
   const entityId = world.getEntityId(entity);
   const mountId = world.getEntityId(vessel);
-  const frameEntity = world.assertByIdAndComponents(vessel[MOVABLE].reference, [
+  const movement = requireComponent(vessel, MOVABLE);
+  const frameEntity = world.assertByIdAndComponents(movement.reference, [
     REFERENCE,
     RENDERABLE,
   ]);
 
-  vessel[MOVABLE].orientations = [];
-  vessel[MOUNTABLE].passenger = entityId;
-  vessel[MOUNTABLE].spring = entity[MOVABLE].spring;
+  movement.orientations = [];
+  const vesselMount = requireComponent(vessel, MOUNTABLE);
+  vesselMount.passenger = entityId;
+  vesselMount.spring = entity[MOVABLE].spring;
   entity[MOVABLE].spring = { duration: frameEntity[REFERENCE].tick };
   syncMovementSpring(world, entity);
   entity[MOVABLE].orientations = [];
   entity[MOVABLE].pendingOrientation = undefined;
   entity[MOVABLE].lastInteraction = frameEntity[RENDERABLE].generation;
-  entity[PLAYER].mount = mountId;
+  requireComponent(entity, PLAYER).mount = mountId;
 
   // hide gear
+  const equipment = requireComponent(entity, EQUIPPABLE);
   const weaponEntity = world.getEntityByIdAndComponents(
-    entity[EQUIPPABLE].weapon,
+    equipment.weapon,
     [ITEM]
   );
   const offhandEntity = world.getEntityByIdAndComponents(
-    entity[EQUIPPABLE].offhand,
+    equipment.offhand,
     [ITEM]
   );
 
@@ -71,15 +74,16 @@ export const mountVessel = (world: World, entity: Entity, vessel: Entity) => {
     rerenderEntity(world, offhandEntity);
   }
 
-  moveEntity(world, entity, vessel[POSITION]);
+  moveEntity(world, entity, requireComponent(vessel, POSITION));
 };
 
-export const stopVessel = (world: World, vessel: Entity) => {
+export const stopVessel = (world: World, vessel: TypedEntity<"MOVABLE">) => {
+  const mount = requireComponent(vessel, MOUNTABLE);
   if (
-    vessel[MOUNTABLE].medium === "water" &&
-    vessel[MOUNTABLE].passenger &&
+    mount.medium === "water" &&
+    mount.passenger &&
     vessel[MOVABLE].orientations.length > 0 &&
-    isImmersible(world, vessel[POSITION])
+    isImmersible(world, requireComponent(vessel, POSITION))
   ) {
     bubbleSound(world, vessel, "bubble");
   }
@@ -87,20 +91,21 @@ export const stopVessel = (world: World, vessel: Entity) => {
   vessel[MOVABLE].pendingOrientation = undefined;
 };
 
-export const unmountVessel = (world: World, entity: Entity, vessel: Entity) => {
-  const frameEntity = world.assertByIdAndComponents(vessel[MOVABLE].reference, [
+export const unmountVessel = (world: World, entity: TypedEntity<"MOVABLE" | "PLAYER">, vessel: TypedEntity) => {
+  const frameEntity = world.assertByIdAndComponents(requireComponent(vessel, MOVABLE).reference, [
     REFERENCE,
     RENDERABLE,
   ]);
 
   entity[PLAYER].mount = undefined;
-  entity[MOVABLE].spring = vessel[MOUNTABLE].spring;
+  const vesselMount = requireComponent(vessel, MOUNTABLE);
+  entity[MOVABLE].spring = vesselMount.spring;
   syncMovementSpring(world, entity);
   entity[MOVABLE].lastInteraction = frameEntity[RENDERABLE].generation;
-  vessel[MOUNTABLE].passenger = undefined;
-  vessel[MOUNTABLE].spring = undefined;
+  vesselMount.passenger = undefined;
+  vesselMount.spring = undefined;
 
-  stopVessel(world, vessel);
+  stopVessel(world, world.assertComponents(vessel, [MOVABLE]));
 
   // reset boat being displacable
   if (frameEntity === world.metadata.gameEntity) return;
@@ -110,12 +115,13 @@ export const unmountVessel = (world: World, entity: Entity, vessel: Entity) => {
   frameEntity[REFERENCE].suspensionCounter = -1;
 
   // show gear
+  const equipment = requireComponent(entity, EQUIPPABLE);
   const weaponEntity = world.getEntityByIdAndComponents(
-    entity[EQUIPPABLE].weapon,
+    equipment.weapon,
     [ITEM]
   );
   const offhandEntity = world.getEntityByIdAndComponents(
-    entity[EQUIPPABLE].offhand,
+    equipment.offhand,
     [ITEM]
   );
 

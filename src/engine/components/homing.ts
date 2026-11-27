@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Position } from "./position";
 
@@ -26,7 +26,7 @@ export const HOMING = "HOMING";
 
 export default function addHoming(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   homing: Homing
 ) {
   world.addComponentToEntity(entity, HOMING, homing);

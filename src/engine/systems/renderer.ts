@@ -1,5 +1,5 @@
 import { updateParticleMotion } from "../motion";
-import { Entity } from "ecs";
+import { requireComponent, TypedEntity } from "../entities";
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
 import { REFERENCE } from "../components/reference";
@@ -8,13 +8,13 @@ import { EQUIPPABLE } from "../components/equippable";
 import { Sequencable, SEQUENCABLE } from "../components/sequencable";
 import { LEVEL } from "../components/level";
 
-export const rerenderEntity = (world: World, entity: Entity) => {
+export const rerenderEntity = (world: World, entity: TypedEntity) => {
   updateParticleMotion(world, entity);
-  entity[RENDERABLE].generation += 1;
+  requireComponent(entity, RENDERABLE).generation += 1;
 };
 
-export const getEntityGeneration = (world: World, entity: Entity) => {
-  const renderableGeneration = entity[RENDERABLE].generation;
+export const getEntityGeneration = (world: World, entity: TypedEntity) => {
+  const renderableGeneration = requireComponent(entity, RENDERABLE).generation;
   const movable = entity[MOVABLE];
   const movableGeneration = movable
     ? world.assertByIdAndComponents(movable.reference, [RENDERABLE])[RENDERABLE]

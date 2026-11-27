@@ -123,7 +123,7 @@ export type ItemStats = Attributes &
 
 ```ts src/engine/components/item.ts
 export type Item = {
-  carrier: number;
+  carrier?: number;
   amount: number;
   material?: Material;
   element?: Element;
@@ -136,6 +136,6 @@ export type Item = {
   stat?: keyof UnitStats;
   consume?: Consumable;
   stackable?: Stackable;
-  bound: boolean;
+  bound?: boolean;
 };
 ```

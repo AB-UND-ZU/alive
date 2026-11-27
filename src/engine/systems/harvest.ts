@@ -1,5 +1,5 @@
 import { bumpEntity } from "../motion";
-import { Entity } from "ecs";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { LIQUID } from "../components/liquid";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -93,12 +93,12 @@ export const isPlantable = (
 ) => !!plantConfigs[item.stackable!];
 
 export const getHarvestables = (world: World, position: Position) => {
-  const harvestables: Entity[] = [];
+  const harvestables: TypedEntity<"HARVESTABLE">[] = [];
 
   if (getBlockable(world, position)) return harvestables;
 
   getCellEntities(world, position).forEach((target) => {
-    if (HARVESTABLE in target) {
+    if (hasComponent(target, HARVESTABLE)) {
       harvestables.push(target);
       return;
     }
@@ -111,7 +111,7 @@ export const getHarvestables = (world: World, position: Position) => {
       fragmentEntity[FRAGMENT].structure
     );
 
-    if (structurableEntity && HARVESTABLE in structurableEntity) {
+    if (structurableEntity && hasComponent(structurableEntity, HARVESTABLE)) {
       harvestables.push(structurableEntity);
       return;
     }
@@ -141,8 +141,8 @@ export const getHarvestable = (world: World, position: Position) => {
 // check if pointing to something harvestable
 export const getHarvestTarget = (
   world: World,
-  entity: Entity,
-  tool: Entity,
+  entity: TypedEntity<"POSITION">,
+  tool: TypedEntity<"ITEM">,
   orientation?: Orientation
 ) => {
   const target = orientation
@@ -167,12 +167,12 @@ export const getHarvestTarget = (
 };
 
 export const getBuildables = (world: World, position: Position) => {
-  const buildables: Entity[] = [];
+  const buildables: TypedEntity[] = [];
 
   if (getBlockable(world, position)) return buildables;
 
   getCellEntities(world, position).forEach((target) => {
-    if (BUILDABLE in target) {
+    if (hasComponent(target, BUILDABLE)) {
       buildables.push(target);
       return;
     }
@@ -185,7 +185,7 @@ export const getBuildables = (world: World, position: Position) => {
       fragmentEntity[FRAGMENT].structure
     );
 
-    if (structurableEntity && BUILDABLE in structurableEntity) {
+    if (structurableEntity && hasComponent(structurableEntity, BUILDABLE)) {
       buildables.push(structurableEntity);
       return;
     }
@@ -199,8 +199,8 @@ export const getBuildable = (world: World, position: Position) =>
 
 export const getBuildTarget = (
   world: World,
-  entity: Entity,
-  tool: Entity,
+  entity: TypedEntity<"POSITION">,
+  tool: TypedEntity,
   orienation: Orientation
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -211,7 +211,7 @@ export const getBuildTarget = (
 
   for (const cell of getCellEntities(world, target)) {
     if (
-      STATS in cell &&
+      hasComponent(cell, STATS) &&
       isNeutral(world, cell) &&
       cell[STATS].hp < cell[STATS].maxHp
     ) {
@@ -220,7 +220,7 @@ export const getBuildTarget = (
   }
 };
 
-export const triggerTool = (world: World, entity: Entity, tool: Entity) => {
+export const triggerTool = (world: World, entity: TypedEntity<"CONDITIONABLE" | "ORIENTABLE" | "POSITION">, tool: TypedEntity<"ITEM">) => {
   const orientation = entity[ORIENTABLE].facing || "up";
   const harvestable =
     tool[ITEM].tool === "hammer"
@@ -230,16 +230,17 @@ export const triggerTool = (world: World, entity: Entity, tool: Entity) => {
   const conditionName =
     tool[ITEM].tool && harvestConditions[(tool[ITEM] as Item).tool!];
 
-  if (!harvestable || toolCondition?.name !== "toolCondition") return;
+  const condition = conditionName && entity[CONDITIONABLE][conditionName];
+  if (!harvestable || toolCondition?.name !== "toolCondition" || !condition) return;
 
-  entity[CONDITIONABLE][conditionName].modifier = toolCondition.elapsed;
-  entity[CONDITIONABLE][conditionName].orientation = orientation;
+  condition.modifier = toolCondition.elapsed;
+  condition.orientation = orientation;
 };
 
 export const performDig = (
   world: World,
-  entity: Entity,
-  toolEntity: Entity
+  entity: TypedEntity<"CONDITIONABLE" | "POSITION">,
+  toolEntity: TypedEntity<"ITEM">
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const immersible = getImmersible(world, entity[POSITION]);
@@ -266,13 +267,14 @@ export const performDig = (
 
 export const harvestResource = (
   world: World,
-  target: Entity,
+  target: TypedEntity,
   amount: number
 ) => {
-  target[HARVESTABLE].amount = Math.max(0, target[HARVESTABLE].amount - amount);
+  const harvestable = requireComponent(target, HARVESTABLE);
+  harvestable.amount = Math.max(0, harvestable.amount - amount);
   rerenderEntity(world, target);
 
-  const farmable = getFarmable(world, target[POSITION]);
+  const farmable = getFarmable(world, requireComponent(target, POSITION));
   if (farmable) {
     farmable[FARMABLE].planted = undefined;
     farmable[FARMABLE].progress = undefined;
@@ -283,9 +285,9 @@ export const harvestResource = (
 
 export const performHarvest = (
   world: World,
-  entity: Entity,
-  tool: Entity,
-  targetEntity: Entity,
+  entity: TypedEntity<"CONDITIONABLE" | "POSITION">,
+  tool: TypedEntity<"ITEM">,
+  targetEntity: TypedEntity,
   orientation: Orientation
 ) => {
   const toolStats = getEquipmentStats(tool[ITEM], entity[NPC]?.type);
@@ -312,7 +314,9 @@ export const performHarvest = (
 
   const conditionName =
     tool[ITEM].tool && harvestConditions[tool[ITEM].tool as Tool];
-  const harvestAmount = entity[CONDITIONABLE][conditionName].amount;
+  const condition = conditionName && entity[CONDITIONABLE][conditionName];
+  if (!condition) return [];
+  const harvestAmount = condition.amount;
 
   for (let targetIndex = 0; targetIndex < targets.length; targetIndex += 1) {
     const rangeTarget = targets[targetIndex];
@@ -320,7 +324,7 @@ export const performHarvest = (
     const entityOrientation = relativeOrientations(
       world,
       entity[POSITION],
-      rangeTarget[POSITION]
+      requireComponent(rangeTarget, POSITION)
     )[0];
     const bumpOrientation =
       targetIndex === 0
@@ -341,8 +345,8 @@ export const performHarvest = (
 };
 
 export const getFarmable = (world: World, position: Position) =>
-  getCellEntities(world, position).find((entity) => FARMABLE in entity) as
-    | Entity
+  getCellEntities(world, position).find((entity) => hasComponent(entity, FARMABLE)) as
+    | TypedEntity<"POSITION" | "FARMABLE">
     | undefined;
 
 const getRefillElement = (world: World, position: Position) => {
@@ -353,7 +357,7 @@ const getRefillElement = (world: World, position: Position) => {
   }
 };
 
-export const canPlant = (world: World, entity: Entity) => {
+export const canPlant = (world: World, entity: TypedEntity<"POSITION">) => {
   const farmable = getFarmable(world, entity[POSITION]);
   const toolEntity = world.getEntityByIdAndComponents(
     entity[EQUIPPABLE]?.tool,
@@ -367,20 +371,20 @@ export const canPlant = (world: World, entity: Entity) => {
   );
 };
 
-export const isCell = (world: World, entity: Entity) =>
+export const isCell = (world: World, entity: TypedEntity) =>
   entity[SPRITE] && entity[SPRITE].layers.length > 0;
 
-export const canPlow = (world: World, entity: Entity, position: Position) =>
+export const canPlow = (world: World, entity: TypedEntity, position: Position) =>
   !getCellEntities(world, position).some(
     (cell) => isCell(world, cell) && !cell[LIQUID] && cell !== entity
   );
 
-export const canTrench = (world: World, entity: Entity, position: Position) => {
+export const canTrench = (world: World, entity: TypedEntity, position: Position) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const harvestable = getHarvestable(world, position);
   const resource = harvestable?.[HARVESTABLE].resource as Resource | undefined;
   const immersible = getImmersible(world, position);
-  const toolEntity = world.getEntityByIdAndComponents(entity[EQUIPPABLE].tool, [
+  const toolEntity = world.getEntityByIdAndComponents(requireComponent(entity, EQUIPPABLE).tool, [
     ITEM,
     SPRITE,
   ]);
@@ -396,7 +400,7 @@ export const canTrench = (world: World, entity: Entity, position: Position) => {
     .map((orientation) => orientationPoints[orientation])
     .some((delta) =>
       getCellEntities(world, combine(size, position, delta)).some((cell) =>
-        trenchResources.includes(cell[HARVESTABLE]?.resource)
+        cell[HARVESTABLE] && trenchResources.includes(cell[HARVESTABLE].resource)
       )
     );
   if (
@@ -430,12 +434,12 @@ export const canTrench = (world: World, entity: Entity, position: Position) => {
 
 export const canHarvest = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   position: Position
 ) => {
   const harvestable = getHarvestable(world, position);
   const resource = harvestable?.[HARVESTABLE].resource as Resource | undefined;
-  const toolEntity = world.getEntityByIdAndComponents(entity[EQUIPPABLE].tool, [
+  const toolEntity = world.getEntityByIdAndComponents(requireComponent(entity, EQUIPPABLE).tool, [
     ITEM,
     SPRITE,
   ]);
@@ -449,7 +453,7 @@ export const canHarvest = (
   );
 };
 
-export const canDig = (world: World, entity: Entity, position: Position) => {
+export const canDig = (world: World, entity: TypedEntity, position: Position) => {
   if (canPlow(world, entity, position)) return true;
   if (canTrench(world, entity, position)) return true;
   if (canHarvest(world, entity, position)) return true;
@@ -459,7 +463,7 @@ export const canDig = (world: World, entity: Entity, position: Position) => {
 
 export const performFill = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity<"POSITION">,
   position: Position
 ) => {
   const immersible = getImmersible(world, entity[POSITION]);
@@ -486,8 +490,8 @@ export const performFill = (
 
 export const performTrench = (
   world: World,
-  entity: Entity,
-  toolEntity: Entity,
+  entity: TypedEntity<"POSITION">,
+  toolEntity: TypedEntity,
   position: Position
 ) => {
   const sandEntity = getHarvestable(world, entity[POSITION]);
@@ -544,8 +548,9 @@ export const plantSoil = (world: World, position: Position) => {
   );
 };
 
-export const plantSeed = (world: World, entity: Entity, item: Entity) => {
-  const farmable = getFarmable(world, entity[POSITION]);
+export const plantSeed = (world: World, entity: TypedEntity, item: TypedEntity<"ITEM">) => {
+  const position = requireComponent(entity, POSITION);
+  const farmable = getFarmable(world, position);
   const stackable = item[ITEM].stackable as Stackable;
   const plantConfig = plantConfigs[stackable];
 
@@ -566,7 +571,7 @@ export const plantSeed = (world: World, entity: Entity, item: Entity) => {
     [DROPPABLE]: { decayed: false },
     [FOG]: { visibility: "hidden", type: "object" },
     [HARVESTABLE]: { amount: 1, maximum: 1, resource: plantConfig.harvest },
-    [POSITION]: copy(entity[POSITION]),
+    [POSITION]: copy(position),
     [SPRITE]: sapling1,
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
@@ -581,10 +586,10 @@ export const plantSeed = (world: World, entity: Entity, item: Entity) => {
   rerenderEntity(world, farmable);
 };
 
-export const canRefill = (world: World, entity: Entity) =>
+export const canRefill = (world: World, entity: TypedEntity) =>
   existingFund(world, entity, { consume: "bucket", material: "iron" }) > 0;
 
-export const refillWater = (world: World, entity: Entity, element: Element) => {
+export const refillWater = (world: World, entity: TypedEntity<"INVENTORY" | "PLAYER">, element: Element) => {
   const bucketItem = ((entity[INVENTORY]?.items || []) as number[])
     .map((itemId) => world.assertByIdAndComponents(itemId, [ITEM, SPRITE]))
     .find((itemEntity) =>
@@ -608,6 +613,7 @@ export const refillWater = (world: World, entity: Entity, element: Element) => {
       {
         [ITEM]: {
           consume: "bucket",
+          amount: bucketItem[ITEM].amount,
           material: bucketItem[ITEM].material,
           element: "water",
         },
@@ -620,8 +626,8 @@ export const refillWater = (world: World, entity: Entity, element: Element) => {
 
 export const queueBrew = (
   world: World,
-  entity: Entity,
-  brewing: Entity,
+  entity: TypedEntity,
+  brewing: TypedEntity,
   recipe: Recipe,
   optionIndex: number
 ) => {
@@ -846,6 +852,7 @@ export default function setupHarvest(world: World) {
             {
               [ITEM]: {
                 consume: "bucket",
+                amount: waterBucket[ITEM].amount,
                 material: waterBucket[ITEM].material,
               },
             },

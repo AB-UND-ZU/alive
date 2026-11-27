@@ -1,3 +1,4 @@
+import { requireComponent } from "../../engine/entities";
 import { SceneSprite, SceneState } from "../interface/frame";
 import { Layer, SPRITE } from "../../engine/components/sprite";
 import { colors, darkColors, orderedColors } from "../../game/assets/colors";
@@ -77,7 +78,7 @@ export const collectTerminalSprites = (
     const bodyEntry = /body\d+$/.test(entry.key);
     if (
       bodyEntry &&
-      ([tombstone1, tombstone2].includes(entry.entity[SPRITE]) ||
+      ([tombstone1, tombstone2].some((sprite) => sprite === entry.entity[SPRITE]) ||
         entry.entity[LOCKABLE]?.locked === false)
     )
       continue;
@@ -123,7 +124,7 @@ export const collectTerminalSprites = (
         x:
           wave && anchor
             ? Math.ceil(anchor.x) +
-              entry.particle![PARTICLE].offsetX -
+              requireComponent(entry.particle!, PARTICLE).offsetX -
               waveStep.x
             : centered && anchor
             ? Math.ceil(anchor.x) + ceilOffset(entry.x - anchor.x)
@@ -133,7 +134,7 @@ export const collectTerminalSprites = (
         y:
           wave && anchor
             ? Math.ceil(anchor.y) +
-              entry.particle![PARTICLE].offsetY -
+              requireComponent(entry.particle!, PARTICLE).offsetY -
               waveStep.y
             : centered && anchor
             ? Math.ceil(anchor.y) + ceilOffset(entry.y - anchor.y)
@@ -258,7 +259,7 @@ export const collectTerminalSprites = (
           "footing",
           "hinge",
           "rubble",
-        ].includes(resource)
+        ].some((ground) => ground === resource)
       )
         sprite.terminalLayers = [
           {

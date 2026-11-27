@@ -1,5 +1,5 @@
 import { bumpEntity } from "../motion";
-import { Entity } from "ecs";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -22,8 +22,8 @@ import { isFragment } from "./enter";
 import { FRAGMENT } from "../components/fragment";
 import { MOUNTABLE } from "../components/mountable";
 
-export const isClickable = (world: World, entity: Entity) =>
-  CLICKABLE in entity;
+export const isClickable = (world: World, entity: TypedEntity) =>
+  hasComponent(entity, CLICKABLE);
 
 export const getClickables = (world: World, position: Position) =>
   getCellEntities(world, position)
@@ -39,7 +39,7 @@ export const getClickables = (world: World, position: Position) =>
 
       return undefined;
     })
-    .filter(Boolean) as Entity[];
+    .filter(Boolean) as TypedEntity[];
 
 export const getClickable = (
   world: World,
@@ -48,21 +48,21 @@ export const getClickable = (
 ) =>
   getClickables(world, position).find(
     (clickable) =>
-      !clickable[CLICKABLE].clicked &&
+      !requireComponent(clickable, CLICKABLE).clicked &&
       !(ignoreSnow && clickable[COVERABLE]?.type === "snow")
   );
 
 export const clickEntity = (
   world: World,
-  entity: Entity,
-  target: Entity,
+  entity: TypedEntity,
+  target: TypedEntity,
   orientation: Orientation
 ) => {
   if (entity[ORIENTABLE]) {
     entity[ORIENTABLE].facing = orientation;
   }
   bumpEntity(world, entity, orientation);
-  target[CLICKABLE].clicked = true;
+  requireComponent(target, CLICKABLE).clicked = true;
   rerenderEntity(world, entity);
 };
 
@@ -110,8 +110,8 @@ export default function setupClick(world: World) {
 
       if (
         !targetEntity ||
-        targetEntity[CLICKABLE].clicked ||
-        (targetEntity[CLICKABLE].player && !(PLAYER in entity))
+        requireComponent(targetEntity, CLICKABLE).clicked ||
+        (requireComponent(targetEntity, CLICKABLE).player && !hasComponent(entity, PLAYER))
       )
         continue;
 

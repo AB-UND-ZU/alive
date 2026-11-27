@@ -123,7 +123,7 @@ it("wraps gray suggestions inside the chat and leaves the caret at the typed pos
   const { world } = setup();
   openChat(world);
   type(world, "/give sword 1 iron f");
-  const menu = getMenu(world);
+  const menu = world.assertComponents(getMenu(world), ["POPUP", "SEQUENCABLE", "RENDERABLE"]);
   const sequence = getSequence(world, menu, "popup")!;
   world.metadata.gameEntity.RENDERABLE.generation = 2;
   displayChat(world, menu, sequence);
@@ -145,7 +145,7 @@ it("keeps every gray suggestion pixel visible in both caret phases", () => {
   const { world } = setup();
   openChat(world);
   type(world, "/give sword 1 iron f");
-  const menu = getMenu(world);
+  const menu = world.assertComponents(getMenu(world), ["POPUP", "SEQUENCABLE", "RENDERABLE"]);
   const sequence = getSequence(world, menu, "popup")!;
   const phases = [2, 3].map((generation) => {
     world.metadata.gameEntity.RENDERABLE.generation = generation;
@@ -167,7 +167,7 @@ it("keeps the typing position visible when a command exceeds the four chat rows"
   const { world } = setup();
   openChat(world);
   type(world, "/pin " + "a".repeat(80));
-  const menu = getMenu(world);
+  const menu = world.assertComponents(getMenu(world), ["POPUP", "SEQUENCABLE", "RENDERABLE"]);
   const sequence = getSequence(world, menu, "popup")!;
   world.metadata.gameEntity.RENDERABLE.generation = 2;
   displayChat(world, menu, sequence);

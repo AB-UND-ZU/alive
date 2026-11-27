@@ -78,6 +78,7 @@
 | [Element](engine/components/item.md#type-element) | `src/engine/components/item.ts` |
 | [EmptyObject](engine/components/sequencable.md#type-emptyobject) | `src/engine/components/sequencable.ts` |
 | [Enterable](engine/components/enterable.md#type-enterable) | `src/engine/components/enterable.ts` |
+| [EntityId](engine/entities.md#type-entityid) | `src/engine/entities.ts` |
 | [EntityToken](engine/snapshot.md#type-entitytoken) | `src/engine/snapshot.ts` |
 | [Entity](engine/entities.md#type-entity) | `src/engine/entities.ts` |
 | [Entry](renderers/three-js/Entity/Instances.md#type-entry) | `src/renderers/three-js/Entity/Instances.tsx` |
@@ -117,6 +118,7 @@
 | [Ingredients](engine/components/popup.md#type-ingredients) | `src/engine/components/popup.ts` |
 | [InteractSequence](engine/components/sequencable.md#type-interactsequence) | `src/engine/components/sequencable.ts` |
 | [Interval](game/math/tracing.md#type-interval) | `src/game/math/tracing.ts` |
+| [InventoryItemData](engine/systems/drop.md#type-inventoryitemdata) | `src/engine/systems/drop.ts` |
 | [Inventory](engine/components/inventory.md#type-inventory) | `src/engine/components/inventory.ts` |
 | [InvertedRingProps](renderers/three-js/Entity/CoveredLight.md#type-invertedringprops) | `src/renderers/three-js/Entity/CoveredLight.tsx` |
 | [ItemConsumption](engine/systems/consume.md#type-itemconsumption) | `src/engine/systems/consume.ts` |
@@ -191,6 +193,7 @@
 | [Recipe](engine/components/popup.md#type-recipe) | `src/engine/components/popup.ts` |
 | [Reference](engine/components/reference.md#type-reference) | `src/engine/components/reference.ts` |
 | [Reference](wiki/references.md#type-reference) | `src/wiki/references.tsx` |
+| [ReferencedEntity](engine/entities.md#type-referencedentity) | `src/engine/entities.ts` |
 | [Refillable](engine/components/refillable.md#type-refillable) | `src/engine/components/refillable.ts` |
 | [Reloadable](engine/components/item.md#type-reloadable) | `src/engine/components/item.ts` |
 | [Remainable](engine/components/remainable.md#type-remainable) | `src/engine/components/remainable.ts` |

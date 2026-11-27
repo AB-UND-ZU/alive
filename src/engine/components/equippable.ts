@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export const gear = ["weapon", "offhand", "spell", "skill", "tool"] as const;
@@ -26,7 +26,7 @@ export const EQUIPPABLE = "EQUIPPABLE";
 
 export default function addEquippable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   equippable: Equippable
 ) {
   world.addComponentToEntity(entity, EQUIPPABLE, equippable);

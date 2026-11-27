@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import type { SpringConfig } from "@react-spring/three";
 import { Position } from "./position";
@@ -15,7 +15,7 @@ export const VIEWABLE = "VIEWABLE";
 
 export default function addViewable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   viewable: Viewable
 ) {
   world.addComponentToEntity(entity, VIEWABLE, viewable);

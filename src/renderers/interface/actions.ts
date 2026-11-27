@@ -1,4 +1,3 @@
-import { Entity } from "ecs";
 import { World } from "../../engine";
 import { TypedEntity } from "../../engine/entities";
 import { ITEM, Item, rechargables } from "../../engine/components/item";
@@ -22,8 +21,8 @@ import {
 
 export const getActionName = (
   world: World,
-  hero: Entity,
-  actionEntity: Entity
+  hero: TypedEntity,
+  actionEntity: TypedEntity<"ITEM" | "SPRITE">
 ) => {
   if (!actionEntity[ITEM].tool) return actionEntity[SPRITE].name.toUpperCase();
   const weaponEntity = world.getEntityByIdAndComponents(

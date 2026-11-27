@@ -71,7 +71,7 @@ const getCoin = (world: World) =>
     (drop) => drop[ITEM].stackable === "coin"
   )!;
 
-const collect = (world: World, dropId: number) => {
+const collect = (world: World, dropId?: number) => {
   const drop = world.assertByIdAndComponents(dropId, [POSITION]);
   teleport(world, assertHero(world), {
     x: drop[POSITION].x,

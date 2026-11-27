@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Attackable = {
@@ -9,7 +9,7 @@ export const ATTACKABLE = "ATTACKABLE";
 
 export default function addAttackable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   attackable: Attackable
 ) {
   world.addComponentToEntity(entity, ATTACKABLE, attackable);

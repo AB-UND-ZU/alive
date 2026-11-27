@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Position } from "./position";
 import { Light } from "./light";
@@ -20,7 +20,7 @@ export const SPAWNABLE = "SPAWNABLE";
 
 export default function addSpawnable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   spawnable: Spawnable
 ) {
   world.addComponentToEntity(entity, SPAWNABLE, spawnable);

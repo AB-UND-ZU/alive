@@ -1,5 +1,4 @@
 import { bumpEntity } from "../motion";
-import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -66,7 +65,7 @@ import {
   getEmptyCastable,
   MarkerType,
 } from "../components/castable";
-import { TypedEntity } from "../entities";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
 import {
@@ -106,29 +105,29 @@ import { FOG } from "../components/fog";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { createText } from "../../game/assets/ui";
 
-export const isDead = (world: World, entity: Entity) =>
-  (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
+export const isDead = (world: World, entity: TypedEntity) =>
+  (hasComponent(entity, STATS) && entity[STATS].hp <= 0) || !!isGhost(world, entity);
 
-export const isNpc = (world: World, entity: Entity) => NPC in entity;
+export const isNpc = (world: World, entity: TypedEntity): entity is TypedEntity<"NPC"> => hasComponent(entity, NPC);
 
-export const isTribe = (world: World, entity: Entity) =>
-  BELONGABLE in entity && tribes.includes(entity[BELONGABLE].faction);
+export const isTribe = (world: World, entity: TypedEntity) =>
+  hasComponent(entity, BELONGABLE) && tribes.some((tribe) => tribe === entity[BELONGABLE].faction);
 
-export const isEnemy = (world: World, entity: Entity) =>
-  BELONGABLE in entity && !tribes.includes(entity[BELONGABLE].faction);
+export const isEnemy = (world: World, entity: TypedEntity) =>
+  hasComponent(entity, BELONGABLE) && !tribes.some((tribe) => tribe === entity[BELONGABLE].faction);
 
-export const isNeutral = (world: World, entity: Entity) =>
-  BELONGABLE in entity && neutrals.includes(entity[BELONGABLE].faction);
+export const isNeutral = (world: World, entity: TypedEntity) =>
+  hasComponent(entity, BELONGABLE) && neutrals.some((neutral) => neutral === entity[BELONGABLE].faction);
 
-export const isHostile = (world: World, entity: Entity) =>
+export const isHostile = (world: World, entity: TypedEntity) =>
   entity[BELONGABLE]?.faction === "hostile";
 
-export const isCooperating = (world: World, entity: Entity, target: Entity) =>
+export const isCooperating = (world: World, entity: TypedEntity, target: TypedEntity) =>
   !target[BELONGABLE] ||
   (!isHostile(world, target) &&
     (isNeutral(world, target) || isFriendlyFire(world, entity, target)));
 
-export const createTooltip = (world: World, entity: Entity) => {
+export const createTooltip = (world: World, entity: TypedEntity<"SPRITE">) => {
   const text = entity[SPRITE].name;
   const enemy = isEnemy(world, entity) && !isNeutral(world, entity);
   const friendly = isTribe(world, entity);
@@ -149,8 +148,8 @@ export const createTooltip = (world: World, entity: Entity) => {
 
 export const triggerSpear = (
   world: World,
-  entity: Entity,
-  weapon: Entity,
+  entity: TypedEntity,
+  weapon: TypedEntity<"ITEM">,
   orientation?: Orientation
 ) => {
   if (weapon[ITEM].weapon !== "spear") return;
@@ -163,11 +162,11 @@ export const triggerSpear = (
   };
 
   const spellEntity = entities.createCascade(world, {
-    [BELONGABLE]: { faction: entity[BELONGABLE].faction },
+    [BELONGABLE]: { faction: requireComponent(entity, BELONGABLE).faction },
     [CASTABLE]: castableStats,
     [FRAGMENT]: { structure: -1 },
     [ORIENTABLE]: { facing: orientation },
-    [POSITION]: copy(entity[POSITION]),
+    [POSITION]: copy(requireComponent(entity, POSITION)),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: none,
@@ -175,7 +174,7 @@ export const triggerSpear = (
   });
   const spellId = world.getEntityId(spellEntity);
   spellEntity[FRAGMENT].structure = spellId;
-  const tick = world.assertByIdAndComponents(entity[MOVABLE].reference, [
+  const tick = world.assertByIdAndComponents(requireComponent(entity, MOVABLE).reference, [
     REFERENCE,
   ])[REFERENCE].tick;
 
@@ -199,8 +198,8 @@ export const triggerSpear = (
 
 export const isFriendlyFire = (
   world: World,
-  entity: Entity,
-  target: Entity
+  entity: TypedEntity,
+  target: TypedEntity
 ) => {
   if (!entity[BELONGABLE] || !target[BELONGABLE]) return true;
 
@@ -215,15 +214,15 @@ export const isFriendlyFire = (
   );
 };
 
-export const isFightable = (world: World, entity: Entity) =>
-  ATTACKABLE in entity &&
+export const isFightable = (world: World, entity: TypedEntity) =>
+  hasComponent(entity, ATTACKABLE) &&
   !isDead(world, entity) &&
   !isHarvested(world, entity) &&
   !getSequence(world, entity, "decay") &&
   !isDecaying(world, entity);
 
-export const isAttackable = (world: World, entity: Entity) =>
-  ATTACKABLE in entity && STATS in entity;
+export const isAttackable = (world: World, entity: TypedEntity): entity is TypedEntity<"ATTACKABLE" | "STATS"> =>
+  hasComponent(entity, ATTACKABLE) && hasComponent(entity, STATS);
 
 export const getAttackables = (
   world: World,
@@ -232,7 +231,7 @@ export const getAttackables = (
 ) => {
   if (getBlockable(world, position)) return [];
 
-  const attackables: Entity[] = [];
+  const attackables: TypedEntity[] = [];
 
   getCellEntities(world, position).forEach((target) => {
     if (isAttackable(world, target)) {
@@ -267,13 +266,13 @@ export const getAttackable = (
   fragment?: boolean
 ) => getAttackables(world, position, fragment)[0];
 
-export const getRoot = (world: World, entity: Entity) =>
+export const getRoot = (world: World, entity: TypedEntity) =>
   (isFragment(world, entity) && getStructure(world, entity)) || entity;
 
-export const getStructure = (world: World, entity: Entity) =>
-  world.getEntityById(entity[FRAGMENT].structure);
+export const getStructure = (world: World, entity: TypedEntity) =>
+  world.getEntityById(requireComponent(entity, FRAGMENT).structure);
 
-export const getLimbs = (world: World, entity: Entity) => {
+export const getLimbs = (world: World, entity: TypedEntity) => {
   const limbs = [];
 
   if (entity[STRUCTURABLE]) {
@@ -430,7 +429,7 @@ export const calculateHealing = (targetStats: UnitStats, amount: number) => {
   return { hp, healing: visibleHealing };
 };
 
-export const canRecharge = (world: World, entity: Entity) =>
+export const canRecharge = (world: World, entity: TypedEntity) =>
   !!((entity[INVENTORY] as Inventory).items || []).find((itemId) =>
     rechargables.includes(
       world.getEntityByIdAndComponents(itemId, [ITEM])?.[ITEM]
@@ -443,9 +442,9 @@ const zapDelay = 100;
 
 export const triggerZap = (
   world: World,
-  attackerEntity: Entity,
-  targetEntity: Entity,
-  fragmentEntity: Entity,
+  attackerEntity: TypedEntity,
+  targetEntity: TypedEntity,
+  fragmentEntity: TypedEntity,
   itemStats: Partial<ItemStats>
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -455,7 +454,7 @@ export const triggerZap = (
 
   for (let offsetX = 0; offsetX < zapSize; offsetX += 1) {
     for (let offsetY = 0; offsetY < zapSize; offsetY += 1) {
-      const position = combine(size, fragmentEntity[POSITION], {
+      const position = combine(size, requireComponent(fragmentEntity, POSITION), {
         x: offsetX - (zapSize - 1) / 2,
         y: offsetY - (zapSize - 1) / 2,
       });
@@ -477,8 +476,8 @@ export const triggerZap = (
     const sorted = shuffle(targets);
     sorted.sort(
       (left, right) =>
-        getDistance(fragmentEntity[POSITION], left[POSITION], size, 1) -
-        getDistance(fragmentEntity[POSITION], right[POSITION], size, 1)
+        getDistance(requireComponent(fragmentEntity, POSITION), requireComponent(left, POSITION), size, 1) -
+        getDistance(requireComponent(fragmentEntity, POSITION), requireComponent(right, POSITION), size, 1)
     );
     ordered.push(...sorted, rootEntity);
   }
@@ -497,7 +496,7 @@ export const triggerZap = (
       attackerEntity,
       zapRoot
     );
-    zapRoot[STATS].hp = hp;
+    requireComponent(zapRoot, STATS).hp = hp;
     rerenderEntity(world, zapRoot);
 
     // add hit marker
@@ -523,7 +522,7 @@ export const triggerZap = (
     [BELONGABLE]: { faction: "nature" },
     [CASTABLE]: getEmptyCastable(world, targetEntity),
     [ORIENTABLE]: {},
-    [POSITION]: copy(fragmentEntity[POSITION]),
+    [POSITION]: copy(requireComponent(fragmentEntity, POSITION)),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: none,
@@ -533,7 +532,7 @@ export const triggerZap = (
     castableEntity,
     "flash",
     "lightningFlash",
-    { targets: zapTargets.map((target) => target[POSITION]) }
+    { targets: zapTargets.map((target) => requireComponent(target, POSITION)) }
   );
   play(world, fragmentEntity, "zap", { actor: attackerEntity, variant: 2 });
   zapTargets.forEach((target, index) =>
@@ -550,7 +549,7 @@ export const triggerZap = (
 
 export const applyEffects = (
   world: World,
-  targetEntity: Entity,
+  targetEntity: TypedEntity,
   burn: number,
   freeze: number
 ) => {
@@ -604,11 +603,11 @@ const procDelay = 100;
 
 export const applyProcs = (
   world: World,
-  attackerEntity: Entity | undefined,
+  attackerEntity: TypedEntity | undefined,
   itemStats: Partial<ItemStats>,
   procId: number,
-  targetEntity: Entity,
-  fragmentEntity: Entity,
+  targetEntity: TypedEntity,
+  fragmentEntity: TypedEntity,
   orientation: Orientation
 ) => {
   let hasAffected = false;
@@ -646,9 +645,9 @@ export const applyProcs = (
   // handle drain
   const drain = itemStats.drain;
   if (attackerEntity && drain) {
-    const { healing, hp } = calculateHealing(attackerEntity[STATS], drain);
+    const { healing, hp } = calculateHealing(requireComponent(attackerEntity, STATS), drain);
     if (healing > 0) {
-      attackerEntity[STATS].hp = hp;
+      requireComponent(attackerEntity, STATS).hp = hp;
       hasAffected = true;
       createAmountMarker(world, attackerEntity, drain, "up", "heal");
       play(world, attackerEntity, "pickup", { ...pickupOptions.hp });
@@ -673,24 +672,24 @@ export const applyProcs = (
       procGeneration + procDelay <= generation ||
       !world.getEntityById(parseInt(procId))
     ) {
-      delete targetEntity[AFFECTABLE].procs[procId];
+      delete requireComponent(targetEntity, AFFECTABLE).procs[procId];
     }
   });
 
   return hasAffected;
 };
 
-const interruptPopup = (world: World, entity: Entity) => {
+const interruptPopup = (world: World, entity: TypedEntity) => {
   const popup = getActivePopup(world, entity);
   if (popup && popup[IDENTIFIABLE]?.name !== "use") closePopup(world, entity, popup);
 };
 
 export const knockEntity = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   orientation: Orientation,
   amount: number,
-  source?: Entity
+  source?: TypedEntity
 ) => {
   // fire tribe has knock immunity
   if (
@@ -706,7 +705,7 @@ export const knockEntity = (
 
   if (amount > 0 && !entity[FRAGMENT] && (entity[MOVABLE] || entity[LOOTABLE]?.disposable)) {
     interruptPopup(world, entity);
-    let target = copy(entity[POSITION]);
+    let target = copy(requireComponent(entity, POSITION));
     let slide = amount;
     let sting;
 
@@ -751,16 +750,16 @@ export const knockEntity = (
 
 export const createAmountMarker = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   amount: number,
   orientation: Orientation,
   type: MarkerType,
   delay = 0
 ) => {
-  if (!(SEQUENCABLE in entity)) {
+  if (!hasComponent(entity, SEQUENCABLE)) {
     const rootEntity = getRoot(world, entity);
 
-    if (!(SEQUENCABLE in rootEntity)) {
+    if (!hasComponent(rootEntity, SEQUENCABLE)) {
       console.warn("Unable to display marker for entity:", entity);
       return;
     }
@@ -871,7 +870,7 @@ export default function setupDamage(world: World) {
       let trigger = false;
 
       for (const limb of limbs) {
-        const targetPosition = add(limb[POSITION], delta);
+        const targetPosition = add(requireComponent(limb, POSITION), delta);
         const targetEntity = getAttackable(world, targetPosition);
 
         // skip if there's no target
@@ -917,11 +916,12 @@ export default function setupDamage(world: World) {
 
         if (!absorbed) {
           if (healing) {
+            const stats = requireComponent(targetEntity, STATS);
             const { healing, hp } = calculateHealing(
-              targetEntity[STATS],
+              stats,
               weaponStats.heal
             );
-            targetEntity[STATS].hp = hp;
+            stats.hp = hp;
 
             displayedDamage = -healing;
           } else {
@@ -932,7 +932,7 @@ export default function setupDamage(world: World) {
               targetEntity
             );
 
-            targetEntity[STATS].hp = hp;
+            requireComponent(targetEntity, STATS).hp = hp;
 
             // propagate damage
             const rootEntity = getRoot(world, targetEntity);
@@ -943,7 +943,7 @@ export default function setupDamage(world: World) {
                 {},
                 rootEntity
               );
-              rootEntity[STATS].hp = hp;
+              requireComponent(rootEntity, STATS).hp = hp;
               rerenderEntity(world, rootEntity);
             }
 

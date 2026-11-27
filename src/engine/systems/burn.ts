@@ -1,5 +1,5 @@
 import { play } from "../../game/sound";
-import { Entity } from "ecs";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { entities } from "../../engine";
 import { Position, POSITION } from "../components/position";
@@ -34,24 +34,24 @@ import { createItemAsDrop, placeRemains } from "./drop";
 import { REMAINABLE } from "../components/remainable";
 import { createText } from "../../game/assets/ui";
 
-export const isBurnable = (world: World, entity: Entity) => BURNABLE in entity;
+export const isBurnable = (world: World, entity: TypedEntity): entity is TypedEntity<"BURNABLE"> => hasComponent(entity, BURNABLE);
 
 export const getBurnables = (world: World, position: Position) =>
   getCellEntities(world, position).filter((entity) =>
     isBurnable(world, entity)
-  ) as Entity[];
+  ) as TypedEntity<"POSITION" | "BURNABLE">[];
 
-export const isBurning = (world: World, entity: Entity) =>
+export const isBurning = (world: World, entity: TypedEntity) =>
   entity[BURNABLE]?.burning;
 
 export const getBurning = (world: World, position: Position) =>
   getCellEntities(world, position).find((entity) =>
     isBurning(world, entity)
-  ) as Entity | undefined;
+  ) as TypedEntity<"POSITION" | "BURNABLE"> | undefined;
 
 // create static smoke animation from point where unit or terrain extinguishes
-export const extinguishEntity = (world: World, entity: Entity) => {
-  if (entity[BURNABLE]?.burning || entity[AFFECTABLE]?.burn > 0) {
+export const extinguishEntity = (world: World, entity: TypedEntity) => {
+  if (entity[BURNABLE]?.burning || (entity[AFFECTABLE]?.burn ?? 0) > 0) {
     play(world, entity, "extinguish");
   }
   if (entity[AFFECTABLE]) {
@@ -67,7 +67,7 @@ export const extinguishEntity = (world: World, entity: Entity) => {
     [BELONGABLE]: { faction: entity[BELONGABLE]?.faction || "nature" },
     [CASTABLE]: getEmptyCastable(world, entity),
     [ORIENTABLE]: {},
-    [POSITION]: copy(entity[POSITION]),
+    [POSITION]: copy(requireComponent(entity, POSITION)),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: none,

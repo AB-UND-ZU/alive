@@ -1,3 +1,4 @@
+import { hasComponent } from "../engine/entities";
 /**
  * Generate seeded islands and check with the game's pathfinding that all
  * waypoints are reachable from the spawn. Shared by the seeded
@@ -71,7 +72,7 @@ export const getPlayableMatrix = (world: World) => {
     waterCells.includes(getOverlappingCell(level.cells, x, y));
   const isBlocked = (x: number, y: number) =>
     getCellEntities(world, { x, y }).some(
-      (entity) => COLLIDABLE in entity && !(LOCKABLE in entity)
+      (entity) => hasComponent(entity, COLLIDABLE) && !hasComponent(entity, LOCKABLE)
     );
 
   for (let x = 0; x < level.size; x += 1) {

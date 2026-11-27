@@ -19,16 +19,16 @@ export type Player = {
   ghost: boolean;
   receivedStats: Record<
     keyof (Pick<Countable, "hp" | "maxHp" | "mp" | "maxMp" | "xp"> &
-      Pick<Castable, "melee" | "magic" | "true">),
+      Pick<Castable, "melee" | "magic" | "true" | "heal">),
     number
   >;
   defeatedUnits: Partial<Record<UnitKey, number>>;
   // totals of the whole game, unlike defeated units of current level
   kills: number;
   deaths: number;
-  popup?: number;
+  popup?: EntityId<TypedEntity<"POPUP">>;
   mount?: number;
-  quickItems: Record<string, Omit<Item, "bound" | "amount" | "carrier">>;
+  quickItems: Partial<Record<string, Omit<Item, "bound" | "amount" | "carrier">>>;
   chatHistory: number[][];
   actionTriggered?:
     | "inspect"

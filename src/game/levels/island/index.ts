@@ -2306,7 +2306,7 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
 
         // add chest
         const chestType =
-          furnishingBuilding.door?.[LOCKABLE].type === "port"
+          furnishingBuilding.door?.[LOCKABLE]?.type === "port"
             ? "ironChest"
             : "woodChest";
         const chestData = generateUnitData(chestType);

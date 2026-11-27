@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Item } from "./item";
 
@@ -26,7 +26,7 @@ export const FORGABLE = "FORGABLE";
 
 export default function addForgable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   forgable: Forgable
 ) {
   world.addComponentToEntity(entity, FORGABLE, forgable);

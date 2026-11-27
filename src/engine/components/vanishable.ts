@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Sprite } from "./sprite";
 import { Position } from "./position";
@@ -16,7 +16,7 @@ export const VANISHABLE = "VANISHABLE";
 
 export default function addVanishable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   vanishable: Vanishable
 ) {
   world.addComponentToEntity(entity, VANISHABLE, vanishable);

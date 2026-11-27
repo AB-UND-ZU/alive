@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Collidable = {};
@@ -7,7 +7,7 @@ export const COLLIDABLE = "COLLIDABLE";
 
 export default function addCollidable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   collidable: Collidable
 ) {
   world.addComponentToEntity(entity, COLLIDABLE, collidable);

@@ -1,7 +1,7 @@
 import { getPopupInputs, getPopupView, PopupView } from "./popupView";
 import { getIdentifierAndComponents } from "../../engine/utils";
 import { updateParticleMotion } from "../../engine/motion";
-import { Entity } from "ecs";
+import { requireComponent, hasComponent, TypedEntity } from "../../engine/entities";
 import { entities, World } from "../../engine";
 import type * as npcTypes from "./npcs";
 import type * as questTypes from "./quests";
@@ -106,7 +106,7 @@ export const END_STEP = "END_STEP";
 
 export const npcSequence = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   name: keyof typeof npcTypes,
   memory: any
 ) =>
@@ -117,10 +117,10 @@ export const npcSequence = (
 
 export const questSequence = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   name: keyof typeof questTypes,
   memory: any,
-  giver?: Entity
+  giver?: TypedEntity
 ) =>
   replaceSequence<"quest", QuestSequence>(world, entity, "quest", name, {
     step: START_STEP,
@@ -131,7 +131,7 @@ export const questSequence = (
 type StepAnimations = QuestSequence | NpcSequence;
 export type QuestStage<T extends StepAnimations> = {
   world: World;
-  entity: Entity;
+  entity: TypedEntity<"SEQUENCABLE">;
   state: SequenceState<T>;
   updated: boolean;
   finished: boolean;
@@ -149,16 +149,16 @@ export const step = <T extends StepAnimations>({
 }: {
   stage: QuestStage<T>;
   name: string;
-  forceEnter?: () => boolean;
+  forceEnter?: () => boolean | undefined;
   onEnter?: () => boolean;
-  isCompleted?: () => boolean;
+  isCompleted?: () => boolean | undefined;
   onLeave?: () => string;
 }) => {
   const forced = forceEnter();
   const questName =
     STEP_DEBUG &&
     (stage.entity[SEQUENCABLE].states.quest?.name ||
-      stage.entity[SEQUENCABLE].states.npc.name);
+      stage.entity[SEQUENCABLE].states.npc?.name);
 
   // execute for current step or if forced enter
   if (stage.state.args.step !== name && !forced) return;
@@ -212,7 +212,7 @@ export const rewardWidth = 13;
 
 export const scrolledVerticalIndex = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity<"POPUP">,
   state: SequenceState<PopupSequence>,
   content: Sprite[][],
   selection?: PopupSelection,
@@ -288,10 +288,10 @@ quickSprites.centerEnd = quickCenterEnd;
 export function displayPopupView(
   build: (
     world: World,
-    entity: Entity,
+    entity: TypedEntity<"POPUP" | "SEQUENCABLE" | "RENDERABLE">,
     state: SequenceState<PopupSequence>
   ) => PopupView | undefined
-): Sequence<PopupSequence> {
+): Sequence<PopupSequence, "POPUP"> {
   return (world, entity, state) =>
     renderPopup(
       world,
@@ -304,7 +304,7 @@ export function displayPopupView(
 
 export const renderPopup = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity<"POPUP" | "RENDERABLE">,
   state: SequenceState<PopupSequence>,
   inputs: string,
   build: () => PopupView | undefined
@@ -339,7 +339,8 @@ export const renderPopup = (
   const generationChanged = changed || windowChanged || detailsChanged;
   const heightChanged = state.args.contentHeight !== content.length;
   const verticalIndex = getVerticalIndex(world, entity);
-  const horizontalIndex = entity[POPUP].horizontalIndex;
+  const entityPopup = requireComponent(entity, POPUP);
+  const horizontalIndex = entityPopup.horizontalIndex;
   const lines = content.length - overscan;
   const scrollIndex =
     verticalIndex -
@@ -380,7 +381,7 @@ export const renderPopup = (
   state.args.scrollMax = visibleScroll ? scrollMax : undefined;
   const visibleOverlay =
     visibleScroll &&
-    !entity[POPUP].sprite &&
+    !entityPopup.sprite &&
     !details &&
     !selection &&
     !["use", "map", "chat"].includes(tab);
@@ -621,8 +622,8 @@ export const renderPopup = (
 
     // add top decoration
     const displayedTabs: Popup["tabs"] = state.args.instant
-      ? [entity[POPUP].tabs[horizontalIndex]]
-      : entity[POPUP].tabs;
+      ? [requireComponent(entity, POPUP).tabs[horizontalIndex]]
+      : requireComponent(entity, POPUP).tabs;
     for (let tabIndex = 0; tabIndex < displayedTabs.length; tabIndex += 1) {
       const displayedHorizontalIndex = state.args.instant ? 0 : horizontalIndex;
       const selected = tabIndex === displayedHorizontalIndex;
@@ -1158,8 +1159,8 @@ export const renderPopup = (
   return { finished, updated };
 };
 
-export const getLootDelay = (world: World, entity: Entity, distance: number) =>
-  MOVABLE in entity
+export const getLootDelay = (world: World, entity: TypedEntity, distance: number) =>
+  hasComponent(entity, MOVABLE)
     ? Math.min(
         200,
         world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[
@@ -1172,7 +1173,7 @@ const messageDelay = 250;
 
 export const queueMessage = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   message: Message
 ) => {
   const messageState = getSequence(world, entity, "message") as

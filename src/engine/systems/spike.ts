@@ -1,5 +1,5 @@
 import { bumpEntity } from "../motion";
-import { Entity } from "ecs";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -30,7 +30,7 @@ import { STRUCTURABLE } from "../components/structurable";
 import { BUMPABLE } from "../components/bumpable";
 import { getBlockable } from "./action";
 
-export const isSpikable = (world: World, entity: Entity) => {
+export const isSpikable = (world: World, entity: TypedEntity) => {
   if (!isFightable(world, entity)) return false;
 
   const entityStats = getEntityStats(world, entity);
@@ -43,12 +43,12 @@ export const getSpikable = (world: World, position: Position) => {
 
   return getCellEntities(world, position).find((entity) =>
     isSpikable(world, entity)
-  ) as Entity | undefined;
+  ) as TypedEntity<"POSITION" | "ATTACKABLE"> | undefined;
 };
 
-export const isStingable = (world: World, entity: Entity) => STATS in entity;
+export const isStingable = (world: World, entity: TypedEntity) => hasComponent(entity, STATS);
 
-export const stingEntity = (world: World, entity: Entity, target: Entity) => {
+export const stingEntity = (world: World, entity: TypedEntity<"POSITION">, target: TypedEntity) => {
   if (isCooperating(world, entity, getRoot(world, target))) return;
   let displayedDamage = 0;
 
@@ -66,13 +66,13 @@ export const stingEntity = (world: World, entity: Entity, target: Entity) => {
       target
     );
 
-    target[STATS].hp = hp;
+    requireComponent(target, STATS).hp = hp;
 
     // propagate damage
     const rootEntity = getRoot(world, target);
     if (target !== rootEntity) {
       const { hp } = calculateDamage(world, { true: damage }, {}, rootEntity);
-      rootEntity[STATS].hp = hp;
+      requireComponent(rootEntity, STATS).hp = hp;
       rerenderEntity(world, rootEntity);
     }
 
@@ -83,7 +83,7 @@ export const stingEntity = (world: World, entity: Entity, target: Entity) => {
   const orientation = relativeOrientations(
     world,
     entity[POSITION],
-    target[POSITION]
+    requireComponent(target, POSITION)
   )[0];
   // animate sting hit
   createAmountMarker(world, target, -displayedDamage, orientation, "magic");
@@ -140,7 +140,7 @@ export default function setupSpike(world: World) {
       let interacted = false;
 
       for (const limb of limbs) {
-        const targetPosition = add(limb[POSITION], delta);
+        const targetPosition = add(requireComponent(limb, POSITION), delta);
         const targetEntity = getSpikable(world, targetPosition);
 
         if (!targetEntity || !isStingable(world, limb)) continue;

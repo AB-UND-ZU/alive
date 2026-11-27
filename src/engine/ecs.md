@@ -38,5 +38,11 @@ export type World = ReturnType<typeof createWorld>;
 ## PatchedWorld
 
 ```ts src/engine/ecs.ts
-export type PatchedWorld = ECSWorld & { ecs: World };
+export type PatchedWorld = {
+  ecs: World;
+  nextId: number;
+  entities: TypedEntity[];
+  entityIds: { get(entity: object): number | undefined };
+  deferredRemovals: { entities: Set<TypedEntity> };
+};
 ```

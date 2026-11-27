@@ -1,4 +1,3 @@
-import { Entity } from "ecs";
 
 import { World } from "../../engine";
 import { Item, ITEM } from "../../engine/components/item";
@@ -10,7 +9,7 @@ import { PLAYER } from "../../engine/components/player";
 import { PROJECTILE } from "../../engine/components/projectile";
 
 import { STATS } from "../../engine/components/stats";
-import { TypedEntity } from "../../engine/entities";
+import { requireComponent, hasComponent, TypedEntity } from "../../engine/entities";
 import { getVerticalIndex, isInPopup } from "../../engine/systems/popup";
 
 import {
@@ -63,11 +62,11 @@ export const getUnit = (world: World, area: string, char: string) => {
 export const getProjectiles = (world: World) =>
   world.getEntities([ORIENTABLE, POSITION, PROJECTILE]);
 
-const sumLoot = (world: World, containers: Entity[], match: Partial<Item>) =>
+const sumLoot = (world: World, containers: TypedEntity[], match: Partial<Item>) =>
   containers
-    .filter((entity) => LOOTABLE in entity && INVENTORY in entity)
+    .filter((entity) => hasComponent(entity, LOOTABLE) && hasComponent(entity, INVENTORY))
     .flatMap((entity) =>
-      (entity[INVENTORY].items as number[]).map(
+      (requireComponent(entity, INVENTORY).items as number[]).map(
         (itemId) => world.assertByIdAndComponents(itemId, [ITEM])[ITEM]
       )
     )

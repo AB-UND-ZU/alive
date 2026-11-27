@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Point } from "../../game/math/std";
 
@@ -19,7 +19,7 @@ export const ORIENTABLE = "ORIENTABLE";
 
 export default function addMovable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   orientable: Orientable
 ) {
   world.addComponentToEntity(entity, ORIENTABLE, orientable);

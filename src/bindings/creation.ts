@@ -1,4 +1,3 @@
-import { Entity } from "ecs";
 import { isTouch } from "../renderers/interface/platform";
 import { gameVersion } from "../game/assets/version";
 import { getUpdates } from "../game/assets/updates";
@@ -63,7 +62,7 @@ import { TOOLTIP } from "../engine/components/tooltip";
 import { TRACKABLE } from "../engine/components/trackable";
 import { VIEWABLE } from "../engine/components/viewable";
 import { WARPABLE } from "../engine/components/warpable";
-import { TypedEntity } from "../engine/entities";
+import { requireComponent, TypedEntity } from "../engine/entities";
 import { getLockable } from "../engine/systems/action";
 import { defaultLight, roomLight, spawnLight } from "../engine/systems/consume";
 import {
@@ -613,9 +612,9 @@ export const assignBuilding = (
     [VIEWABLE]: { active: false, priority },
   });
   const buildingId = world.getEntityId(buildingEntity);
-  let doorEntity: Entity | undefined;
+  let doorEntity: TypedEntity | undefined;
 
-  const fragmentEntities: Entity[] = [];
+  const fragmentEntities: TypedEntity[] = [];
 
   // find bottom edge of building
   let downCursor = copy(position);
@@ -843,11 +842,7 @@ export const createSign = (
     },
   });
   populateInventory(world, signEntity, signData.items);
-  createPopup(world, signEntity, {
-    lines,
-    tabs,
-  });
-  return signEntity;
+  return createPopup(world, signEntity, { lines, tabs });
 };
 
 export const flipArea = (
@@ -993,11 +988,12 @@ export const insertArea = (
 // the continue portal only opens with saved games to load
 export const setContinuePortal = (
   world: World,
-  portalEntity: Entity,
+  portalEntity: TypedEntity,
   active: boolean
 ) => {
-  portalEntity[TOOLTIP].override = active ? undefined : "hidden";
-  portalEntity[TOOLTIP].changed = true;
+  const tooltip = requireComponent(portalEntity, TOOLTIP);
+  tooltip.override = active ? undefined : "hidden";
+  tooltip.changed = true;
 
   if (active === !!portalEntity[POPUP]) return;
 

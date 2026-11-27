@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Reference = {
@@ -15,7 +15,7 @@ export const REFERENCE = "REFERENCE";
 
 export default function addReference(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   reference: Reference
 ) {
   world.addComponentToEntity(entity, REFERENCE, reference);

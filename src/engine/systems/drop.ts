@@ -8,7 +8,6 @@ import { getLimbs, getRoot, getStructure, isDead } from "./damage";
 import { entities } from "..";
 import { disposeEntity, registerEntity } from "./map";
 import { DROPPABLE } from "../components/droppable";
-import { Entity } from "ecs";
 import { FOG } from "../components/fog";
 import { INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
@@ -28,7 +27,7 @@ import {
   VanishSequence,
 } from "../components/sequencable";
 import { createSequence, getSequence } from "./sequence";
-import { TypedEntity } from "../entities";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { EQUIPPABLE, slots } from "../components/equippable";
 import {
   ORIENTABLE,
@@ -71,17 +70,17 @@ import { REMAINABLE } from "../components/remainable";
 import { BEHAVIOUR } from "../components/behaviour";
 import { MOVABLE } from "../components/movable";
 
-export const isDecayed = (world: World, entity: Entity) =>
+export const isDecayed = (world: World, entity: TypedEntity) =>
   entity[DROPPABLE]?.decayed || entity[VANISHABLE]?.decayed;
 
-export const isDecaying = (world: World, entity: Entity) =>
+export const isDecaying = (world: World, entity: TypedEntity) =>
   isDead(world, entity) &&
   !isDecayed(world, entity) &&
   !getSequence(world, entity, "decay") &&
   !getSequence(world, entity, "vanish");
 
-export const isHarvested = (world: World, entity: Entity) =>
-  HARVESTABLE in entity &&
+export const isHarvested = (world: World, entity: TypedEntity) =>
+  hasComponent(entity, HARVESTABLE) &&
   entity[HARVESTABLE].amount <= 0 &&
   !isDecayed(world, entity) &&
   !getSequence(world, entity, "decay");
@@ -90,7 +89,7 @@ export const isDroppable = (world: World, position: Position) =>
   !!world.metadata.gameEntity[LEVEL].walkable[position.x][position.y] &&
   !getBurning(world, position);
 
-export const animateEvaporate = (world: World, entity: Entity) => {
+export const animateEvaporate = (world: World, entity: TypedEntity<"POSITION">) => {
   // play evaporate animation with own anchor
   const evaporate =
     entity[DROPPABLE]?.evaporate || entity[VANISHABLE]?.evaporate;
@@ -117,8 +116,8 @@ export const animateEvaporate = (world: World, entity: Entity) => {
 
 export const placeRemains = (
   world: World,
-  entity: Entity,
-  position = entity[POSITION]
+  entity: TypedEntity,
+  position = requireComponent(entity, POSITION)
 ) => {
   const remains = entity[REMAINABLE]?.cell;
 
@@ -170,10 +169,13 @@ export const findAdjacentDroppable = (
   return position;
 };
 
+type InventoryItemData<T> = Omit<T, "ITEM" | "RENDERABLE"> &
+  Pick<TypedEntity<"ITEM" | "RENDERABLE">, "ITEM" | "RENDERABLE">;
+
 export const createItemAsDrop = <T extends TypedEntity<"ITEM" | "RENDERABLE">>(
   world: World,
   position: Position,
-  factory: (world: World, data: T) => T,
+  factory: (world: World, data: InventoryItemData<T>) => T,
   entity: Omit<T, "ITEM" | "RENDERABLE"> & {
     [ITEM]: Omit<Item, "carrier">;
   },
@@ -199,7 +201,7 @@ export const createItemInInventory = <
 >(
   world: World,
   carrier: TypedEntity<"INVENTORY" | "POSITION">,
-  factory: (world: World, data: T) => T,
+  factory: (world: World, data: InventoryItemData<T>) => T,
   entity: Omit<T, "ITEM" | "RENDERABLE"> & {
     [ITEM]: Omit<Item, "carrier" | "bound">;
   },
@@ -213,7 +215,7 @@ export const createItemInInventory = <
       carrier: world.getEntityId(carrier),
     },
     [RENDERABLE]: { generation: 0 },
-  } as T);
+  });
 
   // add to inventory
   const itemId = world.getEntityId(itemEntity);
@@ -236,7 +238,7 @@ export const createItemInInventory = <
 
 export const dropEntity = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   position: Position,
   overrideCenterWalkable?: boolean,
   maxRadius: number = MAX_DROP_RADIUS,
@@ -274,7 +276,7 @@ export const dropEntity = (
       [RENDERABLE]: { generation: 0 },
       [SPRITE]: getItemSprite({ stackable: "stick" }),
     });
-    entity[INVENTORY].items.push(world.getEntityId(stickEntity));
+    requireComponent(entity, INVENTORY).items.push(world.getEntityId(stickEntity));
   }
 
   // remember if entity was holding a compass
@@ -615,11 +617,11 @@ export default function setupDrop(world: World) {
       SEQUENCABLE,
       POSITION,
     ])) {
-      if (STRUCTURABLE in entity) continue;
+      if (hasComponent(entity, STRUCTURABLE)) continue;
 
       const rootEntity = getStructure(world, entity);
 
-      if (rootEntity && !(HARVESTABLE in rootEntity)) continue;
+      if (rootEntity && !hasComponent(rootEntity, HARVESTABLE)) continue;
 
       if (!rootEntity || isDecayed(world, entity)) {
         disposeEntity(world, entity);

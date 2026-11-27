@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../../engine/entities";
 import { World } from "../../engine";
 import { LEVEL, LevelName } from "../../engine/components/level";
 import { MOVABLE } from "../../engine/components/movable";
@@ -122,7 +122,7 @@ export const canSave = (world: World) =>
   world.metadata.gameEntity[LEVEL].name !== "LEVEL_MENU" &&
   !!getPlayer(world)?.[MOVABLE];
 
-const getEquippedItems = (world: World, player: Entity): SaveItem[] =>
+const getEquippedItems = (world: World, player: TypedEntity): SaveItem[] =>
   Array.from(
     new Set(equipments.map((equipment) => player[EQUIPPABLE]?.[equipment]))
   ).flatMap((itemId) => {

@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Exertable = {
@@ -9,7 +9,7 @@ export const EXERTABLE = "EXERTABLE";
 
 export default function addExertable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   exertable: Exertable
 ) {
   world.addComponentToEntity(entity, EXERTABLE, exertable);

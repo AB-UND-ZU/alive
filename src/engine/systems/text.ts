@@ -8,13 +8,12 @@ import { REFERENCE } from "../components/reference";
 import { getCellEntities } from "./map";
 import { rerenderEntity } from "./renderer";
 import { TOOLTIP } from "../components/tooltip";
-import { Entity } from "ecs";
 import { SPRITE } from "../components/sprite";
 import { isDead, isFriendlyFire, isNeutral } from "./damage";
 import { isUnlocked } from "./action";
 import { DialogSequence, SEQUENCABLE } from "../components/sequencable";
 import { createSequence, getSequence } from "./sequence";
-import { TypedEntity } from "../entities";
+import { hasComponent, TypedEntity } from "../entities";
 import { LIGHT } from "../components/light";
 import { SPAWNABLE } from "../components/spawnable";
 import { isInPopup, isShowingPopup } from "./popup";
@@ -23,8 +22,8 @@ import { createTooltip } from "./damage";
 import { BELONGABLE } from "../components/belongable";
 
 export const getTooltip = (world: World, position: Position) =>
-  getCellEntities(world, position).find((entity) => TOOLTIP in entity) as
-    | Entity
+  getCellEntities(world, position).find((entity) => hasComponent(entity, TOOLTIP)) as
+    | TypedEntity
     | undefined;
 
 const tooltipCooldown = 15;
@@ -48,7 +47,7 @@ export default function setupText(world: World) {
 
     referencesGeneration = generation;
 
-    let pendingTooltip: Entity | undefined = undefined;
+    let pendingTooltip: TypedEntity | undefined = undefined;
     let activeTooltips: TypedEntity<
       "TOOLTIP" | "POSITION" | "SPRITE" | "SEQUENCABLE"
     >[] = [];

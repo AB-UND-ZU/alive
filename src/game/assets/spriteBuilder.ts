@@ -1,6 +1,5 @@
-import { Entity } from "ecs";
 import { loadSpritePack, saveSpritePack } from "../spritePack";
-import { createDialog } from "../../engine/entities";
+import { requireComponent, TypedEntity, createDialog } from "../../engine/entities";
 import { registerEntity } from "../../engine/systems/map";
 import { World } from "../../engine/ecs";
 import { POPUP } from "../../engine/components/popup";
@@ -39,9 +38,9 @@ import { play } from "../sound";
 const windowHeight = 11;
 const innerHeight = windowHeight - 2;
 
-export const openSpriteBuilder = (world: World, hero: Entity) => {
+export const openSpriteBuilder = (world: World, hero: TypedEntity<"CONDITIONABLE" | "MOVABLE" | "PLAYER" | "POSITION">) => {
   const popup = createDialog(world, {
-    POSITION: { ...hero.POSITION },
+    POSITION: { ...hero["POSITION"] },
     RENDERABLE: { generation: 0 },
     SEQUENCABLE: { states: {} },
     SPRITE: none,
@@ -128,8 +127,8 @@ export const spriteBuilderPreview = (sprite: Sprite): Sprite[][] => {
 
 export const updateSpriteBuilder = (
   world: World,
-  hero: Entity,
-  popup: Entity,
+  hero: TypedEntity<"PLAYER">,
+  popup: TypedEntity<"POPUP">,
   orientation?: Orientation
 ) => {
   const editor = popup[POPUP].sprite!;
@@ -288,7 +287,7 @@ export const updateSpriteBuilder = (
 };
 
 const spriteBuilderView = displayPopupView((world, entity, state) => {
-  const editor = entity[POPUP].sprite!;
+  const editor = requireComponent(entity, POPUP).sprite!;
   const tab = getTab(world, entity);
   const row = getVerticalIndex(world, entity);
   const sprite = editor.sprites[editor.selected];
@@ -443,7 +442,7 @@ const spriteBuilderView = displayPopupView((world, entity, state) => {
   };
 });
 
-export const displaySpriteBuilder: Sequence<PopupSequence> = (
+export const displaySpriteBuilder: Sequence<PopupSequence, "POPUP"> = (
   world,
   entity,
   state

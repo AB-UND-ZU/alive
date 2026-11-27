@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export const npcTypes = [
@@ -68,6 +68,6 @@ export type Npc = { type: NpcType };
 
 export const NPC = "NPC";
 
-export default function addNpc(world: World, entity: Entity, npc: Npc) {
+export default function addNpc(world: World, entity: TypedEntity, npc: Npc) {
   world.addComponentToEntity(entity, NPC, npc);
 }

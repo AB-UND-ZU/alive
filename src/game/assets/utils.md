@@ -41,7 +41,7 @@ type StepAnimations = QuestSequence | NpcSequence;
 ```ts src/game/assets/utils.ts
 export type QuestStage<T extends StepAnimations> = {
   world: World;
-  entity: Entity;
+  entity: TypedEntity<"SEQUENCABLE">;
   state: SequenceState<T>;
   updated: boolean;
   finished: boolean;

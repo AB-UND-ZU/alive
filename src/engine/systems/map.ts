@@ -1,6 +1,6 @@
 import { moveSound } from "../../game/sound/spatial";
 import { moveMotion } from "../motion";
-import { Entity } from "ecs";
+import { hasComponent, TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { LEVEL } from "../components/level";
@@ -60,13 +60,12 @@ export const updateWalkable = (world: World, position: Position) => {
   }
 };
 
-export const registerEntity = (world: World, entity: Entity) => {
-  const position = entity[POSITION];
-
-  if (!position) {
+export const registerEntity = (world: World, entity: TypedEntity) => {
+  if (!hasComponent(entity, POSITION)) {
     throw new Error(`Unable to register position for entity ${entity}!`);
   }
 
+  const position = entity[POSITION];
   const level = world.metadata.gameEntity[LEVEL];
 
   const normalizedX = normalize(position.x, level.size);
@@ -82,11 +81,11 @@ export const registerEntity = (world: World, entity: Entity) => {
   entity[POSITION].x = normalizedX;
   entity[POSITION].y = normalizedY;
 
-  if (entity[LIGHT]?.darkness > 0) invalidateOcclusion(world);
+  if ((entity[LIGHT]?.darkness ?? 0) > 0) invalidateOcclusion(world);
   updateWalkable(world, position);
 };
 
-const unregisterEntity = (world: World, entity: Entity) => {
+const unregisterEntity = (world: World, entity: TypedEntity) => {
   const position = entity[POSITION];
 
   if (!position) {
@@ -130,7 +129,7 @@ const unregisterEntity = (world: World, entity: Entity) => {
     console.warn("Unable to unregister", entity, "at position", position, "!");
   }
 
-  if (entity[LIGHT]?.darkness > 0) invalidateOcclusion(world);
+  if ((entity[LIGHT]?.darkness ?? 0) > 0) invalidateOcclusion(world);
   updateWalkable(world, position);
 };
 
@@ -150,7 +149,7 @@ export const disposeParticles = (
 
 export const disposeFrame = (
   world: World,
-  frame: Entity,
+  frame: TypedEntity<"RENDERABLE">,
   deferredRemoval?: boolean
 ) => {
   // persist last generation in frame and entities to allow safely removing frame immediately and ensuring proper rendering
@@ -161,41 +160,42 @@ export const disposeFrame = (
 
 export const disposeSequence = (
   world: World,
-  entity: Entity,
-  sequenceName: string
+  entity: TypedEntity,
+  sequenceName: keyof Sequencable["states"]
 ) => {
-  const sequenceState = entity[SEQUENCABLE].states[sequenceName];
-  const frameEntity = world.assertById(sequenceState.reference);
+  const sequenceState = entity[SEQUENCABLE]?.states[sequenceName];
+  if (!sequenceState) return;
+  const frameEntity = world.assertByIdAndComponents(sequenceState.reference, [RENDERABLE]);
   disposeFrame(world, frameEntity, true);
   disposeParticles(world, sequenceState);
-  delete entity[SEQUENCABLE].states[sequenceName];
+  delete entity[SEQUENCABLE]!.states[sequenceName];
 };
 
 // Owned entities can also occur later in a bulk cleanup snapshot.
-const disposedEntities = new WeakSet<Entity>();
-export const isDisposed = (entity: Entity) => disposedEntities.has(entity);
+const disposedEntities = new WeakSet<TypedEntity>();
+export const isDisposed = (entity: TypedEntity) => disposedEntities.has(entity);
 
 export const disposeEntity = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   deferredRemoval?: boolean,
   removeItems = true
 ) => {
   if (isDisposed(entity)) return;
   disposedEntities.add(entity);
 
-  if (POSITION in entity) {
+  if (hasComponent(entity, POSITION)) {
     unregisterEntity(world, entity);
   }
 
-  if (removeItems && INVENTORY in entity) {
+  if (removeItems && hasComponent(entity, INVENTORY)) {
     for (const itemId of entity[INVENTORY].items) {
       const itemEntity = world.assertById(itemId);
       world.removeEntity(itemEntity, deferredRemoval);
     }
   }
 
-  if (removeItems && EQUIPPABLE in entity) {
+  if (removeItems && hasComponent(entity, EQUIPPABLE)) {
     for (const itemId of Object.values(entity[EQUIPPABLE]) as number[]) {
       const itemEntity = world.getEntityById(itemId);
       if (!itemEntity) continue;
@@ -203,14 +203,14 @@ export const disposeEntity = (
     }
   }
 
-  if (POPUP in entity) {
+  if (hasComponent(entity, POPUP)) {
     removePopup(world, entity);
   }
 
   // clean up any remaining sequences
   Object.keys((entity[SEQUENCABLE] as Sequencable)?.states || {}).forEach(
     (sequenceName) => {
-      disposeSequence(world, entity, sequenceName);
+      disposeSequence(world, entity, sequenceName as keyof Sequencable["states"]);
     }
   );
 
@@ -220,7 +220,7 @@ export const disposeEntity = (
     movableReference &&
     movableReference !== world.getEntityId(world.metadata.gameEntity)
   ) {
-    const referenceEntity = world.assertById(movableReference);
+    const referenceEntity = world.assertByIdAndComponents(movableReference, [RENDERABLE]);
     disposeFrame(world, referenceEntity, true);
   }
 
@@ -229,12 +229,13 @@ export const disposeEntity = (
 
 export const moveEntity = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   position: Position,
   animate = true
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
 
+  if (!hasComponent(entity, POSITION)) throw new Error("Cannot move an entity without a position");
   moveMotion(world, entity, position.x, position.y, size, animate);
   unregisterEntity(world, entity);
   entity[POSITION].x = normalize(position.x, size);
@@ -245,10 +246,10 @@ export const moveEntity = (
 
 // Object.values() of each cell is cached until the cell changes. A changed
 // cell gets a new array, so callers iterating while mutating keep a snapshot
-const cellEntities = new WeakMap<object, Entity[]>();
-const emptyCell = Object.freeze([]) as unknown as Entity[];
+const cellEntities = new WeakMap<object, TypedEntity<"POSITION">[]>();
+const emptyCell = Object.freeze([]) as unknown as TypedEntity<"POSITION">[];
 
-export const getCellEntities = (world: World, position: Position): Entity[] => {
+export const getCellEntities = (world: World, position: Position): TypedEntity<"POSITION">[] => {
   const level = world.metadata.gameEntity[LEVEL];
   const cell =
     level.map[normalize(position.x, level.size)]?.[
@@ -258,7 +259,7 @@ export const getCellEntities = (world: World, position: Position): Entity[] => {
 
   let values = cellEntities.get(cell);
   if (!values) {
-    values = Object.freeze(Object.values(cell)) as Entity[];
+    values = Object.freeze(Object.values(cell)) as TypedEntity<"POSITION">[];
     cellEntities.set(cell, values);
   }
   return values;
@@ -271,7 +272,7 @@ export const getCell = (world: World, position: Position) => {
   return level.map[normalizedX]?.[normalizedY] || {};
 };
 
-type ListenerEntities = { count: number; entries: Entity[] };
+type ListenerEntities = { count: number; entries: TypedEntity<"POSITION">[] };
 
 export default function setupMap(world: World) {
   const addedEntities: ListenerEntities = { count: 0, entries: [] };

@@ -21,7 +21,7 @@ import { Orientation } from "../engine/components/orientable";
 import { SPRITE } from "../engine/components/sprite";
 import { Player, PLAYER } from "../engine/components/player";
 import { ACTIONABLE } from "../engine/components/actionable";
-import { Entity, TypedEntity } from "../engine/entities";
+import { Entity, TypedEntity, createHero as heroFactory } from "../engine/entities";
 import {
   getHasteInterval,
   setMovementOrientations,
@@ -182,7 +182,7 @@ export const advanceUntil = (
 
 export const getHero = (world: World) =>
   getIdentifierAndComponents(world, "hero", [POSITION, MOVABLE, PLAYER]) as
-    | TypedEntity<"POSITION" | "MOVABLE" | "PLAYER">
+    | ReturnType<typeof heroFactory>
     | undefined;
 
 export const assertHero = (world: World) => {

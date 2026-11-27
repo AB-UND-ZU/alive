@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Affectable = {
@@ -23,7 +23,7 @@ export const AFFECTABLE = "AFFECTABLE";
 
 export default function addAffectable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   affectable: Affectable
 ) {
   world.addComponentToEntity(entity, AFFECTABLE, affectable);

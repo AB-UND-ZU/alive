@@ -1,12 +1,11 @@
 import { World } from "../ecs";
 import { RENDERABLE } from "../components/renderable";
-import { Entity } from "ecs";
 import { Consumable, ITEM, Material, Stackable } from "../components/item";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { PLAYER } from "../components/player";
 import { play } from "../../game/sound";
-import { Countable, STATS, UnitStats } from "../components/stats";
-import { TypedEntity } from "../entities";
+import { STATS, UnitStats } from "../components/stats";
+import { requireComponent, TypedEntity } from "../entities";
 import { rerenderEntity } from "./renderer";
 import { removeFromInventory } from "./trigger";
 import { none } from "../../game/assets/sprites";
@@ -31,14 +30,14 @@ import { clamp } from "../../game/math/std";
 import { slots } from "../components/equippable";
 import { getMaxCounter } from "../../game/assets/ui";
 
-export const isConsumable = (world: World, entity: Entity) =>
+export const isConsumable = (world: World, entity: TypedEntity) =>
   !!entity[ITEM]?.consume;
 
-export const getConsumables = (world: World, entity: Entity) =>
+export const getConsumables = (world: World, entity: TypedEntity<"INVENTORY">) =>
   (entity[INVENTORY].items || [])
     .map((itemId: number) => world.assertByIdAndComponents(itemId, [ITEM]))
     .filter(
-      (consumable: Entity) =>
+      (consumable: TypedEntity<"ITEM">) =>
         isConsumable(world, consumable) &&
         (!entity[NPC] || consumable[ITEM].bound)
     ) as TypedEntity<"ITEM">[];
@@ -60,7 +59,7 @@ export const consumptionConfigs: Partial<
             {
               cooldown: number;
               amount: number;
-              countable: keyof Countable;
+              countable: "hp" | "mp" | "xp";
               buffer: number; // leave a few countables open so the player can still manually restore stats without wasting consumable
             }
           >
@@ -88,7 +87,7 @@ export const consumptionConfigs: Partial<
 export type StackableConsumption = {
   amount: number;
   percentage?: boolean;
-  countable: keyof Countable;
+  countable: "hp" | "mp" | "xp";
 };
 export type ItemConsumption = StackableConsumption & {
   item: TypedEntity<"ITEM">;
@@ -126,8 +125,8 @@ export const stackableConsumptions: Partial<
 
 export const getConsumption = (
   world: World,
-  entity: Entity,
-  target: Entity
+  entity: TypedEntity,
+  target: TypedEntity<"POPUP">
 ) => {
   const bagItems = entity[INVENTORY]
     ? (entity[INVENTORY] as Inventory).items.filter(
@@ -151,7 +150,7 @@ export const getConsumption = (
 };
 
 export const getItemConsumption = (
-  item: Entity
+  item: TypedEntity<"ITEM">
 ): ItemConsumption | undefined => {
   const consumption =
     item[ITEM].stackable &&
@@ -162,7 +161,7 @@ export const getItemConsumption = (
 
 export const consumeItem = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   consumption?: ItemConsumption
 ) => {
   let consumed = false;
@@ -182,7 +181,7 @@ export const consumeItem = (
   // add stats
   const amount = consumption.percentage
     ? Math.round(
-        (entity[STATS][
+        (requireComponent(entity, STATS)[
           getMaxCounter(consumption.countable) || consumption.countable
         ] *
           consumption.amount) /
@@ -209,7 +208,7 @@ export const consumeItem = (
   if (consumption.countable === "xp") {
     createItemAsDrop(
       world,
-      { ...entity[POSITION] },
+      { ...requireComponent(entity, POSITION) },
       entities.createItem,
       itemData,
       false

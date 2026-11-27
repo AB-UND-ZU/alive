@@ -1,6 +1,6 @@
 import type { Destination } from "../../game/levels/generation";
 import type { Movable } from "./movable";
-import { Entity } from "ecs";
+import type { Entity, EntityId, TypedEntity } from "../entities";
 import { World } from "../ecs";
 import * as sequences from "../../game/assets/sequences";
 import { Orientation } from "./orientable";
@@ -150,7 +150,7 @@ export type SpellSequence = {
 export type AuraSequence = SpellSequence & { delay: number };
 export type ArrowSequence = { origin: Position; range: number; caster: number };
 export type SlashSequence = {
-  material: Material;
+  material?: Material;
   element?: Element;
   castable: number;
   exertables: number[];
@@ -253,11 +253,11 @@ export type SequenceState<A> = {
   reference: number;
   elapsed: number;
   args: A;
-  particles: Record<string, number>;
+  particles: Record<string, EntityId<TypedEntity<"PARTICLE" | "RENDERABLE" | "SPRITE">>>;
 };
-export type Sequence<A> = (
+export type Sequence<A, C extends keyof Entity = never> = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity<C | "SEQUENCABLE" | "RENDERABLE">,
   state: SequenceState<A>
 ) => { finished: boolean; updated: boolean };
 
@@ -311,7 +311,7 @@ export const SEQUENCABLE = "SEQUENCABLE";
 
 export default function addSequencable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   sequencable: Sequencable
 ) {
   world.addComponentToEntity(entity, SEQUENCABLE, sequencable);

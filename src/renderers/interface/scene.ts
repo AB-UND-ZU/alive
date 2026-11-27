@@ -8,7 +8,7 @@ import { CASTABLE } from "../../engine/components/castable";
 import { DISPLACABLE } from "../../engine/components/displacable";
 import { HOMING } from "../../engine/components/homing";
 import { FRAGMENT } from "../../engine/components/fragment";
-import { TypedEntity } from "../../engine/entities";
+import { hasComponent, TypedEntity } from "../../engine/entities";
 import { getCell } from "../../engine/systems/map";
 import { getEnterable } from "../../engine/systems/enter";
 import { normalize } from "../../game/math/std";
@@ -99,8 +99,8 @@ export const collectScene = (
 
         // render anchored spells separately
         if (
-          !(RENDERABLE in entity) ||
-          !(SPRITE in entity) ||
+          !hasComponent(entity, RENDERABLE) ||
+          !hasComponent(entity, SPRITE) ||
           isAnchoredSpell(entity, Number(entityId))
         )
           continue;

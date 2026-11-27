@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import { requireComponent, TypedEntity } from "../../engine/entities";
 import { World } from "../../engine";
 import { Accessory } from "../../engine/components/equippable";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
@@ -18,7 +18,6 @@ import {
 import { matchesItem } from "../../engine/systems/popup";
 import { choice, normalize, random, repeat } from "../math/std";
 import {
-  Forgable,
   FORGABLE,
   ForgeStep,
 } from "../../engine/components/forgable";
@@ -309,7 +308,7 @@ const notForgable = {
 
 export const getForgeStatus = (
   world: World,
-  entity?: Entity,
+  entity?: TypedEntity,
   firstIndex?: number,
   secondIndex?: number,
   selectedIndex?: number
@@ -390,12 +389,12 @@ const stepWidths: Record<Element | Material, number> = {
   earth: 1,
 };
 
-export const forgingCompleted = (entity: Entity) =>
+export const forgingCompleted = (entity: TypedEntity) =>
   entity[FORGABLE] &&
   entity[FORGABLE].steps.length === entity[FORGABLE].progress;
 
-export const forgingFailed = (entity: Entity) => {
-  const forge: Forgable = entity[FORGABLE];
+export const forgingFailed = (entity: TypedEntity) => {
+  const forge = requireComponent(entity, FORGABLE);
   return forge?.steps[forge.progress]?.result === "failed" && !forge.lastAction;
 };
 
@@ -432,9 +431,9 @@ export const chooseForgeTarget = (step: ForgeStep, previous?: number) => {
     : choice(...cells.filter((cell) => cell !== previous));
 };
 
-export const performForgeHit = (world: World, entity: Entity) => {
+export const performForgeHit = (world: World, entity: TypedEntity<"FORGABLE">) => {
   const popupSequence = getSequence(world, entity, "popup");
-  const forge: Forgable = entity[FORGABLE];
+  const forge = entity[FORGABLE];
   const step = forge.steps[forge.progress];
   const heroEntity = world.getEntity([PLAYER, STATS]);
   const hitIndex = forge.hitIndex;

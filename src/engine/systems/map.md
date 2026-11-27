@@ -30,5 +30,5 @@ The map system runs last: it flushes ECS changes and registers newly positioned 
 ## ListenerEntities
 
 ```ts src/engine/systems/map.ts
-type ListenerEntities = { count: number; entries: Entity[] };
+type ListenerEntities = { count: number; entries: TypedEntity<"POSITION">[] };
 ```

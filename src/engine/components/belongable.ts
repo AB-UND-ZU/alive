@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export const tribes = ["settler", "nomad", "fire", "water", "earth"] as const;
@@ -19,7 +19,7 @@ export const BELONGABLE = "BELONGABLE";
 
 export default function addBelongable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   belongable: Belongable
 ) {
   world.addComponentToEntity(entity, BELONGABLE, belongable);

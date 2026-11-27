@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Accessory } from "./equippable";
 import { Attributes, emptyAttributes, UnitStats } from "./stats";
@@ -138,7 +138,7 @@ export type ItemStats = Attributes &
   Pick<Castable, DamageType | EffectType>;
 
 export type Item = {
-  carrier: number;
+  carrier?: number;
   amount: number;
   material?: Material;
   element?: Element;
@@ -151,7 +151,7 @@ export type Item = {
   stat?: keyof UnitStats;
   consume?: Consumable;
   stackable?: Stackable;
-  bound: boolean;
+  bound?: boolean;
 };
 
 export const emptyConditionableStats = { absorb: 0 };
@@ -168,6 +168,6 @@ export const emptyItemStats: ItemStats = {
 
 export const ITEM = "ITEM";
 
-export default function addItem(world: World, entity: Entity, item: Item) {
+export default function addItem(world: World, entity: TypedEntity, item: Item) {
   world.addComponentToEntity(entity, ITEM, item);
 }

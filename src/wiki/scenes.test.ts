@@ -1,3 +1,4 @@
+import { requireComponent } from "../engine/entities";
 import { movementGoals, createPreviewWorld } from "./scenes";
 import { findPath, relativeOrientations } from "../game/math/path";
 import {
@@ -43,7 +44,8 @@ describe("wiki game worlds", () => {
       (entity) => entity[STATS]
     )!;
     const targetId = world.getEntityId(target);
-    const hp = target[STATS].hp;
+    const stats = requireComponent(target, STATS);
+    const hp = stats.hp;
     walk(world, "right", 1);
     trigger(world, "spell");
     const getSpell = () =>
@@ -64,7 +66,7 @@ describe("wiki game worlds", () => {
     step(world);
     expect(getAreas()).toHaveLength(9);
     advanceUntil(world, () => !!spell[CASTABLE].affected[targetId]);
-    expect(target[STATS].hp).toBeLessThan(hp);
+    expect(stats.hp).toBeLessThan(hp);
     const hit = { ...spell[CASTABLE].affected[targetId] };
     advance(world, 500);
     expect(spell[CASTABLE].affected).toEqual({ [targetId]: hit });
@@ -191,8 +193,9 @@ test("preview walls match the frame bounds and stay visible at every edge", () =
         entities.some((entity) => entity.COLLIDABLE && !entity.HARVESTABLE)
       ).toBe(true);
       for (const entity of entities.filter((entity) => entity.FOG)) {
-        expect(entity.FOG.visibility).toBe("visible");
-        expect(entity.FOG.fixed).toBe(true);
+        const fog = requireComponent(entity, "FOG");
+        expect(fog.visibility).toBe("visible");
+        expect(fog.fixed).toBe(true);
       }
     }
 });
@@ -204,7 +207,7 @@ test("the vision example keeps interior fog while clearing the exact frame edge"
     edge
       .filter((entity) => entity.FOG)
       .every(
-        (entity) => entity.FOG.fixed && entity.FOG.visibility === "visible"
+        (entity) => requireComponent(entity, "FOG").fixed && requireComponent(entity, "FOG").visibility === "visible"
       )
   ).toBe(true);
   expect(
@@ -355,7 +358,7 @@ it("builds matching terrain, visibility and loot for the compact renderer compar
   expect(hero.POSITION).toEqual({ x: 3, y: 3 });
   expect(
     getCellEntities(world, { x: 7, y: 3 }).some(
-      (entity) => entity.LIGHT?.darkness > 0
+      (entity) => (entity.LIGHT?.darkness ?? 0) > 0
     )
   ).toBe(true);
   const chest = getCellEntities(world, { x: 4, y: 1 }).find(
@@ -391,8 +394,9 @@ it("builds matching terrain, visibility and loot for the compact renderer compar
     );
     expect(cells.length).toBeGreaterThan(0);
     for (const entity of cells) {
-      expect(entity.FOG.visibility).toBe(visibility);
-      expect(entity.FOG.fixed).toBe(false);
+      const fog = requireComponent(entity, "FOG");
+      expect(fog.visibility).toBe(visibility);
+      expect(fog.fixed).toBe(false);
     }
   }
   for (const x of [0, 10]) {

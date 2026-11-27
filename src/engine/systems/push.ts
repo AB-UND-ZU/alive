@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -16,27 +16,28 @@ import { MOUNTABLE } from "../components/mountable";
 import { isWalkable } from "./movement";
 import { PLAYER } from "../components/player";
 
-export const isDisplacable = (world: World, entity: Entity) =>
-  DISPLACABLE in entity && !isFrozen(world, entity) && !isDead(world, entity);
+export const isDisplacable = (world: World, entity: TypedEntity) =>
+  hasComponent(entity, DISPLACABLE) && !isFrozen(world, entity) && !isDead(world, entity);
 
 export const getDisplacable = (world: World, position: Position) =>
   getCellEntities(world, position).find((entity) =>
     isDisplacable(world, entity)
-  ) as Entity | undefined;
+  ) as TypedEntity | undefined;
 
 export const pushEntity = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   orientation: Orientation
 ) => {
+  const movement = requireComponent(entity, MOVABLE);
   const targetReference = world.assertByIdAndComponents(
-    entity[MOVABLE].reference,
+    movement.reference,
     [REFERENCE]
   );
 
   if (!orientation) return;
 
-  entity[MOVABLE].orientations = [orientation];
+  movement.orientations = [orientation];
 
   if (targetReference === world.metadata.gameEntity) return;
 
@@ -106,12 +107,12 @@ export default function setupPush(world: World) {
 
       if (
         !targetEntity ||
-        !isWalkable(world, targetEntity[POSITION], targetEntity)
+        !isWalkable(world, requireComponent(targetEntity, POSITION), targetEntity)
       )
         continue;
 
       pushEntity(world, targetEntity, targetOrientation);
-      if (entity[PLAYER]) targetEntity[DISPLACABLE].pushSound = true;
+      if (entity[PLAYER]) requireComponent(targetEntity, DISPLACABLE).pushSound = true;
 
       // prevent attacking boxes but allow movements
       entity[MOVABLE].momentum = targetOrientation;

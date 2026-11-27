@@ -29,10 +29,9 @@ import {
   repeat,
   signedDistance,
 } from "../../game/math/std";
-import { Sprite } from "../../engine/components/sprite";
+import { Sprite, SPRITE } from "../../engine/components/sprite";
 import { ITEM } from "../../engine/components/item";
 import { castableSpell, castableSkill } from "../../engine/systems/action";
-import { Entity } from "ecs";
 import { World } from "../../engine";
 import { isDead } from "../../engine/systems/damage";
 import Joystick from "../Joystick";
@@ -50,7 +49,7 @@ import {
 import { credits } from "../../game/assets/credits";
 import { isActionable, isInteractable } from "../../engine/systems/freeze";
 import { POPUP } from "../../engine/components/popup";
-import { TypedEntity } from "../../engine/entities";
+import { requireComponent, TypedEntity } from "../../engine/entities";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { PLAYER } from "../../engine/components/player";
 import { ensureAudio } from "../../game/sound/resumable";
@@ -134,15 +133,15 @@ type Action = {
 
 const useAction = (
   action: (typeof actions)[number],
-  isDisabled: (world: World, hero: Entity, actionEntity: Entity) => boolean,
-  getName: (world: World, hero: Entity, actionEntity: Entity) => string,
-  getActivation: (world: World, hero: Entity, actionEntity: Entity) => Sprite[],
+  isDisabled: (world: World, hero: TypedEntity, actionEntity: TypedEntity<"ITEM" | "SPRITE">) => boolean,
+  getName: (world: World, hero: TypedEntity, actionEntity: TypedEntity<"ITEM" | "SPRITE">) => string,
+  getActivation: (world: World, hero: TypedEntity, actionEntity: TypedEntity<"ITEM" | "SPRITE">) => Sprite[],
   palette: Palette = "white"
 ) => {
   const { ecs, paused } = useWorld();
   const heroEntity = useHero();
   const actionId = heroEntity?.[ACTIONABLE]?.[action];
-  const actionEntity = ecs?.getEntityById(actionId);
+  const actionEntity = ecs?.getEntityByIdAndComponents(actionId, [ITEM, SPRITE]);
 
   return useMemo<Action | undefined>(() => {
     if (paused || !ecs || !heroEntity || !actionEntity) return;
@@ -184,7 +183,7 @@ export default function Controls({
   const { position, fraction } = useViewpoint();
   const inMenu = !TEST_MODE && level === menuName;
   const hero = useHero();
-  const heroRef = useRef<Entity>();
+  const heroRef = useRef<NonNullable<typeof hero>>();
   const pausedRef = useRef(paused);
   const popup =
     ecs &&
@@ -372,7 +371,7 @@ export default function Controls({
         return;
 
       const reference = ecs.assertByIdAndComponents(
-        heroEntity[MOVABLE].reference,
+        requireComponent(heroEntity, MOVABLE).reference,
         [REFERENCE]
       )[REFERENCE];
 
@@ -387,21 +386,22 @@ export default function Controls({
       }
 
       // skip if already triggered
+      const actions = requireComponent(heroEntity, ACTIONABLE);
       if (
-        heroEntity[ACTIONABLE].spellTriggered ||
-        heroEntity[ACTIONABLE].skillTriggered ||
-        heroEntity[ACTIONABLE].interactTriggered ||
+        actions.spellTriggered ||
+        actions.skillTriggered ||
+        actions.interactTriggered ||
         (heroEntity[PLAYER].actionTriggered &&
           heroEntity[PLAYER].actionTriggered !== "scroll")
       )
         return;
 
       if (action === "spell") {
-        heroEntity[ACTIONABLE].spellTriggered = true;
+        requireComponent(heroEntity, ACTIONABLE).spellTriggered = true;
       } else if (action === "skill") {
-        heroEntity[ACTIONABLE].skillTriggered = true;
+        requireComponent(heroEntity, ACTIONABLE).skillTriggered = true;
       } else if (action === "interact") {
-        heroEntity[ACTIONABLE].interactTriggered = true;
+        requireComponent(heroEntity, ACTIONABLE).interactTriggered = true;
       } else {
         heroEntity[PLAYER].actionTriggered = action;
 

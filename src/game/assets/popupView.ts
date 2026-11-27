@@ -1,4 +1,4 @@
-import type { Entity } from "ecs";
+import type { TypedEntity } from "../../engine/entities";
 import type { World } from "../../engine";
 import type {
   PopupSequence,
@@ -9,7 +9,7 @@ import type { PopupSelection } from "./utils";
 import { getIdentifierAndComponents } from "../../engine/utils";
 import { getTab } from "../../engine/systems/popup";
 import { LEVEL } from "../../engine/components/level";
-import { Popup, POPUP } from "../../engine/components/popup";
+import { POPUP } from "../../engine/components/popup";
 import { BELONGABLE } from "../../engine/components/belongable";
 import { PLAYER } from "../../engine/components/player";
 import { RENDERABLE } from "../../engine/components/renderable";
@@ -75,10 +75,10 @@ export const getPopupView = (
 // Snapshot mutable data, rather than retaining object identities or animation generations.
 export const getPopupInputs = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity<"POPUP" | "RENDERABLE">,
   state: SequenceState<PopupSequence>
 ) => {
-  const popup = entity[POPUP] as Popup;
+  const popup = entity[POPUP];
   const tab = getTab(world, entity);
   const hero = getIdentifierAndComponents(world, "hero", [PLAYER, RENDERABLE]);
   const usesHeroItems = ![

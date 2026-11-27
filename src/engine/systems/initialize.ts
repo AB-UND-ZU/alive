@@ -1,3 +1,4 @@
+import { hasComponent } from "../entities";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { LEVEL } from "../components/level";
@@ -22,7 +23,7 @@ export const initializeCell = (world: World, x: number, y: number) => {
     const createdEntities = createCell(world, { x, y }, cell, "hidden").all;
 
     for (const createdEntity of createdEntities) {
-      if (POSITION in createdEntity) {
+      if (hasComponent(createdEntity, POSITION)) {
         registerEntity(world, createdEntity);
       }
     }

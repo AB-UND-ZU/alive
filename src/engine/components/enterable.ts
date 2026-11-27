@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Sprite } from "./sprite";
 import { Orientation } from "./orientable";
@@ -12,7 +12,7 @@ export const ENTERABLE = "ENTERABLE";
 
 export default function addEnterable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   enterable: Enterable
 ) {
   world.addComponentToEntity(entity, ENTERABLE, enterable);

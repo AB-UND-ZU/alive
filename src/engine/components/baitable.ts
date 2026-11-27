@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Baitable = {
@@ -11,7 +11,7 @@ export const BAITABLE = "BAITABLE";
 
 export default function addBaitable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   baitable: Baitable
 ) {
   world.addComponentToEntity(entity, BAITABLE, baitable);

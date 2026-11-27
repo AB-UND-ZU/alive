@@ -1,5 +1,5 @@
 import { changeSoundLayer } from "../../game/sound/spatial";
-import { Entity } from "ecs";
+import { hasComponent, TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -16,43 +16,43 @@ import { isInside, LAYER } from "../components/layer";
 import { PLAYER } from "../components/player";
 import { getLockable } from "./action";
 
-export const isFragment = (world: World, entity: Entity) => FRAGMENT in entity;
+export const isFragment = (world: World, entity: TypedEntity): entity is TypedEntity<"FRAGMENT"> => hasComponent(entity, FRAGMENT);
 
-export const isStructurable = (world: World, entity: Entity) =>
-  STRUCTURABLE in entity;
+export const isStructurable = (world: World, entity: TypedEntity): entity is TypedEntity<"STRUCTURABLE"> =>
+  hasComponent(entity, STRUCTURABLE);
 
-export const isEnterable = (world: World, entity: Entity) =>
-  ENTERABLE in entity;
+export const isEnterable = (world: World, entity: TypedEntity): entity is TypedEntity<"ENTERABLE"> =>
+  hasComponent(entity, ENTERABLE);
 
 export const getEnterable = (world: World, position: Position) =>
   getCellEntities(world, position).find((entity) =>
     isEnterable(world, entity)
-  ) as Entity | undefined;
+  ) as TypedEntity<"POSITION" | "ENTERABLE"> | undefined;
 
 export const getFragment = (world: World, position: Position) =>
   getCellEntities(world, position).find((entity) =>
     isFragment(world, entity)
-  ) as Entity | undefined;
+  ) as TypedEntity<"POSITION" | "FRAGMENT"> | undefined;
 
 export const getFragments = (world: World, position: Position) =>
   getCellEntities(world, position).filter((entity) =>
     isFragment(world, entity)
-  ) as Entity[];
+  ) as TypedEntity<"POSITION" | "FRAGMENT">[];
 
-export const isOpaque = (world: World, entity: Entity) =>
-  LIGHT in entity && entity[LIGHT].darkness > 0;
+export const isOpaque = (world: World, entity: TypedEntity) =>
+  hasComponent(entity, LIGHT) && entity[LIGHT].darkness > 0;
 
 export const getOpaque = (world: World, position: Position) =>
   getCellEntities(world, position).find((entity) => isOpaque(world, entity)) as
-    | Entity
+    | TypedEntity<"POSITION" | "LIGHT">
     | undefined;
 
 export { isInside };
 
-export const isOutside = (world: World, entity: Entity, structure?: number) =>
+export const isOutside = (world: World, entity: TypedEntity, structure?: number) =>
   !!structure && entity[LAYER]?.structure !== structure;
 
-export const onSameLayer = (world: World, first: Entity, second: Entity) =>
+export const onSameLayer = (world: World, first: TypedEntity, second: TypedEntity) =>
   first[LAYER]?.structure === second[LAYER]?.structure;
 
 export default function setupEnter(world: World) {

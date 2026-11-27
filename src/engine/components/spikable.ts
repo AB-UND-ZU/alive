@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Spikable = {
@@ -9,7 +9,7 @@ export const SPIKABLE = "SPIKABLE";
 
 export default function addSpikable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   spikable: Spikable
 ) {
   world.addComponentToEntity(entity, SPIKABLE, spikable);

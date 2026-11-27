@@ -7,7 +7,6 @@ import { Orientation } from "../components/orientable";
 import { PLAYER } from "../components/player";
 import { IDENTIFIABLE } from "../components/identifiable";
 import addPopup, { Deal, Popup, POPUP, Target } from "../components/popup";
-import { Entity } from "ecs";
 import { TOOLTIP } from "../components/tooltip";
 import {
   berry,
@@ -39,7 +38,7 @@ import { Item, ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { entities } from "..";
 import { add, clamp, combine, getDistance, normalize } from "../../game/math/std";
-import { TypedEntity } from "../entities";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { isDead, isEnemy, isNeutral } from "./damage";
 import {
   createItemName,
@@ -123,15 +122,15 @@ import { SPRITE } from "../components/sprite";
 import { createItemAsDrop } from "./drop";
 import { play } from "../../game/sound";
 
-export const isInPopup = (world: World, entity: Entity) =>
+export const isInPopup = (world: World, entity: TypedEntity) =>
   entity[PLAYER]?.popup && !isDead(world, entity);
 
-export const isShowingPopup = (world: World, entity: Entity) =>
+export const isShowingPopup = (world: World, entity: TypedEntity) =>
   entity[POPUP]?.active;
 
 export const isInTab = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   tab: Popup["tabs"][number]
 ) => {
   if (!isInPopup(world, entity)) return false;
@@ -145,8 +144,8 @@ export const isInTab = (
   return getTab(world, popupEntity) === tab;
 };
 
-export const isPopupAvailable = (world: World, entity: Entity) =>
-  POPUP in entity &&
+export const isPopupAvailable = (world: World, entity: TypedEntity) =>
+  hasComponent(entity, POPUP) &&
   entity[IDENTIFIABLE]?.name !== "use" &&
   !isDead(world, entity) &&
   (!isEnemy(world, entity) || isNeutral(world, entity));
@@ -154,25 +153,23 @@ export const isPopupAvailable = (world: World, entity: Entity) =>
 export const getPopup = (world: World, position: Position) =>
   getCellEntities(world, position).find((entity) =>
     isPopupAvailable(world, entity)
-  ) as Entity | undefined;
+  ) as TypedEntity<"POSITION" | "POPUP"> | undefined;
 
 export const getTab = (
   world: World,
-  popupEntity: Entity
+  popupEntity: TypedEntity<"POPUP">
 ): Popup["tabs"][number] =>
   popupEntity[POPUP].tabs[popupEntity[POPUP].horizontalIndex];
 
-export const getDiscoveryTab = (
-  world: World,
-  popupEntity: Entity
-): Popup["tabs"][number] => popupEntity[POPUP].tabs.slice(-1)[0];
+export const getDiscoveryTab = (world: World, popupEntity: TypedEntity) =>
+  requireComponent(popupEntity, POPUP).tabs.slice(-1)[0];
 
-export const getVerticalIndex = (world: World, popupEntity: Entity): number =>
+export const getVerticalIndex = (world: World, popupEntity: TypedEntity<"POPUP">): number =>
   popupEntity[POPUP].verticalIndezes[popupEntity[POPUP].horizontalIndex];
 
 export const setVerticalIndex = (
   world: World,
-  popupEntity: Entity,
+  popupEntity: TypedEntity<"POPUP">,
   value: number
 ) => {
   popupEntity[POPUP].verticalIndezes[popupEntity[POPUP].horizontalIndex] =
@@ -180,11 +177,11 @@ export const setVerticalIndex = (
   rerenderEntity(world, popupEntity);
 };
 
-export const getTabSelections = (world: World, popupEntity: Entity): number[] =>
+export const getTabSelections = (world: World, popupEntity: TypedEntity<"POPUP">): number[] =>
   popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] || [];
 
-export const getPickedClass = (popupEntity: Entity) => {
-  const popup: Popup = popupEntity[POPUP];
+export const getPickedClass = (popupEntity: TypedEntity<"POPUP">) => {
+  const popup = popupEntity[POPUP];
   const tab = popup.tabs.indexOf("class");
   if (tab === -1) return;
   const key = displayedClasses[popup.selections[tab][0] ?? 0];
@@ -193,7 +190,7 @@ export const getPickedClass = (popupEntity: Entity) => {
 
 export const pushTabSelection = (
   world: World,
-  popupEntity: Entity,
+  popupEntity: TypedEntity<"POPUP">,
   value?: number
 ) => {
   const verticalIndex = getVerticalIndex(world, popupEntity);
@@ -203,14 +200,14 @@ export const pushTabSelection = (
   rerenderEntity(world, popupEntity);
 };
 
-export const popTabSelection = (world: World, popupEntity: Entity) => {
+export const popTabSelection = (world: World, popupEntity: TypedEntity<"POPUP">) => {
   const value =
     popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex].pop();
   rerenderEntity(world, popupEntity);
   return value;
 };
 
-export const clearChat = (world: World, popupEntity: Entity) => {
+export const clearChat = (world: World, popupEntity: TypedEntity<"POPUP">) => {
   popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] = [];
   popupEntity[POPUP].chatSuggestion = 0;
   setVerticalIndex(world, popupEntity, 0);
@@ -218,7 +215,7 @@ export const clearChat = (world: World, popupEntity: Entity) => {
 
 export const typeChat = (
   world: World,
-  heroEntity: Entity,
+  heroEntity: TypedEntity,
   keyIndex?: number | number[]
 ) => {
   const popup = world.getEntityByIdAndComponents(heroEntity[PLAYER]?.popup, [
@@ -230,7 +227,7 @@ export const typeChat = (
   setVerticalIndex(world, popup, 0);
 
   const reference = world.assertByIdAndComponents(
-    heroEntity[MOVABLE].reference,
+    requireComponent(heroEntity, MOVABLE).reference,
     [REFERENCE]
   )[REFERENCE];
   reference.suspensionCounter =
@@ -250,7 +247,7 @@ export const typeChat = (
 
 export const navigateChat = (
   world: World,
-  heroEntity: Entity,
+  heroEntity: TypedEntity<"PLAYER">,
   direction: -1 | 1
 ) => {
   const popup = world.getEntityByIdAndComponents(heroEntity[PLAYER]?.popup, [
@@ -280,7 +277,7 @@ export const navigateChat = (
     play(world, undefined, "select", { variant: direction === -1 ? 2 : 1 });
 };
 
-export const completeChat = (world: World, heroEntity: Entity) => {
+export const completeChat = (world: World, heroEntity: TypedEntity) => {
   if (!TEST_MODE) return;
   const popup = world.getEntityByIdAndComponents(heroEntity[PLAYER]?.popup, [
     POPUP,
@@ -305,7 +302,7 @@ export const completeChat = (world: World, heroEntity: Entity) => {
 
 export const submitChat = (
   world: World,
-  heroEntity: Entity,
+  heroEntity: TypedEntity<"PLAYER">,
   line: string | string[] = ""
 ) => {
   const keys = [...line];
@@ -319,10 +316,11 @@ export const submitChat = (
     closePopup(world, heroEntity, popup);
   }
   if (!keys.length) {
-    heroEntity[TOOLTIP].dialogs = [];
-    heroEntity[TOOLTIP].changed = true;
-    heroEntity[TOOLTIP].override = undefined;
-    heroEntity[TOOLTIP].enemy = false;
+    const tooltip = requireComponent(heroEntity, TOOLTIP);
+    tooltip.dialogs = [];
+    tooltip.changed = true;
+    tooltip.override = undefined;
+    tooltip.enemy = false;
     return;
   }
 
@@ -365,8 +363,9 @@ export const submitChat = (
         recolorSprite(parseSprite(`\x0f█\x00${char}`), colors.white)
       );
 
-  heroEntity[TOOLTIP].enemy = !!command;
-  heroEntity[TOOLTIP].dialogs = dialog.length
+  const tooltip = requireComponent(heroEntity, TOOLTIP);
+  tooltip.enemy = !!command;
+  tooltip.dialogs = dialog.length
     ? [
         [
           command ? shoutStart : dialogStart,
@@ -375,15 +374,15 @@ export const submitChat = (
         ],
       ]
     : [];
-  heroEntity[TOOLTIP].changed = true;
-  heroEntity[TOOLTIP].override = dialog.length ? "visible" : undefined;
+  tooltip.changed = true;
+  tooltip.override = dialog.length ? "visible" : undefined;
   return error;
 };
 
 export const getDeal = (
   world: World,
-  entity: Entity,
-  popupEntity: Entity
+  entity: TypedEntity,
+  popupEntity: TypedEntity<"POPUP">
 ): Deal | undefined => {
   const tab = getTab(world, popupEntity);
   const verticalIndex = getVerticalIndex(world, popupEntity);
@@ -393,7 +392,7 @@ export const getDeal = (
     return popupEntity[POPUP].deals[verticalIndex];
   } else if (tab === "sell") {
     const soldItem = world.getEntityByIdAndComponents(
-      entity[INVENTORY].items[verticalIndex],
+      requireComponent(entity, INVENTORY).items[verticalIndex],
       [ITEM]
     );
 
@@ -430,12 +429,12 @@ export const getDeal = (
   }
 };
 
-export const getDefeated = (world: World, heroEntity: Entity, target: Target) =>
-  heroEntity[PLAYER].defeatedUnits[target.unit!] || 0;
+export const getDefeated = (world: World, heroEntity: TypedEntity, target: Target) =>
+  requireComponent(heroEntity, PLAYER).defeatedUnits[target.unit!] || 0;
 
 export const hasCompletedTargets = (
   world: World,
-  heroEntity: Entity,
+  heroEntity: TypedEntity,
   target: Target
 ) => {
   if (target.identifier) {
@@ -451,9 +450,10 @@ export const hasCompletedTargets = (
 
 export const canTrade = (
   world: World,
-  heroEntity: Entity,
-  shopEntity: Entity
+  heroEntity: TypedEntity,
+  target: TypedEntity
 ) => {
+  const shopEntity = world.assertComponents(target, [POPUP]);
   const tab = getTab(world, shopEntity);
 
   if (tab === "quest") return isQuestCompleted(world, heroEntity, shopEntity);
@@ -474,7 +474,7 @@ export const canTrade = (
   return false;
 };
 
-export const canShop = (world: World, heroEntity: Entity, deal: Deal) =>
+export const canShop = (world: World, heroEntity: TypedEntity, deal: Deal) =>
   deal && deal.stock > 0 && canRedeem(world, heroEntity, deal);
 
 export const canSell = (world: World, item: Omit<Item, "carrier" | "bound">) =>
@@ -492,11 +492,11 @@ export const matchesItem = (
   first.stat === second.stat &&
   slots.every((slot) => first[slot] === second[slot]);
 
-export const missingFunds = (world: World, heroEntity: Entity, deal: Deal) =>
+export const missingFunds = (world: World, heroEntity: TypedEntity, deal: Deal) =>
   deal.prices.filter((priceItem) => {
     if (priceItem.stat && !priceItem.material) {
       // check if entity has sufficient of stat
-      return heroEntity[STATS][priceItem.stat] < priceItem.amount;
+      return requireComponent(heroEntity, STATS)[priceItem.stat] < priceItem.amount;
     }
 
     // or if item is contained in inventory
@@ -509,7 +509,7 @@ export const missingFunds = (world: World, heroEntity: Entity, deal: Deal) =>
 
 export const existingItem = (
   world: World,
-  heroEntity: Entity,
+  heroEntity: TypedEntity,
   item: Omit<Item, "carrier" | "bound" | "amount">
 ) =>
   (heroEntity[INVENTORY] as Inventory).items
@@ -518,17 +518,17 @@ export const existingItem = (
 
 export const existingFund = (
   world: World,
-  heroEntity: Entity,
+  heroEntity: TypedEntity,
   item: Omit<Item, "carrier" | "bound" | "amount">
 ) => existingItem(world, heroEntity, item)?.[ITEM].amount || 0;
 
-export const canRedeem = (world: World, heroEntity: Entity, deal: Deal) =>
+export const canRedeem = (world: World, heroEntity: TypedEntity, deal: Deal) =>
   missingFunds(world, heroEntity, deal).length === 0;
 
 export const canForge = (
   world: World,
-  heroEntity: Entity,
-  popupEntity: Entity
+  heroEntity: TypedEntity,
+  popupEntity: TypedEntity<"POPUP">
 ) => {
   const [firstIndex, secondIndex] = getTabSelections(world, popupEntity);
   const verticalIndex = getVerticalIndex(world, popupEntity);
@@ -543,13 +543,13 @@ export const canForge = (
   return forgeable;
 };
 
-export const isQuestCompleted = (world: World, hero: Entity, entity: Entity) =>
-  entity[POPUP].tabs.includes("quest") &&
-  ((entity[POPUP].targets.length === 0 &&
-    entity[POPUP].deals.length === 0 &&
-    entity[POPUP].choices.length === 0) ||
-    (entity[POPUP].deals.every((deal: Deal) => canShop(world, hero, deal)) &&
-      entity[POPUP].targets.every((target: Target) =>
+export const isQuestCompleted = (world: World, hero: TypedEntity, entity: TypedEntity) =>
+  requireComponent(entity, POPUP).tabs.includes("quest") &&
+  ((requireComponent(entity, POPUP).targets.length === 0 &&
+    requireComponent(entity, POPUP).deals.length === 0 &&
+    requireComponent(entity, POPUP).choices.length === 0) ||
+    (requireComponent(entity, POPUP).deals.every((deal: Deal) => canShop(world, hero, deal)) &&
+      requireComponent(entity, POPUP).targets.every((target: Target) =>
         hasCompletedTargets(world, hero, target)
       )));
 
@@ -670,13 +670,13 @@ export const gearTitles: Record<Equipment, string> = {
 
 export const mapScroll = 4;
 
-export const createPopup = (
+export const createPopup = <E extends TypedEntity>(
   world: World,
-  entity: Entity,
+  entity: E,
   popup: Pick<Popup, "tabs"> & Partial<Popup>
 ) => {
   if (popup.tabs.includes("load")) addRestorable(world, entity, {});
-  const idle = popupIdles[getDiscoveryTab(world, { [POPUP]: popup })];
+  const idle = popupIdles[popup.tabs[popup.tabs.length - 1]];
 
   if (idle) {
     replaceSequence<"discovery", DiscoverySequence>(
@@ -700,7 +700,7 @@ export const createPopup = (
   }
 
   const viewpointEntity = entities.createViewpoint(world, {
-    [POSITION]: add(entity[POSITION], { x: 0, y: (frameHeight + 1) / -2 }),
+    [POSITION]: add(requireComponent(entity, POSITION), { x: 0, y: (frameHeight + 1) / -2 }),
     [RENDERABLE]: { generation: 0 },
     [VIEWABLE]: { active: false, priority: 90 },
   });
@@ -728,17 +728,18 @@ export const createPopup = (
       ...component,
     });
   }
+  return entity as E & TypedEntity<"POPUP">;
 };
 
-export const removePopup = (world: World, entity: Entity) => {
-  if (!entity[POPUP]) return;
+export const removePopup = (world: World, entity: TypedEntity) => {
+  if (!hasComponent(entity, POPUP)) return;
   // close active popup
   const entityId = world.getEntityId(entity);
   const heroEntity = getIdentifierAndComponents(world, "hero", [PLAYER]);
   if (heroEntity && heroEntity[PLAYER].popup === entityId) {
     closePopup(world, heroEntity, entity);
     // Closing a completed quest may already remove its popup.
-    if (!entity[POPUP]) return;
+    if (!hasComponent(entity, POPUP)) return;
   }
 
   // remove viewpoint
@@ -762,10 +763,11 @@ export const removePopup = (world: World, entity: Entity) => {
 
 export const openPopup = (
   world: World,
-  heroEntity: Entity,
-  popupEntity: Entity,
+  heroEntity: TypedEntity<"MOVABLE">,
+  target: TypedEntity,
   instant = false
 ) => {
+  const popupEntity = world.assertComponents(target, [POPUP]);
   if (popupEntity[POPUP].tabs.includes("class")) {
     loadUnlocks();
     checkUnlocks(world);
@@ -775,7 +777,7 @@ export const openPopup = (
   }
   const popupId = world.getEntityId(popupEntity);
   const transaction = getDiscoveryTab(world, popupEntity);
-  heroEntity[PLAYER].popup = popupId;
+  requireComponent(heroEntity, PLAYER).popup = popupId;
   updateMovementInterval(world, heroEntity);
   popupEntity[POPUP].active = true;
   rerenderEntity(world, heroEntity);
@@ -799,7 +801,7 @@ export const openPopup = (
 
   // ensure viewpoint is placed correctly if entity moved
   const size = world.metadata.gameEntity[LEVEL].size;
-  const targetViewpoint = combine(size, popupEntity[POSITION], {
+  const targetViewpoint = combine(size, requireComponent(popupEntity, POSITION), {
     x: 0,
     y: (frameHeight + 1) / -2,
   });
@@ -849,21 +851,22 @@ export const openPopup = (
   }
 };
 
-export const getActivePopup = (world: World, entity: Entity) =>
+export const getActivePopup = (world: World, entity: TypedEntity) =>
   isInPopup(world, entity)
     ? world.getEntityById(entity[PLAYER]?.popup)
     : undefined;
 
 export const closePopup = (
   world: World,
-  heroEntity: Entity,
-  popupEntity: Entity
+  heroEntity: TypedEntity,
+  target: TypedEntity
 ) => {
+  const popupEntity = world.assertComponents(target, [POPUP]);
   const tab = getTab(world, popupEntity);
   const selections = getTabSelections(world, popupEntity);
   if (popupEntity[RESTORABLE]) popupEntity[RESTORABLE].saveId = undefined;
 
-  heroEntity[PLAYER].popup = undefined;
+  requireComponent(heroEntity, PLAYER).popup = undefined;
   updateMovementInterval(world, heroEntity);
   popupEntity[POPUP].active = false;
   popupEntity[POPUP].chatSuggestion = 0;
@@ -896,7 +899,7 @@ export const closePopup = (
 
 export const assignQuickItem = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   item: Partial<Item>,
   hotKey?: number
 ) => {
@@ -905,7 +908,7 @@ export const assignQuickItem = (
 
   for (let slotIndex = 1; slotIndex <= 10; slotIndex += 1) {
     const slotNumber = slotIndex % 10;
-    const slotItem = entity[PLAYER].quickItems[slotNumber];
+    const slotItem = requireComponent(entity, PLAYER).quickItems[slotNumber];
     if (!slotItem) {
       if (assignedSlot === undefined) {
         assignedSlot = slotNumber;
@@ -925,18 +928,18 @@ export const assignQuickItem = (
     return;
 
   const { amount, carrier, bound, ...quickItem } = item;
-  entity[PLAYER].quickItems[assignedSlot] = quickItem;
+  requireComponent(entity, PLAYER).quickItems[assignedSlot] = quickItem;
 
   // clear existing slot to prevent duplicates
   if (existingSlot !== undefined && existingSlot !== assignedSlot) {
-    entity[PLAYER].quickItems[existingSlot] = undefined;
+    requireComponent(entity, PLAYER).quickItems[existingSlot] = undefined;
   }
   rerenderEntity(world, entity);
 };
 
 export const updateInventorySelections = (
   world: World,
-  hero: Entity,
+  hero: TypedEntity,
   removedIndex: number
 ) => {
   if (!hero[PLAYER]) return;
@@ -957,7 +960,7 @@ export const updateInventorySelections = (
   }
 };
 
-const getPopupLength = (world: World, hero: Entity, entity: Entity) => {
+const getPopupLength = (world: World, hero: TypedEntity, entity: TypedEntity<"POPUP">) => {
   const popup = entity[POPUP] as Popup;
   const tab = getTab(world, entity);
   const selections = getTabSelections(world, entity);
@@ -1019,7 +1022,7 @@ const getPopupLength = (world: World, hero: Entity, entity: Entity) => {
     case "load":
       return selections.length === 0 ? getSaveSummaries().length : 0;
     case "chat":
-      return hero[PLAYER].chatHistory.length + 1;
+      return requireComponent(hero, PLAYER).chatHistory.length + 1;
     case "info":
     case "warp":
     case "talk":
@@ -1054,9 +1057,10 @@ const getPopupLength = (world: World, hero: Entity, entity: Entity) => {
 
 export const updatePopupSelection = (
   world: World,
-  hero: Entity,
-  entity: Entity
+  hero: TypedEntity,
+  target: TypedEntity
 ) => {
+  const entity = world.assertComponents(target, [POPUP]);
   const selections = getTabSelections(world, entity);
   const tab = getTab(world, entity);
   if (

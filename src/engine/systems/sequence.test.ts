@@ -1,5 +1,5 @@
 import { assertHero, createAreaWorld } from "../../testing/harness";
-import { createSequence, getSequence, replaceSequence } from "./sequence";
+import { createSequence, getParticles, getSequence, replaceSequence } from "./sequence";
 import { entities } from "..";
 import { fire } from "../../game/assets/sprites";
 import { VisionSequence } from "../components/sequencable";
@@ -70,4 +70,28 @@ test("starting an occupied sequence without declaring replacement still warns", 
   } finally {
     warning.mockRestore();
   }
+});
+
+test("a removed particle leaves the remaining sequence sprites in order", () => {
+  const world = createAreaWorld("|♀ |");
+  const hero = assertHero(world);
+  replaceSequence<"vision", VisionSequence>(world, hero, "vision", "changeRadius", { fast: true });
+  const state = getSequence(world, hero, "vision")!;
+  const createParticle = () => entities.createParticle(world, {
+    PARTICLE: { offsetX: 0, offsetY: 0, offsetZ: 0 },
+    SPRITE: fire,
+    RENDERABLE: { generation: 0 },
+  });
+  const first = createParticle();
+  const expired = createParticle();
+  const last = createParticle();
+  state.particles = {
+    first: world.getEntityId(first),
+    expired: world.getEntityId(expired),
+    last: world.getEntityId(last),
+  };
+  world.removeEntity(expired);
+  world.cleanup();
+
+  expect(getParticles(world, hero)).toEqual([first, last]);
 });

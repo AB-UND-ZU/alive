@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Stackable } from "./item";
 
@@ -14,7 +14,7 @@ export const FARMABLE = "FARMABLE";
 
 export default function addFarmable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   farmable: Farmable
 ) {
   world.addComponentToEntity(entity, FARMABLE, farmable);

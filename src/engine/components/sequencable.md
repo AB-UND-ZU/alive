@@ -280,7 +280,7 @@ export type ArrowSequence = { origin: Position; range: number; caster: number };
 
 ```ts src/engine/components/sequencable.ts
 export type SlashSequence = {
-  material: Material;
+  material?: Material;
   element?: Element;
   castable: number;
   exertables: number[];
@@ -452,16 +452,16 @@ export type SequenceState<A> = {
   reference: number;
   elapsed: number;
   args: A;
-  particles: Record<string, number>;
+  particles: Record<string, EntityId<TypedEntity<"PARTICLE" | "RENDERABLE" | "SPRITE">>>;
 };
 ```
 
 ## Sequence
 
 ```ts src/engine/components/sequencable.ts
-export type Sequence<A> = (
+export type Sequence<A, C extends keyof Entity = never> = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity<C | "SEQUENCABLE" | "RENDERABLE">,
   state: SequenceState<A>
 ) => { finished: boolean; updated: boolean };
 ```

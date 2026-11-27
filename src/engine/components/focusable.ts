@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Focusable = {
@@ -11,7 +11,7 @@ export const FOCUSABLE = "FOCUSABLE";
 
 export default function addFocusable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   focusable: Focusable
 ) {
   world.addComponentToEntity(entity, FOCUSABLE, focusable);

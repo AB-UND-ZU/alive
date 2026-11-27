@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Layer = {
@@ -7,9 +7,9 @@ export type Layer = {
 
 export const LAYER = "LAYER";
 
-export const isInside = (world: World, entity: Entity) =>
+export const isInside = (world: World, entity: TypedEntity) =>
   !!entity[LAYER]?.structure;
 
-export default function addLayer(world: World, entity: Entity, layer: Layer) {
+export default function addLayer(world: World, entity: TypedEntity, layer: Layer) {
   world.addComponentToEntity(entity, LAYER, layer);
 }

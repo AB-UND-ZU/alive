@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Pattern = {
@@ -68,7 +68,7 @@ export const BEHAVIOUR = "BEHAVIOUR";
 
 export default function addBehaviour(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   behaviour: Behaviour
 ) {
   world.addComponentToEntity(entity, BEHAVIOUR, behaviour);

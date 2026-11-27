@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Position = {
@@ -8,6 +8,6 @@ export type Position = {
 
 export const POSITION = "POSITION";
 
-export default function addPosition(world: World, entity: Entity, position: Position) {
+export default function addPosition(world: World, entity: TypedEntity, position: Position) {
   world.addComponentToEntity(entity, POSITION, position);
 }

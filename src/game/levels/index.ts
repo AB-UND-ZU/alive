@@ -1,5 +1,5 @@
 import type { Sprite } from "../../engine/components/sprite";
-import { Entity } from "ecs";
+import type { TypedEntity } from "../../engine/entities";
 import { World } from "../../engine";
 import { LevelName } from "../../engine/components/level";
 import { islandSize, generateIsland } from "./island";
@@ -7,8 +7,8 @@ import { generateMenu, menuSize } from "./menu";
 import { generateTutorial, tutorialSize } from "./tutorial";
 import { getVerticalIndex } from "../../engine/systems/popup";
 
-export const getSelectedLevel = (world: World, warpEntity: Entity) => {
-  const verticalIndex = getVerticalIndex(world, warpEntity);
+export const getSelectedLevel = (world: World, warpEntity: TypedEntity) => {
+  const verticalIndex = getVerticalIndex(world, world.assertComponents(warpEntity, ["POPUP"]));
 
   for (const key in levelConfig) {
     const levelName = key as LevelName;

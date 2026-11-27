@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Orientation } from "./orientable";
 
@@ -11,6 +11,6 @@ export type Light = {
 
 export const LIGHT = "LIGHT";
 
-export default function addLight(world: World, entity: Entity, light: Light) {
+export default function addLight(world: World, entity: TypedEntity, light: Light) {
   world.addComponentToEntity(entity, LIGHT, light);
 }

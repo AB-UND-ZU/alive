@@ -15,9 +15,8 @@ import { disposeEntity, getCellEntities } from "./map";
 import { rerenderEntity } from "./renderer";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
-import { TypedEntity } from "../entities";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { LAYER } from "../components/layer";
-import { Entity } from "ecs";
 import { getEntityStats } from "./damage";
 import { levelConfig } from "../../game/levels";
 
@@ -104,17 +103,18 @@ const commitVisibility = (world: World, changes: Change[]) => {
     const entity = level.map[change.x][change.y][change.entityId];
 
     // skip if air already removed, or fixed
-    if (!entity || entity[FOG].fixed) continue;
+    if (!entity || requireComponent(entity, FOG).fixed) continue;
 
     // remove revealed air
-    if (entity[FOG].type === "air" && change.to !== "hidden") {
+    const entityFog = requireComponent(entity, FOG);
+    if (entityFog.type === "air" && change.to !== "hidden") {
       disposeEntity(world, entity);
       continue;
     }
 
     // reveal attached structure and fragments
     const structureId =
-      STRUCTURABLE in entity ? change.entityId : entity[FRAGMENT]?.structure;
+      hasComponent(entity, STRUCTURABLE) ? change.entityId : entity[FRAGMENT]?.structure;
     const structure = world.getEntityByIdAndComponents(structureId, [FOG]);
     if (
       structure &&
@@ -132,7 +132,7 @@ const commitVisibility = (world: World, changes: Change[]) => {
             // also remove any air above fragments
             getCellEntities(world, fragment[POSITION]).forEach((cell) => {
               if (
-                FOG in cell &&
+                hasComponent(cell, FOG) &&
                 cell[FOG].type === "air" &&
                 change.to !== "hidden"
               ) {
@@ -147,12 +147,12 @@ const commitVisibility = (world: World, changes: Change[]) => {
     }
 
     // reveal entity itself
-    entity[FOG].visibility = change.to;
+    entityFog.visibility = change.to;
     rerenderEntity(world, entity);
   }
 };
 
-export const getEntityVision = (world: World, entity: Entity): Light => {
+export const getEntityVision = (world: World, entity: TypedEntity): Light => {
   const level = world.metadata.gameEntity[LEVEL].name;
   const vision =
     levelConfig[level].vision + getEntityStats(world, entity).vision;
@@ -174,7 +174,7 @@ export const calculateVision = (vision: number) => {
 
 export default function setupVisibility(world: World) {
   let referencesGeneration = -1;
-  const sights = new WeakMap<Entity, Sight>();
+  const sights = new WeakMap<TypedEntity, Sight>();
   // increasing marks per cell, so they never need to be cleared
   let marks = new Uint32Array(0);
   let mark = 0;

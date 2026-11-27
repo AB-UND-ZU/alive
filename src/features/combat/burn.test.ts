@@ -167,7 +167,7 @@ describe("burning plants", () => {
     const { world } = createCombatWorld(plants, { U: plant });
     const entity = findEntityAt(world, position, [BURNABLE])!;
     entity[BURNABLE].burning = true;
-    advanceUntil(world, () => !getEntitiesAt(world, position).includes(entity));
+    advanceUntil(world, () => !getEntitiesAt(world, position).some((cell) => cell === entity));
     step(world, 30);
     return { world, entity };
   };

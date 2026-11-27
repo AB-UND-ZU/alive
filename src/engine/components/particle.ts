@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Point } from "../../game/math/std";
 
@@ -15,7 +15,7 @@ export const PARTICLE = "PARTICLE";
 
 export default function addParticle(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   particle: Particle
 ) {
   world.addComponentToEntity(entity, PARTICLE, particle);

@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Matrix } from "../../game/math/matrix";
 import { Position } from "./position";
@@ -11,7 +11,7 @@ export type BiomeName = "jungle" | "desert" | "ocean" | "glacier";
 export type Level = {
   name: LevelName;
   // map[x][y][entityId] = entity
-  map: Record<number, Record<number, Record<string, Entity>>>;
+  map: Record<number, Record<number, Record<string, TypedEntity<"POSITION">>>>;
   walkable: Matrix<0 | 1>;
   biomes: Matrix<BiomeName>;
   cells: Matrix<CellType>;
@@ -23,6 +23,6 @@ export type Level = {
 
 export const LEVEL = "LEVEL";
 
-export default function addLevel(world: World, entity: Entity, level: Level) {
+export default function addLevel(world: World, entity: TypedEntity, level: Level) {
   world.addComponentToEntity(entity, LEVEL, level);
 }

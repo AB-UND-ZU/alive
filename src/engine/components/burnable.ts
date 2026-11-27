@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Burnable = {
@@ -14,7 +14,7 @@ export const BURNABLE = "BURNABLE";
 
 export default function addBurnable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   burnable: Burnable = {
     burning: false,
     eternal: false,

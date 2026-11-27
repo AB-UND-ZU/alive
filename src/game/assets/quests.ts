@@ -28,7 +28,7 @@ import { END_STEP, questSequence, QuestStage, START_STEP, step } from "./utils";
 
 const menuDelay = 5000;
 
-export const menuQuest: Sequence<QuestSequence> = (world, entity, state) => {
+export const menuQuest: Sequence<QuestSequence, "POSITION" | "TOOLTIP"> = (world, entity, state) => {
   const stage: QuestStage<QuestSequence> = {
     world,
     entity,
@@ -112,7 +112,7 @@ export const menuQuest: Sequence<QuestSequence> = (world, entity, state) => {
   return { finished: stage.finished, updated: stage.updated };
 };
 
-export const centerQuest: Sequence<QuestSequence> = (world, entity, state) => {
+export const centerQuest: Sequence<QuestSequence, "POSITION"> = (world, entity, state) => {
   const stage: QuestStage<QuestSequence> = {
     world,
     entity,
@@ -204,7 +204,7 @@ export const centerQuest: Sequence<QuestSequence> = (world, entity, state) => {
   return { finished: stage.finished, updated: stage.updated };
 };
 
-export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
+export const north1Quest: Sequence<QuestSequence, "EQUIPPABLE" | "POSITION"> = (world, entity, state) => {
   const stage: QuestStage<QuestSequence> = {
     world,
     entity,
@@ -331,7 +331,7 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
   return { finished: stage.finished, updated: stage.updated };
 };
 
-export const north2Quest: Sequence<QuestSequence> = (world, entity, state) => {
+export const north2Quest: Sequence<QuestSequence, "POSITION"> = (world, entity, state) => {
   const stage: QuestStage<QuestSequence> = {
     world,
     entity,
@@ -450,7 +450,7 @@ export const north2Quest: Sequence<QuestSequence> = (world, entity, state) => {
   return { finished: stage.finished, updated: stage.updated };
 };
 
-export const north2East1Quest: Sequence<QuestSequence> = (
+export const north2East1Quest: Sequence<QuestSequence, "POSITION"> = (
   world,
   entity,
   state
@@ -513,7 +513,7 @@ export const north2East1Quest: Sequence<QuestSequence> = (
   return { finished: stage.finished, updated: stage.updated };
 };
 
-export const spawnQuest: Sequence<QuestSequence> = (world, entity, state) => {
+export const spawnQuest: Sequence<QuestSequence, "PLAYER" | "POSITION"> = (world, entity, state) => {
   const stage: QuestStage<QuestSequence> = {
     world,
     entity,
@@ -542,7 +542,7 @@ export const spawnQuest: Sequence<QuestSequence> = (world, entity, state) => {
       townDistance < 10 ||
       !spawnSign ||
       !getSequence(world, spawnSign, "discovery") ||
-      (isInPopup(world, entity) &&
+      (!!isInPopup(world, entity) &&
         world.getEntityById(entity[PLAYER].popup) === spawnSign),
     onLeave: () => "town",
   });
@@ -556,7 +556,7 @@ export const spawnQuest: Sequence<QuestSequence> = (world, entity, state) => {
     },
     isCompleted: () =>
       !earthChief ||
-      (isInPopup(world, entity) &&
+      (!!isInPopup(world, entity) &&
         entity[PLAYER].popup === world.getEntityId(earthChief)),
     onLeave: () => {
       setHighlight(world);
@@ -567,7 +567,7 @@ export const spawnQuest: Sequence<QuestSequence> = (world, entity, state) => {
   return { updated: stage.updated, finished: stage.finished };
 };
 
-export const waypointQuest: Sequence<QuestSequence> = (
+export const waypointQuest: Sequence<QuestSequence, "POSITION"> = (
   world,
   entity,
   state
@@ -619,7 +619,7 @@ export const waypointQuest: Sequence<QuestSequence> = (
 
 const tombstoneDistance = 1.3;
 
-export const tombstoneQuest: Sequence<QuestSequence> = (
+export const tombstoneQuest: Sequence<QuestSequence, "POSITION" | "SPAWNABLE"> = (
   world,
   entity,
   state

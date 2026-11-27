@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Position } from "./position";
 
@@ -11,7 +11,7 @@ export const TRACKABLE = "TRACKABLE";
 
 export default function addMelee(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   trackable: Trackable
 ) {
   world.addComponentToEntity(entity, TRACKABLE, trackable);

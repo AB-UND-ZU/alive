@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { SWIMMABLE } from "../components/swimmable";
@@ -123,7 +123,7 @@ export const getChangedClassStats = (
   };
 };
 
-export const hasLevelUp = (world: World, entity: Entity) =>
+export const hasLevelUp = (world: World, entity: TypedEntity<"STATS">) =>
   entity[STATS].level > 0 && entity[STATS].xp >= entity[STATS].maxXp;
 
 export default function setupLeveling(world: World) {

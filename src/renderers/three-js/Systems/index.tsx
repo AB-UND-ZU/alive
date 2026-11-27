@@ -53,7 +53,7 @@ export default function Systems({ onReady }: { onReady?: () => void }) {
       for (const point of traceCircularVisiblity(ecs, origin, brightness)) {
         const cell = getCell(ecs, point);
         for (const id in cell) {
-          if (cell[id][LIGHT]?.darkness > 0) casters.add(Number(id));
+          if ((cell[id][LIGHT]?.darkness ?? 0) > 0) casters.add(Number(id));
         }
       }
     }

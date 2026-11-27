@@ -6,7 +6,6 @@ import { World } from "../ecs";
 import { REFERENCE } from "../components/reference";
 import { getCellEntities, moveEntity } from "./map";
 import { COLLIDABLE } from "../components/collidable";
-import { Entity } from "ecs";
 import { rerenderEntity } from "./renderer";
 import { combine, sum } from "../../game/math/std";
 import {
@@ -30,7 +29,7 @@ import { BiomeName, LEVEL } from "../components/level";
 import { getLockable, isLocked } from "./action";
 import { createBubble } from "./water";
 import { getFragment, getOpaque } from "./enter";
-import { TypedEntity } from "../entities";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { TEMPO } from "../components/tempo";
 import { freezeMomentum, isFrozen } from "./freeze";
 import { isInPopup, isInTab } from "./popup";
@@ -70,7 +69,7 @@ export const getHasteInterval = (world: World, haste: number) =>
 
 export const setMovementOrientations = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   orientations: Orientation[]
 ) => {
   // Dash keeps the movement component on the spell until recovery finishes.
@@ -117,7 +116,7 @@ export const getTempo = (world: World, position: Position) =>
     getCellEntities(world, position).map((target) => target[TEMPO]?.amount || 0)
   );
 
-export const getEntityHaste = (world: World, entity: Entity) =>
+export const getEntityHaste = (world: World, entity: TypedEntity) =>
   isInTab(world, entity, "chat")
     ? chatHaste
     : isInPopup(world, entity)
@@ -126,8 +125,8 @@ export const getEntityHaste = (world: World, entity: Entity) =>
     ? boatHaste
     : getEntityStats(world, entity).haste;
 
-export const updateMovementInterval = (world: World, entity: Entity) => {
-  const reference = world.assertByIdAndComponents(entity[MOVABLE].reference, [
+export const updateMovementInterval = (world: World, entity: TypedEntity) => {
+  const reference = world.assertByIdAndComponents(requireComponent(entity, MOVABLE).reference, [
     REFERENCE,
   ])[REFERENCE];
   const interval = getHasteInterval(world, getEntityHaste(world, entity));
@@ -138,7 +137,7 @@ export const updateMovementInterval = (world: World, entity: Entity) => {
 
 export const getCollidable = (world: World, position: Position) =>
   getCellEntities(world, position).find(
-    (entity) => COLLIDABLE in (entity as Entity)
+    (entity) => COLLIDABLE in (entity as TypedEntity)
   );
 
 export const isCollision = (world: World, position: Position) =>
@@ -147,7 +146,7 @@ export const isCollision = (world: World, position: Position) =>
 export const isPassable = (
   world: World,
   position: Position,
-  exclude?: Entity,
+  exclude?: TypedEntity,
   ignoreSnow = false
 ) => {
   if (
@@ -176,13 +175,13 @@ export const isPassable = (
 export const isFloatable = (
   world: World,
   position: Position,
-  exclude?: Entity
+  exclude?: TypedEntity
 ) => isPassable(world, position, exclude) && isImmersible(world, position);
 
 export const isWalkable = (
   world: World,
   position: Position,
-  exclude?: Entity
+  exclude?: TypedEntity
 ) => isPassable(world, position, exclude) && !isSubmerged(world, position);
 
 // Planning can cross snow; the click system still spends a turn clearing it.
@@ -191,7 +190,7 @@ export const isPathable = (world: World, position: Position) =>
 
 export const isRoamable = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   position: Position
 ) => {
   // avoid fires
@@ -212,7 +211,7 @@ export const isRoamable = (
 
 export const isLimbWalkable = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   position: Position
 ) => {
   if (entity[FRAGMENT]?.structure) {
@@ -235,7 +234,7 @@ export const isFlyable = (world: World, position: Position) => {
   );
 };
 
-export const isMovable = (world: World, entity: Entity, position: Position) => {
+export const isMovable = (world: World, entity: TypedEntity, position: Position) => {
   if (!entity[MOVABLE]) return false;
 
   if (isLimbWalkable(world, entity, position)) return true;
@@ -254,7 +253,7 @@ export const isMovable = (world: World, entity: Entity, position: Position) => {
 
   // allow clicking
   const clickable = getClickable(world, position);
-  if (clickable && (!clickable[CLICKABLE].player || entity[PLAYER]))
+  if (clickable && (!requireComponent(clickable, CLICKABLE).player || entity[PLAYER]))
     return true;
 
   return false;
@@ -319,7 +318,7 @@ export default function setupMovement(world: World) {
       // skip if immovable or not sliding
       if (
         isDead(world, entity) ||
-        (FRAGMENT in entity && isDead(world, getRoot(world, entity))) ||
+        (hasComponent(entity, FRAGMENT) && isDead(world, getRoot(world, entity))) ||
         (isFrozen(world, entity) && !entity[MOVABLE].momentum)
       )
         continue;
@@ -363,32 +362,35 @@ export default function setupMovement(world: World) {
         let obstructed = false;
 
         for (const limb of limbs) {
-          const position = combine(size, limb[POSITION], delta);
+          const limbPosition = requireComponent(limb, POSITION);
+          const position = combine(size, limbPosition, delta);
+          const movement = requireComponent(limb, MOVABLE);
           if (
-            (!limb[MOVABLE].swimming &&
+            (!movement.swimming &&
               isLimbWalkable(world, limb, position)) ||
-            (limb[MOVABLE].flying && isFlyable(world, position)) ||
-            (limb[MOVABLE].swimming &&
+            (movement.flying && isFlyable(world, position)) ||
+            (movement.swimming &&
               isFloatable(world, position) &&
-              isImmersible(world, limb[POSITION]))
+              isImmersible(world, limbPosition))
           ) {
             continue;
           }
           // A thaw can strand a walker in deep water. Only allow a step towards shore.
           if (
-            !limb[MOVABLE].flying && !limb[MOVABLE].swimming &&
-            isImmersible(world, limb[POSITION]) && isPassable(world, position) &&
-            isSubmerged(world, limb[POSITION]) &&
+            !movement.flying && !movement.swimming &&
+            isImmersible(world, limbPosition) && isPassable(world, position) &&
+            isSubmerged(world, limbPosition) &&
             orientations.every((side) =>
-              isSubmerged(world, combine(size, limb[POSITION], orientationPoints[side]))
+              isSubmerged(world, combine(size, requireComponent(limb, POSITION), orientationPoints[side]))
             )
           ) {
+            const limbPosition = requireComponent(limb, POSITION);
             const shore = iterateMatrixFromCenter(
               world.metadata.gameEntity[LEVEL].cells,
-              limb[POSITION],
+              limbPosition,
               (x, y) => !isSubmerged(world, { x, y })
             );
-            if (shore && relativeOrientations(world, limb[POSITION], shore, 1)[0] === orientation)
+            if (shore && relativeOrientations(world, limbPosition, shore, 1)[0] === orientation)
               continue;
           }
           obstructed = true;
@@ -448,16 +450,17 @@ export default function setupMovement(world: World) {
 
         for (const part of parts) {
           // leave bubble trail if walking through water
-          if (isImmersible(world, part[POSITION]) && !part[MOVABLE].flying) {
-            createBubble(world, part[POSITION], "water", !boat);
+          const position = requireComponent(part, POSITION);
+          if (isImmersible(world, position) && !requireComponent(part, MOVABLE).flying) {
+            createBubble(world, requireComponent(part, POSITION), "water", !boat);
           }
 
           // set facing to actual movement
-          if (!rigid && part[ORIENTABLE] && !part[MOVABLE].flying) {
+          if (!rigid && part[ORIENTABLE] && !requireComponent(part, MOVABLE).flying) {
             part[ORIENTABLE].facing = movedOrientation;
           }
 
-          const limbPosition = combine(size, part[POSITION], delta);
+          const limbPosition = combine(size, position, delta);
           moveEntity(world, part, limbPosition);
           rerenderEntity(world, part);
         }
@@ -467,7 +470,7 @@ export default function setupMovement(world: World) {
           !isImmersible(world, entity[POSITION])
         ) {
           // bump stranded entities
-          if (!(BUMPABLE in entity)) {
+          if (!hasComponent(entity, BUMPABLE)) {
             world.addComponentToEntity(entity, BUMPABLE, {
               generation: 0,
             });

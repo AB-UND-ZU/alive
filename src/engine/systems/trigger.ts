@@ -4,7 +4,6 @@ import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
-import { Entity } from "ecs";
 import { ACTIONABLE } from "../components/actionable";
 import { Movable, MOVABLE } from "../components/movable";
 import { TOOLTIP } from "../components/tooltip";
@@ -57,7 +56,7 @@ import {
 } from "./sequence";
 import { shootArrow } from "./ballistics";
 import { emptyUnitStats, STATS } from "../components/stats";
-import { TypedEntity } from "../entities";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { entities } from "..";
 import { BELONGABLE } from "../components/belongable";
 import {
@@ -93,7 +92,7 @@ import {
   setVerticalIndex,
   updateInventorySelections,
 } from "./popup";
-import { Popup, POPUP } from "../components/popup";
+import { POPUP } from "../components/popup";
 import { addToInventory, equipItem } from "./collect";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { PLAYER } from "../components/player";
@@ -157,7 +156,7 @@ import { getHarvestConfig } from "../../game/balancing/harvesting";
 import { HARVESTABLE } from "../components/harvestable";
 import { getBuildingDeal } from "./build";
 
-export const canWarp = (world: World, entity: Entity, warp: Entity) => {
+export const canWarp = (world: World, entity: TypedEntity, warp: TypedEntity) => {
   const currentLevel = world.metadata.gameEntity[LEVEL].name;
   const selectedLevel = getSelectedLevel(world, warp);
 
@@ -178,8 +177,8 @@ const portalLight = { visibility: 1.5, brightness: 1.5, darkness: 0 };
 // step into portal and close vision before switching worlds
 const enterPortal = (
   world: World,
-  portal: Entity,
-  entity: Entity,
+  portal: TypedEntity,
+  entity: TypedEntity<"PLAYER">,
   destination: Destination,
   line: Sprite[]
 ) => {
@@ -189,18 +188,19 @@ const enterPortal = (
     discovery.args.idle = none;
   }
 
-  moveEntity(world, entity, portal[POSITION]);
+  moveEntity(world, entity, requireComponent(portal, POSITION));
   rerenderEntity(world, entity);
-  entity[ORIENTABLE].facing = undefined;
+  requireComponent(entity, ORIENTABLE).facing = undefined;
   const movable = entity[MOVABLE] as Movable;
   movable.orientations = [];
   delete movable.pendingOrientation;
   delete movable.momentum;
   world.removeComponentFromEntity(entity as TypedEntity<"MOVABLE">, MOVABLE);
   world.metadata.setLoading?.(line);
-  portal[TOOLTIP].dialogs = [line];
-  portal[TOOLTIP].changed = true;
-  portal[TOOLTIP].override = "visible";
+  const tooltip = requireComponent(portal, TOOLTIP);
+  tooltip.dialogs = [line];
+  tooltip.changed = true;
+  tooltip.override = "visible";
 
   replaceSequence<"vision", VisionSequence>(
     world,
@@ -218,8 +218,8 @@ const enterPortal = (
 
 export const initiateLoad = (
   world: World,
-  portal: Entity,
-  entity: Entity,
+  portal: TypedEntity<"POPUP">,
+  entity: TypedEntity<"PLAYER">,
   saveId: string
 ) => {
   const saved = getSaveSummaries().find((save) => save.id === saveId);
@@ -232,11 +232,13 @@ export const initiateLoad = (
   );
 };
 
-export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
+export const initiateWarp = (world: World, portal: TypedEntity, entity: TypedEntity<"PLAYER">) => {
+  const warp = world.assertComponents(portal, [POPUP]);
   const levelName = getSelectedLevel(world, warp);
   if (!levelName) return;
 
-  const styleIndex = warp[POPUP].tabs.indexOf("style");
+  const popup = requireComponent(warp, POPUP);
+  const styleIndex = popup.tabs.indexOf("style");
   enterPortal(
     world,
     warp,
@@ -247,13 +249,13 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
       hairColor:
         styleIndex === -1
           ? undefined
-          : hairColors[warp[POPUP].selections[styleIndex][0] ?? 0].color,
+          : hairColors[popup.selections[styleIndex][0] ?? 0].color,
     },
     worldLoading(levelConfig[levelName].name)
   );
 };
 
-export const unlockDoor = (world: World, entity: Entity, lockable: Entity) => {
+export const unlockDoor = (world: World, entity: TypedEntity<"POSITION">, lockable: TypedEntity<"LOCKABLE" | "POSITION">) => {
   // open doors without locks
   if (lockable[LOCKABLE].material === "wood") {
     openDoor(world, lockable);
@@ -274,19 +276,20 @@ export const unlockDoor = (world: World, entity: Entity, lockable: Entity) => {
     "doorUnlock",
     {
       origin: entity[POSITION],
-      item: keyEntity[ITEM],
+      item: requireComponent(keyEntity, ITEM),
     }
   );
 
   rerenderEntity(world, lockable);
 };
 
-export const openDoor = (world: World, entity: Entity) => {
-  entity[LOCKABLE].locked = false;
-  entity[SPRITE] = entity[LOCKABLE].sprite || none;
+export const openDoor = (world: World, entity: TypedEntity) => {
+  const lock = requireComponent(entity, LOCKABLE);
+  lock.locked = false;
+  entity[SPRITE] = lock.sprite || none;
 
   if (entity[LIGHT]) {
-    if (entity[LOCKABLE].sprite) {
+    if (requireComponent(entity, LOCKABLE).sprite) {
       entity[LIGHT].orientation = "left";
     } else {
       entity[LIGHT].darkness = 0;
@@ -295,10 +298,11 @@ export const openDoor = (world: World, entity: Entity) => {
 
   if (entity[ENTERABLE]) {
     entity[ENTERABLE].orientation = "down";
+    const lock = requireComponent(entity, LOCKABLE);
     entity[ENTERABLE].sprite = getItemSprite({
-      materialized: entity[LOCKABLE].type,
-      material: entity[LOCKABLE].material,
-      element: entity[LOCKABLE].element,
+      materialized: lock.type,
+      material: lock.material,
+      element: lock.element,
     });
   }
 
@@ -316,16 +320,17 @@ export const openDoor = (world: World, entity: Entity) => {
 
   invalidateOcclusion(world);
   rerenderEntity(world, entity);
-  updateWalkable(world, entity[POSITION]);
+  updateWalkable(world, requireComponent(entity, POSITION));
 };
 
-export const lockDoor = (world: World, entity: Entity) => {
-  entity[LOCKABLE].locked = true;
+export const lockDoor = (world: World, entity: TypedEntity) => {
+  const lock = requireComponent(entity, LOCKABLE);
+  lock.locked = true;
   entity[SPRITE] = getItemSprite(
     {
-      materialized: entity[LOCKABLE].type,
-      material: entity[LOCKABLE].material,
-      element: entity[LOCKABLE].element,
+      materialized: lock.type,
+      material: lock.material,
+      element: lock.element,
     },
     "resource"
   );
@@ -333,20 +338,21 @@ export const lockDoor = (world: World, entity: Entity) => {
     entity[ENTERABLE].sprite = entity[SPRITE];
     entity[ENTERABLE].orientation = undefined;
   }
-  entity[LIGHT].orientation = undefined;
-  entity[TOOLTIP].override = undefined;
+  requireComponent(entity, LIGHT).orientation = undefined;
+  requireComponent(entity, TOOLTIP).override = undefined;
   invalidateOcclusion(world);
   rerenderEntity(world, entity);
-  updateWalkable(world, entity[POSITION]);
+  updateWalkable(world, requireComponent(entity, POSITION));
 };
 
 export const removeFromInventory = (
   world: World,
-  entity: Entity,
-  item: Entity
+  entity: TypedEntity,
+  item: TypedEntity
 ) => {
   const itemId = world.getEntityId(item);
-  const itemIndex = entity[INVENTORY].items.indexOf(itemId);
+  const entityInventory = requireComponent(entity, INVENTORY);
+  const itemIndex = entityInventory.items.indexOf(itemId);
 
   if (itemIndex === -1) {
     console.error(
@@ -358,19 +364,19 @@ export const removeFromInventory = (
     return;
   }
 
-  if (EQUIPPABLE in entity) {
+  if (hasComponent(entity, EQUIPPABLE)) {
     for (const slot of slots) {
-      const equipmentSlot = slot === "accessory" ? item[ITEM].accessory : slot;
-      if (item[ITEM][slot] && entity[EQUIPPABLE][equipmentSlot] === itemId) {
+      const equipmentSlot = slot === "accessory" ? requireComponent(item, ITEM).accessory : slot;
+      if (equipmentSlot && requireComponent(item, ITEM)[slot] && entity[EQUIPPABLE][equipmentSlot] === itemId) {
         entity[EQUIPPABLE][equipmentSlot] = undefined;
       }
     }
   }
 
   updateInventorySelections(world, entity, itemIndex);
-  entity[INVENTORY].items.splice(itemIndex, 1);
+  entityInventory.items.splice(itemIndex, 1);
 
-  item[ITEM].carrier = undefined;
+  requireComponent(item, ITEM).carrier = undefined;
 
   if (world.getEntityId(entity)) {
     rerenderEntity(world, entity);
@@ -379,7 +385,7 @@ export const removeFromInventory = (
 
 const announcePickup = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   item: Omit<Item, "bound" | "carrier">
 ) => {
   const delay = queueMessage(world, entity, {
@@ -400,7 +406,7 @@ const announcePickup = (
 
 export const performTrade = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity<"INVENTORY">,
   shop: TypedEntity<"POPUP" | "POSITION">
 ) => {
   const deal = getDeal(world, entity, shop);
@@ -463,9 +469,9 @@ export const performTrade = (
 
 export const spendItem = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   item: Omit<Item, "bound" | "carrier">,
-  selected?: Entity
+  selected?: TypedEntity
 ) => {
   if (item.stat && !item.material) {
     if (!entity[STATS] || entity[STATS][item.stat] < item.amount) {
@@ -485,23 +491,23 @@ export const spendItem = (
     matchesItem(world, item, itemEntity[ITEM])
   );
 
-  if (!itemEntity || itemEntity[ITEM].amount < item.amount) {
+  if (!itemEntity || requireComponent(itemEntity, ITEM).amount < item.amount) {
     console.warn("Unable to spend item", item, "for entity", entity, "!");
     throw Error("Unable to spend item!");
   }
 
-  if (itemEntity[ITEM].amount === item.amount) {
+  if (requireComponent(itemEntity, ITEM).amount === item.amount) {
     removeFromInventory(world, entity, itemEntity);
     disposeEntity(world, itemEntity);
   } else {
-    itemEntity[ITEM].amount -= item.amount;
+    requireComponent(itemEntity, ITEM).amount -= item.amount;
     rerenderEntity(world, entity);
   }
 };
 
 export const performPlot = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   construction: Construction,
   position: Position,
   variant: number
@@ -533,7 +539,7 @@ export const performPlot = (
   play(world, plotEntity, "build", { actor: entity, notes: 4, spacing: 70 });
 };
 
-export const getSelectedConstruction = (world: World, entity: Entity) => {
+export const getSelectedConstruction = (world: World, entity: TypedEntity) => {
   const useEntity = assertIdentifierAndComponents(world, "use", [POPUP]);
   const buildIndex = useEntity[POPUP].tabs.indexOf("build");
   const verticalIndex = useEntity[POPUP].verticalIndezes[buildIndex];
@@ -562,8 +568,8 @@ const conditionConfig: Record<
 
 export const applyCondition = (
   world: World,
-  entity: Entity,
-  item: Entity,
+  entity: TypedEntity,
+  item: TypedEntity,
   type: ConditionType,
   material: Material,
   modifier: number,
@@ -591,21 +597,22 @@ export const applyCondition = (
 
 export const resetConditionables = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   all = false
 ) => {
   if (all) {
     entity[CONDITIONABLE] = {};
   } else {
-    delete entity[CONDITIONABLE].axe;
-    delete entity[CONDITIONABLE].pickaxe;
+    const conditions = requireComponent(entity, CONDITIONABLE);
+    delete conditions.axe;
+    delete conditions.pickaxe;
   }
   rerenderEntity(world, entity);
 };
 
 export const castConditionable = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   item: TypedEntity<"ITEM">,
   amount = 1
 ) => {
@@ -626,21 +633,22 @@ export const castConditionable = (
 
   // unequip tools if active
   const hookCondition = (entity[CONDITIONABLE] as Conditionable).hook;
-  if (condition === "axe" && entity[CONDITIONABLE].axe) {
-    delete entity[CONDITIONABLE].axe;
+  if (condition === "axe" && requireComponent(entity, CONDITIONABLE).axe) {
+    delete requireComponent(entity, CONDITIONABLE).axe;
     play(world, entity, "tool", { variant: 2 });
     return;
-  } else if (condition === "pickaxe" && entity[CONDITIONABLE].pickaxe) {
-    delete entity[CONDITIONABLE].pickaxe;
+  } else if (condition === "pickaxe" && requireComponent(entity, CONDITIONABLE).pickaxe) {
+    delete requireComponent(entity, CONDITIONABLE).pickaxe;
     play(world, entity, "tool", { variant: 2 });
     return;
   } else if (condition === "hammer") {
-    if (entity[CONDITIONABLE].hammer) {
-      delete entity[CONDITIONABLE].hammer;
+    const conditions = requireComponent(entity, CONDITIONABLE);
+    if (conditions.hammer) {
+      delete requireComponent(entity, CONDITIONABLE).hammer;
       play(world, entity, "tool", { variant: 2 });
       return;
-    } else if (entity[CONDITIONABLE].build) {
-      delete entity[CONDITIONABLE].build;
+    } else if (conditions.build) {
+      delete requireComponent(entity, CONDITIONABLE).build;
     } else {
       const construction = getSelectedConstruction(world, entity);
       condition = construction ? "build" : "hammer";
@@ -655,7 +663,7 @@ export const castConditionable = (
         { [ITEM]: { stackable: "worm", amount: 1 } },
         1
       );
-      delete entity[CONDITIONABLE].hook;
+      delete requireComponent(entity, CONDITIONABLE).hook;
       play(world, entity, "tool", { variant: 2 });
     } else if (
       hookSequence &&
@@ -674,7 +682,7 @@ export const castConditionable = (
       const hookable = baitEntity && getHookable(world, baitEntity[POSITION]);
       if (hookable) {
         // ensure target is movable
-        if (!(MOVABLE in hookable)) {
+        if (!hasComponent(hookable, MOVABLE)) {
           world.addComponentToEntity(hookable, MOVABLE, {
             orientations: [],
             reference: world.getEntityId(world.metadata.gameEntity),
@@ -694,7 +702,7 @@ export const castConditionable = (
       }
     } else {
       // stow hook
-      delete entity[CONDITIONABLE].hook;
+      delete requireComponent(entity, CONDITIONABLE).hook;
       play(world, entity, "tool", { variant: 2 });
     }
 
@@ -733,7 +741,7 @@ export const castConditionable = (
 
 export const digShovel = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   tool: TypedEntity<"ITEM">
 ) => {
   const toolStats = getEquipmentStats(tool[ITEM], entity[NPC]?.type);
@@ -748,11 +756,12 @@ export const digShovel = (
   );
 };
 
-export const canSeed = (world: World, entity: Entity, plant: Entity) =>
+export const canSeed = (world: World, entity: TypedEntity, plant: TypedEntity) =>
   plant[FARMABLE]?.watered;
 
-export const completeQuest = (world: World, entity: Entity, target: Entity) => {
-  const popup = target[POPUP] as Popup;
+export const completeQuest = (world: World, entity: TypedEntity<"INVENTORY">, owner: TypedEntity) => {
+  const target = world.assertComponents(owner, [POPUP]);
+  const popup = target[POPUP];
   const choiceIndex = getTabSelections(world, target)[1];
 
   // apply selected choice
@@ -968,7 +977,7 @@ export const castSpell = (
   return spellEntity;
 };
 
-export const castSkill = (world: World, entity: Entity, skill: Entity) => {
+export const castSkill = (world: World, entity: TypedEntity, skill: TypedEntity<"ITEM">) => {
   if (skill[ITEM].skill === "bow") {
     shootArrow(world, entity, skill);
   } else if (skill[ITEM].skill === "spear") {
@@ -1076,7 +1085,7 @@ export default function setupTrigger(world: World) {
       }
 
       if (entity[ORIENTABLE]) {
-        entity[ORIENTABLE].facing =
+        requireComponent(entity, ORIENTABLE).facing =
           entity[MOVABLE].orientations[0] ||
           entity[MOVABLE].pendingOrientation ||
           entity[ORIENTABLE].facing;

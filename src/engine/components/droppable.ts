@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Sprite } from "./sprite";
 
@@ -11,7 +11,7 @@ export const DROPPABLE = "DROPPABLE";
 
 export default function addDroppable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   droppable: Droppable
 ) {
   world.addComponentToEntity(entity, DROPPABLE, droppable);

@@ -1,6 +1,7 @@
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
 import {
+  Sequence,
   Sequencable,
   SEQUENCABLE,
   SequenceState,
@@ -8,7 +9,7 @@ import {
 import { REFERENCE } from "../components/reference";
 import * as sequences from "../../game/assets/sequences";
 import { rerenderEntity } from "./renderer";
-import { Entity } from "ecs";
+import { hasComponent, requireComponent, TypedEntity } from "../entities";
 import { disposeFrame, disposeParticles, disposeSequence } from "./map";
 import { entities } from "..";
 import { PARTICLE } from "../components/particle";
@@ -19,9 +20,9 @@ import { SHOOTABLE } from "../components/shootable";
 
 export const getSequences: (
   world: World,
-  entity: Entity
-) => SequenceState<any>[] = (world, entity) =>
-  SEQUENCABLE in entity ? Object.values(entity[SEQUENCABLE].states) : [];
+  entity: TypedEntity
+) => SequenceState<unknown>[] = (world, entity) =>
+  hasComponent(entity, SEQUENCABLE) ? Object.values(entity[SEQUENCABLE].states) : [];
 
 const shotParticle: ReturnType<typeof entities.createParticle> = {
   [PARTICLE]: {
@@ -33,30 +34,29 @@ const shotParticle: ReturnType<typeof entities.createParticle> = {
   [SPRITE]: shotHit,
 };
 
-export const getParticles = (world: World, entity: Entity) =>
-  getSequences(world, entity)
-    .reduce<Entity[]>(
-      (all, sequence) =>
-        all.concat(
-          Object.values(sequence.particles).map((entityId) =>
-            world.getEntityById(entityId)
-          )
-        ),
-      []
-    )
-    .concat((entity[SHOOTABLE]?.shots || 0) > 0 ? shotParticle : []);
+export const getParticles = (world: World, entity: TypedEntity) => {
+  const particles: (typeof shotParticle)[] = [];
+  for (const sequence of getSequences(world, entity)) {
+    for (const id of Object.values(sequence.particles)) {
+      const particle = world.getEntityById(id);
+      if (particle) particles.push(particle);
+    }
+  }
+  if ((entity[SHOOTABLE]?.shots ?? 0) > 0) particles.push(shotParticle);
+  return particles;
+};
 
 const SEQUENCE_DEBUG = false;
 
 export const getSequence = <T extends keyof Sequencable["states"]>(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   type: T
 ): Sequencable["states"][T] => entity[SEQUENCABLE]?.states[type];
 
 export const createSequence = <T extends keyof Sequencable["states"], A>(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   type: T,
   name: SequenceState<A>["name"],
   args: A,
@@ -76,7 +76,8 @@ export const createSequence = <T extends keyof Sequencable["states"], A>(
     });
   }
 
-  if (entity[SEQUENCABLE].states[type]) {
+  const states = requireComponent(entity, SEQUENCABLE).states;
+  if (states[type]) {
     console.warn(
       `Aborting previous sequence "${type}" of following entity:`,
       entity
@@ -84,7 +85,7 @@ export const createSequence = <T extends keyof Sequencable["states"], A>(
     disposeSequence(world, entity, type);
   }
 
-  (entity[SEQUENCABLE].states[type] as SequenceState<A>) = {
+  (states[type] as SequenceState<A>) = {
     name,
     reference: world.getEntityId(sequenceEntity),
     elapsed: 0,
@@ -113,8 +114,7 @@ const hasStates = (sequencable: Sequencable) => {
 export default function setupSequence(world: World) {
   const onUpdate = (delta: number) => {
     // frames created during this update have higher IDs and are kept
-    const firstNewId = (world.metadata.ecs as unknown as { nextId: number })
-      .nextId;
+    const firstNewId = world.metadata.ecs.nextId;
 
     // to keep track of expired sequences, by frame and sequencable entity
     const sequenceFrames = new Map<number, Map<number, boolean>>();
@@ -133,13 +133,13 @@ export default function setupSequence(world: World) {
           [RENDERABLE]
         );
         sequenceState.elapsed += delta;
-        const sequence = sequences[sequenceState.name];
-        const result = sequence(world, entity, sequenceState as any); // trust me TypeScript i'm an engineer
+        const sequence = sequences[sequenceState.name] as Sequence<unknown>;
+        const result = sequence(world, entity, sequenceState);
 
         // ignore newly added sequence frames
         if (
           sequenceState.reference < firstNewId &&
-          REFERENCE in sequenceEntity
+          hasComponent(sequenceEntity, REFERENCE)
         ) {
           let frameSequences = sequenceFrames.get(sequenceState.reference);
           if (!frameSequences) {

@@ -7,44 +7,42 @@ import {
   updateCameraMotion,
 } from "./motion";
 import { PARTICLE } from "./components/particle";
-import type ECSLibrary from "ecs";
-import {
-  System,
-  World as ECSWorld,
-  Entity as ECSEntity,
-  ListenerType,
-} from "ecs";
-import FastECS from "./vendor/ecs";
+import type { ListenerType, System } from "ecs";
+import ECS from "./vendor/ecs";
 import { entities, systems } from ".";
 import { RENDERABLE } from "./components/renderable";
 import { REFERENCE } from "./components/reference";
-import { Entity, TypedEntity } from "./entities";
+import { Entity, EntityId, ReferencedEntity, TypedEntity } from "./entities";
 import { LEVEL, LevelName } from "./components/level";
 import { resumeLiquidEffects } from "./systems/water";
 import { getHasteInterval } from "./systems/movement";
 import { initialDimensions } from "../renderers/interface/dimensions";
 import { ECS_DEBUG, setIdentifier } from "./utils";
 
-// performance fork with the same API as the "ecs" package, see vendor/ecs.js
-const ECS = FastECS as unknown as typeof ECSLibrary;
-
 export type World = ReturnType<typeof createWorld>;
-export type PatchedWorld = ECSWorld & { ecs: World };
+
+// The parts of our ECS fork read directly by the game and save serializer.
+export type PatchedWorld = {
+  ecs: World;
+  nextId: number;
+  entities: TypedEntity[];
+  entityIds: { get(entity: object): number | undefined };
+  deferredRemovals: { entities: Set<TypedEntity> };
+};
 
 export default function createWorld() {
-  const world = ECS.createWorld() as PatchedWorld;
+  const world = ECS.createWorld() as unknown as PatchedWorld;
 
-  const createEntity = ECS.createEntity.bind(ECS, world);
+  const createEntity = (): TypedEntity => ECS.createEntity(world);
   // recreate an entity with its previous ID, e.g. when loading a saved game
   const restoreEntity = (entityId: number) => {
-    const ids = world as unknown as { nextId: number };
-    const nextId = ids.nextId;
-    ids.nextId = entityId;
-    const entity = createEntity() as TypedEntity;
-    ids.nextId = Math.max(nextId, entityId + 1);
+    const nextId = world.nextId;
+    world.nextId = entityId;
+    const entity = createEntity();
+    world.nextId = Math.max(nextId, entityId + 1);
     return entity;
   };
-  const removeEntity = (entity: ECSEntity, deferredRemoval?: boolean) => {
+  const removeEntity = (entity: TypedEntity, deferredRemoval?: boolean) => {
     releaseMotion(ecs, entity);
     ECS.removeEntity(world, entity, deferredRemoval);
   };
@@ -53,11 +51,11 @@ export default function createWorld() {
       ...componentNames,
       world.ecs.metadata.gameEntity[LEVEL].name,
     ]) as TypedEntity<C> | undefined;
-  const getEntityById = (entityId?: number) => {
+  const getEntityById = <I extends number>(entityId?: I) => {
     if (!entityId) return;
 
     const entity = ECS.getEntityById(world, entityId) as
-      | TypedEntity
+      | ReferencedEntity<I>
       | undefined;
 
     if (!entity) {
@@ -70,22 +68,22 @@ export default function createWorld() {
 
     return entity;
   };
-  const getEntityId = (entity: ECSEntity) =>
-    ECS.getEntityId(world, entity) as number;
+  const getEntityId = <E extends TypedEntity>(entity: E) =>
+    ECS.getEntityId(world, entity) as EntityId<E>;
   const getEntities = <C extends keyof Entity>(
     componentNames: C[],
     listenerType?: ListenerType,
-    listenerEntities?: { count: number; entries: Record<number, ECSEntity> }
+    listenerEntities?: { count: number; entries: Record<number, TypedEntity> }
   ) =>
     ECS.getEntities(
       world,
       [...componentNames, world.ecs.metadata.gameEntity[LEVEL].name],
       listenerType,
-      listenerEntities as unknown as []
+      listenerEntities
     ) as TypedEntity<C>[];
 
-  const getEntityComponents = <C extends keyof Entity>(
-    entity: TypedEntity,
+  const getEntityComponents = <C extends keyof Entity, E extends TypedEntity>(
+    entity: E,
     componentNames: C[]
   ) => {
     for (const componentName of componentNames) {
@@ -100,11 +98,11 @@ export default function createWorld() {
       }
     }
 
-    return entity as TypedEntity<C>;
+    return entity as E & TypedEntity<C>;
   };
 
-  const getEntityByIdAndComponents = <C extends keyof Entity>(
-    entityId: number | undefined = undefined,
+  const getEntityByIdAndComponents = <C extends keyof Entity, I extends number>(
+    entityId: I | undefined = undefined,
     componentNames: C[]
   ) => {
     if (!entityId) return;
@@ -116,8 +114,8 @@ export default function createWorld() {
     return getEntityComponents(entity, componentNames);
   };
 
-  const assertComponents = <C extends keyof Entity>(
-    entity: TypedEntity,
+  const assertComponents = <C extends keyof Entity, E extends TypedEntity>(
+    entity: E,
     componentNames: C[]
   ) => {
     for (const componentName of componentNames) {
@@ -130,10 +128,10 @@ export default function createWorld() {
       }
     }
 
-    return entity as TypedEntity<C>;
+    return entity as E & TypedEntity<C>;
   };
 
-  const assertById = (entityId: number) => {
+  const assertById = <I extends number>(entityId?: I) => {
     const entity = getEntityById(entityId);
 
     if (!entity) {
@@ -145,8 +143,8 @@ export default function createWorld() {
     return entity;
   };
 
-  const assertByIdAndComponents = <C extends keyof Entity>(
-    entityId: number | undefined = undefined,
+  const assertByIdAndComponents = <C extends keyof Entity, I extends number>(
+    entityId: I | undefined = undefined,
     componentNames: C[]
   ) => {
     const entity = getEntityById(entityId);
@@ -161,7 +159,7 @@ export default function createWorld() {
   };
 
   const addComponentToEntity = <C extends keyof Entity>(
-    entity: ECSEntity,
+    entity: TypedEntity,
     componentName: C,
     componentData: Entity[C]
   ) => {
@@ -226,7 +224,7 @@ export default function createWorld() {
       playtime: 0,
       elapsed: 0,
       renderTime: 0,
-      cameraTeleport: undefined as ECSEntity | undefined,
+      cameraTeleport: undefined as TypedEntity | undefined,
       occlusionGeneration: 0,
       visibleCells: new Set<number>(),
       // stored game this world was loaded from or saved to

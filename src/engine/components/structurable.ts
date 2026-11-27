@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Structurable = {
@@ -9,7 +9,7 @@ export const STRUCTURABLE = "STRUCTURABLE";
 
 export default function addStructurable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   structurable: Structurable
 ) {
   world.addComponentToEntity(entity, STRUCTURABLE, structurable);

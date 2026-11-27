@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import { hasComponent, TypedEntity } from "../entities";
 import { IMMERSIBLE } from "../components/immersible";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -12,15 +12,15 @@ import { getOverlappingCell } from "../../game/math/matrix";
 import { LEVEL } from "../components/level";
 
 export const getImmersible = (world: World, position: Position) =>
-  getCellEntities(world, position).find((entity) => IMMERSIBLE in entity);
+  getCellEntities(world, position).find((entity) => hasComponent(entity, IMMERSIBLE));
 
 export const isImmersible = (world: World, position: Position) =>
   !!getImmersible(world, position);
 
-export const isSwimmable = (world: World, entity: Entity) =>
-  SWIMMABLE in entity;
+export const isSwimmable = (world: World, entity: TypedEntity) =>
+  hasComponent(entity, SWIMMABLE);
 
-export const isSwimming = (world: World, entity: Entity) =>
+export const isSwimming = (world: World, entity: TypedEntity) =>
   entity[SWIMMABLE]?.swimming;
 
 export const getSwimmables = (world: World, position: Position) =>

@@ -1,5 +1,5 @@
 import { collectScene as collectEntities } from "./scene";
-import type { Entity } from "ecs";
+import { requireComponent, TypedEntity } from "../../engine/entities";
 import { World } from "../../engine";
 import { Layer, Sprite, SPRITE } from "../../engine/components/sprite";
 import { Position, POSITION } from "../../engine/components/position";
@@ -62,8 +62,8 @@ export type SceneSprite = {
   terminalLayers?: Layer[];
   sprite: Sprite;
   amount?: number;
-  entity: Entity;
-  particle?: Entity;
+  entity: TypedEntity;
+  particle?: TypedEntity;
   particleName?: string;
   particleSequence?: string;
   hidden?: boolean;
@@ -292,26 +292,26 @@ export const getSceneFrame = (
     const lootVisible =
       hasLoot && !hidden && (opaque ? inRadius : visible) && !outside;
     if (hasLoot && (lootVisible || includeHidden)) {
-      const items: Entity[] = (entity[INVENTORY]?.items || [])
+      const items: TypedEntity[] = (entity[INVENTORY]?.items || [])
         .map((itemId: number) =>
           world.getEntityByIdAndComponents(itemId, [ITEM, SPRITE])
         )
         .flatMap((item) => (item ? [item] : []));
       items.forEach((item, index) => {
         const entry = add(
-          item![SPRITE],
+          requireComponent(item!, SPRITE),
           `loot${world.getEntityId(item)}`,
           (opaque ? oreHeight : lootHeight) + index / 1000,
           0,
           0,
-          item![ITEM].amount,
+          requireComponent(item!, ITEM).amount,
           item![ORIENTABLE]?.facing
         );
         entry.fog = fog;
         entry.loot = true;
         entry.hidden = !lootVisible;
         if (index === 0) {
-          const amount = entity[BREWABLE] ? items.length : item![ITEM].amount;
+          const amount = entity[BREWABLE] ? items.length : requireComponent(item!, ITEM).amount;
           if (
             entity[BREWABLE] ||
             (amount > 1 && !(amount <= 3 && entry.sprite.amounts?.multiple))
@@ -376,13 +376,13 @@ export const getSceneFrame = (
       const motion = particle[PARTICLE].animatedOrigin && getMotion(particle);
       const point = motion
         ? sampleMotion(motion, world.metadata.renderTime)
-        : particle[PARTICLE];
+        : undefined;
       const entry = add(
         particle[SPRITE],
         `particle${index}`,
         particle[PARTICLE].offsetZ,
-        particle[PARTICLE].offsetX + (motion ? point.x - motion.x : 0),
-        particle[PARTICLE].offsetY + (motion ? point.y - motion.y : 0),
+        particle[PARTICLE].offsetX + (point && motion ? point.x - motion.x : 0),
+        particle[PARTICLE].offsetY + (point && motion ? point.y - motion.y : 0),
         particle[PARTICLE].amount,
         particle[ORIENTABLE]?.facing
       );

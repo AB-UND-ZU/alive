@@ -1,4 +1,3 @@
-import type { Entity } from "ecs";
 import type { World } from "../../engine";
 import type { SequenceState } from "../../engine/components/sequencable";
 import { getPopupInputs, isPopupViewCurrent, PopupView } from "./popupView";
@@ -535,7 +534,7 @@ import {
   performDig,
   performHarvest,
 } from "../../engine/systems/harvest";
-import { TypedEntity } from "../../engine/entities";
+import { requireComponent, hasComponent, TypedEntity } from "../../engine/entities";
 import { BUMPABLE } from "../../engine/components/bumpable";
 import { getSequence } from "../../engine/systems/sequence";
 import { POI } from "../../engine/components/poi";
@@ -570,7 +569,7 @@ import {
 export * from "./npcs";
 export * from "./quests";
 
-export const swordAttack: Sequence<MeleeSequence> = (world, entity, state) => {
+export const swordAttack: Sequence<MeleeSequence, "EQUIPPABLE" | "MELEE"> = (world, entity, state) => {
   // align sword with facing direction
   const finished =
     state.elapsed > state.args.tick / (state.args.rotate ? 0.5 : 2);
@@ -613,7 +612,7 @@ export const swordAttack: Sequence<MeleeSequence> = (world, entity, state) => {
 
 const zapTick = 250;
 
-export const zapCondition: Sequence<ConditionSequence> = (
+export const zapCondition: Sequence<ConditionSequence, "ACTIONABLE" | "CONDITIONABLE" | "EQUIPPABLE"> = (
   world,
   entity,
   state
@@ -690,7 +689,7 @@ export const zapCondition: Sequence<ConditionSequence> = (
   return { finished, updated };
 };
 
-export const blockCondition: Sequence<ConditionSequence> = (
+export const blockCondition: Sequence<ConditionSequence, "ACTIONABLE" | "CONDITIONABLE"> = (
   world,
   entity,
   state
@@ -816,7 +815,7 @@ export const blockCondition: Sequence<ConditionSequence> = (
   return { finished, updated };
 };
 
-export const toolCondition: Sequence<ConditionSequence> = (
+export const toolCondition: Sequence<ConditionSequence, "ACTIONABLE" | "CONDITIONABLE" | "EQUIPPABLE" | "POSITION"> = (
   world,
   entity,
   state
@@ -958,9 +957,10 @@ export const toolCondition: Sequence<ConditionSequence> = (
       });
 
       if (toolEntity[ITEM].tool === "hammer") {
-        targetEntity[STATS].hp = Math.min(
-          targetEntity[STATS].maxHp,
-          targetEntity[STATS].hp + condition.amount
+        const stats = requireComponent(targetEntity, STATS);
+        stats.hp = Math.min(
+          stats.maxHp,
+          stats.hp + condition.amount
         );
         rerenderEntity(world, targetEntity);
       } else {
@@ -982,7 +982,7 @@ export const toolCondition: Sequence<ConditionSequence> = (
           const entityOrientation = relativeOrientations(
             world,
             entity[POSITION],
-            scratchEntity[POSITION]
+            requireComponent(scratchEntity, POSITION)
           )[0];
           const scratchOrientation =
             scratchIndex === 0
@@ -1007,7 +1007,7 @@ export const toolCondition: Sequence<ConditionSequence> = (
           });
           const scratchId = world.getEntityId(scratchEntity);
           state.particles[
-            `scratch-${scratchId}-${scratchEntity[RENDERABLE].generation}`
+            `scratch-${scratchId}-${requireComponent(scratchEntity, RENDERABLE).generation}`
           ] = world.getEntityId(scratchParticle);
         }
       }
@@ -1048,7 +1048,7 @@ export const toolCondition: Sequence<ConditionSequence> = (
   return { finished, updated };
 };
 
-export const shovelCondition: Sequence<ConditionSequence> = (
+export const shovelCondition: Sequence<ConditionSequence, "ACTIONABLE" | "CONDITIONABLE" | "EQUIPPABLE" | "POSITION"> = (
   world,
   entity,
   state
@@ -1147,7 +1147,7 @@ export const shovelCondition: Sequence<ConditionSequence> = (
   return { finished, updated };
 };
 
-export const buildCondition: Sequence<ConditionSequence> = (
+export const buildCondition: Sequence<ConditionSequence, "ACTIONABLE" | "CONDITIONABLE" | "EQUIPPABLE" | "ORIENTABLE" | "POSITION"> = (
   world,
   entity,
   state
@@ -1269,7 +1269,7 @@ export const buildCondition: Sequence<ConditionSequence> = (
   return { finished, updated };
 };
 
-export const hookCondition: Sequence<ConditionSequence> = (
+export const hookCondition: Sequence<ConditionSequence, "CONDITIONABLE" | "EQUIPPABLE" | "POSITION"> = (
   world,
   entity,
   state
@@ -1558,7 +1558,7 @@ export const hookCondition: Sequence<ConditionSequence> = (
   return { finished, updated };
 };
 
-export const arrowShot: Sequence<ArrowSequence> = (world, entity, state) => {
+export const arrowShot: Sequence<ArrowSequence, "MOVABLE" | "ORIENTABLE" | "POSITION" | "PROJECTILE"> = (world, entity, state) => {
   const tick = world.assertByIdAndComponents(entity[MOVABLE].reference, [
     REFERENCE,
   ])[REFERENCE].tick;
@@ -1605,7 +1605,7 @@ const tornadoTicks = 21;
 const tornadoSpeed = 25;
 const gustLength = 11;
 
-export const tornadoSpin: Sequence<TornadoSequence> = (
+export const tornadoSpin: Sequence<TornadoSequence, "CASTABLE" | "POSITION"> = (
   world,
   entity,
   state
@@ -1885,11 +1885,11 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
 
   if (targetProgress > currentProgress && !finished) {
     const slashSideSprite =
-      slashSide[state.args.element ? "default" : state.args.material][
+      slashSide[state.args.element ? "default" : state.args.material ?? "default"][
         state.args.element || "default"
       ];
     const slashCornerSprite =
-      slashCorner[state.args.element ? "default" : state.args.material][
+      slashCorner[state.args.element ? "default" : state.args.material ?? "default"][
         state.args.element || "default"
       ];
 
@@ -1988,7 +1988,7 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
 const spearTicks = 5;
 const spearRange = 3;
 
-export const chargeSpear: Sequence<SlashSequence> = (world, entity, state) => {
+export const chargeSpear: Sequence<SlashSequence, "CASTABLE"> = (world, entity, state) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const castableEntity = world.assertByIdAndComponents(state.args.castable, [
     BELONGABLE,
@@ -2000,7 +2000,7 @@ export const chargeSpear: Sequence<SlashSequence> = (world, entity, state) => {
     spearTicks
   );
   const spearSpeed = (state.args.tick / spearTicks) * 2;
-  const material = state.args.material;
+  const material = state.args.material ?? "default";
   const element = state.args.element || "default";
   const casterEntity = world.getEntityByIdAndComponents(
     entity[CASTABLE].caster,
@@ -2090,7 +2090,7 @@ export const chargeSpear: Sequence<SlashSequence> = (world, entity, state) => {
 const beamSpeed = 100;
 const beamTicks = 3;
 
-export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
+export const castBeam1: Sequence<SpellSequence, "CASTABLE" | "ORIENTABLE" | "POSITION"> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
   const size = world.metadata.gameEntity[LEVEL].size;
   const progress = Math.ceil(state.elapsed / beamSpeed);
@@ -2142,7 +2142,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
     state.particles.start = world.getEntityId(startParticle);
 
     const endParticle = entities.createFibre(world, {
-      [ORIENTABLE]: { facing: invertOrientation(entity[ORIENTABLE].facing) },
+      [ORIENTABLE]: { facing: invertOrientation(entity[ORIENTABLE].facing!) },
       [PARTICLE]: {
         offsetX: delta.x,
         offsetY: delta.y,
@@ -2272,7 +2272,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
-export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
+export const trapAura: Sequence<AuraSequence, "CASTABLE" | "POSITION"> = (world, entity, state) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const progress = Math.ceil(
     state.elapsed / world.metadata.gameEntity[REFERENCE].tick
@@ -2403,7 +2403,7 @@ export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
 const dashRemain = 2;
 const dashTime = 50;
 
-export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
+export const castDash: Sequence<SpellSequence, "CASTABLE" | "ORIENTABLE" | "POSITION"> = (world, entity, state) => {
   const casterEntity = world.getEntityByIdAndComponents(
     entity[CASTABLE].caster,
     [POSITION, RENDERABLE]
@@ -2419,7 +2419,7 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
 
   let finished =
     progress >= teleportTicks + dashRemain ||
-    (casterEntity && isDead(world, casterEntity));
+    (!!casterEntity && isDead(world, casterEntity));
   let updated = false;
 
   // create dash particles and teleport anchor
@@ -2584,7 +2584,7 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
 
 const boltSpeed = 200;
 
-export const castBolt1: Sequence<SpellSequence> = (world, entity, state) => {
+export const castBolt1: Sequence<SpellSequence, "CASTABLE" | "ORIENTABLE" | "POSITION"> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
   const size = world.metadata.gameEntity[LEVEL].size;
   const progress = Math.ceil(state.elapsed / boltSpeed);
@@ -2676,7 +2676,7 @@ export const castBolt1: Sequence<SpellSequence> = (world, entity, state) => {
 
 const blastSpeed = 700;
 
-export const castBlast: Sequence<SpellSequence> = (world, entity, state) => {
+export const castBlast: Sequence<SpellSequence, "ORIENTABLE" | "POSITION"> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
   const size = world.metadata.gameEntity[LEVEL].size;
   const progress = Math.round(state.elapsed / blastSpeed);
@@ -2851,7 +2851,7 @@ export const castBlast: Sequence<SpellSequence> = (world, entity, state) => {
 
 const auraSpeed = 75;
 
-export const totemAura: Sequence<AuraSequence> = (world, entity, state) => {
+export const totemAura: Sequence<AuraSequence, "POSITION" | "STATS"> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
   const size = world.metadata.gameEntity[LEVEL].size;
   const generation = Math.floor(
@@ -2932,7 +2932,7 @@ export const totemAura: Sequence<AuraSequence> = (world, entity, state) => {
     for (const aoeId of state.args.areas) {
       const aoeEntity = world.assertByIdAndComponents(aoeId, [POSITION]);
       moveEntity(world, aoeEntity, combine(size, aoeEntity[POSITION], delta));
-      if (RENDERABLE in aoeEntity) {
+      if (hasComponent(aoeEntity, RENDERABLE)) {
         rerenderEntity(world, aoeEntity);
       }
     }
@@ -3267,7 +3267,7 @@ const vanishConfig: Record<
 };
 const evaporateTicks = 3;
 
-export const creatureVanish: Sequence<VanishSequence> = (
+export const creatureVanish: Sequence<VanishSequence, "POSITION" | "TOOLTIP" | "VANISHABLE"> = (
   world,
   entity,
   state
@@ -3324,7 +3324,7 @@ export const creatureVanish: Sequence<VanishSequence> = (
         offsetZ: 0,
       });
       registerEntity(world, speaker);
-      state.particles.shout = world.getEntityId(speaker);
+      state.particles.shout = world.getEntityId(world.assertComponents(speaker, [PARTICLE]));
     }
     // create initial limb
     state.args.remaining += 1;
@@ -3460,7 +3460,7 @@ export const creatureVanish: Sequence<VanishSequence> = (
           }
 
           dropEntity(world, fragmentEntity, fragmentEntity[POSITION]);
-          fragmentEntity[DROPPABLE].decayed = true;
+          requireComponent(fragmentEntity, DROPPABLE).decayed = true;
         });
         updated = true;
       }
@@ -3549,7 +3549,7 @@ const weatherConfigs: Record<Weather, { sprite: Sprite; speed: number }> = {
 const weatherArea = { x: 36, y: 16 };
 const dropHeight = 12;
 
-export const weatherStorm: Sequence<WeatherSequence> = (
+export const weatherStorm: Sequence<WeatherSequence, "POSITION"> = (
   world,
   entity,
   state
@@ -3665,7 +3665,7 @@ export const weatherStorm: Sequence<WeatherSequence> = (
   return { finished, updated };
 };
 
-export const bubbleSplash: Sequence<Record<string, never>> = (
+export const bubbleSplash: Sequence<Record<string, never>, "LIQUID"> = (
   world,
   entity,
   state
@@ -3684,7 +3684,7 @@ const progressParts = 17;
 const progressTime = 60;
 const ringTime = 600;
 
-export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
+export const levelUp: Sequence<ProgressSequence, "PLAYER" | "STATS"> = (world, entity, state) => {
   let updated = false;
   const crossTime = progressParts * progressTime;
   // keep running until all stats are applied
@@ -3864,7 +3864,7 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
 
 const xpTime = 180;
 
-export const acquireXp: Sequence<XpSequence> = (world, entity, state) => {
+export const acquireXp: Sequence<XpSequence, "POSITION"> = (world, entity, state) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const heroEntity = getIdentifierAndComponents(world, "hero", [
     PLAYER,
@@ -3945,7 +3945,7 @@ export const acquireXp: Sequence<XpSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
-export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayPopup: Sequence<PopupSequence, "POPUP"> = (world, entity, state) => {
   const hero = getIdentifierAndComponents(world, "hero", [
     INVENTORY,
     RENDERABLE,
@@ -3958,7 +3958,7 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
     updatePopupSelection(world, hero, entity);
   }
   const transaction = getTab(world, entity);
-  let handler: Sequence<PopupSequence> = displayInfo;
+  let handler: Sequence<PopupSequence, "POPUP"> = displayInfo;
 
   if (entity[POPUP].sprite) {
     handler = displaySpriteBuilder;
@@ -3967,7 +3967,7 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
   } else if (transaction === "sell") {
     handler = displaySell;
   } else if (transaction === "forge") {
-    handler = displayForge;
+    return displayForge(world, world.assertComponents(entity, [FORGABLE]), state);
   } else if (transaction === "craft") {
     handler = displayCraft;
   } else if (transaction === "brew") {
@@ -4394,7 +4394,7 @@ export const displayPlant = displayPopupView((world, entity, state) => {
 
 const buildSeparator = 9;
 
-export const displayBuild: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayBuild: Sequence<PopupSequence, "POPUP"> = (world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [
     EQUIPPABLE,
     POSITION,
@@ -4939,7 +4939,7 @@ export const displayMap = displayPopupView((world, entity, state) => {
   if (
     !cached ||
     cached.inputs !== inputs ||
-    state.args.horizontalIndex !== entity[POPUP].horizontalIndex
+    state.args.horizontalIndex !== requireComponent(entity, POPUP).horizontalIndex
   ) {
     cached = { inputs, view: buildMapView(world, entity) };
     mapViews.set(state, cached);
@@ -4956,7 +4956,7 @@ export const displayMap = displayPopupView((world, entity, state) => {
   return { ...cached.view, content };
 });
 
-const buildMapView = (world: World, entity: Entity): PopupView => {
+const buildMapView = (world: World, entity: TypedEntity<"POPUP">): PopupView => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
 
   if (!heroEntity?.[EQUIPPABLE]?.map) {
@@ -5830,7 +5830,7 @@ const eraseQuestion = [
   createText("this saved game?"),
 ];
 
-export const displayLoad: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayLoad: Sequence<PopupSequence, "POPUP"> = (world, entity, state) => {
   const restorable = world.assertComponents(entity, [RESTORABLE])[RESTORABLE];
   const saves = getSaveSummaries();
   const selections = getTabSelections(world, entity);
@@ -5986,7 +5986,7 @@ const forgeSeparator = 2;
 
 const updateForgeAnimation = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity<"FORGABLE" | "POPUP">,
   state: SequenceState<PopupSequence>
 ) => {
   let updated = false;
@@ -6074,7 +6074,7 @@ const updateForgeAnimation = (
       });
     } else if (
       animateHammer &&
-      ["trigger", "hit", "miss", "ouch"].includes(entity[FORGABLE].lastAction)
+      ["trigger", "hit", "miss", "ouch"].includes((entity[FORGABLE].lastAction ?? ""))
     ) {
       if (hammerGeneration >= 3) performForgeHit(world, entity);
       if (hammerGeneration >= 5) {
@@ -6095,7 +6095,7 @@ const updateForgeAnimation = (
         particles.forEach(([particleEntity], index) => {
           if (hammerGeneration < 2) {
             particleEntity[PARTICLE].offsetX =
-              hammerLeft + index + entity[FORGABLE].hitIndex;
+              hammerLeft + index + (entity[FORGABLE].hitIndex ?? 0);
             particleEntity[PARTICLE].duration = tick / 2;
           } else if (hammerGeneration < 3) {
             particleEntity[PARTICLE].offsetY = -6;
@@ -6120,7 +6120,7 @@ const updateForgeAnimation = (
   return { updated, isHitting };
 };
 
-export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayForge: Sequence<PopupSequence, "FORGABLE" | "POPUP"> = (world, entity, state) => {
   const animation = updateForgeAnimation(world, entity, state);
   const inputs = getPopupInputs(world, entity, state);
   const isHitting = animation.isHitting;
@@ -6312,7 +6312,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
           ...createCountable({ xp: forgeState.xp }, "xp", "display"),
         ]
       : [];
-    if (isCompleted) {
+    if (isCompleted && entity[FORGABLE].completed) {
       const reward = [createItemName(entity[FORGABLE].completed)];
       if (xp.length) reward.push(xp);
       content = centerLayer(
@@ -6580,7 +6580,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
 
 const craftSeparator = 9;
 
-export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
+export const displayCraft: Sequence<PopupSequence, "POPUP"> = (world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
   const icon = craft;
   const verticalIndex = getVerticalIndex(world, entity);
@@ -7069,7 +7069,7 @@ export const displayWarp = displayPopupView((world, entity, state) => {
 export const displayInfo = displayPopupView((world, entity, state) => {
   const content: Sprite[][] = [
     ...(
-      (entity[POPUP] as Popup).lines[entity[POPUP].horizontalIndex] || []
+      (entity[POPUP] as Popup).lines[requireComponent(entity, POPUP).horizontalIndex] || []
     ).map((line) => [...line, ...repeat(none, frameWidth - 4 - line.length)]),
   ];
 
@@ -7240,7 +7240,7 @@ export const displayQuest = displayPopupView((world, entity, state) => {
             createText("Choose", completed ? colors.green : colors.grey)
           );
 
-    const lines = (entity[POPUP] as Popup).lines[entity[POPUP].horizontalIndex];
+    const lines = (entity[POPUP] as Popup).lines[requireComponent(entity, POPUP).horizontalIndex];
     content = [
       ...lines,
       ...repeat(
@@ -7270,7 +7270,7 @@ export const displayQuest = displayPopupView((world, entity, state) => {
     ];
   } else if (selections.length === 2) {
     // show completed screen
-    content = popup.lines[entity[POPUP].horizontalIndex];
+    content = popup.lines[requireComponent(entity, POPUP).horizontalIndex];
   } else if (completed) {
     // show reward choices
     content = popup.choices.map((choice, index) => {
@@ -7332,7 +7332,7 @@ export const displayChat = displayPopupView((world, entity, state) => {
   const input = selections.map(getKeyFromIndex).join("");
   const suggestion = TEST_MODE
     ? createText(
-        completeCommand(world, input, entity[POPUP].chatSuggestion),
+        completeCommand(world, input, requireComponent(entity, POPUP).chatSuggestion),
         colors.grey
       )
     : [];
@@ -7385,7 +7385,7 @@ export const displayChat = displayPopupView((world, entity, state) => {
 const waveSpeed = 350;
 const waveDissolve = 1;
 
-export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
+export const castWave1: Sequence<SpellSequence, "CASTABLE" | "POSITION"> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
   const size = world.metadata.gameEntity[LEVEL].size;
   let updated = false;
@@ -7735,7 +7735,7 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
 
 const burnTicks = 4;
 
-export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
+export const fireBurn: Sequence<BurnSequence, "AFFECTABLE" | "BURNABLE" | "POSITION"> = (world, entity, state) => {
   const isTerrainBurning = entity[BURNABLE]?.burning;
   const isUnitBurning = entity[AFFECTABLE]?.burn > 0;
   const isBurning = isTerrainBurning || isUnitBurning;
@@ -7968,7 +7968,7 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
-export const unitFreeze: Sequence<FreezeSequence> = (world, entity, state) => {
+export const unitFreeze: Sequence<FreezeSequence, "AFFECTABLE"> = (world, entity, state) => {
   const freezeTick = world.metadata.gameEntity[REFERENCE].tick;
   const freezeGeneration = Math.floor(state.elapsed / freezeTick);
   const freezeFactor = Math.ceil(
@@ -8027,7 +8027,7 @@ export const unitFreeze: Sequence<FreezeSequence> = (world, entity, state) => {
 };
 
 export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
-  const isBurning = entity[BURNABLE]?.burning || entity[AFFECTABLE]?.burn > 0;
+  const isBurning = entity[BURNABLE]?.burning || (entity[AFFECTABLE]?.burn ?? 0) > 0;
   const isEternalFire = entity[BURNABLE]?.eternal;
   const isExtinguishing = state.args.extinguish > 0;
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
@@ -8115,7 +8115,7 @@ export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
 
 const lightningTime = 200;
 
-export const lightningFlash: Sequence<FlashSequence> = (
+export const lightningFlash: Sequence<FlashSequence, "POSITION"> = (
   world,
   entity,
   state
@@ -8236,7 +8236,7 @@ export const lightningFlash: Sequence<FlashSequence> = (
 const keyTime = 200;
 const unlockTime = 500;
 
-export const doorUnlock: Sequence<UnlockSequence> = (world, entity, state) => {
+export const doorUnlock: Sequence<UnlockSequence, "POSITION"> = (world, entity, state) => {
   let updated = false;
   const finished = state.elapsed > unlockTime;
 
@@ -8302,7 +8302,7 @@ export const enterPortal: Sequence<PortalSequence> = (world, portal, state) => {
 const MIN_LIGHT_RADIUS = 0.02;
 const visionTime = 2000;
 
-export const changeRadius: Sequence<VisionSequence> = (
+export const changeRadius: Sequence<VisionSequence, "LIGHT"> = (
   world,
   entity,
   state
@@ -8347,7 +8347,7 @@ export const changeRadius: Sequence<VisionSequence> = (
 };
 
 // how unfortunate
-export const tragicDeath: Sequence<PerishSequence> = (world, entity, state) => {
+export const tragicDeath: Sequence<PerishSequence, "REVIVABLE" | "TOOLTIP"> = (world, entity, state) => {
   let updated = false;
   const circleTime = state.args.fast ? visionTime / 2 : visionTime;
   const ripTime = circleTime + 500;
@@ -8390,7 +8390,7 @@ export const entityDispose: Sequence<DisposeSequence> = (
   return { finished, updated };
 };
 
-export const itemCollect: Sequence<CollectSequence> = (
+export const itemCollect: Sequence<CollectSequence, "INVENTORY" | "LOOTABLE" | "POSITION"> = (
   world,
   entity,
   state
@@ -8483,7 +8483,7 @@ const materialFlasks = {
   ruby: missing,
 };
 
-export const flaskConsume: Sequence<ConsumeSequence> = (
+export const flaskConsume: Sequence<ConsumeSequence, "STATS"> = (
   world,
   entity,
   state
@@ -8603,7 +8603,7 @@ const soulTime = visionTime / 2;
 const arriveTime = 2500;
 const soulSpeed = 1 / 70;
 
-export const soulRespawn: Sequence<ReviveSequence> = (world, entity, state) => {
+export const soulRespawn: Sequence<ReviveSequence, "MOVABLE" | "POSITION" | "SOUL" | "VIEWABLE"> = (world, entity, state) => {
   let updated = false;
   const size = world.metadata.gameEntity[LEVEL].size;
   const entityId = world.getEntityId(entity);
@@ -8718,7 +8718,7 @@ const lineSprites: Record<NonNullable<Focusable["highlight"]>, Sprite[]> = {
 
 const focusSpeed = 200;
 
-export const focusCircle: Sequence<FocusSequence> = (world, entity, state) => {
+export const focusCircle: Sequence<FocusSequence, "FOCUSABLE"> = (world, entity, state) => {
   const finished = false;
   let updated = false;
 
@@ -9037,7 +9037,7 @@ const discoveryReveal = 50;
 const discoveryEnter = 4;
 const discoveryLeave = 6;
 
-export const discoveryIdle: Sequence<DiscoverySequence> = (
+export const discoveryIdle: Sequence<DiscoverySequence, "POSITION"> = (
   world,
   entity,
   state
@@ -9147,7 +9147,7 @@ const shoutSprites = {
   left: shoutLeft,
 };
 
-export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
+export const dialogText: Sequence<DialogSequence, "POSITION" | "SPRITE" | "TOOLTIP"> = (world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
 
   let updated = false;
@@ -9475,7 +9475,7 @@ const pointerX = 5;
 const pointerY = 3;
 const pointerDistance = 3.9;
 
-export const pointerArrow: Sequence<PointerSequence> = (
+export const pointerArrow: Sequence<PointerSequence, "POSITION"> = (
   world,
   entity,
   state
@@ -9581,7 +9581,7 @@ const vortexResolution = 6;
 const vortexChars = "/-:·\u0106\u0108÷>±\u011f";
 const vortexColors = ["red", "lime", "yellow"] as const;
 
-export const vortexDots: Sequence<VortexSequence> = (world, entity, state) => {
+export const vortexDots: Sequence<VortexSequence, "POSITION"> = (world, entity, state) => {
   const generation = Math.floor(state.elapsed / vortexTime);
   const size = world.metadata.gameEntity[LEVEL].size;
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
@@ -9673,7 +9673,7 @@ export const vortexDots: Sequence<VortexSequence> = (world, entity, state) => {
 const fountainTicks = 3;
 const fountainSteps = 5;
 
-export const fountainSplash: Sequence<FountainSequence> = (
+export const fountainSplash: Sequence<FountainSequence, "POSITION"> = (
   world,
   entity,
   state
@@ -9817,7 +9817,7 @@ export const fountainSplash: Sequence<FountainSequence> = (
 
 const branchTime = 100;
 
-export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
+export const oakBranch: Sequence<BranchSequence, "ORIENTABLE"> = (world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
   const oakEntity = getStructure(world, entity);
 
@@ -9850,7 +9850,7 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
 
     const path = findPath(
       world.metadata.gameEntity[LEVEL].walkable,
-      lastLimb[POSITION],
+      requireComponent(lastLimb, POSITION),
       heroEntity[POSITION]
     );
     const growth = Math.min(generation - limbCount, path.length);
@@ -9860,7 +9860,7 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
 
       if (
         getDistance(
-          lastLimb[POSITION],
+          requireComponent(lastLimb, POSITION),
           heroEntity[POSITION],
           size,
           1,
@@ -9870,7 +9870,7 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
         // update split
         const splitOrientation = relativeOrientations(
           world,
-          lastLimb[POSITION],
+          requireComponent(lastLimb, POSITION),
           heroEntity[POSITION],
           1
         )[0];
@@ -9966,7 +9966,7 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
         ]) || lastLimb;
       const limbOrientation = relativeOrientations(
         world,
-        previousLimb[POSITION],
+        requireComponent(previousLimb, POSITION),
         limbPosition,
         1
       )[0];
@@ -10133,7 +10133,7 @@ const limbConfig: Record<
   ],
 };
 
-export const unitLimbs: Sequence<LimbSequence> = (world, entity, state) => {
+export const unitLimbs: Sequence<LimbSequence, "ORIENTABLE" | "POSITION"> = (world, entity, state) => {
   const finished = !state.args.type || isDead(world, entity);
   let updated = false;
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -10304,7 +10304,7 @@ export const unitLimbs: Sequence<LimbSequence> = (world, entity, state) => {
         const needsAoE =
           limbParticle[SPRITE].facing?.[limbParticle[ORIENTABLE].facing!]
             ?.length;
-        const hasAoE = EXERTABLE in aoeEntity;
+        const hasAoE = hasComponent(aoeEntity, EXERTABLE);
         if (needsAoE && !hasAoE) {
           world.addComponentToEntity(aoeEntity, EXERTABLE, {
             castable: entityId,

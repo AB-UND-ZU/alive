@@ -19,7 +19,7 @@ import { canRedeem } from "./popup";
 import { Deal } from "../components/popup";
 import { getBuildTarget, isCell, triggerTool } from "./harvest";
 import { Construction } from "../../game/balancing/building";
-import { Entity } from "ecs";
+import { hasComponent, TypedEntity } from "../entities";
 import { getItemStats } from "../../game/balancing/equipment";
 import { BUILDABLE } from "../components/buildable";
 import { STATS } from "../components/stats";
@@ -43,7 +43,7 @@ import { LOCKABLE } from "../components/lockable";
 import { ENTERABLE } from "../components/enterable";
 import { play } from "../../game/sound";
 
-export const canPlot = (world: World, entity: Entity, position: Position) => {
+export const canPlot = (world: World, entity: TypedEntity, position: Position) => {
   const construction = getSelectedConstruction(world, entity);
 
   if (!construction) return false;
@@ -59,7 +59,7 @@ export const canPlot = (world: World, entity: Entity, position: Position) => {
       ground === "sand" &&
       cells.length > 0 &&
       cells.every((cell) =>
-        ["sand", "beach"].includes(cell[HARVESTABLE]?.resource)
+        cell[HARVESTABLE] && ["sand", "beach"].includes(cell[HARVESTABLE].resource)
       )
     )
       return true;
@@ -72,7 +72,7 @@ export const canPlot = (world: World, entity: Entity, position: Position) => {
     if (
       ground === "water" &&
       isImmersible(world, position) &&
-      cells.every((cell) => IMMERSIBLE in cell)
+      cells.every((cell) => hasComponent(cell, IMMERSIBLE))
     )
       return true;
 
@@ -82,7 +82,7 @@ export const canPlot = (world: World, entity: Entity, position: Position) => {
 
 export const canConstruct = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity<"EQUIPPABLE">,
   construction: Construction
 ) => {
   const toolItem = world.getEntityByIdAndComponents(entity[EQUIPPABLE].tool, [
@@ -95,7 +95,7 @@ export const canConstruct = (
 
 export const canBuild = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity<"EQUIPPABLE">,
   construction: Construction
 ) => {
   const constructable = canConstruct(world, entity, construction);
@@ -162,7 +162,7 @@ export default function setupBuild(world: World) {
         ["jetty_horizontal", "jetty_vertical"].includes(entity[BUILDABLE].cell)
       ) {
         getCellEntities(world, entity[POSITION]).forEach((cell) => {
-          if (IMMERSIBLE in cell) {
+          if (hasComponent(cell, IMMERSIBLE)) {
             disposeEntity(world, cell);
           }
         });

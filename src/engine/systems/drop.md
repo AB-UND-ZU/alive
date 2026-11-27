@@ -12,3 +12,11 @@ Releases inventory, creates decay or vanish effects, and removes spent loot enti
 [Fate](fate.md) handles death before this cleanup. Empty disposable [Lootable](../components/lootable.md) entities are removed here. Use the [Map disposal helpers](map.md) so removed entities do not remain registered in cells.
 
 Final corpse removal only considers decayed entities before resolving structure roots and death state. Healthy resources remain in the same ECS query but avoid those repeated lookups. A decayed fragment still checks its root, so boss limbs, replacement effects and kill accounting retain the same behavior.
+<!-- source-types -->
+
+## InventoryItemData
+
+```ts src/engine/systems/drop.ts
+type InventoryItemData<T> = Omit<T, "ITEM" | "RENDERABLE"> &
+  Pick<TypedEntity<"ITEM" | "RENDERABLE">, "ITEM" | "RENDERABLE">;
+```

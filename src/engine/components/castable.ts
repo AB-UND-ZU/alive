@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type DamageType = "melee" | "magic" | "true";
@@ -67,7 +67,7 @@ export const emptyCastable: Omit<Castable, "caster" | "affected"> = {
   ...emptyBuffStats,
 };
 
-export const getEmptyCastable = (world: World, entity: Entity): Castable => ({
+export const getEmptyCastable = (world: World, entity: TypedEntity): Castable => ({
   ...emptyCastable,
   caster: world.getEntityId(entity),
   affected: {},
@@ -77,7 +77,7 @@ export const CASTABLE = "CASTABLE";
 
 export default function addCastable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   castable: Castable
 ) {
   world.addComponentToEntity(entity, CASTABLE, castable);

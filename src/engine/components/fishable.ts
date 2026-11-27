@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Fishable = {
@@ -9,7 +9,7 @@ export const FISHABLE = "FISHABLE";
 
 export default function addFishable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   fishable: Fishable
 ) {
   world.addComponentToEntity(entity, FISHABLE, fishable);

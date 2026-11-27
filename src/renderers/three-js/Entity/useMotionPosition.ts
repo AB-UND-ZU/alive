@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Group } from "three";
-import type { Entity } from "ecs";
+import { requireComponent, TypedEntity } from "../../../engine/entities";
 import { useWorld } from "../../interface/hooks";
 import { useDimensions } from "../../../components/Dimensions";
 import { getBumpMotion, getMotion, sampleMotion } from "../../../engine/motion";
@@ -11,7 +11,7 @@ import { LEVEL } from "../../../engine/components/level";
 import { signedDistance } from "../../../game/math/std";
 
 export const useMotionPosition = (
-  entity: Entity | undefined,
+  entity: TypedEntity | undefined,
   x: number,
   y: number,
   z: number,
@@ -29,8 +29,9 @@ export const useMotionPosition = (
     let nextX = x;
     let nextY = y;
     if (particle) {
-      nextX = entity[PARTICLE].offsetX * aspectRatio;
-      nextY = -entity[PARTICLE].offsetY;
+      const entityParticle = requireComponent(entity, PARTICLE);
+      nextX = entityParticle.offsetX * aspectRatio;
+      nextY = -entityParticle.offsetY;
     } else if (entity[POSITION]) {
       const size = ecs.metadata.gameEntity[LEVEL].size;
       nextX +=

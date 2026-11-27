@@ -1,4 +1,4 @@
-import type { Entity } from "ecs";
+import type { TypedEntity } from "../../engine/entities";
 import type { World } from "../../engine/ecs";
 import { getSoundSource } from "./spatial";
 import { Consumable, Stackable } from "../../engine/components/item";
@@ -82,7 +82,7 @@ type SoundOptions = {
 };
 
 export type SfxOptions<P extends SoundPreset> = SoundOptions & {
-  actor?: Entity;
+  actor?: TypedEntity;
   offset?: number;
   volume?: number;
   variant?: SoundVariant<P>;
@@ -1539,7 +1539,7 @@ export const loadSounds = (
 
 export const play = <P extends SoundPreset>(
   world: World | undefined,
-  origin: Entity | undefined,
+  origin: TypedEntity | undefined,
   preset: P,
   {
     actor = origin,

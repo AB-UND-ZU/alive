@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Orientation } from "./orientable";
 
@@ -29,7 +29,7 @@ export const CONDITIONABLE = "CONDITIONABLE";
 
 export default function addConditionable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   conditionable: Conditionable
 ) {
   world.addComponentToEntity(entity, CONDITIONABLE, conditionable);

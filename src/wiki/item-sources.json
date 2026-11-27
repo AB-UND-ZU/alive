@@ -9,7 +9,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 896
+      "line": 897
     },
     {
       "npc": "earthChief",
@@ -19,7 +19,7 @@
         "amount": 3
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 905
+      "line": 906
     },
     {
       "npc": "earthChief",
@@ -29,7 +29,7 @@
         "amount": 3
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 956
+      "line": 957
     },
     {
       "npc": "earthChief",
@@ -40,7 +40,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 964
+      "line": 965
     },
     {
       "npc": "earthChief",
@@ -51,7 +51,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 973
+      "line": 974
     },
     {
       "npc": "earthChief",
@@ -62,7 +62,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 978
+      "line": 979
     },
     {
       "npc": "earthChief",
@@ -73,7 +73,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 983
+      "line": 984
     },
     {
       "npc": "earthChief",
@@ -83,7 +83,7 @@
         "amount": 3
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1129
+      "line": 1130
     },
     {
       "npc": "earthChief",
@@ -94,7 +94,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1137
+      "line": 1138
     },
     {
       "npc": "earthChief",
@@ -104,7 +104,7 @@
         "amount": 5
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1221
+      "line": 1222
     },
     {
       "npc": "earthChief",
@@ -115,7 +115,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1229
+      "line": 1230
     },
     {
       "npc": "earthChief",
@@ -126,7 +126,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1238
+      "line": 1239
     },
     {
       "npc": "earthChief",
@@ -137,7 +137,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1240
+      "line": 1241
     },
     {
       "npc": "earthChief",
@@ -148,7 +148,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1246
+      "line": 1247
     },
     {
       "npc": "earthChief",
@@ -159,7 +159,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1251
+      "line": 1252
     },
     {
       "npc": "earthChief",
@@ -170,7 +170,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1256
+      "line": 1257
     },
     {
       "npc": "earthChief",
@@ -180,7 +180,7 @@
         "amount": 5
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1317
+      "line": 1318
     },
     {
       "npc": "earthChief",
@@ -191,7 +191,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1325
+      "line": 1326
     },
     {
       "npc": "earthChief",
@@ -202,7 +202,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1334
+      "line": 1335
     },
     {
       "npc": "earthChief",
@@ -214,7 +214,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1343
+      "line": 1344
     },
     {
       "npc": "earthChief",
@@ -226,7 +226,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1349
+      "line": 1350
     },
     {
       "npc": "earthChief",
@@ -237,7 +237,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1355
+      "line": 1356
     },
     {
       "npc": "earthChief",
@@ -248,7 +248,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1360
+      "line": 1361
     },
     {
       "npc": "earthChief",
@@ -259,7 +259,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1365
+      "line": 1366
     },
     {
       "npc": "earthChief",
@@ -270,7 +270,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1370
+      "line": 1371
     },
     {
       "npc": "earthChief",
@@ -281,7 +281,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1375
+      "line": 1376
     },
     {
       "npc": "earthChief",
@@ -291,7 +291,7 @@
         "amount": 3
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1435
+      "line": 1436
     },
     {
       "npc": "earthChief",
@@ -301,7 +301,7 @@
         "amount": 5
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1443
+      "line": 1444
     },
     {
       "npc": "earthChief",
@@ -312,7 +312,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1451
+      "line": 1452
     },
     {
       "npc": "earthChief",
@@ -322,7 +322,7 @@
         "amount": 50
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1500
+      "line": 1501
     },
     {
       "npc": "earthChief",
@@ -332,7 +332,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1508
+      "line": 1509
     },
     {
       "npc": "earthChief",
@@ -343,7 +343,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1516
+      "line": 1517
     },
     {
       "npc": "earthChief",
@@ -354,7 +354,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1517
+      "line": 1518
     },
     {
       "npc": "earthChief",
@@ -365,7 +365,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 1518
+      "line": 1519
     },
     {
       "npc": "fireChief",
@@ -376,7 +376,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2029
+      "line": 2030
     },
     {
       "npc": "fireChief",
@@ -386,7 +386,7 @@
         "amount": 10
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2038
+      "line": 2039
     },
     {
       "npc": "fireChief",
@@ -397,7 +397,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2046
+      "line": 2047
     },
     {
       "npc": "fireChief",
@@ -408,7 +408,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2124
+      "line": 2125
     },
     {
       "npc": "fireChief",
@@ -418,7 +418,7 @@
         "amount": 3
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2133
+      "line": 2134
     },
     {
       "npc": "fireChief",
@@ -429,7 +429,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2141
+      "line": 2142
     },
     {
       "npc": "fireChief",
@@ -440,7 +440,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2146
+      "line": 2147
     },
     {
       "npc": "fireChief",
@@ -450,7 +450,7 @@
         "amount": 75
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2195
+      "line": 2196
     },
     {
       "npc": "fireChief",
@@ -460,7 +460,7 @@
         "amount": 10
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2196
+      "line": 2197
     },
     {
       "npc": "fireChief",
@@ -470,7 +470,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2197
+      "line": 2198
     },
     {
       "npc": "fireChief",
@@ -481,7 +481,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2199
+      "line": 2200
     },
     {
       "npc": "fireGateGuard",
@@ -492,7 +492,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2385
+      "line": 2386
     },
     {
       "npc": "fireGateGuard",
@@ -502,7 +502,7 @@
         "amount": 5
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2394
+      "line": 2395
     },
     {
       "npc": "fireSmith",
@@ -513,7 +513,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2469
+      "line": 2470
     },
     {
       "npc": "fireSmith",
@@ -523,7 +523,7 @@
         "amount": 5
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2478
+      "line": 2479
     },
     {
       "npc": "fireDruid",
@@ -534,7 +534,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2600
+      "line": 2601
     },
     {
       "npc": "fireDruid",
@@ -544,7 +544,7 @@
         "amount": 5
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2609
+      "line": 2610
     },
     {
       "npc": "fireNomad",
@@ -554,7 +554,7 @@
         "amount": 5
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2838
+      "line": 2839
     },
     {
       "npc": "fireNomad",
@@ -564,7 +564,7 @@
         "amount": 1
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2893
+      "line": 2894
     },
     {
       "npc": "fireNomad",
@@ -574,7 +574,7 @@
         "amount": 3
       },
       "source": "src/game/assets/npcs.ts",
-      "line": 2908
+      "line": 2909
     }
   ],
   "unresolved": [],
@@ -587,7 +587,7 @@
         "bound": false
       },
       "source": "src/engine/systems/ai.ts",
-      "line": 941
+      "line": 940
     }
   ]
 }

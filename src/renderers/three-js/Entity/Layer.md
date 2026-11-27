@@ -20,7 +20,7 @@ export type LayerProps = {
   opacity?: SpringValue<number>;
   darkness?: SpringValue<number>;
   animatedOrigin?: Point;
-  particle?: Entity;
+  particle?: TypedEntity;
   receiveShadow: boolean;
   colorFactor?: number;
   duration?: number;

@@ -13,7 +13,7 @@ import {
 import { entities } from "..";
 import { disposeEntity, getCellEntities, registerEntity } from "./map";
 import { DROPPABLE } from "../components/droppable";
-import { Entity } from "ecs";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { FOG } from "../components/fog";
 import { INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
@@ -61,30 +61,32 @@ import { SHOOTABLE } from "../components/shootable";
 import { colors } from "../../game/assets/colors";
 import { BUMPABLE } from "../components/bumpable";
 
-export const isGhost = (world: World, entity: Entity) => entity[PLAYER]?.ghost;
+export const isGhost = (world: World, entity: TypedEntity) => !!entity[PLAYER]?.ghost;
 
-export const isRespawning = (world: World, entity: Entity) =>
+export const isRespawning = (world: World, entity: TypedEntity) =>
   isGhost(world, entity) && entity[MOVABLE]?.flying;
 
-export const isSoulReady = (world: World, entity: Entity) =>
+export const isSoulReady = (world: World, entity: TypedEntity) =>
   isGhost(world, entity) && entity[SOUL]?.ready;
 
-export const isRevivable = (world: World, entity: Entity) =>
+export const isRevivable = (world: World, entity: TypedEntity) =>
   entity[REVIVABLE]?.available;
 
 export const getRevivable = (world: World, position: Position) =>
   getCellEntities(world, position).find((target) =>
     isRevivable(world, target)
-  ) as Entity | undefined;
+  ) as TypedEntity | undefined;
 
-export const canRevive = (world: World, entity: Entity, target: Entity) =>
-  isRevivable(world, entity) && isGhost(world, target) && SOUL in target;
+export const canRevive = (world: World, entity: TypedEntity, target: TypedEntity) =>
+  isRevivable(world, entity) && isGhost(world, target) && hasComponent(target, SOUL);
 
-export const reviveEntity = (world: World, entity: Entity, target: Entity) => {
-  entity[REVIVABLE].available = false;
-  entity[TOOLTIP].dialogs = [];
-  entity[TOOLTIP].changed = true;
-  entity[TOOLTIP].override = undefined;
+export const reviveEntity = (world: World, entity: TypedEntity, target: TypedEntity) => {
+  const spawn = requireComponent(target, SPAWNABLE);
+  requireComponent(entity, REVIVABLE).available = false;
+  const tooltip = requireComponent(entity, TOOLTIP);
+  tooltip.dialogs = [];
+  tooltip.changed = true;
+  tooltip.override = undefined;
 
   // trigger vision and respawn on halo
   createSequence<"vision", VisionSequence>(
@@ -101,15 +103,15 @@ export const reviveEntity = (world: World, entity: Entity, target: Entity) => {
     "soulRespawn",
     {
       tombstoneId: world.getEntityId(entity),
-      target: target[SPAWNABLE].position,
-      viewable: target[SPAWNABLE].viewable,
-      light: target[SPAWNABLE].light,
-      compassId: target[SPAWNABLE].compassId,
+      target: spawn.position,
+      viewable: spawn.viewable,
+      light: spawn.light,
+      compassId: spawn.compassId,
     }
   );
 };
 
-export const createHero = (world: World, halo: Entity) => {
+export const createHero = (world: World, halo: TypedEntity<"BELONGABLE" | "POSITION" | "SPAWNABLE">) => {
   const { stats, sprite, swimming } = getClassData(
     halo[SPAWNABLE].classKey,
     halo[SPAWNABLE].hairColor

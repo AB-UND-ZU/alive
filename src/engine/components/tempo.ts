@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Tempo = {
@@ -9,7 +9,7 @@ export const TEMPO = "TEMPO";
 
 export default function addTempo(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   tempo: Tempo
 ) {
   world.addComponentToEntity(entity, TEMPO, tempo);

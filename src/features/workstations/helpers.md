@@ -6,7 +6,7 @@ Workstation tests create native traders and popups, open them through player int
 ## PopupEntity
 
 ```ts src/features/workstations/helpers.ts
-export type PopupEntity = TypedEntity<"POPUP" | "POSITION" | "SEQUENCABLE">;
+export type PopupEntity = TypedEntity<"POPUP" | "POSITION" | "SEQUENCABLE" | "RENDERABLE">;
 ```
 
 ## AnvilEntity

@@ -1,7 +1,7 @@
 import { ORIENTABLE } from "../../engine/components/orientable";
 import { Layer, Sprite, SPRITE } from "../../engine/components/sprite";
 import { World } from "../../engine";
-import { Entity } from "ecs";
+import { requireComponent, TypedEntity } from "../../engine/entities";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { LIGHT } from "../../engine/components/light";
 import { FOG } from "../../engine/components/fog";
@@ -97,7 +97,7 @@ export const getLayerCount = (segments: Segment[]) =>
 
 export const getSegments = <Props extends RenderLayerProps>(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   layerProps: Props,
   inside?: boolean
 ) => {
@@ -110,7 +110,7 @@ export const getSegments = <Props extends RenderLayerProps>(
   const isHarvestable = !!entity[HARVESTABLE];
   const isLootable = !!entity[LOOTABLE];
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
-  const isFixed = isFloat && entity[FOG].fixed;
+  const isFixed = isFloat && requireComponent(entity, FOG).fixed;
   const swimming = isSwimming(world, entity);
 
   const offsetZ = isFixed
@@ -185,7 +185,7 @@ export const getSegments = <Props extends RenderLayerProps>(
   );
   if (offhandEntity && offhandEntity[ITEM].amount > 0) {
     orderedSegments.push({
-      id: entity[EQUIPPABLE].offhand,
+      id: world.getEntityId(offhandEntity),
       sprite: offhandEntity[SPRITE],
       offsetX: 0,
       offsetY: 0,
@@ -198,19 +198,19 @@ export const getSegments = <Props extends RenderLayerProps>(
   }
 
   // 4. body
-  const sprite = (inside && entity[ENTERABLE]?.sprite) || entity[SPRITE];
+  const sprite = (inside && entity[ENTERABLE]?.sprite) || requireComponent(entity, SPRITE);
   orderedSegments.push({
     id: world.getEntityId(entity),
     sprite,
     facing: entity[ORIENTABLE]?.facing,
     amount: isLiquid
-      ? entity[LIQUID].amount
+      ? requireComponent(entity, LIQUID).amount
       : isHarvestable &&
         sprite.amounts &&
-        entity[HARVESTABLE].amount < entity[HARVESTABLE].maximum
+        requireComponent(entity, HARVESTABLE).amount < requireComponent(entity, HARVESTABLE).maximum
       ? 1 +
         Math.floor(
-          (entity[HARVESTABLE].amount / (entity[HARVESTABLE].maximum || 1)) * 3
+          (requireComponent(entity, HARVESTABLE).amount / (requireComponent(entity, HARVESTABLE).maximum || 1)) * 3
         )
       : undefined,
     offsetX: 0,
@@ -226,7 +226,7 @@ export const getSegments = <Props extends RenderLayerProps>(
   );
   if (swordEntity && swordEntity[ITEM].amount > 0) {
     orderedSegments.push({
-      id: entity[EQUIPPABLE].weapon,
+      id: world.getEntityId(swordEntity),
       sprite: swordEntity[SPRITE],
       facing: swordEntity[ORIENTABLE].facing,
       offsetX: 0,

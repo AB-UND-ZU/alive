@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import type { SpringConfig } from "@react-spring/three";
 
@@ -12,7 +12,7 @@ export const MOUNTABLE = "MOUNTABLE";
 
 export default function addMountable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   mountable: Mountable
 ) {
   world.addComponentToEntity(entity, MOUNTABLE, mountable);

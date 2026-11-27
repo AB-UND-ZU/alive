@@ -129,6 +129,21 @@ describe("hook", () => {
     expect(countItems(world, hero, { stackable: "worm" })).toBe(1);
   });
 
+  it("releases a previous reel when a fish takes a new bait", () => {
+    const { world, hero } = setupTools(lake, [woodHook, worms]);
+    cast(world);
+    holdMove(world, []);
+    const bait = getBait(world);
+    const catchables = createCell(world, bait[POSITION], "water_fish", "visible", false);
+    catchables.all.forEach((entity) => registerEntity(world, entity));
+    const fish = world.assertComponents(catchables.cell, [HOOKABLE]);
+    fish[HOOKABLE].catching = world.getEntityId(hero);
+
+    advanceUntil(world, () => fish[HOOKABLE].hooked === world.getEntityId(bait), 2000);
+
+    expect(fish[HOOKABLE].catching).toBeUndefined();
+  });
+
   it("reels in a fish from a habitat near the bait", () => {
     const { world, hero } = setupTools(lake, [woodHook, worms]);
     addHabitat(world, { x: 7, y: 5 });

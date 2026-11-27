@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Freezable = {
@@ -9,7 +9,7 @@ export const FREEZABLE = "FREEZABLE";
 
 export default function addFreezable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   freezable: Freezable
 ) {
   world.addComponentToEntity(entity, FREEZABLE, freezable);

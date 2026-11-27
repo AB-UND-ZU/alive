@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export const actions = [
@@ -27,7 +27,7 @@ export const ACTIONABLE = "ACTIONABLE";
 
 export default function addActionable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   actionable: Actionable
 ) {
   world.addComponentToEntity(entity, ACTIONABLE, actionable);

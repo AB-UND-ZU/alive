@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Resource =
@@ -69,7 +69,7 @@ export const HARVESTABLE = "HARVESTABLE";
 
 export default function addHarvestable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   harvestable: Harvestable
 ) {
   world.addComponentToEntity(entity, HARVESTABLE, harvestable);

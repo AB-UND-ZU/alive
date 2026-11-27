@@ -15,13 +15,12 @@ import {
   Tool,
   Weapon,
   emptyItemStats,
-  ITEM,
 } from "../../engine/components/item";
 import { Sprite } from "../../engine/components/sprite";
 import { UnitStats } from "../../engine/components/stats";
 import {
   consumptionConfigs,
-  getItemConsumption,
+  stackableConsumptions,
 } from "../../engine/systems/consume";
 import { ClassKey, getClassData } from "../balancing/classes";
 import { getItemStats } from "../balancing/equipment";
@@ -2259,7 +2258,7 @@ export const getEntityDescription = (
       item.stat &&
       item.consume === "potion" &&
       consumptionConfigs.potion?.[item.material]?.[item.stat];
-    const itemConsumption = getItemConsumption({ [ITEM]: item });
+    const itemConsumption = item.stackable && stackableConsumptions[item.stackable];
 
     const itemStats = consumptionConfig
       ? {

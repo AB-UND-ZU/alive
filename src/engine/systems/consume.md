@@ -19,7 +19,7 @@ When installing systems on a restored world, initialize cached vision, haste and
 export type StackableConsumption = {
   amount: number;
   percentage?: boolean;
-  countable: keyof Countable;
+  countable: "hp" | "mp" | "xp";
 };
 ```
 

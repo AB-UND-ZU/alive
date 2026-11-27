@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Immersible = {
@@ -10,7 +10,7 @@ export const IMMERSIBLE = "IMMERSIBLE";
 
 export default function addImmersible(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   immersible: Immersible
 ) {
   world.addComponentToEntity(entity, IMMERSIBLE, immersible);

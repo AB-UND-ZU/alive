@@ -30,7 +30,7 @@ import {
   trigger,
 } from "../../testing/harness";
 
-export type PopupEntity = TypedEntity<"POPUP" | "POSITION" | "SEQUENCABLE">;
+export type PopupEntity = TypedEntity<"POPUP" | "POSITION" | "SEQUENCABLE" | "RENDERABLE">;
 export type AnvilEntity = TypedEntity<
   "FORGABLE" | "POPUP" | "POSITION" | "SEQUENCABLE"
 >;
@@ -55,8 +55,7 @@ export const createShop = (
   popup: Pick<Popup, "tabs"> & Partial<Popup>
 ) => {
   const trader = createNpc(world, "guide", position);
-  createPopup(world, trader, popup);
-  return trader as unknown as PopupEntity;
+  return createPopup(world, trader, popup);
 };
 
 /** Open the adjacent popup and wait for its window to unroll. */
@@ -74,7 +73,7 @@ export const openStation = (world: World) => {
 };
 
 /** Scroll the current tab to a row. */
-export const selectRow = (world: World, popup: PopupEntity, row: number) => {
+export const selectRow = (world: World, popup: TypedEntity<"POPUP">, row: number) => {
   for (let attempt = 0; attempt < 100; attempt += 1) {
     const index = getVerticalIndex(world, popup);
     if (index === row) return;

@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import { requireComponent, TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -49,20 +49,20 @@ import { HARVESTABLE } from "../components/harvestable";
 import { BUMPABLE } from "../components/bumpable";
 import { generateUnitData } from "../../game/balancing/units";
 
-export const decayHoming = (world: World, entity: Entity) => {
+export const decayHoming = (world: World, entity: TypedEntity<"HOMING">) => {
   entity[HOMING].decayedGeneration =
     world.metadata.gameEntity[RENDERABLE].generation;
-  entity[MOVABLE].orientations = [];
-  entity[ORIENTABLE].facing = undefined;
+  requireComponent(entity, MOVABLE).orientations = [];
+  requireComponent(entity, ORIENTABLE).facing = undefined;
   rerenderEntity(world, entity);
 };
 
-export const isHomingActive = (world: World, entity: Entity) =>
+export const isHomingActive = (world: World, entity: TypedEntity<"HOMING">) =>
   !entity[HOMING].decayedGeneration;
 
-export const isHomingDisposable = (world: World, entity: Entity) =>
+export const isHomingDisposable = (world: World, entity: TypedEntity<"HOMING">) =>
   world.metadata.gameEntity[RENDERABLE].generation >
-  entity[HOMING].decayedGeneration;
+  (entity[HOMING].decayedGeneration ?? Infinity);
 
 const discConfig: Record<
   Homing["type"],
@@ -90,9 +90,9 @@ const HOMING_TTL = 30;
 
 export const shootHoming = (
   world: World,
-  caster: Entity,
+  caster: TypedEntity,
   homingData: Omit<Homing, "generation">,
-  origin = caster[POSITION]
+  origin = requireComponent(caster, POSITION)
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const { sprite, orbit, ...castable } = discConfig[homingData.type];

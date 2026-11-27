@@ -1,4 +1,4 @@
-import type { Entity } from "ecs";
+import { requireComponent, TypedEntity } from "./entities";
 import type { SpringConfig } from "@react-spring/three";
 import type { World } from "./ecs";
 import { MOVABLE } from "./components/movable";
@@ -21,9 +21,9 @@ export type Motion = {
   pingPong?: boolean;
 };
 
-const motions = new WeakMap<Entity, Motion>();
-const particles = new WeakMap<World, Set<Entity>>();
-const bumps = new WeakMap<Entity, { generation: number; motion: Motion }>();
+const motions = new WeakMap<TypedEntity, Motion>();
+const particles = new WeakMap<World, Set<TypedEntity>>();
+const bumps = new WeakMap<TypedEntity, { generation: number; motion: Motion }>();
 const point = { x: 0, y: 0, velocityX: 0, velocityY: 0 };
 
 export const createMotion = (
@@ -177,7 +177,7 @@ export const retargetMotion = (
   motion.config = config;
 };
 
-export const initializeParticleMotion = (world: World, entity: Entity) => {
+export const initializeParticleMotion = (world: World, entity: TypedEntity) => {
   const particle = entity[PARTICLE];
   if (!particle?.animatedOrigin) return;
   const motion = createMotion(
@@ -201,7 +201,7 @@ export const initializeParticleMotion = (world: World, entity: Entity) => {
   tracked.add(entity);
 };
 
-export const updateParticleMotion = (world: World, entity: Entity) => {
+export const updateParticleMotion = (world: World, entity: TypedEntity) => {
   const particle = entity[PARTICLE];
   if (!particle?.animatedOrigin) return;
   if (!motions.has(entity)) initializeParticleMotion(world, entity);
@@ -225,7 +225,7 @@ export const updateParticleMotion = (world: World, entity: Entity) => {
 
 export const moveMotion = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity<"POSITION">,
   x: number,
   y: number,
   size: number,
@@ -256,15 +256,15 @@ export const moveMotion = (
   );
 };
 
-export const getMotion = (entity: Entity) => motions.get(entity);
+export const getMotion = (entity: TypedEntity) => motions.get(entity);
 
 export const bumpEntity = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   orientation: Orientation | undefined,
-  generation = entity[RENDERABLE].generation
+  generation = requireComponent(entity, RENDERABLE).generation
 ) => {
-  const bump = entity[BUMPABLE];
+  const bump = requireComponent(entity, BUMPABLE);
   bump.generation = generation;
   bump.orientation = orientation;
   if (!bump?.orientation || bumps.get(entity)?.generation === bump.generation)
@@ -280,10 +280,10 @@ export const bumpEntity = (
   bumps.set(entity, { generation: bump.generation, motion });
 };
 
-export const getBumpMotion = (entity: Entity) => bumps.get(entity)?.motion;
+export const getBumpMotion = (entity: TypedEntity) => bumps.get(entity)?.motion;
 
 export const setParticleMotion = (
-  entity: Entity,
+  entity: TypedEntity<"PARTICLE">,
   fromX: number,
   fromY: number,
   startedAt: number,
@@ -311,7 +311,7 @@ export const updateCameraMotion = (world: World, initialize = false) => {
     cameras.set(world, camera);
   }
   if (!camera) return;
-  let viewable: Entity | undefined;
+  let viewable: TypedEntity<"VIEWABLE" | "POSITION"> | undefined;
   for (const entity of world.getEntities(["VIEWABLE", POSITION])) {
     if (
       entity.VIEWABLE.active &&
@@ -370,13 +370,13 @@ export const updateParticleMotions = (world: World) => {
   }
 };
 
-export const releaseMotion = (world: World, entity: Entity) => {
+export const releaseMotion = (world: World, entity: TypedEntity) => {
   // React can still render this entity before its removal commits.
   updateParticleMotion(world, entity);
   particles.get(world)?.delete(entity);
 };
 
-export const syncMovementSpring = (world: World, entity: Entity) => {
+export const syncMovementSpring = (world: World, entity: TypedEntity) => {
   const motion = motions.get(entity);
   const config = entity[MOVABLE]?.spring;
   if (!motion || !config || motion.config === config) return;

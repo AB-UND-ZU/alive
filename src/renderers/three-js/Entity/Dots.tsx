@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../../../engine/entities";
 import { animated } from "@react-spring/three";
 import { colors } from "../../../game/assets/colors";
 import { dotsHeight, stack, stackHeight } from "../../interface/segments";
@@ -17,7 +17,7 @@ export default function Dots({
   isVisible,
   segment,
 }: {
-  entity: Entity;
+  entity: TypedEntity;
   isVisible: boolean;
   segment: Segment;
 }) {

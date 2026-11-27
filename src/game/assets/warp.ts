@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import { requireComponent, TypedEntity } from "../../engine/entities";
 import { World } from "../../engine";
 import { Sprite } from "../../engine/components/sprite";
 import { Popup, POPUP } from "../../engine/components/popup";
@@ -17,12 +17,12 @@ const warpHeight = 5;
 const warpWidth = 11;
 export const warpBlink = 2;
 
-export const getWarpMap = (world: World, entity: Entity) => {
+export const getWarpMap = (world: World, entity: TypedEntity) => {
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
   const showPlayer = generation % (warpBlink * 2) < warpBlink;
   const map: Sprite[][] = [
     ...(
-      (entity[POPUP] as Popup).lines[entity[POPUP].horizontalIndex] || []
+      (entity[POPUP] as Popup).lines[requireComponent(entity, POPUP).horizontalIndex] || []
     ).map((line) => [...line, ...repeat(none, frameWidth - 4 - line.length)]),
   ];
   const selectedLevel = getSelectedLevel(world, entity);

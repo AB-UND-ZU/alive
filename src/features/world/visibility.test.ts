@@ -1,3 +1,4 @@
+import { requireComponent } from "../../engine/entities";
 import {
   act,
   advance,
@@ -95,7 +96,7 @@ describe("fog of war", () => {
 
     expect(isHidden(world, near)).toBe(false);
     expect(
-      getFog(world, near).every((entity) => entity[FOG].type !== "air")
+      getFog(world, near).every((entity) => requireComponent(entity, FOG).type !== "air")
     ).toBe(true);
   });
 

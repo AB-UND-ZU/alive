@@ -140,7 +140,7 @@ import { IDENTIFIABLE } from "../../engine/components/identifiable";
 import { roomSize, tutorialRooms } from "../levels/tutorial/areas";
 import { isGhost, isRespawning } from "../../engine/systems/fate";
 import { MOVABLE } from "../../engine/components/movable";
-import { TypedEntity } from "../../engine/entities";
+import { requireComponent, hasComponent, TypedEntity } from "../../engine/entities";
 import { COLLIDABLE } from "../../engine/components/collidable";
 import { centerLayer, centerSprites, getCircleOrientations } from "./pixels";
 import { colors } from "./colors";
@@ -229,7 +229,7 @@ const deselectItem = (stage: QuestStage<NpcSequence>) => {
     if (dotEntity) {
       dotEntity[SPRITE] = menuArrows.includes(groundIndex)
         ? menuDot
-        : recolorSprite(dotEntity[SPRITE], colors.grey);
+        : recolorSprite(requireComponent(dotEntity, SPRITE), colors.grey);
       rerenderEntity(stage.world, dotEntity);
     }
   }
@@ -439,11 +439,12 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
         const half = pixel.y > 0 !== (fraction.y % 1 === 0) ? "▀" : "▄";
         if (
           clickable &&
-          (pixel.y === 0 || clickable[SPRITE].layers[0].char === half)
+          (pixel.y === 0 || requireComponent(clickable, SPRITE).layers[0].char === half)
         ) {
+          const sprite = requireComponent(clickable, SPRITE);
           clickable[SPRITE] = recolorSprite(
-            clickable[SPRITE],
-            clickable[SPRITE].layers[0].color === colors.black
+            sprite,
+            sprite.layers[0].color === colors.black
               ? { [colors.black]: circle.color }
               : circle.color
           );
@@ -520,7 +521,7 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
             dotEntity[SPRITE] =
               menuArrows.includes(cellIndex) && !blocked
                 ? menuArrow
-                : recolorSprite(dotEntity[SPRITE], colors.white);
+                : recolorSprite(requireComponent(dotEntity, SPRITE), colors.white);
             rerenderEntity(world, dotEntity);
           }
         }
@@ -555,7 +556,7 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
   return { finished: stage.finished, updated: stage.updated };
 };
 
-export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
+export const tutorialNpc: Sequence<NpcSequence, "VIEWABLE"> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
     world,
     entity,
@@ -2303,7 +2304,7 @@ export const fireChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
   return { finished: stage.finished, updated: stage.updated };
 };
 
-export const fireJettyGuardNpc: Sequence<NpcSequence> = (
+export const fireJettyGuardNpc: Sequence<NpcSequence, "BEHAVIOUR" | "POSITION"> = (
   world,
   entity,
   state
@@ -2646,7 +2647,7 @@ export const fireDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
   return { finished: stage.finished, updated: stage.updated };
 };
 
-export const fireNomadNpc: Sequence<NpcSequence> = (world, entity, state) => {
+export const fireNomadNpc: Sequence<NpcSequence, "BEHAVIOUR" | "MELEE" | "POSITION" | "TOOLTIP"> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
     world,
     entity,
@@ -2955,7 +2956,7 @@ export const fireNomadNpc: Sequence<NpcSequence> = (world, entity, state) => {
   return { finished: stage.finished, updated: stage.updated };
 };
 
-export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
+export const worldNpc: Sequence<NpcSequence, "VIEWABLE"> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
     world,
     entity,
@@ -3046,9 +3047,9 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
               cellEntity === focusEntity ||
               cellEntity === entity ||
               cellEntity === spawnEntity ||
-              VIEWABLE in cellEntity ||
-              !(RENDERABLE in cellEntity) ||
-              (CASTABLE in cellEntity &&
+              hasComponent(cellEntity, VIEWABLE) ||
+              !hasComponent(cellEntity, RENDERABLE) ||
+              (hasComponent(cellEntity, CASTABLE) &&
                 cellEntity[BELONGABLE]?.faction !== "nature")
             )
               return;
@@ -3219,7 +3220,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   return { finished: stage.finished, updated: stage.updated };
 };
 
-export const tombstoneNpc: Sequence<NpcSequence> = (world, entity, state) => {
+export const tombstoneNpc: Sequence<NpcSequence, "TOOLTIP"> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
     world,
     entity,
@@ -3254,7 +3255,7 @@ export const tombstoneNpc: Sequence<NpcSequence> = (world, entity, state) => {
 
 const oakBarriers = getCircleOrientations();
 
-export const oakRoom: Sequence<NpcSequence> = (world, entity, state) => {
+export const oakRoom: Sequence<NpcSequence, "POSITION"> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
     world,
     entity,
@@ -3383,7 +3384,7 @@ export const oakRoom: Sequence<NpcSequence> = (world, entity, state) => {
   return { updated: stage.updated, finished: stage.finished };
 };
 
-export const chestNpc: Sequence<NpcSequence> = (world, entity, state) => {
+export const chestNpc: Sequence<NpcSequence, "BEHAVIOUR" | "BELONGABLE" | "POSITION" | "STATS"> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
     world,
     entity,
@@ -3617,7 +3618,7 @@ export const oscillatingStormNpc: Sequence<NpcSequence> = (
   return { finished: stage.finished, updated: stage.updated };
 };
 
-export const wanderingTornadoNpc: Sequence<NpcSequence> = (
+export const wanderingTornadoNpc: Sequence<NpcSequence, "POSITION"> = (
   world,
   entity,
   state
@@ -3703,7 +3704,7 @@ export const wanderingTornadoNpc: Sequence<NpcSequence> = (
   return { finished: stage.finished, updated: stage.updated };
 };
 
-export const wormRoom: Sequence<NpcSequence> = (world, entity, state) => {
+export const wormRoom: Sequence<NpcSequence, "VIEWABLE"> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
     world,
     entity,
@@ -3714,7 +3715,7 @@ export const wormRoom: Sequence<NpcSequence> = (world, entity, state) => {
   const hero = getIdentifierAndComponents(world, "hero", [POSITION, VIEWABLE]);
   if (!hero) return { finished: false, updated: false };
   const size = world.metadata.gameEntity[LEVEL].size;
-  const center = entity[POSITION];
+  const center = requireComponent(entity, POSITION);
   const inRoom =
     Math.abs(signedDistance(center.x, hero[POSITION].x, size)) < wormSize.x &&
     Math.abs(signedDistance(center.y, hero[POSITION].y, size)) < wormSize.y;

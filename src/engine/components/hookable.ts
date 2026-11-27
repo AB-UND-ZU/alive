@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Hookable = {
@@ -11,7 +11,7 @@ export const HOOKABLE = "HOOKABLE";
 
 export default function addHookable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   hookable: Hookable
 ) {
   world.addComponentToEntity(entity, HOOKABLE, hookable);

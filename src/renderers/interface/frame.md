@@ -30,8 +30,8 @@ export type SceneSprite = {
   terminalLayers?: Layer[];
   sprite: Sprite;
   amount?: number;
-  entity: Entity;
-  particle?: Entity;
+  entity: TypedEntity;
+  particle?: TypedEntity;
   particleName?: string;
   particleSequence?: string;
   hidden?: boolean;

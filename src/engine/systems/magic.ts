@@ -19,7 +19,7 @@ import {
 import { createSequence, getSequence, getSequences } from "./sequence";
 import { Castable, CASTABLE, getEmptyCastable } from "../components/castable";
 import { EXERTABLE } from "../components/exertable";
-import { Entity } from "ecs";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { AFFECTABLE, getEmptyAffectable } from "../components/affectable";
 import {
   knockEntity,
@@ -83,8 +83,8 @@ import { EQUIPPABLE } from "../components/equippable";
 import { NPC } from "../components/npc";
 import { createText, getStatColor, getStatSprite } from "../../game/assets/ui";
 
-export const isAffectable = (world: World, entity: Entity) =>
-  AFFECTABLE in entity;
+export const isAffectable = (world: World, entity: TypedEntity): entity is TypedEntity<"AFFECTABLE"> =>
+  hasComponent(entity, AFFECTABLE);
 
 export const getAffectables = (
   world: World,
@@ -93,7 +93,7 @@ export const getAffectables = (
 ) => {
   if (getBlockable(world, position)) return [];
 
-  const affectables: Entity[] = [];
+  const affectables: TypedEntity[] = [];
 
   getCellEntities(world, position).forEach((target) => {
     if (isAffectable(world, target)) {
@@ -126,17 +126,17 @@ export const getAffectable = (
   fragment?: boolean
 ) => getAffectables(world, position, fragment)[0];
 
-export const isExertable = (world: World, entity: Entity) =>
-  EXERTABLE in entity;
+export const isExertable = (world: World, entity: TypedEntity): entity is TypedEntity<"EXERTABLE"> =>
+  hasComponent(entity, EXERTABLE);
 
 export const getExertables = (world: World, position: Position) =>
   getCellEntities(world, position).filter((target) =>
     isExertable(world, target)
-  ) as Entity[];
+  ) as TypedEntity<"POSITION" | "EXERTABLE">[];
 
 export const getActiveSpell = (
   world: World,
-  caster: Entity,
+  caster: TypedEntity,
   name?: SequenceState<unknown>["name"]
 ) => {
   const casterId = world.getEntityId(caster);
@@ -147,7 +147,7 @@ export const getActiveSpell = (
   }
 };
 
-export const canCast = (world: World, entity: Entity, item: Entity) =>
+export const canCast = (world: World, entity: TypedEntity, item: TypedEntity) =>
   !isInPopup(world, entity) && !getActiveSpell(world, entity);
 
 // normalize particle amounts to spell damage
@@ -158,7 +158,7 @@ export const getParticleAmount = (world: World, amount: number) => {
   return 0;
 };
 
-export const attemptBubbleAbsorb = (world: World, entity: Entity) => {
+export const attemptBubbleAbsorb = (world: World, entity: TypedEntity) => {
   if (entity[CONDITIONABLE]?.block) {
     entity[CONDITIONABLE].block.amount -= 1;
 
@@ -180,7 +180,7 @@ export const attemptBubbleAbsorb = (world: World, entity: Entity) => {
   return false;
 };
 
-export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
+export const chargeSlash = (world: World, entity: TypedEntity, slash: TypedEntity<"ITEM">) => {
   const weaponEntity = world.getEntityByIdAndComponents(
     entity[EQUIPPABLE]?.weapon,
     [ITEM]
@@ -199,18 +199,18 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
   };
 
   const spellEntity = entities.createSpell(world, {
-    [BELONGABLE]: { faction: entity[BELONGABLE].faction },
+    [BELONGABLE]: { faction: requireComponent(entity, BELONGABLE).faction },
     [CASTABLE]: {
       ...getEmptyCastable(world, entity),
       ...slashStats,
     },
     [ORIENTABLE]: {},
-    [POSITION]: copy(entity[POSITION]),
+    [POSITION]: copy(requireComponent(entity, POSITION)),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: none,
   });
-  const tick = world.assertByIdAndComponents(entity[MOVABLE].reference, [
+  const tick = world.assertByIdAndComponents(requireComponent(entity, MOVABLE).reference, [
     REFERENCE,
   ])[REFERENCE].tick;
 
@@ -247,11 +247,11 @@ const totemUnits = {
   ruby: "rubyTotem",
 } as const;
 
-export const summonTotem = (world: World, entity: Entity, totem: Entity) => {
+export const summonTotem = (world: World, entity: TypedEntity, totem: TypedEntity<"ITEM">) => {
   spendItem(world, entity, { stackable: "charge", amount: 1 });
 
   const size = world.metadata.gameEntity[LEVEL].size;
-  const orientation = entity[ORIENTABLE].facing as Orientation | undefined;
+  const orientation = requireComponent(entity, ORIENTABLE).facing as Orientation | undefined;
   const totemStats = getAbilityStats(totem[ITEM]);
   const totemUnit = generateUnitData(
     totemUnits[totem[ITEM].material as Material]
@@ -260,7 +260,7 @@ export const summonTotem = (world: World, entity: Entity, totem: Entity) => {
     world,
     combine(
       size,
-      entity[POSITION],
+      requireComponent(entity, POSITION),
       orientation ? orientationPoints[orientation] : { x: 0, y: 0 }
     )
   );
@@ -277,7 +277,7 @@ export const summonTotem = (world: World, entity: Entity, totem: Entity) => {
   const totemEntity = entities.createTotem(world, {
     [AFFECTABLE]: getEmptyAffectable(),
     [ATTACKABLE]: { scratchColor: totemUnit.scratch },
-    [BELONGABLE]: { faction: entity[BELONGABLE].faction },
+    [BELONGABLE]: { faction: requireComponent(entity, BELONGABLE).faction },
     [BUMPABLE]: { generation: 0 },
     [CASTABLE]: {
       ...getEmptyCastable(world, entity),
@@ -410,7 +410,7 @@ export default function setupMagic(world: World) {
               // stop ticking frames
               const frameId = entity[CASTABLE].affected[entityId].frame;
               if (frameId) {
-                disposeFrame(world, world.assertById(frameId));
+                disposeFrame(world, world.assertByIdAndComponents(frameId, [RENDERABLE]));
                 delete entity[CASTABLE].affected[entityId].frame;
               }
 
@@ -434,7 +434,7 @@ export default function setupMagic(world: World) {
         // ensure any remaining retrigger frames are disposed properly
         Object.values(entity[CASTABLE].affected).forEach((affected) => {
           if (affected.frame) {
-            const frameEntity = world.assertById(affected.frame);
+            const frameEntity = world.assertByIdAndComponents(affected.frame, [RENDERABLE]);
             disposeFrame(world, frameEntity);
             delete affected.frame;
           }
@@ -486,7 +486,7 @@ export default function setupMagic(world: World) {
           (rootEntity[NPC]?.type === "wormTower" &&
             (castableEntity[CASTABLE].burn > 0 ||
               getSequences(world, castableEntity).some(
-                ({ args }) => args.element === "fire"
+                ({ args }) => typeof args === "object" && args !== null && "element" in args && args.element === "fire"
               ))) ||
           (isFriendlyFire(world, castableEntity, targetEntity) &&
             !castableEntity[CASTABLE].heal) ||
@@ -565,7 +565,7 @@ export default function setupMagic(world: World) {
           const orientation = relativeOrientations(
             world,
             castableEntity[POSITION],
-            targetEntity[POSITION]
+            requireComponent(targetEntity, POSITION)
           )[0];
 
           // inflict direct damage
@@ -578,7 +578,7 @@ export default function setupMagic(world: World) {
               casterEntity || {},
               targetEntity
             );
-            targetEntity[STATS].hp = hp;
+            requireComponent(targetEntity, STATS).hp = hp;
 
             // propagate damage
             if (targetEntity !== rootEntity) {
@@ -588,7 +588,7 @@ export default function setupMagic(world: World) {
                 {},
                 rootEntity
               );
-              rootEntity[STATS].hp = hp;
+              requireComponent(rootEntity, STATS).hp = hp;
               rerenderEntity(world, rootEntity);
             }
 
@@ -795,7 +795,7 @@ export default function setupMagic(world: World) {
       const rootEntity = getRoot(world, entity);
       if (entity !== rootEntity) {
         const { hp } = calculateDamage(world, { true: damage }, {}, rootEntity);
-        rootEntity[STATS].hp = hp;
+        requireComponent(rootEntity, STATS).hp = hp;
         rerenderEntity(world, rootEntity);
       }
 

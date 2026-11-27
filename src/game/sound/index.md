@@ -57,7 +57,7 @@ type SoundOptions = {
 
 ```ts src/game/sound/index.ts
 export type SfxOptions<P extends SoundPreset> = SoundOptions & {
-  actor?: Entity;
+  actor?: TypedEntity;
   offset?: number;
   volume?: number;
   variant?: SoundVariant<P>;

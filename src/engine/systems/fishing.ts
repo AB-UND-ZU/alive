@@ -1,5 +1,5 @@
 import { bumpEntity } from "../motion";
-import { Entity } from "ecs";
+import { hasComponent, TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -25,8 +25,8 @@ import { play } from "../../game/sound";
 
 export const getHookables = (world: World, position: Position) =>
   getCellEntities(world, position).filter(
-    (entity) => HOOKABLE in entity
-  ) as Entity[];
+    (entity) => hasComponent(entity, HOOKABLE)
+  ) as TypedEntity<"POSITION" | "HOOKABLE">[];
 
 export const getHookable = (world: World, position: Position) =>
   getHookables(world, position)[0];
@@ -135,7 +135,7 @@ export default function setupFishing(world: World) {
         }
 
         hookable[HOOKABLE].hooked = entityId;
-        hookable[HOOKABLE].casting = undefined;
+        hookable[HOOKABLE].catching = undefined;
         entity[BAITABLE].caught = hookableId;
         play(world, entity, "fish", { variant: 3 });
         bumpEntity(world, entity, "down");

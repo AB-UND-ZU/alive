@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Fog = {
@@ -9,6 +9,6 @@ export type Fog = {
 
 export const FOG = "FOG";
 
-export default function addFog(world: World, entity: Entity, fog: Fog) {
+export default function addFog(world: World, entity: TypedEntity, fog: Fog) {
   world.addComponentToEntity(entity, FOG, fog);
 }

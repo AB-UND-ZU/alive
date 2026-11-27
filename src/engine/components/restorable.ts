@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import type { SaveSummary } from "../../game/saves";
 
@@ -11,7 +11,7 @@ export const RESTORABLE = "RESTORABLE";
 
 export default function addRestorable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   restorable: Restorable
 ) {
   world.addComponentToEntity(entity, RESTORABLE, restorable);

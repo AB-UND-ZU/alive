@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Element } from "./item";
 
@@ -10,7 +10,7 @@ export const REFILLABLE = "REFILLABLE";
 
 export default function addRefillable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   refillable: Refillable
 ) {
   world.addComponentToEntity(entity, REFILLABLE, refillable);

@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Fragment = {
@@ -9,7 +9,7 @@ export const FRAGMENT = "FRAGMENT";
 
 export default function addFragment(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   fragment: Fragment
 ) {
   world.addComponentToEntity(entity, FRAGMENT, fragment);

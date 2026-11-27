@@ -1,3 +1,4 @@
+import { requireComponent } from "../engine/entities";
 import { getIdentifierAndComponents } from "../engine/utils";
 import { wormSide } from "../game/assets/sprites";
 import { getParticles } from "../engine/systems/sequence";
@@ -77,7 +78,7 @@ test("Golem unfolds its factory stones into native body and arm fragments after 
   expect(root.SPRITE).toEqual(rock2);
   expect(getLimbs(dormant, root)).toHaveLength(5);
   expect(
-    getLimbs(dormant, root).every((limb) => limb.BELONGABLE.faction === "unit")
+    getLimbs(dormant, root).every((limb) => requireComponent(limb, "BELONGABLE").faction === "unit")
   ).toBe(true);
 
   const active = createBossWorld("golem", true).world;
@@ -89,12 +90,13 @@ test("Golem unfolds its factory stones into native body and arm fragments after 
   const limbs = getLimbs(active, unfolded).filter((limb) => limb !== unfolded);
   expect(limbs).toHaveLength(4);
   for (const limb of limbs) {
-    const vertical = ["up", "down"].includes(limb.ORIENTABLE.facing);
+    const vertical = ["up", "down"].some((side) => side === limb.ORIENTABLE?.facing);
     expect(limb.SPRITE).toEqual(vertical ? golemBody : golemArm);
-    expect(limb.BELONGABLE.faction).toBe("wild");
+    expect(requireComponent(limb, "BELONGABLE").faction).toBe("wild");
+    const position = requireComponent(limb, "POSITION");
     expect(
-      Math.abs(limb.POSITION.x - unfolded.POSITION.x) +
-        Math.abs(limb.POSITION.y - unfolded.POSITION.y)
+      Math.abs(position.x - unfolded.POSITION.x) +
+        Math.abs(position.y - unfolded.POSITION.y)
     ).toBe(1);
   }
   expect(active.getEntities(["CASTABLE"])).toEqual([unfolded]);

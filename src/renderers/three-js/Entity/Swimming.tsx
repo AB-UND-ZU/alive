@@ -1,6 +1,6 @@
 import { lightSprite } from "./CoveredLight";
 import { colors } from "../../../game/assets/colors";
-import { Entity } from "ecs";
+import { requireComponent, TypedEntity } from "../../../engine/entities";
 import { useDimensions } from "../../../components/Dimensions";
 import { useEffect, useRef, useState } from "react";
 import { animated, useSpring } from "@react-spring/three";
@@ -15,12 +15,12 @@ export default function Swimming({
   isVisible,
 }: {
   active: boolean;
-  entity: Entity;
+  entity: TypedEntity;
   isVisible: boolean;
 }) {
   const dimensions = useDimensions();
   const facing = entity[ORIENTABLE]?.facing;
-  const { x, y } = entity[POSITION];
+  const { x, y } = requireComponent(entity, POSITION);
   const lastWaterCell = useRef({ x, y });
   const moved = lastWaterCell.current.x !== x || lastWaterCell.current.y !== y;
   const activeRef = useRef(false);

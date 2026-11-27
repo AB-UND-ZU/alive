@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Orientation } from "./orientable";
 
@@ -20,7 +20,7 @@ export const SPRITE = "SPRITE";
 
 export default function addSprite(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   sprite: Sprite
 ) {
   world.addComponentToEntity(entity, SPRITE, sprite);

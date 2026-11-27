@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Entity } from "ecs";
+import { requireComponent, TypedEntity } from "../../../engine/entities";
 import { animated, useSpring } from "@react-spring/three";
 import { colors } from "../../../game/assets/colors";
 import { particleHeight, stack, stackHeight } from "../../interface/segments";
@@ -27,15 +27,16 @@ export default function Bar({
   counter,
 }: {
   world: World;
-  entity: Entity;
+  entity: TypedEntity;
   isVisible: boolean;
   counter: keyof Countable;
 }) {
   const dimensions = useDimensions();
 
   const maxCounter = getMaxCounter(counter);
-  const actualValue = entity[STATS][counter];
-  const max = maxCounter ? entity[STATS][maxCounter] : actualValue;
+  const stats = requireComponent(entity, STATS);
+  const actualValue = stats[counter];
+  const max = maxCounter ? stats[maxCounter] : actualValue;
   const value = actualValue <= 0 ? 0 : clamp(Math.floor(actualValue), 1, max);
   const enemy = isEnemy(world, entity);
   const neutral = entity[BUILDABLE] || isNeutral(world, entity);

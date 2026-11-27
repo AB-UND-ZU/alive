@@ -9,7 +9,7 @@ import { POPUP } from "./components/popup";
 import { unitDefinitions } from "../game/balancing/units";
 import { INVENTORY } from "./components/inventory";
 import { ITEM } from "./components/item";
-import { TypedEntity } from "./entities";
+import type { Entity } from "./entities";
 import { CASTABLE } from "./components/castable";
 import { REFERENCE } from "./components/reference";
 import { RENDERABLE } from "./components/renderable";
@@ -83,17 +83,13 @@ const copyValue = (
 };
 
 export const createSnapshot = (world: World): WorldSnapshot => {
-  const ecs = world.metadata.ecs as unknown as {
-    nextId: number;
-    entities: Record<string, unknown>[];
-    deferredRemovals: { entities: Set<unknown> };
-  };
+  const ecs = world.metadata.ecs;
   const copies = new Map<unknown, unknown>();
   const replace = (value: object) => {
     const spriteName = spriteNames.get(value);
     if (spriteName) return { $sprite: spriteName } as SpriteToken;
 
-    const entityId = world.getEntityId(value as TypedEntity);
+    const entityId = ecs.entityIds.get(value);
     if (entityId) return { $entity: entityId } as EntityToken;
   };
 
@@ -104,12 +100,12 @@ export const createSnapshot = (world: World): WorldSnapshot => {
     const components: Record<string, unknown> = {};
     for (const componentName in entity) {
       components[componentName] = copyValue(
-        entity[componentName],
+        entity[componentName as keyof Entity],
         replace,
         copies
       );
     }
-    entities.push([world.getEntityId(entity as TypedEntity), components]);
+    entities.push([world.getEntityId(entity), components]);
   }
 
   return {
@@ -221,8 +217,7 @@ export const restoreSnapshot = (snapshot: WorldSnapshot) => {
     if (items.length !== inventory.items.length) inventory.items = items;
   }
 
-  (world.metadata.ecs as unknown as { nextId: number }).nextId =
-    snapshot.nextId;
+  world.metadata.ecs.nextId = snapshot.nextId;
   world.metadata.playtime = snapshot.playtime;
   world.metadata.gameEntity = world.assertById(
     snapshot.game

@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Sprite } from "./sprite";
 
@@ -11,7 +11,7 @@ export const SWIMMABLE = "SWIMMABLE";
 
 export default function addSwimmable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   swimmable: Swimmable
 ) {
   world.addComponentToEntity(entity, SWIMMABLE, swimmable);

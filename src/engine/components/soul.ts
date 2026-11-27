@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { UnitStats } from "./stats";
 
@@ -12,7 +12,7 @@ export const SOUL = "SOUL";
 
 export default function addSoul(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   soul: Soul
 ) {
   world.addComponentToEntity(entity, SOUL, soul);

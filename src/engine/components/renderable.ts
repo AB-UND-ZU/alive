@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Renderable = {
@@ -7,6 +7,6 @@ export type Renderable = {
 
 export const RENDERABLE = "RENDERABLE";
 
-export default function addRenderable(world: World, entity: Entity, renderable: Renderable) {
+export default function addRenderable(world: World, entity: TypedEntity, renderable: Renderable) {
   world.addComponentToEntity(entity, RENDERABLE, renderable);
 }

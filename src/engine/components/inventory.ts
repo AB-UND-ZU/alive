@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Inventory = {
@@ -9,7 +9,7 @@ export const INVENTORY = "INVENTORY";
 
 export default function addInventory(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   inventory: Inventory
 ) {
   world.addComponentToEntity(entity, INVENTORY, inventory);

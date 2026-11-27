@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Clickable = {
@@ -10,7 +10,7 @@ export const CLICKABLE = "CLICKABLE";
 
 export default function addClickable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   clickable: Clickable
 ) {
   world.addComponentToEntity(entity, CLICKABLE, clickable);

@@ -1,5 +1,5 @@
 import { bumpEntity } from "../motion";
-import { Entity } from "ecs";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -52,28 +52,28 @@ import { ACTIONABLE } from "../components/actionable";
 import { isNpc } from "./damage";
 import { assignQuickItem } from "./popup";
 
-export const isLootable = (world: World, entity: Entity) =>
-  LOOTABLE in entity &&
-  INVENTORY in entity &&
+export const isLootable = (world: World, entity: TypedEntity) =>
+  hasComponent(entity, LOOTABLE) &&
+  hasComponent(entity, INVENTORY) &&
   entity[INVENTORY].items.length > 0;
 
 export const getLootable = (world: World, position: Position) =>
   getCellEntities(world, position).find((entity) =>
     isLootable(world, entity)
-  ) as Entity | undefined;
+  ) as TypedEntity<"POSITION" | "INVENTORY" | "LOOTABLE"> | undefined;
 
-export const isCollecting = (world: World, entity: Entity) =>
-  LOOTABLE in entity &&
-  INVENTORY in entity &&
+export const isCollecting = (world: World, entity: TypedEntity) =>
+  hasComponent(entity, LOOTABLE) &&
+  hasComponent(entity, INVENTORY) &&
   getSequence(world, entity, "collect");
 
 export const getCollecting = (world: World, position: Position) =>
   getCellEntities(world, position).find((entity) =>
     isCollecting(world, entity)
-  ) as Entity | undefined;
+  ) as TypedEntity<"POSITION" | "INVENTORY" | "LOOTABLE"> | undefined;
 
-export const getStackable = (world: World, entity: Entity, item: Item) => {
-  const stackId = entity[INVENTORY].items.find((itemId: number) => {
+export const getStackable = (world: World, entity: TypedEntity, item: Item) => {
+  const stackId = requireComponent(entity, INVENTORY).items.find((itemId: number) => {
     const inventoryItem = world.assertByIdAndComponents(itemId, [ITEM]);
     return (
       inventoryItem[ITEM].stackable === item.stackable &&
@@ -87,25 +87,25 @@ export const getStackable = (world: World, entity: Entity, item: Item) => {
   return world.getEntityByIdAndComponents(stackId, [ITEM]);
 };
 
-export const isEmpty = (world: World, entity: Entity) =>
-  INVENTORY in entity &&
-  LOOTABLE in entity &&
+export const isEmpty = (world: World, entity: TypedEntity) =>
+  hasComponent(entity, INVENTORY) &&
+  hasComponent(entity, LOOTABLE) &&
   entity[INVENTORY].items.length === 0 &&
   !isCollecting(world, entity);
 
 export const collectItem = (
   world: World,
-  entity: Entity,
-  target: Entity,
+  entity: TypedEntity,
+  target: TypedEntity,
   orientation?: Orientation
 ) => {
   // handle pick up
   for (
-    let itemIndex = target[INVENTORY].items.length - 1;
+    let itemIndex = requireComponent(target, INVENTORY).items.length - 1;
     itemIndex >= 0;
     itemIndex -= 1
   ) {
-    const itemId = target[INVENTORY].items[itemIndex];
+    const itemId = requireComponent(target, INVENTORY).items[itemIndex];
     const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
 
     // skip bound items and XP
@@ -136,12 +136,13 @@ export const collectItem = (
     }
 
     // initiate collecting animation on player
+    const position = requireComponent(target, POSITION);
     createSequence<"collect", CollectSequence>(
       world,
       entity,
       "collect",
       "itemCollect",
-      { origin: target[POSITION], itemId, drop: false, amount: collectAmount }
+      { origin: position, itemId, drop: false, amount: collectAmount }
     );
 
     // initiate collecting animation on player
@@ -177,7 +178,7 @@ export const collectItem = (
     }
 
     // update walkable
-    updateWalkable(world, target[POSITION]);
+    updateWalkable(world, position);
 
     rerenderEntity(world, target);
     return true;
@@ -188,8 +189,8 @@ export const collectItem = (
 
 export const attemptEquipItem = (
   world: World,
-  entity: Entity,
-  itemEntity: Entity,
+  entity: TypedEntity,
+  itemEntity: TypedEntity<"ITEM">,
   delay = 0
 ) => {
   if (!entity[EQUIPPABLE]) return;
@@ -201,10 +202,10 @@ export const attemptEquipItem = (
     )
       continue;
 
-    const checkedSlots = ["skill", "tool"].includes(equipment)
+    const checkedSlots: typeof equipments = ["skill", "tool"].includes(equipment)
       ? ["skill", "tool"]
       : [equipment];
-    const hasExisting = checkedSlots.some((slot) => entity[EQUIPPABLE][slot]);
+    const hasExisting = checkedSlots.some((slot) => requireComponent(entity, EQUIPPABLE)[slot]);
 
     if (hasExisting) {
       if (!isNpc(world, entity)) {
@@ -246,8 +247,8 @@ export const attemptEquipItem = (
 
 export const equipItem = (
   world: World,
-  entity: Entity,
-  itemEntity: Entity,
+  entity: TypedEntity,
+  itemEntity: TypedEntity<"ITEM">,
   delay = 0
 ) => {
   if (!entity[EQUIPPABLE]) return;
@@ -270,7 +271,7 @@ export const equipItem = (
       if (existingId) {
         unequippedId ??= existingId;
         const existingItem = world.assertByIdAndComponents(existingId, [ITEM]);
-        itemEntity[RENDERABLE].generation += getEntityGeneration(
+        requireComponent(itemEntity, RENDERABLE).generation += getEntityGeneration(
           world,
           existingItem
         );
@@ -280,12 +281,12 @@ export const equipItem = (
     }
 
     // swap tool if needed
-    if (equipment === "tool" && !entity[ACTIONABLE].toolEquipped) {
-      entity[ACTIONABLE].toolEquipped = true;
+    if (equipment === "tool" && !requireComponent(entity, ACTIONABLE).toolEquipped) {
+      requireComponent(entity, ACTIONABLE).toolEquipped = true;
       inactiveId = entity[EQUIPPABLE].skill;
       changed = true;
-    } else if (equipment === "skill" && entity[ACTIONABLE].toolEquipped) {
-      entity[ACTIONABLE].toolEquipped = false;
+    } else if (equipment === "skill" && requireComponent(entity, ACTIONABLE).toolEquipped) {
+      requireComponent(entity, ACTIONABLE).toolEquipped = false;
       inactiveId = entity[EQUIPPABLE].tool;
       changed = true;
     }
@@ -330,8 +331,8 @@ export const equipItem = (
 
 export const unequipItem = (
   world: World,
-  entity: Entity,
-  itemEntity: Entity
+  entity: TypedEntity,
+  itemEntity: TypedEntity<"ITEM">
 ) => {
   if (!entity[EQUIPPABLE]) return;
 
@@ -347,8 +348,8 @@ export const unequipItem = (
 
 export const addToInventory = (
   world: World,
-  entity: Entity,
-  itemEntity: Entity,
+  entity: TypedEntity,
+  itemEntity: TypedEntity<"ITEM">,
   amount: number
 ) => {
   const entityId = world.getEntityId(entity);
@@ -362,7 +363,7 @@ export const addToInventory = (
   // if no sword is equipped, use wood as stick
   if (
     entity[MELEE] &&
-    !entity[EQUIPPABLE].weapon &&
+    !requireComponent(entity, EQUIPPABLE).weapon &&
     targetStackable === "stick"
   ) {
     const itemData = {
@@ -390,18 +391,19 @@ export const addToInventory = (
     // empty block
   } else if (isEquipment) {
     attemptEquipItem(world, entity, itemEntity, 400);
-    entity[INVENTORY].items.push(targetId);
+    requireComponent(entity, INVENTORY).items.push(targetId);
   } else if (targetStat && !targetMaterial) {
     const maxStat = getMaxCounter(targetStat);
     const maximum =
       maxStat !== targetStat && maxStat
-        ? entity[STATS][maxStat]
+        ? requireComponent(entity, STATS)[maxStat]
         : MAX_STAT_VALUE;
-    const newAmount = entity[STATS][targetStat] + amount;
+    const stats = requireComponent(entity, STATS);
+    const newAmount = stats[targetStat] + amount;
     const overflow = Math.max(newAmount, maximum) - maximum;
     const displayAmount = Math.ceil(amount - overflow);
 
-    entity[STATS][targetStat] = clamp(newAmount, 0, maximum);
+    stats[targetStat] = clamp(newAmount, 0, maximum);
 
     if (
       entity[PLAYER] &&
@@ -424,7 +426,7 @@ export const addToInventory = (
       });
     } else if (
       entity[PLAYER] &&
-      ["hp", "mp", "maxHp", "maxMp"].includes(targetStat) &&
+      (targetStat === "hp" || targetStat === "mp" || targetStat === "maxHp" || targetStat === "maxMp") &&
       !targetMaterial
     ) {
       entity[PLAYER].receivedStats[targetStat] += displayAmount;
@@ -444,7 +446,7 @@ export const addToInventory = (
       });
       const stackId = world.getEntityId(targetStack);
       targetStack[ITEM].amount = amount;
-      entity[INVENTORY].items.push(stackId);
+      requireComponent(entity, INVENTORY).items.push(stackId);
     }
 
     if (itemEntity[IDENTIFIABLE]) {

@@ -100,7 +100,8 @@ it.each(orientations)(
         /^wave_(side|corner)/.test(entry.sprite.name)
       );
       if (!center || !ring.length) continue;
-      const state = center.entity.SEQUENCABLE.states.spell;
+      const state = center.entity.SEQUENCABLE?.states.spell;
+      if (!state) throw new Error("Wave center has no spell sequence");
       if (state.args.progress >= state.args.range - 1) continue;
       frames++;
       const xs = ring.map((entry) => entry.x),

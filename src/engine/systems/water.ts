@@ -1,4 +1,4 @@
-import type { Entity } from "ecs";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -45,7 +45,7 @@ import { AFFECTABLE } from "../components/affectable";
 export type Weather = "rain" | "snow";
 
 export const getLiquids = (world: World, position: Position) =>
-  getCellEntities(world, position).filter((entity) => LIQUID in entity);
+  getCellEntities(world, position).filter((entity) => hasComponent(entity, LIQUID));
 
 export const calculateWeatherIntensity = (
   duration: number,
@@ -75,7 +75,7 @@ export const weatherIntensity: Record<Weather, number> = {
 
 export const bubbleSound = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   type: Liquid["type"]
 ) => {
   if (type !== "drop" || random(0, 4) === 0) {
@@ -123,7 +123,7 @@ export const createBubble = (
     (cell) => cell[BURNABLE].burning && !cell[BURNABLE].simmer
   );
   const affectables = getAffectables(world, position).filter(
-    (cell) => cell[AFFECTABLE].burn > 0
+    (cell) => requireComponent(cell, AFFECTABLE).burn > 0
   );
   [...burnables, ...affectables].forEach((cell) => {
     extinguishEntity(world, cell);
@@ -164,8 +164,8 @@ export const applyWaterCell = (world: World, position: Position) => {
     cells[x][y] = deep ? "water_deep" : "water_shallow";
   }
   const water = getImmersible(world, position);
-  if (water && water[IMMERSIBLE].deep !== deep) {
-    water[IMMERSIBLE].deep = deep;
+  if (water && requireComponent(water, IMMERSIBLE).deep !== deep) {
+    requireComponent(water, IMMERSIBLE).deep = deep;
     water[SPRITE] = deep ? waterDeep : waterShallow;
     rerenderEntity(world, water);
   }
@@ -195,11 +195,11 @@ export const updateShoreline = (world: World, position: Position) => {
       const ground = nearbyWater ? "beach" : "sand";
       const cells = getCellEntities(world, target);
       const paving = cells.find((cell) =>
-        trenchResources.includes(cell[HARVESTABLE]?.resource)
+        cell[HARVESTABLE] && trenchResources.includes(cell[HARVESTABLE].resource)
       );
       if (paving) {
-        if (paving[HARVESTABLE].resource !== ground) {
-          paving[HARVESTABLE].resource = ground;
+        if (requireComponent(paving, HARVESTABLE).resource !== ground) {
+          requireComponent(paving, HARVESTABLE).resource = ground;
           paving[SPRITE] = nearbyWater ? beach : sand;
           rerenderEntity(world, paving);
         }
@@ -213,11 +213,11 @@ export const updateShoreline = (world: World, position: Position) => {
           !nearbyWater ||
           cells.some(
             (cell) =>
-              (TEMPO in cell && SPRITE in cell) ||
-              REFILLABLE in cell ||
-              ENTERABLE in cell ||
-              LOCKABLE in cell ||
-              COLLIDABLE in cell
+              (hasComponent(cell, TEMPO) && hasComponent(cell, SPRITE)) ||
+              hasComponent(cell, REFILLABLE) ||
+              hasComponent(cell, ENTERABLE) ||
+              hasComponent(cell, LOCKABLE) ||
+              hasComponent(cell, COLLIDABLE)
           )
         )
           continue;
@@ -236,7 +236,7 @@ export const updateShoreline = (world: World, position: Position) => {
         for (const cell of cells) {
           if (
             cell[FOG]?.type === "object" &&
-            !(MOVABLE in cell) &&
+            !hasComponent(cell, MOVABLE) &&
             cell[SPRITE]
           ) {
             cell[SPRITE] = mergeSprites(shadow, cell[SPRITE]);

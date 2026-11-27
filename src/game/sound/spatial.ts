@@ -1,6 +1,6 @@
 import type { SoundPreset } from ".";
 import type { World } from "../../engine/ecs";
-import type { Entity } from "ecs";
+import { hasComponent, TypedEntity } from "../../engine/entities";
 import { LAYER } from "../../engine/components/layer";
 import { LIGHT } from "../../engine/components/light";
 import { Position, POSITION } from "../../engine/components/position";
@@ -19,7 +19,7 @@ const nearDistances: Partial<Record<SoundPreset, number>> = {
   slide: 1,
 };
 
-function mixAt(source: Position, listener: Entity, size: number, near: number) {
+function mixAt(source: Position, listener: TypedEntity<"POSITION">, size: number, near: number) {
   const x = signedDistance(listener[POSITION].x, source.x, size) * aspectRatio;
   const y = signedDistance(listener[POSITION].y, source.y, size);
   const distance = Math.hypot(x, y);
@@ -37,7 +37,7 @@ function mixAt(source: Position, listener: Entity, size: number, near: number) {
 
 export function getSoundSource(
   world: World,
-  origin: Entity,
+  origin: TypedEntity,
   preset: SoundPreset
 ) {
   const listener =
@@ -72,11 +72,11 @@ type Voice = {
   output: BiquadFilterNode;
   volume: number;
 };
-const voices = new Map<Entity, Set<Voice>>();
+const voices = new Map<TypedEntity, Set<Voice>>();
 let outputs = new WeakMap<World, Map<number | undefined, BiquadFilterNode>>();
 
 const cutoff = (
-  listener: Entity,
+  listener: TypedEntity,
   layer: number | undefined,
   filter: BiquadFilterNode
 ) =>
@@ -91,9 +91,9 @@ function outputFor(source: SoundSource, master: GainNode) {
   const layer =
     source.weather || origin.MOVABLE?.flying
       ? undefined
-      : LAYER in origin
+      : hasComponent(origin, LAYER)
       ? origin[LAYER].structure
-      : Object.values<Entity>(
+      : Object.values<TypedEntity>(
           map[normalize(x, size)]?.[normalize(y, size)] ?? {}
         ).find((cell) => cell.ENTERABLE)?.FRAGMENT?.structure;
   let layers = outputs.get(world);
@@ -109,7 +109,7 @@ function outputFor(source: SoundSource, master: GainNode) {
   return filter;
 }
 
-export function changeSoundLayer(world: World, mover: Entity) {
+export function changeSoundLayer(world: World, mover: TypedEntity) {
   if (mover[PLAYER])
     outputs
       .get(world)
@@ -159,7 +159,7 @@ function fade(param: AudioParam, target: number, now: number, end: number) {
   param.linearRampToValueAtTime(target, end);
 }
 
-export function moveSound(world: World, mover: Entity, animate: boolean) {
+export function moveSound(world: World, mover: TypedEntity, animate: boolean) {
   const moving = voices.get(mover);
   if (!voices.size || (!moving && !mover[PLAYER])) return;
   const tick = animate
@@ -168,7 +168,7 @@ export function moveSound(world: World, mover: Entity, animate: boolean) {
         ?.REFERENCE.tick ??
       0
     : 0;
-  if (moving && !(LAYER in mover)) changeSoundLayer(world, mover);
+  if (moving && !hasComponent(mover, LAYER)) changeSoundLayer(world, mover);
   const groups = mover[PLAYER] ? voices.values() : [moving!];
   for (const group of groups)
     for (const { source, gain, panner, volume } of group) {

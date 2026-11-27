@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Element, Material, Materialized } from "./item";
 import { Sprite } from "./sprite";
@@ -15,7 +15,7 @@ export const LOCKABLE = "LOCKABLE";
 
 export default function addLockable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   lockable: Lockable
 ) {
   world.addComponentToEntity(entity, LOCKABLE, lockable);

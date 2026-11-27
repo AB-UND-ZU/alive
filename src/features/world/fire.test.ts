@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../../engine/entities";
 import { World } from "../../engine";
 import { BURNABLE } from "../../engine/components/burnable";
 import { PLAYER } from "../../engine/components/player";
@@ -31,7 +31,7 @@ const camp = `
 |        |
 `;
 
-const getSmokeOffsets = (world: World, fire: Entity) =>
+const getSmokeOffsets = (world: World, fire: TypedEntity) =>
   Object.values(getSequence(world, fire, "smoke")?.particles || {}).map(
     (particleId) =>
       world.assertByIdAndComponents(particleId, [PARTICLE])[PARTICLE].offsetY

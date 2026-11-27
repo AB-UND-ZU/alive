@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { ThreeElements } from "@react-three/fiber";
 import { Vector3Tuple } from "three";
-import type { Entity } from "ecs";
+import type { TypedEntity } from "../../../engine/entities";
 import { useMotionPosition } from "./useMotionPosition";
 import { updateLocalMatrix } from "./matrixUpdates";
 
@@ -10,7 +10,7 @@ export default function Animated({
   position,
   ...props
 }: {
-  entity?: Entity;
+  entity?: TypedEntity;
   position: Vector3Tuple;
 } & Omit<ThreeElements["group"], "position">) {
   const initialPosition = useRef(position);

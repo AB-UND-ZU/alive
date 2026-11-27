@@ -1,4 +1,3 @@
-import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -16,7 +15,7 @@ import addImmersible, {
   Immersible,
   IMMERSIBLE,
 } from "../components/immersible";
-import { TypedEntity } from "../entities";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { TEMPO } from "../components/tempo";
 import { getTempo, isWalkable } from "./movement";
 import { Orientation, orientationPoints } from "../components/orientable";
@@ -51,44 +50,44 @@ import { aspectRatio } from "../../renderers/interface/dimensions";
 export const blocksIce = (world: World, position: Position) =>
   getCellEntities(world, position).some(
     (entity) =>
-      NPC in entity || PLAYER in entity || isOpaque(world, entity)
+      hasComponent(entity, NPC) || hasComponent(entity, PLAYER) || isOpaque(world, entity)
   );
 
-export const isFreezable = (world: World, entity: Entity) =>
-  FREEZABLE in entity;
+export const isFreezable = (world: World, entity: TypedEntity): entity is TypedEntity<"FREEZABLE"> =>
+  hasComponent(entity, FREEZABLE);
 
 export const getFreezables = (world: World, position: Position) =>
   getCellEntities(world, position).filter((entity) =>
     isFreezable(world, entity)
-  ) as Entity[];
+  ) as TypedEntity<"POSITION" | "FREEZABLE">[];
 
-export const isFrozen = (world: World, entity: Entity) =>
-  entity[FREEZABLE]?.frozen || entity[AFFECTABLE]?.freeze > 0;
+export const isFrozen = (world: World, entity: TypedEntity) =>
+  entity[FREEZABLE]?.frozen || (entity[AFFECTABLE]?.freeze ?? 0) > 0;
 
 export const getFrozen = (world: World, position: Position) =>
   getCellEntities(world, position).filter(
     (entity) => isFreezable(world, entity) && isFrozen(world, entity)
-  ) as Entity[];
+  ) as TypedEntity<"POSITION" | "FREEZABLE">[];
 
 export const getUnfrozen = (world: World, position: Position) =>
   getCellEntities(world, position).filter(
     (entity) => isFreezable(world, entity) && !isFrozen(world, entity)
-  ) as Entity[];
+  ) as TypedEntity<"POSITION" | "FREEZABLE">[];
 
-export const isSliding = (world: World, entity: Entity) =>
+export const isSliding = (world: World, entity: TypedEntity) =>
   !!entity[MOVABLE]?.momentum;
 
-export const isActionable = (world: World, entity: Entity) =>
-  MOVABLE in entity &&
+export const isActionable = (world: World, entity: TypedEntity) =>
+  hasComponent(entity, MOVABLE) &&
   !isDead(world, entity) &&
   !isFrozen(world, entity) &&
   !isSliding(world, entity);
 
-export const isControllable = (world: World, entity: Entity) =>
+export const isControllable = (world: World, entity: TypedEntity) =>
   isActionable(world, entity) &&
   !(isInPopup(world, entity) || isShowingPopup(world, entity));
 
-export const isInteractable = (world: World, entity: Entity) =>
+export const isInteractable = (world: World, entity: TypedEntity) =>
   isControllable(world, entity) && !isMounting(world, entity);
 
 const frozenSprites: Record<Immersible["type"], Sprite> = {
@@ -96,11 +95,11 @@ const frozenSprites: Record<Immersible["type"], Sprite> = {
 };
 
 // swap sprites when freezing
-export const freezeTerrain = (world: World, entity: Entity) => {
+export const freezeTerrain = (world: World, entity: TypedEntity) => {
   if (isFrozen(world, entity))
     return entity;
 
-  entity[FREEZABLE].frozen = true;
+  requireComponent(entity, FREEZABLE).frozen = true;
   entity[SPRITE] = frozenSprites[(entity[IMMERSIBLE] as Immersible).type];
 
   // replace water with ice terrain
@@ -112,19 +111,20 @@ export const freezeTerrain = (world: World, entity: Entity) => {
       IMMERSIBLE,
       false
     );
-    const { x, y } = entity[POSITION];
+    const position = requireComponent(entity, POSITION);
+    const { x, y } = position;
     world.metadata.gameEntity[LEVEL].cells[x][y] = "ice";
-    updateWalkable(world, entity[POSITION]);
-    updateShoreline(world, entity[POSITION]);
+    updateWalkable(world, position);
+    updateShoreline(world, position);
 
     // delete any liquids
-    const liquids = getLiquids(world, entity[POSITION]);
+    const liquids = getLiquids(world, position);
     for (const liquidEntity of liquids) {
       disposeEntity(world, liquidEntity);
     }
 
     // Refresh immersion and the unit sprite after the terrain changes.
-    const swimmables = getSwimmables(world, entity[POSITION]);
+    const swimmables = getSwimmables(world, position);
     for (const swimmableEntity of swimmables) {
       rerenderEntity(world, swimmableEntity);
     }
@@ -135,10 +135,10 @@ export const freezeTerrain = (world: World, entity: Entity) => {
 };
 
 // swap sprites when thawing
-export const thawTerrain = (world: World, entity: Entity) => {
+export const thawTerrain = (world: World, entity: TypedEntity) => {
   if (!isFrozen(world, entity)) return entity;
 
-  entity[FREEZABLE].frozen = false;
+  requireComponent(entity, FREEZABLE).frozen = false;
   entity[SPRITE] = waterDeep;
 
   // replace ice with water terrain
@@ -146,13 +146,14 @@ export const thawTerrain = (world: World, entity: Entity) => {
     entity[TEMPO].amount = -4;
 
     addImmersible(world, entity, { type: "water", deep: true });
-    const { x, y } = entity[POSITION];
+    const position = requireComponent(entity, POSITION);
+    const { x, y } = position;
     world.metadata.gameEntity[LEVEL].cells[x][y] = "water_deep";
-    updateWalkable(world, entity[POSITION]);
-    updateShoreline(world, entity[POSITION]);
+    updateWalkable(world, position);
+    updateShoreline(world, position);
 
     // Refresh immersion and the unit sprite after the terrain changes.
-    const swimmables = getSwimmables(world, entity[POSITION]);
+    const swimmables = getSwimmables(world, position);
     for (const swimmableEntity of swimmables) {
       rerenderEntity(world, swimmableEntity);
     }
@@ -166,7 +167,7 @@ export const thawTerrain = (world: World, entity: Entity) => {
 
 export const freezeMomentum = (
   world: World,
-  entity: Entity,
+  entity: TypedEntity<"MOVABLE" | "POSITION">,
   orientation?: Orientation
 ) => {
   const freezable = getFreezables(world, entity[POSITION])[0];

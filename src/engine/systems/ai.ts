@@ -102,7 +102,7 @@ import {
   registerEntity,
 } from "./map";
 import { getFragment, getFragments, getOpaque } from "./enter";
-import { TypedEntity } from "../entities";
+import { requireComponent, TypedEntity } from "../entities";
 import { STATS } from "../components/stats";
 import { EXERTABLE } from "../components/exertable";
 import { CASTABLE, getEmptyCastable } from "../components/castable";
@@ -146,7 +146,6 @@ import { FRAGMENT } from "../components/fragment";
 import { LAYER } from "../components/layer";
 import { DROPPABLE } from "../components/droppable";
 import { waveTower } from "../../game/assets/templates/creatures";
-import { Entity } from "ecs";
 import { BUMPABLE } from "../components/bumpable";
 import { getActiveViewable } from "../../renderers/interface/hooks";
 import { VIEWABLE } from "../components/viewable";
@@ -1193,7 +1192,7 @@ export default function setupAi(world: World) {
                 isMovable(
                   world,
                   limb,
-                  add(limb[POSITION], orientationPoints[movingOrientation])
+                  add(requireComponent(limb, POSITION), orientationPoints[movingOrientation])
                 )
               )
             );
@@ -1494,7 +1493,7 @@ export default function setupAi(world: World) {
                 if (
                   projectile &&
                   !isFriendlyFire(world, entity, projectile) &&
-                  projectile[ORIENTABLE].facing ===
+                  requireComponent(projectile, ORIENTABLE).facing ===
                     invertOrientation(iteration.orientation)
                 ) {
                   const sidestepOrientations = [
@@ -2266,7 +2265,7 @@ export default function setupAi(world: World) {
                 {
                   [SHOOTABLE]: limbEntity[SHOOTABLE],
                 },
-                limbEntity[POSITION]
+                requireComponent(limbEntity, POSITION)
               );
               limbEntity[SHOOTABLE].shots = 0;
               world.removeComponentFromEntity(
@@ -2675,11 +2674,11 @@ export default function setupAi(world: World) {
             // color limbs and show rage
             const limbs = getLimbs(world, entity);
             const availableLimbs = limbs.filter(
-              (limb) => limb[ORIENTABLE].facing === undefined
+              (limb) => requireComponent(limb, ORIENTABLE).facing === undefined
             );
             const selectedLimbs = shuffle(availableLimbs).slice(0, 3);
             selectedLimbs.forEach((limb) => {
-              limb[ORIENTABLE].facing = "left";
+              requireComponent(limb, ORIENTABLE).facing = "left";
               rerenderEntity(world, limb);
             });
             patterns.splice(
@@ -2694,7 +2693,7 @@ export default function setupAi(world: World) {
             // shoot from limbs
             const limbs = getLimbs(world, entity);
             const triggeredLimbs = limbs.filter(
-              (limb) => limb[ORIENTABLE].facing === "left"
+              (limb) => requireComponent(limb, ORIENTABLE).facing === "left"
             );
             const ilexCircle = [
               { x: -2, y: 3 },
@@ -2703,10 +2702,11 @@ export default function setupAi(world: World) {
               { x: -2, y: -1 },
             ];
             triggeredLimbs.forEach((limb) => {
+              const limbPosition = requireComponent(limb, POSITION);
               const limbOrientation = relativeOrientations(
                 world,
                 center,
-                limb[POSITION]
+                limbPosition
               )[0];
               const iterationIndex = reversedIterations.findIndex(
                 (iteration) => iteration.orientation === limbOrientation
@@ -2722,7 +2722,7 @@ export default function setupAi(world: World) {
               );
               const intersectingPosition = combine(
                 size,
-                limb[POSITION],
+                limbPosition,
                 iteration.direction
               );
               shootHoming(world, limb, {
@@ -2731,10 +2731,10 @@ export default function setupAi(world: World) {
                   intersectingPosition,
                   ...circlePositions,
                   intersectingPosition,
-                  copy(limb[POSITION]),
+                  copy(limbPosition),
                 ],
               });
-              limb[ORIENTABLE].facing = undefined;
+              requireComponent(limb, ORIENTABLE).facing = undefined;
               rerenderEntity(world, limb);
             });
 
@@ -2749,7 +2749,7 @@ export default function setupAi(world: World) {
             // color limbs and show rage
             const limbs = getLimbs(world, entity);
             const availableLimbs = limbs.filter(
-              (limb) => limb[ORIENTABLE].facing === undefined
+              (limb) => requireComponent(limb, ORIENTABLE).facing === undefined
             );
             if (availableLimbs.length === 0) {
               // no limbs available, skip
@@ -2761,7 +2761,7 @@ export default function setupAi(world: World) {
             }
 
             availableLimbs.forEach((limb) => {
-              limb[ORIENTABLE].facing = "right";
+              requireComponent(limb, ORIENTABLE).facing = "right";
               registerEntity(world, limb);
             });
 
@@ -2776,7 +2776,7 @@ export default function setupAi(world: World) {
           } else if (pattern.memory.phase === 21) {
             // show spawn homing and wait
             const selectedLimbs = getLimbs(world, entity).filter(
-              (limb) => limb[ORIENTABLE].facing === "right"
+              (limb) => requireComponent(limb, ORIENTABLE).facing === "right"
             );
 
             for (const selectedLimb of selectedLimbs) {
@@ -2784,7 +2784,7 @@ export default function setupAi(world: World) {
               const limbOrientations = relativeOrientations(
                 world,
                 center,
-                selectedLimb[POSITION]
+                requireComponent(selectedLimb, POSITION)
               );
 
               for (const orientation of limbOrientations) {
@@ -2792,7 +2792,7 @@ export default function setupAi(world: World) {
                 shootHoming(world, selectedLimb, {
                   type: "goldDisc",
                   positions: [
-                    combine(size, selectedLimb[POSITION], {
+                    combine(size, requireComponent(selectedLimb, POSITION), {
                       x: delta.x * 6,
                       y: delta.y * 6,
                     }),
@@ -2800,7 +2800,7 @@ export default function setupAi(world: World) {
                   ttl: Infinity,
                 });
               }
-              selectedLimb[ORIENTABLE].facing = undefined;
+              requireComponent(selectedLimb, ORIENTABLE).facing = undefined;
               rerenderEntity(world, selectedLimb);
             }
             patterns.splice(
@@ -2813,13 +2813,13 @@ export default function setupAi(world: World) {
             const limbs = getLimbs(world, entity);
             const activeLimbs = limbs.filter(
               (limb) =>
-                limb[ORIENTABLE].facing !== "up" &&
-                limb[ORIENTABLE].facing !== "down"
+                requireComponent(limb, ORIENTABLE).facing !== "up" &&
+                requireComponent(limb, ORIENTABLE).facing !== "down"
             );
 
             if (percentage < (100 * activeLimbs.length) / (limbs.length + 1)) {
               const selectedLimb = choice(...activeLimbs);
-              selectedLimb[ORIENTABLE].facing = "up";
+              requireComponent(selectedLimb, ORIENTABLE).facing = "up";
               rerenderEntity(world, selectedLimb);
 
               patterns.splice(patterns.indexOf(pattern) + 1, 0, {
@@ -2830,19 +2830,20 @@ export default function setupAi(world: World) {
           } else if (pattern.memory.phase === 41) {
             const limbs = getLimbs(world, entity);
             const spawnLimbs = limbs.filter(
-              (limb) => limb[ORIENTABLE].facing === "up"
+              (limb) => requireComponent(limb, ORIENTABLE).facing === "up"
             );
             spawnLimbs.forEach((limb) => {
+              const position = requireComponent(limb, POSITION);
               const orientation = choice(
-                ...relativeOrientations(world, center, limb[POSITION])
+                ...relativeOrientations(world, center, position)
               );
               const delta = orientationPoints[orientation];
-              const target = combine(size, limb[POSITION], delta);
+              const target = combine(size, position, delta);
               shootHoming(world, limb, {
                 type: "ilexTulip",
                 positions: [target],
               });
-              limb[ORIENTABLE].facing = "down";
+              requireComponent(limb, ORIENTABLE).facing = "down";
               registerEntity(world, limb);
             });
             patterns.splice(patterns.indexOf(pattern), 1, {
@@ -3015,7 +3016,7 @@ export default function setupAi(world: World) {
                 add(entity[POSITION], { x: offsetX, y: 0 })
               );
               if (!eyeEntity) return;
-              eyeEntity[ORIENTABLE].facing = "up";
+              requireComponent(eyeEntity, ORIENTABLE).facing = "up";
               rerenderEntity(world, eyeEntity);
             });
 
@@ -3380,7 +3381,7 @@ export default function setupAi(world: World) {
                   (bush) => bush[IDENTIFIABLE]?.name === "oak:bush"
                 );
                 if (!bushEntity) return;
-                bushEntity[IDENTIFIABLE].name = "oak:spawn";
+                requireComponent(bushEntity, IDENTIFIABLE).name = "oak:spawn";
               });
             }
 
@@ -3847,7 +3848,7 @@ export default function setupAi(world: World) {
               )
             )
             .filter(
-              (fragment): fragment is Entity =>
+              (fragment): fragment is NonNullable<typeof fragment> =>
                 !!fragment &&
                 fragment[FRAGMENT]?.structure === entity[FRAGMENT]?.structure
             );
@@ -3872,7 +3873,7 @@ export default function setupAi(world: World) {
             if (entity[STATS].hp === entity[STATS].maxHp) {
               if (entity[BELONGABLE].faction !== "unit") {
                 limbs.forEach((limb) => {
-                  limb[BELONGABLE].faction = "unit";
+                  requireComponent(limb, BELONGABLE).faction = "unit";
                 });
                 rerenderEntity(world, entity);
               }
@@ -3921,7 +3922,7 @@ export default function setupAi(world: World) {
             break;
           } else if (pattern.memory.phase === 3) {
             limbs.forEach((limb) => {
-              limb[BELONGABLE].faction = "wild";
+              requireComponent(limb, BELONGABLE).faction = "wild";
             });
             rerenderEntity(world, entity);
 
@@ -3942,7 +3943,7 @@ export default function setupAi(world: World) {
             // extend body
             const targetOrientations = ["up", "down"];
             limbs.forEach((limb) => {
-              const orientation = limb[ORIENTABLE].facing as Orientation;
+              const orientation = requireComponent(limb, ORIENTABLE).facing as Orientation;
               if (limb === entity || !targetOrientations.includes(orientation))
                 return;
 
@@ -3976,7 +3977,7 @@ export default function setupAi(world: World) {
             // extend body
             const targetOrientations = ["left", "right"];
             limbs.forEach((limb) => {
-              const orientation = limb[ORIENTABLE].facing as Orientation;
+              const orientation = requireComponent(limb, ORIENTABLE).facing as Orientation;
               if (limb === entity || !targetOrientations.includes(orientation))
                 return;
 
@@ -4121,7 +4122,7 @@ export default function setupAi(world: World) {
             const preferStrike =
               strikeAligned &&
               strikeOrientation !==
-                invertOrientation(closestArm[ORIENTABLE].facing);
+                invertOrientation(requireComponent(closestArm, ORIENTABLE).facing!);
             const preferStomp = inReach && distribution(40, 60) === 0;
             const preferBolt =
               !preferStrike && boltAligned && distribution(40, 60) === 0;
@@ -4141,8 +4142,9 @@ export default function setupAi(world: World) {
               break;
             } else if (inReach && !preferBolt) {
               // prepare for stomping
-              closestArm[ORIENTABLE].facing = rotateOrientation(
-                closestArm[ORIENTABLE].facing,
+              const orientation = requireComponent(closestArm, ORIENTABLE);
+              orientation.facing = rotateOrientation(
+                orientation.facing!,
                 1
               );
               rerenderEntity(world, closestArm);

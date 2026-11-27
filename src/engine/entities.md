@@ -17,7 +17,11 @@ const counter = createCounter(world, {
 });
 ```
 
-`Entity` describes the component map. `TypedEntity<C>` requires the components in C and makes the others optional; it does not prove at runtime that a component exists. Use the [World assertion helpers](ecs.md) when reading an entity ID from a stored reference.
+The game’s `Entity` type maps component names to their data. Use `TypedEntity` for an entity of unknown shape and list the components a function needs, for example `TypedEntity<"POSITION" | "SPRITE">`. A factory guarantees its declared components. A world query guarantees the components in its query. All other components remain optional.
+
+Use `hasComponent(entity, key)` when absence is a normal case. For an owner selected dynamically, `requireComponent(entity, key)` returns that component or throws at the point where it is needed. Use the world’s component queries and assertions when looking up an entity that needs several components. [World](ecs.md)
+
+`getEntityId` returns a number that carries the known entity type through TypeScript. For example, sequence particle references carry their sprite, particle and rendering components. The numeric save format stays the same. A lookup can still return `undefined` after removal, and a plain number from an external source carries no component guarantees.
 
 Factories do not register positioned entities immediately. [Map](systems/map.md) handles new registrations at update cleanup; [preloading](ecs.md) runs that registration before initial rendering.
 <!-- source-types -->
@@ -109,5 +113,17 @@ export type Entity = Record<LevelName, {}> & {
 
 ```ts src/engine/entities.ts
 export type TypedEntity<C extends keyof Entity = never> = Pick<Entity, C> &
-  Partial<Omit<Entity, C>>;
+  Partial<Entity>;
+```
+
+## EntityId
+
+```ts src/engine/entities.ts
+export type EntityId<E extends TypedEntity> = number & { readonly [referencedEntity]: E };
+```
+
+## ReferencedEntity
+
+```ts src/engine/entities.ts
+export type ReferencedEntity<I extends number> = I extends EntityId<infer E> ? E : TypedEntity;
 ```

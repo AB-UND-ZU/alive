@@ -1,4 +1,4 @@
-import type { Entity } from "ecs";
+import type { TypedEntity } from "../../../engine/entities";
 import * as THREE from "three";
 import { useFont } from "@react-three/drei/core/useFont";
 import { useDimensions } from "../../../components/Dimensions";
@@ -18,7 +18,7 @@ export type LayerProps = {
   opacity?: SpringValue<number>;
   darkness?: SpringValue<number>;
   animatedOrigin?: Point;
-  particle?: Entity;
+  particle?: TypedEntity;
   receiveShadow: boolean;
   colorFactor?: number;
   duration?: number;

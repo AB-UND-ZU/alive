@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Lootable = {
@@ -9,7 +9,7 @@ export const LOOTABLE = "LOOTABLE";
 
 export default function addLootable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   lootable: Lootable
 ) {
   world.addComponentToEntity(entity, LOOTABLE, lootable);

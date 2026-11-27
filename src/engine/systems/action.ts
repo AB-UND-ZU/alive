@@ -5,7 +5,6 @@ import { add } from "../../game/math/std";
 import { PLAYER } from "../components/player";
 import { REFERENCE } from "../components/reference";
 import { getCellEntities } from "./map";
-import { Entity } from "ecs";
 import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
 import { LOCKABLE } from "../components/lockable";
@@ -16,7 +15,7 @@ import { canRevive, getRevivable } from "./fate";
 import { getSequence } from "./sequence";
 import { rerenderEntity } from "./renderer";
 import { STATS } from "../components/stats";
-import { TypedEntity } from "../entities";
+import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import {
   getTabSelections,
   isInPopup,
@@ -36,49 +35,49 @@ import { getItemSprite } from "../../game/assets/utils";
 import { none } from "../../game/assets/sprites";
 import { isControllable } from "./freeze";
 import { BLOCKABLE } from "../components/blockable";
-import { getIdentifier } from "../utils";
+import { getIdentifierAndComponents } from "../utils";
 import { canDig, canPlant, getFarmable } from "./harvest";
 import { forgingCompleted } from "../../game/balancing/forging";
 import { canMount } from "./vessel";
 import { MOUNTABLE } from "../components/mountable";
 
 export const getBlockable = (world: World, position: Position) =>
-  getCellEntities(world, position).find((entity) => BLOCKABLE in entity) as
-    | Entity
+  getCellEntities(world, position).find((entity) => hasComponent(entity, BLOCKABLE)) as
+    | TypedEntity<"POSITION" | "BLOCKABLE">
     | undefined;
 
 export const getWarpable = (world: World, position: Position) =>
-  getCellEntities(world, position).find((entity) => WARPABLE in entity) as
-    | Entity
+  getCellEntities(world, position).find((entity) => hasComponent(entity, WARPABLE)) as
+    | TypedEntity<"POSITION" | "WARPABLE">
     | undefined;
 
 export const getLockable = (world: World, position: Position) =>
-  getCellEntities(world, position).find((entity) => LOCKABLE in entity) as
-    | Entity
+  getCellEntities(world, position).find((entity) => hasComponent(entity, LOCKABLE)) as
+    | TypedEntity<"POSITION" | "LOCKABLE">
     | undefined;
 
-export const isLocked = (world: World, entity: Entity) =>
+export const isLocked = (world: World, entity: TypedEntity) =>
   !!entity[LOCKABLE]?.locked;
 
-export const isUnlockable = (world: World, lockable: Entity) =>
+export const isUnlockable = (world: World, lockable: TypedEntity<"POSITION">) =>
   isLocked(world, lockable) && !getBlockable(world, lockable[POSITION]);
 
-export const isUnlocked = (world: World, entity: Entity) =>
+export const isUnlocked = (world: World, entity: TypedEntity) =>
   entity[LOCKABLE]?.locked === false;
 
-export const canUnlock = (world: World, entity: Entity, lockable: Entity) =>
+export const canUnlock = (world: World, entity: TypedEntity, lockable: TypedEntity<"LOCKABLE">) =>
   !getSequence(world, lockable, "unlock") &&
   (lockable[LOCKABLE].material === "wood" ||
     !!getUnlockKey(world, entity, lockable));
 
 export const getUnlockKey = (
   world: World,
-  entity: Entity,
-  lockable: Entity
+  entity: TypedEntity,
+  lockable: TypedEntity<"LOCKABLE">
 ) => {
   const material = lockable[LOCKABLE].material;
   const element = lockable[LOCKABLE].element;
-  const keyId = entity[INVENTORY].items.find((item: number) => {
+  const keyId = requireComponent(entity, INVENTORY).items.find((item: number) => {
     const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
     return (
       itemEntity[ITEM].consume === "key" &&
@@ -89,16 +88,16 @@ export const getUnlockKey = (
   return keyId && world.getEntityById(keyId);
 };
 
-export const getUnlockSprite = (world: World, lockable: Entity) =>
-  lockable[LOCKABLE].material === "wood"
+export const getUnlockSprite = (world: World, lockable: TypedEntity) =>
+  requireComponent(lockable, LOCKABLE).material === "wood"
     ? none
     : getItemSprite({
         consume: "key",
-        material: lockable[LOCKABLE].material,
-        element: lockable[LOCKABLE].element,
+        material: requireComponent(lockable, LOCKABLE).material,
+        element: requireComponent(lockable, LOCKABLE).element,
       });
 
-export const getPendingTotem = (world: World, entity: Entity) => {
+export const getPendingTotem = (world: World, entity: TypedEntity) => {
   const entityId = world.getEntityId(entity);
   return world
     .getEntities([CASTABLE, EXERTABLE, SEQUENCABLE])
@@ -216,15 +215,15 @@ export default function setupAction(world: World) {
       MOVABLE,
       RENDERABLE,
     ])) {
-      let action: Entity | undefined = undefined;
-      let warp: Entity | undefined = undefined;
-      let unlock: Entity | undefined = undefined;
-      let plant: Entity | undefined = undefined;
-      let mount: Entity | undefined = undefined;
-      let popup: Entity | undefined = undefined;
-      let trade: Entity | undefined = undefined;
-      let add_: Entity | undefined = undefined;
-      let spawn: Entity | undefined = undefined;
+      let action: TypedEntity | undefined = undefined;
+      let warp: TypedEntity | undefined = undefined;
+      let unlock: TypedEntity | undefined = undefined;
+      let plant: TypedEntity | undefined = undefined;
+      let mount: TypedEntity | undefined = undefined;
+      let popup: TypedEntity | undefined = undefined;
+      let trade: TypedEntity | undefined = undefined;
+      let add_: TypedEntity | undefined = undefined;
+      let spawn: TypedEntity | undefined = undefined;
 
       // check direct actions
 
@@ -248,12 +247,12 @@ export default function setupAction(world: World) {
             const delta = { x: offsetX, y: offsetY };
             const targetPosition = add(entity[POSITION], delta);
             const adjacent = getCellEntities(world, targetPosition);
-            const warpableEntity = adjacent.find((entity) => WARPABLE in entity);
-            const lockableEntity = adjacent.find((entity) => LOCKABLE in entity);
-            const adjacentPopup = adjacent.find((entity) =>
+            const warpableEntity = adjacent.find((entity) => hasComponent(entity, WARPABLE));
+            const lockableEntity = adjacent.find((entity) => hasComponent(entity, LOCKABLE));
+            const adjacentPopup = adjacent.find((entity): entity is TypedEntity<"POSITION" | "POPUP"> =>
               isPopupAvailable(world, entity)
             );
-            const mountableEntity = adjacent.find((entity) => MOUNTABLE in entity);
+            const mountableEntity = adjacent.find((entity) => hasComponent(entity, MOUNTABLE));
             const popupEntity =
               adjacentPopup === entity ? undefined : adjacentPopup;
             const selections = popupEntity
@@ -324,7 +323,7 @@ export default function setupAction(world: World) {
                 (isInTab(world, entity, "quest") &&
                   isQuestCompleted(world, entity, tradeEntity) &&
                   ((selections.length === 0 &&
-                    tradeEntity[POPUP].choices.length === 0) ||
+                    requireComponent(tradeEntity, POPUP).choices.length === 0) ||
                     selections.length === 1)))
             ) {
               trade = tradeEntity;
@@ -344,12 +343,12 @@ export default function setupAction(world: World) {
                 (isInTab(world, entity, "quest") &&
                   ((!isQuestCompleted(world, entity, addEntity) &&
                     selections.length === 0 &&
-                    addEntity[POPUP].focuses[
-                      addEntity[POPUP].horizontalIndex
+                    requireComponent(addEntity, POPUP).focuses[
+                      requireComponent(addEntity, POPUP).horizontalIndex
                     ]) ||
                     (isQuestCompleted(world, entity, addEntity) &&
                       selections.length === 0 &&
-                      addEntity[POPUP].choices.length > 0))))
+                      requireComponent(addEntity, POPUP).choices.length > 0))))
             ) {
               add_ = addEntity;
               action = add_;
@@ -368,7 +367,7 @@ export default function setupAction(world: World) {
       const skill = world.getEntityById(castableEntity?.[EQUIPPABLE]?.skill);
       const tool = world.getEntityById(castableEntity?.[EQUIPPABLE]?.tool);
 
-      const usePopup = getIdentifier(world, "use");
+      const usePopup = getIdentifierAndComponents(world, "use", [POPUP]);
       const currentPopup = world.getEntityByIdAndComponents(
         entity[PLAYER]?.popup,
         [POPUP]

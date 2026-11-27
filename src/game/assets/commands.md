@@ -32,7 +32,7 @@ export type CommandCall = {
 export type CommandSignature = {
   executor: (
     world: World,
-    entity: Entity,
+    entity: TypedEntity,
     ...args: string[]
   ) => string | Sprite[] | void;
   minArgs: number;

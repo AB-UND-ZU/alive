@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
 export type Rechargable = {
@@ -9,7 +9,7 @@ export const RECHARGABLE = "RECHARGABLE";
 
 export default function addRechargable(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   rechargable: Rechargable
 ) {
   world.addComponentToEntity(entity, RECHARGABLE, rechargable);

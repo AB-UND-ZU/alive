@@ -157,7 +157,24 @@ export type Entity = Record<LevelName, {}> & {
 
 // create a typed entity from component names
 export type TypedEntity<C extends keyof Entity = never> = Pick<Entity, C> &
-  Partial<Omit<Entity, C>>;
+  Partial<Entity>;
+
+export const hasComponent = <C extends keyof Entity>(
+  entity: TypedEntity,
+  component: C
+): entity is TypedEntity<C> => component in entity;
+
+// A dynamic owner can acquire components after it was first looked up.
+export function requireComponent<C extends keyof Entity>(entity: TypedEntity, key: C): Entity[C] {
+  const value = entity[key];
+  if (value === undefined) throw new Error(`Missing component "${key}"`);
+  return value as Entity[C];
+}
+
+// Preserve the component contract when an entity is stored by numeric ID.
+declare const referencedEntity: unique symbol;
+export type EntityId<E extends TypedEntity> = number & { readonly [referencedEntity]: E };
+export type ReferencedEntity<I extends number> = I extends EntityId<infer E> ? E : TypedEntity;
 
 // allow creating entity factories for a given subset of components
 const entityFactory = <T extends keyof Entity>(
@@ -166,7 +183,7 @@ const entityFactory = <T extends keyof Entity>(
 ) => {
   type EntityData = { [K in T]: Entity[K] };
 
-  return (world: World, data: EntityData): EntityData => {
+  return (world: World, data: EntityData): TypedEntity<T> => {
     const entity = world.createEntity();
 
     components.forEach((component) => {
@@ -182,7 +199,7 @@ const entityFactory = <T extends keyof Entity>(
       );
     }
 
-    return entity as EntityData;
+    return entity as TypedEntity<T>;
   };
 };
 

@@ -1,3 +1,4 @@
+import { requireComponent } from "../../engine/entities";
 import {
   AreaWorldOptions,
   advance,
@@ -93,7 +94,7 @@ describe("buildings", () => {
     step(world, 5);
 
     fragments.forEach((fragment) =>
-      expect(fragment[FOG].visibility).toBe("visible")
+      expect(requireComponent(fragment, FOG).visibility).toBe("visible")
     );
   });
 
@@ -140,7 +141,7 @@ describe("buildings", () => {
         ]);
       advance(world, 2500);
       fragments.forEach((fragment) =>
-        expect(fragment[FOG].visibility).toBe("visible")
+        expect(requireComponent(fragment, FOG).visibility).toBe("visible")
       );
       hold(world, ["down"]);
       advanceUntil(world, () => hero[POSITION].y === 6, 2000);

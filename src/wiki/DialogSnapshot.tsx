@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Entity } from "ecs";
+import type { TypedEntity } from "../engine/entities";
 import { World } from "../engine";
 import { Popup } from "../engine/components/popup";
 import { slots } from "../engine/components/equippable";
@@ -47,11 +47,11 @@ const sceneFor: Record<string, SceneName> = {
   tool: "harvesting",
   food: "food",
 };
-export function popupParticles(world: World, owner: Entity) {
+export function popupParticles(world: World, owner: TypedEntity) {
   const state = getSequence(world, owner, "popup");
   if (!state) throw Error("Popup sequence is missing");
   state.elapsed = 10000;
-  displayPopup(world, owner, state);
+  displayPopup(world, world.assertComponents(owner, ["POPUP", "RENDERABLE", "SEQUENCABLE"]), state);
   const particles = Object.entries(state.particles)
     .filter(([name]) => name.startsWith("popup-"))
     .map(([, id]) => world.assertByIdAndComponents(id, ["PARTICLE", "SPRITE"]));
@@ -139,7 +139,7 @@ export function dialogSnapshot(screen: string) {
   if (screen === "quest") {
     owner = createNpc(world, "earthChief", { x: 3, y: 4 });
     npcSequence(world, owner, "earthChiefNpc", {});
-    earthChiefNpc(world, owner, getSequence(world, owner, "npc")!);
+    earthChiefNpc(world, world.assertComponents(owner, ["RENDERABLE", "SEQUENCABLE"]), getSequence(world, owner, "npc")!);
   }
   if (!owner) {
     owner = hero;

@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 import { Material } from "./item";
 
@@ -13,7 +13,7 @@ export const PROJECTILE = "PROJECTILE";
 
 export default function addProjectile(
   world: World,
-  entity: Entity,
+  entity: TypedEntity,
   projectile: Projectile
 ) {
   world.addComponentToEntity(entity, PROJECTILE, projectile);

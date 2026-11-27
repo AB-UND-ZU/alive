@@ -1,4 +1,4 @@
-import { Entity } from "ecs";
+import { requireComponent, hasComponent, TypedEntity } from "../../engine/entities";
 import { aspectRatio } from "../../renderers/interface/dimensions";
 import { World } from "../../engine";
 import { ENTERABLE } from "../../engine/components/enterable";
@@ -258,20 +258,21 @@ const isVisible = (
 
 const getObstructing = (world: World, point: Point) => {
   for (const entity of getCellEntities(world, point)) {
-    if (LIGHT in entity && entity[LIGHT].darkness > 0) return entity;
+    if (hasComponent(entity, LIGHT) && entity[LIGHT].darkness > 0) return entity;
   }
 
   return;
 };
 
-export const getOpaqueOrientation = (world: World, entity: Entity) => {
-  if (entity[ENTERABLE]?.inside) {
-    const insideOrientation = entity[ENTERABLE].orientation;
+export const getOpaqueOrientation = (world: World, entity: TypedEntity) => {
+  const enterable = entity[ENTERABLE];
+  if (enterable && "inside" in enterable && enterable.inside) {
+    const insideOrientation = enterable.orientation;
     if (insideOrientation === null) return undefined;
     if (insideOrientation) return insideOrientation;
   }
 
-  return entity[LIGHT].orientation;
+  return requireComponent(entity, LIGHT).orientation;
 };
 
 // tracing reads cells only through this, so equal obstructions give equal sight
