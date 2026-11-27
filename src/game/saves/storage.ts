@@ -165,7 +165,7 @@ export const storeGame = async (world: World, snapshot?: WorldSnapshot) => {
   return save;
 };
 
-/** Read, upgrade and restore a saved world, without systems. */
+/** Read and restore a saved world, without systems. */
 export const restoreGame = async (id: string) => {
   const save = await readSave(id);
   if (!save) throw new Error(`Save ${id} not found!`);

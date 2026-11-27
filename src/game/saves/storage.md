@@ -4,12 +4,12 @@
 
 | Function | Result |
 | --- | --- |
-| `loadSaveSummaries` | Upgrade older records atomically, then populate the synchronous menu cache |
+| `loadSaveSummaries` | Run pending release upgrades, then cache the summaries for the menu |
 | `storeGame` | Capture the world, replace its save and update the summary cache after writing |
 | `restoreGame` | Read a save and restore its snapshot without systems |
 | `eraseGame` | Delete the summary and snapshot in one transaction |
 
-The startup upgrade refreshes standard workbench recipes and town trader stock. Class and Island unlocks are stored separately from saves. Deleting a slot keeps both.
+Class and Island unlocks are stored separately from saves. Deleting a slot keeps both.
 
 The caller installs systems and preloads a restored world. Erasing from the popup removes the cached summary separately. Storage failures reject the returned promise; World displays save failures in the pause screen.
 

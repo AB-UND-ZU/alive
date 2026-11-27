@@ -26,13 +26,15 @@ Some systems keep values from previous updates to react to changes. Systems are 
 
 ## Upgrading saves
 
-The first writable launch after an update runs the pending entries in `upgrades.ts` in version order. With no recorded game version, it runs all entries, including on saves already stamped with the current version. The 0.9.0 upgrade repairs existing worlds and recovers earned class and Island unlocks. The loading hint shows the version being applied.
+The first writable launch after an update runs the pending entries in `upgrades.ts` in version order. With no recorded game version, it runs all entries up to the installed version, including on saves already stamped with the current version. The 0.9.0 upgrade repairs saved entities, quests and shop menus, and recovers earned class and Island unlocks. The loading hint shows the version being applied.
 
 After the upgrade succeeds, `alive.lastGameVersion` records the package version. Later menu visits read only summaries. Wiki previews leave saves and the version marker untouched.
 
 Saves from newer versions can't be loaded. The saves dialog shows them in dark red.
 
-Test upgrades with saved data from the previous version. The storage tests cover upgrade and retry behavior. `scripts/wiki/tests/savegames.spec.cjs` uses real browser IndexedDB and a native [[data:0.4.0]] fixture to check automatic list upgrades, graph preservation, rollback and concurrent writes.
+When changing game data, check the previous release’s snapshot. A new trader catalog changes newly generated shops only. Upgrade existing deals by item, keeping their stock and selected row. Apply the same check to recipes, quest text and targets, equipment, AI and timers. Add the conversion to the next release entry in `upgrades.ts`. Keep published entries in place so players can skip releases. Ordinary loads restore the resulting snapshot.
+
+Test the released shape through upgrade and reload, including partially completed progress. The storage tests cover upgrade and retry behavior. `scripts/wiki/tests/savegames.spec.cjs` uses real browser IndexedDB and a native [[data:0.4.0]] fixture to check automatic list upgrades, graph preservation, rollback and concurrent writes.
 <!-- source-types -->
 
 ## SaveItem

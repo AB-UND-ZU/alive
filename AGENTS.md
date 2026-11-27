@@ -44,6 +44,11 @@ Prose-only merges use the text and link checks above. CI runs the full game, gen
 - `src/components/`: React rendering and controls.
 - `src/testing/`: existing deterministic world and rendering helpers. Prefer these for game feature tests.
 
+## Saved data
+
+- When a change affects existing games, compare the last released save with the current factory. Check what the snapshot stores, including popup deals and text, quest targets, equipment, AI and timers.
+- Add conversions to the next release entry in `src/game/saves/upgrades.ts`. Preserve player progress, stock and entity references. Test a released save shape through upgrade and reload. See [Saved games](src/game/saves/index.md#upgrading-saves).
+
 ## Version bumps
 
 - When making a new version, update the package version and regenerate the title media with `npm run media:titles`.

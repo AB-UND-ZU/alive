@@ -12,12 +12,7 @@ import { POPUP } from "../../engine/components/popup";
 import { REFERENCE } from "../../engine/components/reference";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
-import {
-  SPRITE,
-  Sprite,
-  SpriteArtwork,
-  SpriteLayers,
-} from "../../engine/components/sprite";
+import type { Sprite, SpriteArtwork, SpriteLayers } from "../../engine/components/sprite";
 import { STATS } from "../../engine/components/stats";
 import { createSnapshot, restoreSnapshot } from "../../engine/snapshot";
 import { disposeFrame } from "../../engine/systems/map";
@@ -25,9 +20,10 @@ import { boatHaste, getHasteInterval } from "../../engine/systems/movement";
 import { createSequence } from "../../engine/systems/sequence";
 import { customSprite, namedSprites } from "../assets/spriteIds";
 import * as sprites from "../assets/sprites";
-import { craftingIngredients } from "../balancing/crafting";
-import { getTraderDeal, getTraderDeals } from "../balancing/trading";
 import { unitDefinitions } from "../balancing/units";
+import { upgradeEntities } from "./upgradeEntities";
+import { upgradeIsland } from "./upgradeIsland";
+import { upgradePopups } from "./upgradePopups";
 
 // Older saves inlined generated sprites without an ID. Recover the named
 // variant when its saved artwork matches, including equipment and idle icons.
@@ -112,40 +108,9 @@ function upgradeWorld(save: SaveGame, earned: Set<Unlock>): SaveGame {
         if (rider) rider.MOVABLE.spring = { duration: tick };
       }
     }
-    const npc = entity[NPC];
-    if (npc && String(npc.type) === "banditArcher") npc.type = "banditRogue";
-    const popup = entity[POPUP];
-    if (npc?.type.endsWith("Trader") && popup?.tabs.includes("buy")) {
-      const { deals } = popup;
-      if (
-        deals[deals.length - 2]?.item.stackable !== "sand" ||
-        deals[deals.length - 1]?.item.stackable !== "gravel"
-      ) {
-        const buyTab = popup.tabs.indexOf("buy");
-        const selected = deals[popup.verticalIndezes[buyTab]];
-        const grounds = (["sand", "gravel"] as const).map(
-          (stackable) =>
-            deals.find((deal) => deal.item.stackable === stackable) ||
-            getTraderDeal({ stackable })
-        );
-        popup.deals = [
-          ...deals.filter((deal) => !grounds.includes(deal)),
-          ...grounds,
-        ];
-        if (selected)
-          popup.verticalIndezes[buyTab] = popup.deals.indexOf(selected);
-      }
+    if (entity[POPUP]?.tabs.includes("load") && !entity[RESTORABLE]) {
+      addRestorable(world, entity, {});
     }
-    const patterns = entity[BEHAVIOUR]?.patterns;
-    if (
-      npc &&
-      patterns &&
-      unitDefinitions[npc.type].patternNames.includes("defend") &&
-      !patterns.some((pattern) => pattern.name === "defend")
-    ) {
-      patterns.unshift({ name: "defend", memory: { hp: entity[STATS]?.hp } });
-    }
-
     // Older arena cleanup could remove loot items while their containers survived.
     const inventory = entity[INVENTORY];
     if (!inventory) continue;
@@ -185,21 +150,18 @@ function upgradeWorld(save: SaveGame, earned: Set<Unlock>): SaveGame {
     delete castable.trigger;
   }
 
-  // A save captures the recipes and stock that existed when the island was built.
-  for (const entity of world.getEntities([POPUP])) {
-    const popup = entity[POPUP];
-    if (popup.tabs.includes("load") && !entity[RESTORABLE]) addRestorable(world, entity, {});
+  upgradeIsland(world);
+  upgradeEntities(world);
+  upgradePopups(world);
+
+  for (const entity of world.getEntities([NPC, BEHAVIOUR])) {
+    const npc = entity[NPC];
+    const patterns = entity[BEHAVIOUR].patterns;
     if (
-      entity[SPRITE]?.id === sprites.bench.id &&
-      popup.tabs.includes("craft")
+      unitDefinitions[npc.type].patternNames.includes("defend") &&
+      !patterns.some((pattern) => pattern.name === "defend")
     ) {
-      popup.ingredients = craftingIngredients;
-    } else if (
-      entity[NPC]?.type.endsWith("Trader") &&
-      popup.tabs.includes("buy") &&
-      popup.deals.every((deal) => deal.stock === Infinity)
-    ) {
-      popup.deals = getTraderDeals();
+      patterns.unshift({ name: "defend", memory: { hp: entity[STATS]?.hp } });
     }
   }
 

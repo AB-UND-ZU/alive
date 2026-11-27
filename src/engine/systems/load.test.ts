@@ -1,4 +1,4 @@
-import { upgradeOldWorld } from "../../testing/saves";
+import { restoreUpgradedSave } from "../../testing/saves";
 import {
   act,
   advance,
@@ -31,6 +31,7 @@ import { World } from "../ecs";
 import { TypedEntity } from "../entities";
 import { playedSounds, resetPlayedSounds } from "../../testing/env";
 import {
+  createSave,
   getSaveSummaries,
   saveVersion,
   SaveSummary,
@@ -154,7 +155,7 @@ describe("continue portal", () => {
       RESTORABLE,
       false
     );
-    const loaded = upgradeOldWorld(world);
+    const loaded = restoreUpgradedSave(createSave(world));
     expect(loaded.assertById(world.getEntityId(popup))[RESTORABLE]).toBeDefined();
   });
 

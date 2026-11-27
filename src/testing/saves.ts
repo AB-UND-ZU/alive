@@ -7,10 +7,15 @@ import { World } from "../engine";
 import { createSystems, preloadLevel } from "../engine/ecs";
 import { createSnapshot, restoreSnapshot } from "../engine/snapshot";
 
-export const upgradeTestSave = (save: SaveGame) =>
-  saveUpgrades.reduce((updated, step) => upgradeSave(updated, step, new Set()), save);
-
-export const upgradeOldWorld = (world: World) => restoreSavedWorld(upgradeTestSave(createSave(world)));
+export const restoreUpgradedSave = (save: SaveGame) => {
+  const updated = saveUpgrades.reduce(
+    (current, step) => upgradeSave(current, step, new Set()),
+    save
+  );
+  const world = restoreSnapshot(updated.snapshot);
+  world.metadata.saveId = updated.id;
+  return world;
+};
 
 /**
  * Save a world and load it again like a saved game. The snapshot passes the
@@ -19,7 +24,7 @@ export const upgradeOldWorld = (world: World) => restoreSavedWorld(upgradeTestSa
  */
 export const saveAndLoad = (world: World, version?: string) => {
   const save = deserialize(serialize(createSave(world)));
-  const loaded = restoreSavedWorld(version ? upgradeTestSave({ ...save, version }) : save);
+  const loaded = version ? restoreUpgradedSave({ ...save, version }) : restoreSavedWorld(save);
   loaded.metadata.initial = false;
   createSystems(loaded);
   preloadLevel(loaded);
