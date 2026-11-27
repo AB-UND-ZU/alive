@@ -302,7 +302,7 @@ const spriteBuilderView = displayPopupView((world, entity, state) => {
       const line = createText(
         (index === editor.sprites.length
           ? "(New Sprite)"
-          : sprite.name || `Sprite #${index + 1}`
+          : `Sprite #${index + 1}`
         ).padEnd(15),
         index === row ? colors.white : colors.grey
       );
