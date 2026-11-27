@@ -1,3 +1,4 @@
+import { playedSounds } from "../../testing/env";
 import { resolveSprite } from "../../game/assets/spriteIds";
 import {
   act,
@@ -108,6 +109,34 @@ const button = (world: World, popup = menu(world)) => {
 };
 
 describe("dialog rows after inventory changes", () => {
+  it("drops one selected bag item at a time, including a crawling worm", () => {
+    const { world, hero } = setup([
+      { stackable: "apple", amount: 1 },
+      { stackable: "worm", amount: 2 },
+    ]);
+    const popup = open(world, { tabs: ["inspect"] });
+    act(world, "down");
+    world.assertByIdAndComponents(hero[INVENTORY].items[1], [ITEM]).ITEM.bound = true;
+    const wormId = hero[INVENTORY].items[1];
+    for (const remaining of [1, 0]) {
+      act(world, "left");
+      const worms = world.getEntities(["LOOTABLE", "INVENTORY", "BEHAVIOUR"]).filter(
+        (drop) => drop.BEHAVIOUR.patterns[0]?.name === "worm"
+      );
+      expect(worms).toHaveLength(2 - remaining);
+      for (const drop of worms) {
+        const worm = world.assertByIdAndComponents(drop.INVENTORY.items[0], [ITEM]);
+        expect(worm.ITEM).toMatchObject({ stackable: "worm", amount: 1, bound: false, carrier: world.getEntityId(drop) });
+      }
+      expect(hero[INVENTORY].items.includes(wormId)).toBe(remaining > 0);
+    }
+    expect(getVerticalIndex(world, popup)).toBe(0);
+    act(world, "left");
+    act(world, "left");
+    expect(hero[INVENTORY].items).toHaveLength(0);
+    expect(playedSounds.filter((sound) => sound === "back")).toHaveLength(3);
+  });
+
   it("clamps the last sell row in the same update that removes its item", () => {
     const { world, hero } = setup([
       { stackable: "coin", amount: 1 },

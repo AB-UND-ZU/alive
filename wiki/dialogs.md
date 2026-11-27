@@ -15,4 +15,4 @@ popup message
 
 [[key:B]] Open the Bag.
 
-Inspect carried items in the Bag. [Signs](signs.md) open longer instructions; [Quests](quests.md) show tasks and rewards.
+Select an item in the Bag and press [[button:DROP]] to put one on the ground. [Signs](signs.md) open longer instructions; [Quests](quests.md) show tasks and rewards.

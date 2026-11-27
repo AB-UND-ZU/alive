@@ -4317,6 +4317,7 @@ export const displayInspect = displayPopupView((world, entity, state) => {
     content,
     selection: selectedUsable ? "active" : hasItems ? "selected" : undefined,
     details,
+    leftButton: createButton("DROP", 6, !selectedItem, false, false, "red"),
     rightButton: createButton(
       selectedUsable ? "EAT" : "USE",
       5,

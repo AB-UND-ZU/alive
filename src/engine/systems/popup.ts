@@ -120,7 +120,7 @@ import { buildConstructions } from "../../game/balancing/building";
 import { canBuild, canConstruct, getBuildingDeal } from "./build";
 import { FOG } from "../components/fog";
 import { SPRITE } from "../components/sprite";
-import { createItemAsDrop } from "./drop";
+import { createItemAsDrop, dropBagItem } from "./drop";
 import { play } from "../../game/sound";
 
 export const isInPopup = (world: World, entity: TypedEntity) =>
@@ -1097,6 +1097,7 @@ export default function setupPopup(world: World) {
       EQUIPPABLE,
       MOVABLE,
       PLAYER,
+      POSITION,
       RENDERABLE,
       INVENTORY,
       TOOLTIP,
@@ -1865,6 +1866,12 @@ export default function setupPopup(world: World) {
       if (tab === "chat") {
         clearChat(world, popupEntity);
         play(world, undefined, "back");
+      } else if (tab === "inspect") {
+        const selected = inspectItems[boundIndex];
+        if (selected) {
+          dropBagItem(world, heroEntity, world.assertComponents(selected, [ITEM, SPRITE]));
+          play(world, undefined, "back");
+        }
       } else if (tab === "load" && selections.length === 0) {
         // ask before erasing a saved game
         const save = getSaveSummaries()[getVerticalIndex(world, popupEntity)];

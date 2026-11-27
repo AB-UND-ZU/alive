@@ -11,10 +11,11 @@ import { DROPPABLE } from "../components/droppable";
 import { FOG } from "../components/fog";
 import { INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
-import { SPRITE } from "../components/sprite";
+import { Sprite, SPRITE } from "../components/sprite";
 import { none, arrow, shadow, charge } from "../../game/assets/sprites";
 import { Item, ITEM } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
+import { rerenderEntity } from "./renderer";
 import { removeFromInventory } from "./trigger";
 import { Level, LEVEL } from "../components/level";
 import { combine, copy, shuffle } from "../../game/math/std";
@@ -172,6 +173,45 @@ export const findAdjacentDroppable = (
 type InventoryItemData<T> = Omit<T, "ITEM" | "RENDERABLE"> &
   Pick<TypedEntity<"ITEM" | "RENDERABLE">, "ITEM" | "RENDERABLE">;
 
+function createGroundDrop(
+  world: World,
+  position: Position,
+  item: Pick<Item, "stackable" | "amount">,
+  sprite: Sprite,
+  items: number[] = [],
+  disposable = true
+) {
+  const data = {
+    [FOG]: { visibility: "fog", type: "unit" } as const,
+    [HOOKABLE]: { escaping: false },
+    [INVENTORY]: { items },
+    [LAYER]: {},
+    [LOOTABLE]: { disposable },
+    [POSITION]: position,
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: sprite,
+    [SWIMMABLE]: { swimming: false },
+  };
+  return item.stackable === "worm" && item.amount === 1
+    ? entities.createMiniature(world, {
+        ...data,
+        [BEHAVIOUR]: { patterns: [{ name: "worm", memory: {} }] },
+        [MOVABLE]: {
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: {
+            duration: 350,
+          },
+          lastInteraction: 0,
+          flying: false,
+          swimming: false,
+        },
+        [ORIENTABLE]: {},
+      })
+    : entities.createDrop(world, data);
+}
+
 export const createItemAsDrop = <T extends TypedEntity<"ITEM" | "RENDERABLE">>(
   world: World,
   position: Position,
@@ -181,18 +221,7 @@ export const createItemAsDrop = <T extends TypedEntity<"ITEM" | "RENDERABLE">>(
   },
   drop = true
 ) => {
-  const containerEntity = entities.createDrop(world, {
-    [FOG]: { visibility: "fog", type: "unit" },
-    [HOOKABLE]: { escaping: false },
-    [INVENTORY]: { items: [] },
-    [LAYER]: {},
-    [LOOTABLE]: { disposable: true },
-    [POSITION]: position,
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: drop ? shadow : none,
-    [SWIMMABLE]: { swimming: false },
-  });
+  const containerEntity = createGroundDrop(world, position, entity[ITEM], drop ? shadow : none);
   return createItemInInventory(world, containerEntity, factory, entity);
 };
 
@@ -235,6 +264,29 @@ export const createItemInInventory = <
   }
   return itemEntity;
 };
+
+export function dropBagItem(
+  world: World,
+  carrier: TypedEntity<"INVENTORY" | "POSITION">,
+  selected: TypedEntity<"ITEM" | "SPRITE">
+) {
+  const item = { ...selected[ITEM], amount: 1, bound: false };
+  const position = findAdjacentDroppable(world, carrier[POSITION], MAX_DROP_RADIUS, false);
+  const drop = createGroundDrop(world, position, item, shadow);
+  if (selected[ITEM].amount === 1) {
+    removeFromInventory(world, carrier, selected);
+    selected[ITEM].bound = false;
+    selected[ITEM].carrier = world.getEntityId(drop);
+    drop[INVENTORY].items.push(world.getEntityId(selected));
+  } else {
+    selected[ITEM].amount -= 1;
+    createItemInInventory(world, drop, entities.createItem, {
+      [ITEM]: item,
+      [SPRITE]: getItemSprite(item),
+    });
+    rerenderEntity(world, carrier);
+  }
+}
 
 export const dropEntity = (
   world: World,
@@ -357,41 +409,11 @@ export const dropEntity = (
       setIdentifier(world, itemEntity, `${identifier}:drop`);
     }
 
-    const containerData = {
-      [FOG]: { visibility: "fog", type: "unit" } as const,
-      [HOOKABLE]: { escaping: false },
-      [INVENTORY]: { items: isCentered ? [itemId] : [] },
-      [LAYER]: {},
-      [LOOTABLE]: { disposable: isCentered },
-      [POSITION]: dropPosition,
-      [RENDERABLE]: { generation: 0 },
-      [SEQUENCABLE]: { states: {} },
-      [SPRITE]:
-        (entity[POSITION] && isImmersible(world, entity[POSITION])) ||
-        !isCentered
-          ? none
-          : shadow,
-      [SWIMMABLE]: { swimming: false },
-    };
-
-    const containerEntity =
-      itemEntity[ITEM].stackable === "worm" && itemEntity[ITEM].amount === 1
-        ? entities.createMiniature(world, {
-            ...containerData,
-            [BEHAVIOUR]: { patterns: [{ name: "worm", memory: {} }] },
-            [MOVABLE]: {
-              orientations: [],
-              reference: world.getEntityId(world.metadata.gameEntity),
-              spring: {
-                duration: 350,
-              },
-              lastInteraction: 0,
-              flying: false,
-              swimming: false,
-            },
-            [ORIENTABLE]: {},
-          })
-        : entities.createDrop(world, containerData);
+    const containerEntity = createGroundDrop(
+      world, dropPosition, itemEntity[ITEM],
+      !isCentered || (entity[POSITION] && isImmersible(world, entity[POSITION])) ? none : shadow,
+      isCentered ? [itemId] : [], isCentered
+    );
 
     if (itemEntity[POPUP]) {
       const { viewpoint, ...popup } = itemEntity[POPUP];
