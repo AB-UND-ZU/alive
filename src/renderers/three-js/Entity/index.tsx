@@ -256,4 +256,16 @@ function Entity({
   );
 }
 
-export default React.memo(Entity);
+// Systems passes fresh props for every visible entity on each scene update.
+export default React.memo(
+  Entity,
+  (prev, next) =>
+    prev.generation === next.generation &&
+    prev.x === next.x &&
+    prev.y === next.y &&
+    prev.entity === next.entity &&
+    prev.inRadius === next.inRadius &&
+    prev.inside === next.inside &&
+    prev.castShadow === next.castShadow &&
+    prev.outside === next.outside
+);
