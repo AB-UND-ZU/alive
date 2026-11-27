@@ -5,7 +5,8 @@ import type { Sprite } from "../../engine/components/sprite";
 import type { UnitStats } from "../../engine/components/stats";
 import { colors } from "./colors";
 import * as sprites from "./sprites";
-import { doorClosed, portClosed } from "./templates/units";
+import { spirit } from "./templates/items";
+import { doorClosed, frameClosed, portClosed } from "./templates/units";
 import { prism } from "./templates/creatures";
 import {
   createItemName as item,
@@ -28,6 +29,7 @@ import {
   createText,
   getFacingLayers,
   getStatColor,
+  getStatSprite,
   mergeSprites,
   recolorSprite,
 } from "./ui";
@@ -83,6 +85,7 @@ const originalChest = mergeSprites(
   sprites.hostileBar
 );
 const originalIce = glyph("█", colors.teal);
+const tornado = glyph("╬", colors.white);
 const note = glyph("\u010d", colors.lime);
 
 let history: Dialog[] | undefined;
@@ -90,6 +93,41 @@ let history: Dialog[] | undefined;
 // Build once after game modules initialize; the history uses the normal popup labels.
 export const getUpdates = (): Dialog[] =>
   (history ||= [
+    update("0x09", "20261127", [
+      ...change([label(spirit.wood.water, "Water"), " village"], ["with igloos:"]),
+      [],
+      line(
+        "      ", sprites.iglooRoofLeftUp, sprites.iglooRoofUp,
+        sprites.iglooWall, sprites.iglooRoofUp, sprites.iglooRoofUpRight
+      ),
+      line("      ", Array(5).fill(sprites.iglooWall)),
+      line(
+        "      ", sprites.iglooWall, sprites.iglooWall,
+        frameClosed.wood.default, sprites.iglooWall, sprites.iglooWall
+      ),
+      ...change(
+        ["Unlock ", label(sprites.mapDiscovery, "Levels")],
+        [
+          "and ", getClassSprite("rogue"), getClassSprite("mage"),
+          getClassSprite("knight"), label(getClassSprite("???"), "Classes"),
+        ]
+      ),
+      ...change(
+        ["Add ", label(sprites.diamond, "Diamond"), " and"],
+        ["craft ", label(sprites.diamondGem, "Gem")]
+      ),
+      ...change(
+        ["More ", label(sprites.bandit, "Bandit", colors.maroon), " ", stat("hp")],
+        ["and less ", label(getStatSprite("melee"), "Damage", getStatColor("melee"))]
+      ),
+      ...change(["Stereo ", label(sprites.soundNotes, "Sound")], ["by position"]),
+      ...change(
+        [label(tornado, "Tornado"), " and"],
+        [label(sprites.enemySpawner, "Spawner"), " sounds"]
+      ),
+      ...change(["Reduce ", stat("haste")], ["speed gain"]),
+      ...change(["Knock back items"]),
+    ]),
     update("0x08", "20261124", [
       ...change(
         ["Fill ", label(sprites.ice, "Glacier"), ":"],
@@ -192,7 +230,7 @@ export const getUpdates = (): Dialog[] =>
             "Snow"
           ),
         ],
-        ["and ", label(glyph("╬", colors.white), "Tornado")]
+        ["and ", label(tornado, "Tornado")]
       ),
       ...change([
         label(sprites.tombstone1, "Die"),
