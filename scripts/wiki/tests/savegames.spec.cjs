@@ -4,8 +4,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { deserialize } = require("node:v8");
 const { gunzipSync } = require("node:zlib");
-let currentVersion;
-const futureVersion = "99.0.0";
+const currentVersion = "0.9.0";
+const futureVersion = `${Number(currentVersion.split(".")[0]) + 1}.0.0`;
 
 let bundle;
 const fixture = deserialize(
@@ -27,6 +27,15 @@ export {getSequence} from "./src/engine/systems/sequence";
 test.beforeAll(async () => {
   const result = await build({
     stdin: { contents: entry, resolveDir: process.cwd(), loader: "ts" },
+    plugins: [{
+      name: "release-under-test",
+      setup(builder) {
+        builder.onLoad({ filter: /package\.json$/ }, ({ path: file }) => {
+          if (file === path.join(process.cwd(), "package.json"))
+            return { contents: JSON.stringify({ version: currentVersion }), loader: "json" };
+        });
+      },
+    }],
     bundle: true,
     write: false,
     platform: "browser",
@@ -52,7 +61,7 @@ test.beforeEach(async ({ page }) => {
   );
   await page.goto("/save-migration-test.html");
   await page.addScriptTag({ content: bundle });
-  currentVersion = await page.evaluate(() => SaveMigration.saveVersion);
+  expect(await page.evaluate(() => SaveMigration.saveVersion)).toBe(currentVersion);
   // Playwright passes the native decoded object, including Infinity and aliases.
   await page.evaluate(async (save) => {
     window.originalSave = save;
@@ -237,6 +246,15 @@ test("an upgraded save list reads summaries only and writes nothing", async ({
   });
 });
 
+test("two simultaneous menu loads upgrade the world once", async ({ page }) => {
+  const trace = await page.evaluate(async () => {
+    await Promise.all([SaveMigration.loadSaveSummaries(), SaveMigration.loadSaveSummaries()]);
+    return saveTest.trace;
+  });
+  expect(trace.reads).toEqual(["saves"]);
+  expect(trace.writes.map(({ store }) => store)).toEqual(["saves", "summaries"]);
+});
+
 test("a migrated historical world restores and accepts native movement", async ({
   page,
 }) => {
@@ -266,7 +284,7 @@ test("a migrated historical world restores and accepts native movement", async (
   });
 });
 
-test("a stale summary is refreshed without rewriting an already-current world", async ({
+test("the first launch upgrades a released world even when it already has the current version", async ({
   page,
 }) => {
   const result = await page.evaluate(async (currentVersion) => {
@@ -292,6 +310,7 @@ test("a stale summary is refreshed without rewriting an already-current world", 
   });
   expect(result.trace.reads).toEqual(["saves"]);
   expect(result.trace.writes).toEqual([
+    { store: "saves", version: currentVersion },
     { store: "summaries", version: currentVersion },
   ]);
 });
@@ -333,7 +352,7 @@ test("a future world behind an old summary is untouched and denied by the native
     loadable: false,
     sameSnapshot: true,
     refused: true,
-    trace: { writes: [] },
+    trace: { writes: [{ store: "summaries", version: futureVersion }] },
     dialog: { tab: "load", movable: true, message: "Newer version!" },
   });
 });

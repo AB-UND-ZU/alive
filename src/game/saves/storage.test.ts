@@ -19,12 +19,13 @@ import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
 import { createSystems, preloadLevel } from "../../engine/ecs";
 import { createSnapshot } from "../../engine/snapshot";
+import { saveUpgrades } from "./upgrades";
 import { installFakeIndexedDB } from "./testing";
 import {
+  createSave,
   getSaveSummaries,
   getSummary,
   SaveGame,
-  saveUpgrades,
   saveVersion,
   setSaveSummaries,
 } from ".";
@@ -34,6 +35,8 @@ import {
   restoreGame,
   storeGame,
 } from "./storage";
+
+jest.mock("../../../package.json", () => ({ version: "0.9.0" }));
 
 // ♀ hero, c chick
 const area = `
@@ -98,7 +101,7 @@ describe("save storage", () => {
     });
 
     const saved = await storeGame(world);
-    fake.write("alive", "saves", { ...saved, version: "0.8.0" });
+    await loadSaveSummaries();
     const loaded = await restoreGame(saved.id);
     expect(loaded.assertByIdAndComponents(benchId, [POPUP])[POPUP].ingredients)
       .toEqual(craftingIngredients);
@@ -107,32 +110,122 @@ describe("save storage", () => {
   });
 
   it("keeps earned classes when their save is erased", async () => {
-    setUnlocks(false);
-    try {
-      const world = createAreaWorld(area);
-      const hero = world.assertComponents(assertHero(world), [
-        PLAYER, "INVENTORY", POSITION,
-      ]);
-      giveItems(world, hero, [
-        { stackable: "resource", material: "diamond", amount: 5 },
-      ]);
-      hero[PLAYER].defeatedUnits.woodChest = 1;
-      await storeGame(world);
-      expect(hasUnlock("???")).toBe(false);
-      expect(hasUnlock("knight")).toBe(false);
-      expect(hasUnlock("mage")).toBe(false);
+    loadUnlocks();
+    const world = createAreaWorld(area);
+    const hero = world.assertComponents(assertHero(world), [
+      PLAYER, "INVENTORY", POSITION,
+    ]);
+    giveItems(world, hero, [
+      { stackable: "resource", material: "diamond", amount: 5 },
+    ]);
+    hero[PLAYER].defeatedUnits.woodChest = 1;
+    await storeGame(world);
+    expect(hasUnlock("???")).toBe(false);
+    expect(hasUnlock("knight")).toBe(false);
+    expect(hasUnlock("mage")).toBe(false);
 
-      hero[PLAYER].defeatedUnits.chestBoss = 1;
-      hero[PLAYER].defeatedUnits.fireNomad = 2;
-      giveItems(world, hero, [{ stackable: "gem", amount: 1 }]);
-      const save = await storeGame(world);
-      await eraseGame(save.id);
-      loadUnlocks();
-      expect(hasUnlock("???")).toBe(true);
-      expect(hasUnlock("knight")).toBe(true);
-      expect(hasUnlock("mage")).toBe(true);
+    hero[PLAYER].defeatedUnits.chestBoss = 1;
+    hero[PLAYER].defeatedUnits.fireNomad = 2;
+    giveItems(world, hero, [{ stackable: "gem", amount: 1 }]);
+    const save = await storeGame(world);
+    await eraseGame(save.id);
+    loadUnlocks();
+    expect(hasUnlock("???")).toBe(true);
+    expect(hasUnlock("knight")).toBe(true);
+    expect(hasUnlock("mage")).toBe(true);
+  });
+
+  it.each([
+    ["LEVEL_ISLAND", 0, true],
+    ["LEVEL_TUTORIAL", 1, true],
+    ["LEVEL_TUTORIAL", 0, false],
+  ] as const)("recovers Island access at the menu from %s with %i boss defeats", async (level, defeats, earned) => {
+    const world = createAreaWorld(area, { level });
+    assertHero(world)[PLAYER]!.defeatedUnits.tutorialBoss = defeats;
+    const legacy = createSave(world);
+    // Seed the pre-unlock save directly so no live hero can grant the unlock.
+    await loadSaveSummaries("readonly");
+    fake.write("alive", "saves", legacy);
+    fake.write("alive", "summaries", getSummary(legacy));
+
+    await loadSaveSummaries("readonly");
+    loadUnlocks();
+    expect(hasUnlock("LEVEL_ISLAND")).toBe(false);
+
+    await loadSaveSummaries();
+    loadUnlocks();
+    expect(hasUnlock("LEVEL_ISLAND")).toBe(earned);
+    expect(readSaves()).toEqual([legacy]);
+  });
+
+  it("offers earned classes when the menu lists older saves from different characters", async () => {
+    await loadSaveSummaries("readonly");
+    const dungeon = createAreaWorld(area);
+    assertHero(dungeon)[PLAYER]!.defeatedUnits.chestBoss = 1;
+    const island = createAreaWorld(area, { level: "LEVEL_ISLAND" });
+    const hero = island.assertComponents(assertHero(island), [PLAYER, "INVENTORY", POSITION]);
+    hero[PLAYER].defeatedUnits.fireNomad = 1;
+    giveItems(island, hero, [{ stackable: "gem", amount: 1 }]);
+
+    for (const world of [dungeon, island]) {
+      const legacy = createSave(world);
+      fake.write("alive", "saves", legacy);
+      fake.write("alive", "summaries", getSummary(legacy));
+    }
+
+    localStorage.clear();
+    await loadSaveSummaries("readonly");
+    loadUnlocks();
+    expect(["knight", "mage", "???"].map((key) => localStorage.getItem("alive.class." + key)))
+      .toEqual([null, null, null]);
+    await loadSaveSummaries();
+    loadUnlocks();
+    expect((["knight", "mage", "???"] as const).every(hasUnlock)).toBe(true);
+  });
+
+  it("ignores Gems in another inventory", async () => {
+    const world = createAreaWorld(area);
+    const npc = world.assertComponents(createNpc(world, "earthTrader", { x: 2, y: 2 }), ["INVENTORY", POSITION]);
+    giveItems(world, npc, [{ stackable: "gem", amount: 1 }]);
+    assertHero(world)[PLAYER]!.defeatedUnits.fireNomad = 1;
+    await storeGame(world);
+    setUnlocks(false);
+    await loadSaveSummaries();
+    expect(hasUnlock("mage")).toBe(false);
+    expect(hasUnlock("knight")).toBe(true);
+  });
+
+  it("recovers unlocks once, even when the save already has the released version", async () => {
+    const world = createAreaWorld(area);
+    assertHero(world)[PLAYER]!.defeatedUnits.tutorialBoss = 1;
+    await storeGame(world);
+    setUnlocks(false);
+    await loadSaveSummaries();
+    expect(hasUnlock("LEVEL_ISLAND")).toBe(true);
+
+    setUnlocks(false);
+    await loadSaveSummaries();
+    expect(hasUnlock("LEVEL_ISLAND")).toBe(false);
+    expect(localStorage.getItem("alive.lastGameVersion")).toBe(saveVersion);
+  });
+
+  it("runs only releases newer than the last completed upgrade, in order", async () => {
+    await storeGame(createAreaWorld(area));
+    localStorage.setItem("alive.lastGameVersion", "0.6.0");
+    const steps: string[] = [];
+    const upgrades = ["0.7.2", "0.6.0", "0.7.1", "99.0.0"].map((version) => ({
+      version,
+      upgrade: (save: SaveGame) => { steps.push(version); return save; },
+    }));
+    saveUpgrades.push(...upgrades);
+    const hint = jest.fn();
+    try {
+      await loadSaveSummaries("readwrite", hint);
+      await loadSaveSummaries("readwrite", hint);
+      expect(steps).toEqual(["0.7.1", "0.7.2"]);
+      expect(hint.mock.calls.flat()).toEqual(["0.7.1", "0.7.2", "0.9.0"]);
     } finally {
-      setUnlocks(false);
+      saveUpgrades.splice(saveUpgrades.indexOf(upgrades[0]), upgrades.length);
     }
   });
 
@@ -169,7 +262,7 @@ describe("save storage", () => {
 
       const upgraded = { ...older, version: saveVersion };
       const stored = mode === "readwrite" ? upgraded : older;
-      expect(getSaveSummaries()).toEqual([getSummary(upgraded)]);
+      expect(getSaveSummaries()).toEqual([getSummary(stored)]);
       expect(readSaves()).toEqual([stored]);
       expect(fake.read("alive", "summaries")).toEqual([getSummary(stored)]);
     }
@@ -191,6 +284,7 @@ describe("save storage", () => {
 
     try {
       await expect(loadSaveSummaries()).rejects.toBe(failure);
+      expect(localStorage.getItem("alive.lastGameVersion")).toBeNull();
 
       expect(readSaves()).toEqual([older]);
       expect(fake.read("alive", "summaries")).toEqual([getSummary(older)]);
@@ -198,6 +292,8 @@ describe("save storage", () => {
     } finally {
       saveUpgrades.splice(saveUpgrades.indexOf(upgrade), 1);
     }
+    await loadSaveSummaries();
+    expect(localStorage.getItem("alive.lastGameVersion")).toBe(saveVersion);
   });
 
   it("rolls back both save records when a transaction aborts after a write", async () => {
@@ -384,7 +480,7 @@ describe("save storage", () => {
     expect(hero[POSITION]).toEqual({ x: x + 1, y });
   });
 
-  it("upgrades older saves when restoring", async () => {
+  it("loads the changes committed by the startup upgrade", async () => {
     const save = await storeGame(createAreaWorld(area));
     fake.write("alive", "saves", { ...save, version: "0.0.1" });
     const upgrade = {
@@ -397,6 +493,7 @@ describe("save storage", () => {
     saveUpgrades.push(upgrade);
 
     try {
+      await loadSaveSummaries();
       const restored = await restoreGame(save.id);
       expect(restored.metadata.playtime).toBe(1234);
     } finally {

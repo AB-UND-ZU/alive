@@ -10,9 +10,9 @@ import { SPAWNABLE } from "../../engine/components/spawnable";
 import { STATS } from "../../engine/components/stats";
 import { createSnapshot, restoreSnapshot, WorldSnapshot } from "../../engine/snapshot";
 import { ClassKey } from "../balancing/classes";
-import { saveUpgrades, saveVersion } from "./upgrades";
+import packageJson from "../../../package.json";
 
-export { saveUpgrades, saveVersion };
+export const saveVersion = packageJson.version;
 
 export const pauseSaveDelay = 150;
 
@@ -51,31 +51,6 @@ export const compareVersions = (left: string, right: string) => {
 // saves of newer game versions can't be downgraded
 export const isLoadable = (save: SaveSummary, version = saveVersion) =>
   compareVersions(save.version, version) <= 0;
-
-export const upgradeSave = (
-  save: SaveGame,
-  version = saveVersion,
-  upgrades = saveUpgrades
-) => {
-  if (!isLoadable(save, version)) {
-    throw new Error(`Save ${save.name} is from newer version ${save.version}!`);
-  }
-
-  return upgrades
-    .filter(
-      (upgrade) =>
-        compareVersions(upgrade.version, save.version) > 0 &&
-        compareVersions(upgrade.version, version) <= 0
-    )
-    .sort((left, right) => compareVersions(left.version, right.version))
-    .reduce(
-      (upgraded, upgrade) => ({
-        ...upgrade.upgrade(upgraded),
-        version: upgrade.version,
-      }),
-      save
-    );
-};
 
 const pad = (value: number) => value.toString().padStart(2, "0");
 
@@ -139,7 +114,8 @@ export const createSave = (
 };
 
 export const restoreSavedWorld = (save: SaveGame) => {
-  const world = restoreSnapshot(upgradeSave(save).snapshot);
+  if (!isLoadable(save)) throw new Error(`Save ${save.name} is from newer version ${save.version}!`);
+  const world = restoreSnapshot(save.snapshot);
   world.metadata.saveId = save.id;
   return world;
 };

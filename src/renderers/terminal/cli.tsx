@@ -1,7 +1,7 @@
 import React from "react";
 import { spawn } from "child_process";
 import { emitKeypressEvents, Interface, Key } from "readline";
-import { mkdirSync, readFileSync, writeFileSync, rmSync } from "fs";
+import { mkdirSync, readFileSync, writeFileSync, renameSync, rmSync } from "fs";
 import { dirname, join } from "path";
 import { homedir } from "os";
 import { deserialize, serialize } from "v8";
@@ -10,7 +10,7 @@ import { createLevel, createSystems, preloadLevel } from "../../engine/ecs";
 import { LevelName } from "../../engine/components/level";
 import { PLAYER } from "../../engine/components/player";
 import { POPUP } from "../../engine/components/popup";
-import { soundsLoading, worldLoading } from "../../game/assets/loading";
+import { soundsLoading, updateLoading, worldLoading } from "../../game/assets/loading";
 import type { Sprite } from "../../engine/components/sprite";
 import type {
   GenerationMessage,
@@ -20,7 +20,7 @@ import type {
 import { Worker } from "worker_threads";
 import { TEST_MODE } from "../../engine/utils";
 import { levelConfig } from "../../game/levels";
-import { checkUnlocks } from "../../game/unlocks";
+import { checkUnlocks, Unlock } from "../../game/unlocks";
 import {
   canSave,
   createSave,
@@ -29,8 +29,9 @@ import {
   restoreSavedWorld,
   SaveGame,
   setSaveSummaries,
-  upgradeSave,
+  isLoadable,
 } from "../../game/saves";
+import { finishUpgrade, pendingUpgrades, upgradeSave } from "../../game/saves/upgrades";
 import {
   createSnapshot,
   restoreSnapshot,
@@ -94,10 +95,27 @@ export const runTerminal = async () => {
   let pauseSelection = 0;
   let saveFailed = false;
   let saveAt = 0;
-  try {
-    saved = upgradeSave(deserialize(readFileSync(savePath())) as SaveGame);
-    setSaveSummaries([getSummary(saved)]);
-  } catch {}
+  const loadSaves = (onUpgrade?: (version: string) => void) => {
+    try {
+      saved = deserialize(readFileSync(savePath())) as SaveGame;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
+    const upgrades = pendingUpgrades();
+    if (upgrades) {
+      const earned = new Set<Unlock>();
+      if (upgrades.length && saved && isLoadable(saved)) {
+        for (const step of upgrades) {
+          onUpgrade?.(step.version);
+          saved = upgradeSave(saved, step, earned);
+        }
+        writeFileSync(savePath() + ".tmp", serialize(saved));
+        renameSync(savePath() + ".tmp", savePath());
+      }
+      finishUpgrade(earned);
+    }
+    if (saved) setSaveSummaries([getSummary(saved)]);
+  };
   const save = (snapshot?: WorldSnapshot) => {
     saveAt = 0;
     if (!canSave(world)) return;
@@ -215,6 +233,7 @@ export const runTerminal = async () => {
   };
 
   if (frameArg !== -1) {
+    loadSaves();
     await generate({ level: level ?? "LEVEL_MENU" });
     const { columns, rows } = dimensions();
     for (let i = 0; i < Number(args[frameArg + 1] || 1); i++)
@@ -265,6 +284,11 @@ export const runTerminal = async () => {
       />
     );
   };
+  loadSaves((version) => {
+    suspended = true;
+    loading = updateLoading(version);
+    render();
+  });
   if (closeAudio) {
     suspended = true;
     loading = soundsLoading();

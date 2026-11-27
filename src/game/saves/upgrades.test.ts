@@ -1,3 +1,4 @@
+import { upgradeTestSave } from "../../testing/saves";
 import { createSave, restoreSavedWorld } from ".";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { waveTower } from "../assets/templates/creatures";
@@ -46,10 +47,10 @@ import { none } from "../assets/sprites";
 
 // IndexedDB stores values with the same structured clone algorithm
 const load = (world: World, snapshot = createSnapshot(world)) =>
-  restoreSavedWorld({
+  restoreSavedWorld(upgradeTestSave({
     ...createSave(world, undefined, snapshot),
     version: "0.8.0",
-  });
+  }));
 
 const store = (world: World) =>
   load(world, deserialize(serialize(createSnapshot(world))));
@@ -74,7 +75,7 @@ describe("legacy save upgrades", () => {
       -2
     );
     expect(restoreSavedWorld(current).assertById(id).TEMPO?.amount).toBe(-2);
-    expect(restoreSavedWorld(legacy).assertById(id).TEMPO?.amount).toBe(-4);
+    expect(restoreSavedWorld(upgradeTestSave(legacy)).assertById(id).TEMPO?.amount).toBe(-4);
   });
 
   it("restores missing trader goods while preserving the existing stock and selected row", () => {

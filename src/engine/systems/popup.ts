@@ -773,9 +773,6 @@ export const openPopup = (
     loadUnlocks();
     checkUnlocks(world);
   }
-  if (popupEntity[POPUP].tabs.includes("load") && !popupEntity[RESTORABLE]) {
-    addRestorable(world, popupEntity, {});
-  }
   const popupId = world.getEntityId(popupEntity);
   const transaction = getDiscoveryTab(world, popupEntity);
   requireComponent(heroEntity, PLAYER).popup = popupId;

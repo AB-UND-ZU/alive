@@ -1,3 +1,4 @@
+import { upgradeOldWorld } from "../../testing/saves";
 import {
   act,
   advance,
@@ -11,7 +12,7 @@ import {
   walk,
 } from "../../testing/harness";
 import { RESTORABLE } from "../components/restorable";
-import { openPopup, closePopup } from "./popup";
+import { closePopup } from "./popup";
 import { POPUP } from "../components/popup";
 import { POSITION } from "../components/position";
 import { PLAYER } from "../components/player";
@@ -143,7 +144,7 @@ describe("continue portal", () => {
     expect(restorable.saveId).toBeUndefined();
   });
 
-  it("initializes Restorable when reopening an older load dialog", () => {
+  it("initializes Restorable when upgrading an older load dialog", () => {
     setSaveSummaries([createSummary({ name: "a" })]);
     const { world, hero, popup } = openSaves();
     closePopup(world, hero, popup);
@@ -153,11 +154,8 @@ describe("continue portal", () => {
       RESTORABLE,
       false
     );
-    openPopup(world, hero, popup, true);
-    step(world);
-    expect(world.assertComponents(popup, [RESTORABLE])[RESTORABLE].saves).toBe(
-      getSaveSummaries()
-    );
+    const loaded = upgradeOldWorld(world);
+    expect(loaded.assertById(world.getEntityId(popup))[RESTORABLE]).toBeDefined();
   });
 
   it("keeps the portal closed without saves", () => {

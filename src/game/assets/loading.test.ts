@@ -1,5 +1,5 @@
 import { mapDiscovery, soundNotes } from "./sprites/particles";
-import { soundsLoading, worldLoading } from "./loading";
+import { soundsLoading, updateLoading, worldLoading } from "./loading";
 import { colors } from "./colors";
 
 const text = (line: ReturnType<typeof worldLoading>) =>
@@ -25,4 +25,8 @@ it("shows the destination at its natural length with the warp sprite", () => {
     char: "-",
     color: menu[1].layers[0].color,
   });
+});
+
+it("shows the version of the running save upgrade", () => {
+  expect(text(updateLoading("0.9.0"))).toBe("Updating v0x09...");
 });

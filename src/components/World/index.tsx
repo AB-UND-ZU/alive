@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { createWorld, World as WorldType } from "../../engine";
-import { soundsLoading, worldLoading } from "../../game/assets/loading";
+import { soundsLoading, updateLoading, worldLoading } from "../../game/assets/loading";
 import { loadLevel } from "../../game/levels/worker";
 import { createSnapshot, restoreSnapshot } from "../../engine/snapshot";
 import type { LevelDestination } from "../../game/levels/generation";
@@ -156,9 +156,9 @@ export default function World({
       checkUnlocks(source);
       try {
         if (menu) {
-          await loadSaveSummaries(persistent ? "readwrite" : "readonly").catch(
-            (error) => console.error("Loading saves failed:", error)
-          );
+          await loadSaveSummaries(persistent ? "readwrite" : "readonly", (version) => {
+            if (!controller.signal.aborted) setLoading(updateLoading(version));
+          }).catch((error) => console.error("Loading saves failed:", error));
           if (controller.signal.aborted) return;
         }
         const snapshot = await loadLevel(

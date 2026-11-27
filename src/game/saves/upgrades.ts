@@ -1,3 +1,6 @@
+import addRestorable, { RESTORABLE } from "../../engine/components/restorable";
+import { checkUnlocks, loadUnlocks, persistUnlock, Unlock } from "../unlocks";
+import { compareVersions, saveVersion } from ".";
 import type { SaveGame } from ".";
 import { BEHAVIOUR } from "../../engine/components/behaviour";
 import { CASTABLE } from "../../engine/components/castable";
@@ -69,7 +72,7 @@ function readLegacySprite(artwork: SpriteArtwork): Sprite {
   return legacySprites.get(legacyKey(artwork)) || customSprite(artwork);
 }
 
-function upgradeWorld(save: SaveGame): SaveGame {
+function upgradeWorld(save: SaveGame, earned: Set<Unlock>): SaveGame {
   const world = restoreSnapshot(save.snapshot, (value) => {
     // Pre-ID saves stored exported sprites by their JavaScript export name.
     if ("$sprite" in value) {
@@ -185,6 +188,7 @@ function upgradeWorld(save: SaveGame): SaveGame {
   // A save captures the recipes and stock that existed when the island was built.
   for (const entity of world.getEntities([POPUP])) {
     const popup = entity[POPUP];
+    if (popup.tabs.includes("load") && !entity[RESTORABLE]) addRestorable(world, entity, {});
     if (
       entity[SPRITE]?.id === sprites.bench.id &&
       popup.tabs.includes("craft")
@@ -212,24 +216,35 @@ function upgradeWorld(save: SaveGame): SaveGame {
     entity[SEQUENCABLE].states.splash!.elapsed = entity[LIQUID].amount * 250;
   }
 
+  // Entering the Island clears the Dungeon defeat counter.
+  if (save.level === "LEVEL_ISLAND") earned.add("LEVEL_ISLAND");
+  checkUnlocks(world, (key) => earned.add(key));
   return { ...save, snapshot: createSnapshot(world) };
 }
 
-/**
- * Save formats in release order. The last entry is the format written by this build.
- * A save is passed through all upgrades newer than its version in order, e.g.
- *
- *   { version: "0.5.0", upgrade: (save) => ({ ...save, ... }) },
- */
-export const saveUpgrades: {
-  version: string;
-  upgrade: (save: SaveGame) => SaveGame;
-}[] = [
-  { version: "0.5.0", upgrade: (save) => save },
-  { version: "0.6.0", upgrade: (save) => save },
-  { version: "0.7.0", upgrade: (save) => save },
-  { version: "0.8.0", upgrade: (save) => save },
-  { version: "0.8.1", upgrade: upgradeWorld },
+const versionKey = "alive.lastGameVersion";
+
+export const saveUpgrades = [
+  { version: "0.9.0", upgrade: upgradeWorld },
 ];
 
-export const saveVersion = saveUpgrades[saveUpgrades.length - 1].version;
+export const pendingUpgrades = () => {
+  const last = localStorage.getItem(versionKey);
+  if (last && compareVersions(last, saveVersion) >= 0) return;
+  loadUnlocks();
+  return saveUpgrades
+    .filter(({ version }) =>
+      (!last || compareVersions(version, last) > 0) && compareVersions(version, saveVersion) <= 0
+    )
+    .sort((a, b) => compareVersions(a.version, b.version));
+};
+
+export const upgradeSave = (save: SaveGame, step: (typeof saveUpgrades)[number], earned: Set<Unlock>) => ({
+  ...step.upgrade(save, earned),
+  version: step.version,
+});
+
+export const finishUpgrade = (earned: Set<Unlock>) => {
+  earned.forEach(persistUnlock);
+  localStorage.setItem(versionKey, saveVersion);
+};

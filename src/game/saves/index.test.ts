@@ -22,9 +22,7 @@ import {
   formatPlaytime,
   getPlayer,
   getSaveName,
-  SaveGame,
   saveVersion,
-  upgradeSave,
 } from ".";
 
 // ♀ hero, c chick
@@ -136,56 +134,5 @@ describe("save games", () => {
       false
     );
     expect(canSave(world)).toBe(false);
-  });
-});
-
-describe("save upgrades", () => {
-  it.each(["0.5.0", "0.6.0", "0.7.0"])(
-    "upgrades %s saves without changing their world",
-    (version) => {
-      const previous = {
-        ...createSave(createAreaWorld(area), savedAt),
-        version,
-      };
-      const upgraded = upgradeSave(previous, "0.8.0");
-
-      expect(upgraded).toEqual({ ...previous, version: "0.8.0" });
-      expect(upgraded.snapshot).toBe(previous.snapshot);
-    }
-  );
-
-  const save = { version: "0.4.0", name: "old" } as SaveGame;
-  const upgrades = [
-    {
-      version: "0.6.0",
-      upgrade: (save: SaveGame) => ({ ...save, name: `${save.name} 0.6` }),
-    },
-    {
-      version: "0.4.0",
-      upgrade: (save: SaveGame) => ({ ...save, name: `${save.name} 0.4` }),
-    },
-    {
-      version: "0.5.1",
-      upgrade: (save: SaveGame) => ({ ...save, name: `${save.name} 0.5.1` }),
-    },
-    {
-      version: "1.0.0",
-      upgrade: (save: SaveGame) => ({ ...save, name: `${save.name} 1.0` }),
-    },
-  ];
-
-  it("applies all newer upgrades up to the game version in order", () => {
-    expect(upgradeSave(save, "0.6.0", upgrades)).toMatchObject({
-      name: "old 0.5.1 0.6",
-      version: "0.6.0",
-    });
-  });
-
-  it("loads saves of the same version unchanged", () => {
-    expect(upgradeSave(save, "0.4.0", upgrades)).toBe(save);
-  });
-
-  it("refuses saves of newer game versions", () => {
-    expect(() => upgradeSave(save, "0.3.9", upgrades)).toThrow("newer version");
   });
 });

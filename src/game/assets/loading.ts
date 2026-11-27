@@ -1,6 +1,10 @@
 import { mapDiscovery, soundNotes } from "./sprites/particles";
 import { addBackground, createDialog, recolorSprite } from "./ui";
 import { colors } from "./colors";
+import { formatGameVersion } from "./version";
+
+export const updateLoading = (version: string) =>
+  createDialog(`Updating ${formatGameVersion(version).toLowerCase()}...`);
 
 export const mapLoading = createDialog("Loading map...");
 

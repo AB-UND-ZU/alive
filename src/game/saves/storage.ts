@@ -1,19 +1,18 @@
-import { checkUnlocks } from "../unlocks";
+import { checkUnlocks, Unlock } from "../unlocks";
 import { World } from "../../engine";
 import { WorldSnapshot } from "../../engine/snapshot";
 import {
-  compareVersions,
   createSave,
   isLoadable,
-  saveVersion,
   getSummary,
   restoreSavedWorld,
   SaveGame,
   SaveSummary,
   setSaveSummaries,
   updateSaveSummary,
-  upgradeSave,
 } from ".";
+
+import { finishUpgrade, pendingUpgrades, upgradeSave } from "./upgrades";
 
 // summaries are stored separately to list saves without reading whole worlds
 const databaseName = "alive";
@@ -85,53 +84,67 @@ const runTransaction = async <T>(
   });
 };
 
+const readSave = (id: string) =>
+  runTransaction<SaveGame>("readonly", (transaction) =>
+    transaction.objectStore(saveStore).get(id)
+  );
+
 export const loadSaveSummaries = async (
-  mode: "readonly" | "readwrite" = "readwrite"
+  mode: "readonly" | "readwrite" = "readwrite",
+  onUpgrade?: (version: string) => void
 ) => {
+  const earned = new Set<Unlock>();
+  let upgrading = false;
   let upgradeError: unknown;
-  const summaries = await runTransaction<SaveSummary[]>(
-    mode,
-    (transaction) => {
-      const summariesStore = transaction.objectStore(summaryStore);
-      const savesStore = transaction.objectStore(saveStore);
-      const request = summariesStore.getAll();
-
-      // Current saves can be listed without reading their world snapshots.
-      request.onsuccess = () => {
-        request.result.forEach((summary, index) => {
-          if (compareVersions(summary.version, saveVersion) >= 0) return;
-
-          const saved = savesStore.get(summary.id);
-          saved.onsuccess = () => {
+  const summaries = await runTransaction<SaveSummary[]>(mode, (transaction) => {
+    const summariesStore = transaction.objectStore(summaryStore);
+    const savesStore = transaction.objectStore(saveStore);
+    const request = summariesStore.getAll();
+    request.onsuccess = () => {
+      // An earlier startup transaction may have finished while this one waited.
+      const upgrades = mode === "readwrite" ? pendingUpgrades() : undefined;
+      if (!upgrades) return;
+      upgrading = true;
+      const slots: SaveSummary[] = request.result;
+      // Finish each release across all slots, reading one world at a time.
+      const remaining = upgrades.flatMap((step) =>
+        slots.map((_, index) => ({ step, index }))
+      ).values();
+      const next = () => {
+        const entry = remaining.next();
+        if (entry.done) return;
+        const { step, index } = entry.value;
+        if (index === 0) onUpgrade?.(step.version);
+        const summary = slots[index];
+        const saved = savesStore.get(summary.id);
+        saved.onsuccess = () => {
+          try {
             const save: SaveGame | undefined = saved.result;
-            if (!save) return;
-            if (!isLoadable(save)) {
-              // A stale summary must not offer a newer world as loadable.
-              request.result[index] = { ...summary, version: save.version };
-              return;
-            }
-            if (!save.snapshot) return;
-
-            try {
-              const upgraded = upgradeSave(save);
-              const updated = getSummary(upgraded);
-              if (mode === "readwrite") {
-                if (upgraded !== save) savesStore.put(upgraded);
-                summariesStore.put(updated);
+            if (save?.snapshot) {
+              if (isLoadable(save)) {
+                const updated = upgradeSave(save, step, earned);
+                savesStore.put(updated);
+                request.result[index] = getSummary(updated);
+                summariesStore.put(request.result[index]);
+              } else if (summary.version !== save.version) {
+                request.result[index] = getSummary(save);
+                summariesStore.put(request.result[index]);
               }
-              request.result[index] = updated;
-            } catch (error) {
-              upgradeError = error;
-              transaction.abort();
             }
-          };
-        });
+            next();
+          } catch (error) {
+            upgradeError = error;
+            transaction.abort();
+          }
+        };
       };
-      return request;
-    }
-  ).catch((error) => {
+      next();
+    };
+    return request;
+  }).catch((error) => {
     throw upgradeError ?? error;
   });
+  if (upgrading) finishUpgrade(earned);
   setSaveSummaries(summaries || []);
 };
 
@@ -154,9 +167,7 @@ export const storeGame = async (world: World, snapshot?: WorldSnapshot) => {
 
 /** Read, upgrade and restore a saved world, without systems. */
 export const restoreGame = async (id: string) => {
-  const save = await runTransaction<SaveGame>("readonly", (transaction) =>
-    transaction.objectStore(saveStore).get(id)
-  );
+  const save = await readSave(id);
   if (!save) throw new Error(`Save ${id} not found!`);
 
   return restoreSavedWorld(save);
