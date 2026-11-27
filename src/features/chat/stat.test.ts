@@ -9,7 +9,7 @@ import { getLevelStats } from "../../engine/systems/leveling";
 import { getClassData } from "../../game/balancing/classes";
 import { colors } from "../../game/assets/colors";
 import { displayedClasses } from "../../game/assets/pixels";
-import { isClassUnlocked } from "../../game/classUnlocks";
+import { hasUnlock } from "../../game/unlocks";
 import { getDialog, say, setupHero } from "./helpers";
 
 jest.mock("../../engine/utils", () => ({
@@ -184,14 +184,16 @@ describe("mod command", () => {
     });
   });
 
-  it("unlocks every playable class and restores the starting choice with lock", () => {
+  it("unlocks classes and the Island and restores the starting choices with lock", () => {
     const { world } = setup();
 
     say(world, "/mod unlock");
-    expect(displayedClasses.filter(isClassUnlocked)).toEqual(displayedClasses);
+    expect(displayedClasses.filter(hasUnlock)).toEqual(displayedClasses);
+    expect(hasUnlock("LEVEL_ISLAND")).toBe(true);
 
     say(world, "/mod lock");
-    expect(displayedClasses.filter(isClassUnlocked)).toEqual(["rogue"]);
+    expect(displayedClasses.filter(hasUnlock)).toEqual(["rogue"]);
+    expect(hasUnlock("LEVEL_ISLAND")).toBe(false);
   });
 
   it("rejects an unknown mod", () => {

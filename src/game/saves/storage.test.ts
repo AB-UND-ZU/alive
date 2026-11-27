@@ -6,10 +6,10 @@ import {
   step,
 } from "../../testing/harness";
 import {
-  isClassUnlocked,
-  loadClassUnlocks,
-  setClassesUnlocked,
-} from "../classUnlocks";
+  hasUnlock,
+  loadUnlocks,
+  setUnlocks,
+} from "../unlocks";
 import { createCell, createNpc } from "../../bindings/creation";
 import { createPopup } from "../../engine/systems/popup";
 import { POPUP } from "../../engine/components/popup";
@@ -106,7 +106,7 @@ describe("save storage", () => {
   });
 
   it("keeps earned classes when their save is erased", async () => {
-    setClassesUnlocked(false);
+    setUnlocks(false);
     try {
       const world = createAreaWorld(area);
       const hero = world.assertComponents(assertHero(world), [
@@ -117,21 +117,21 @@ describe("save storage", () => {
       ]);
       hero[PLAYER].defeatedUnits.woodChest = 1;
       await storeGame(world);
-      expect(isClassUnlocked("???")).toBe(false);
-      expect(isClassUnlocked("knight")).toBe(false);
-      expect(isClassUnlocked("mage")).toBe(false);
+      expect(hasUnlock("???")).toBe(false);
+      expect(hasUnlock("knight")).toBe(false);
+      expect(hasUnlock("mage")).toBe(false);
 
       hero[PLAYER].defeatedUnits.chestBoss = 1;
       hero[PLAYER].defeatedUnits.fireNomad = 2;
       giveItems(world, hero, [{ stackable: "gem", amount: 1 }]);
       const save = await storeGame(world);
       await eraseGame(save.id);
-      loadClassUnlocks();
-      expect(isClassUnlocked("???")).toBe(true);
-      expect(isClassUnlocked("knight")).toBe(true);
-      expect(isClassUnlocked("mage")).toBe(true);
+      loadUnlocks();
+      expect(hasUnlock("???")).toBe(true);
+      expect(hasUnlock("knight")).toBe(true);
+      expect(hasUnlock("mage")).toBe(true);
     } finally {
-      setClassesUnlocked(false);
+      setUnlocks(false);
     }
   });
 

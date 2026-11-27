@@ -9,7 +9,7 @@ import { MOVABLE } from "../../engine/components/movable";
 import { POSITION } from "../../engine/components/position";
 import { TypedEntity } from "../../engine/entities";
 import { getSaveSummaries, SaveGame, setSaveSummaries } from "../../game/saves";
-import { isClassUnlocked, setClassesUnlocked } from "../../game/classUnlocks";
+import { hasUnlock, setUnlocks } from "../../game/unlocks";
 import { storeGame } from "../../game/saves/storage";
 import { installFakeIndexedDB } from "../../game/saves/testing";
 import {
@@ -388,14 +388,14 @@ describe("World", () => {
     const world = createAreaWorld(area);
     assertHero(world).PLAYER!.defeatedUnits.chestBoss = 1;
     const save = await storeGame(world);
-    setClassesUnlocked(false);
+    setUnlocks(false);
     try {
       renderGame();
       await act(async () => { await ecs().metadata.loadGame(save.id); });
-      expect(isClassUnlocked("???")).toBe(true);
-      expect(isClassUnlocked("knight")).toBe(false);
+      expect(hasUnlock("???")).toBe(true);
+      expect(hasUnlock("knight")).toBe(false);
     } finally {
-      setClassesUnlocked(false);
+      setUnlocks(false);
     }
   });
 

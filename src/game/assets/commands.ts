@@ -78,7 +78,7 @@ import { ENTERABLE } from "../../engine/components/enterable";
 import { createText } from "./ui";
 import { updateShoreline } from "../../engine/systems/water";
 import { isCell } from "../../engine/systems/harvest";
-import { setClassesUnlocked } from "../classUnlocks";
+import { setUnlocks } from "../unlocks";
 
 export type CommandCall = {
   handler: string;
@@ -433,7 +433,7 @@ const executeMod = (world: World, entity: Entity, mod: string) => {
     entity[STATS].wisdom = 99;
     entity[STATS].resist = 99;
   } else if (mod === "lock" || mod === "unlock") {
-    setClassesUnlocked(mod === "unlock");
+    setUnlocks(mod === "unlock");
     rerenderEntity(world, entity);
   } else if (mod === "reset") {
     const stats = getLevelStats(

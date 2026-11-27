@@ -14,7 +14,7 @@ import {
 } from "../components/orientable";
 import { LOOTABLE } from "../components/lootable";
 import { equipments, EQUIPPABLE, Gear, slots } from "../components/equippable";
-import { checkClassUnlocks } from "../../game/classUnlocks";
+import { checkUnlocks } from "../../game/unlocks";
 import { INVENTORY } from "../components/inventory";
 import { Item, ITEM } from "../components/item";
 import { getEntityGeneration, rerenderEntity } from "./renderer";
@@ -450,7 +450,7 @@ export const addToInventory = (
     if (itemEntity[IDENTIFIABLE]) {
       setIdentifier(world, targetStack, itemEntity[IDENTIFIABLE].name);
     }
-    if (targetStackable === "gem" && entity[PLAYER]) checkClassUnlocks(world);
+    if (targetStackable === "gem" && entity[PLAYER]) checkUnlocks(world);
   }
 
   // delete old stack

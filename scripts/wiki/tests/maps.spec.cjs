@@ -33,7 +33,10 @@ test("Portals composes native green frames with sizes and onward connections", a
   const levelLinks = table.locator(
     'a[href$="/menu.html"], a[href$="/dungeon.html"], a[href$="/island.html"]'
   );
-  await expect(levelLinks).toHaveCount(5);
+  const menuExits = table.locator('[data-warp-level="LEVEL_MENU"]').last();
+  await expect(menuExits.locator('a[href$="/dungeon.html"]')).toHaveCount(1);
+  await expect(menuExits.locator('a[href$="/island.html"]')).toHaveCount(1);
+  await expect(levelLinks).toHaveCount(6);
   for (const link of await levelLinks.all())
     await expect(link.locator('.Pixels[aria-label="Map"]')).toHaveCount(1);
   await expect(page).toHaveURL(/world\/portals.html$/);

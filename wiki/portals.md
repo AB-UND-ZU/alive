@@ -1,6 +1,6 @@
 # Portals
 
-Travel from the [Menu](menu.md) to the [Dungeon](dungeon.md), then the [Island](island.md). Each level has its own playable preview and map.
+Travel from the [Menu](menu.md) to the [Dungeon](dungeon.md), then the [Island](island.md). Defeat the [[unit:tutorialBoss]] boss to unlock the Island directly from the Menu for new characters.
 
 ```widget
 warp-map

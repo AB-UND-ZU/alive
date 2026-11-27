@@ -32,7 +32,7 @@ export const levelConfig: Record<
 > = {
   LEVEL_MENU: {
     name: "Menu",
-    warps: ["LEVEL_TUTORIAL"],
+    warps: ["LEVEL_TUTORIAL", "LEVEL_ISLAND"],
     mapOffsetX: 0,
     mapOffsetY: 2,
     size: menuSize,

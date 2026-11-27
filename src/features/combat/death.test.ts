@@ -13,6 +13,7 @@ import { PLAYER } from "../../engine/components/player";
 import { INVENTORY } from "../../engine/components/inventory";
 import { SPRITE } from "../../engine/components/sprite";
 import { POSITION } from "../../engine/components/position";
+import { hasUnlock, loadUnlocks, setUnlocks } from "../../game/unlocks";
 import { isDead } from "../../engine/systems/damage";
 import { tombstone1, tombstone2 } from "../../game/assets/sprites";
 import {
@@ -62,6 +63,18 @@ describe("defeating mobs", () => {
 
     step(world, 60);
     expect(hero[PLAYER].defeatedUnits).toEqual({ prism: 1 });
+  });
+
+  it("permanently unlocks the Island on defeating the Bandit Boss without saving", () => {
+    setUnlocks(false);
+    try {
+      const { world, hero } = slay("tutorialBoss");
+      advanceUntil(world, () => hero[PLAYER].defeatedUnits.tutorialBoss === 1);
+      loadUnlocks();
+      expect(hasUnlock("LEVEL_ISLAND")).toBe(true);
+    } finally {
+      setUnlocks(false);
+    }
   });
 
   it("drops unbound loot but keeps bound equipment", () => {

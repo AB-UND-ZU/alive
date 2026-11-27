@@ -1,5 +1,6 @@
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
+import { checkUnlocks } from "../../game/unlocks";
 import { REFERENCE } from "../components/reference";
 import { attemptEquipItem, isEmpty } from "./collect";
 import { LOOTABLE } from "../components/lootable";
@@ -639,6 +640,7 @@ export default function setupDrop(world: World) {
           heroEntity[PLAYER].defeatedUnits[unitKey] =
             (heroEntity[PLAYER].defeatedUnits[unitKey] || 0) + 1;
           heroEntity[PLAYER].kills += 1;
+          if (unitKey === "tutorialBoss") checkUnlocks(world);
         }
       }
     }

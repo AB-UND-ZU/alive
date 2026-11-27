@@ -20,7 +20,7 @@ import type {
 import { Worker } from "worker_threads";
 import { TEST_MODE } from "../../engine/utils";
 import { levelConfig } from "../../game/levels";
-import { checkClassUnlocks } from "../../game/classUnlocks";
+import { checkUnlocks } from "../../game/unlocks";
 import {
   canSave,
   createSave,
@@ -102,7 +102,7 @@ export const runTerminal = async () => {
     saveAt = 0;
     if (!canSave(world)) return;
     try {
-      checkClassUnlocks(world);
+      checkUnlocks(world);
       saved = createSave(world, undefined, snapshot);
       world.metadata.saveId = saved.id;
       mkdirSync(dirname(savePath()), { recursive: true });
@@ -123,7 +123,7 @@ export const runTerminal = async () => {
       flipped = value;
     };
     world.metadata.generateLevel = (destination) => {
-      checkClassUnlocks(world);
+      checkUnlocks(world);
       void generate(destination, createSnapshot(world)).catch((error) =>
         console.error("Loading failed:", error)
       );
@@ -135,7 +135,7 @@ export const runTerminal = async () => {
       if (!saved) return;
       const restored = restoreSavedWorld(saved);
       restored.metadata.initial = false;
-      checkClassUnlocks(restored);
+      checkUnlocks(restored);
       createSystems(restored);
       preloadLevel(restored);
       attach(restored);

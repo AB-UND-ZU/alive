@@ -434,7 +434,7 @@ import {
   onSameLayer,
 } from "../../engine/systems/enter";
 import { Spawnable, SPAWNABLE } from "../../engine/components/spawnable";
-import { isClassUnlocked } from "../classUnlocks";
+import { hasUnlock } from "../unlocks";
 import { ClassKey } from "../balancing/classes";
 import { levelConfig } from "../levels";
 import { getActiveViewable } from "../../renderers/interface/hooks";
@@ -5535,7 +5535,7 @@ export const displayClass = displayPopupView((world, entity, state) => {
   const chosenIndex = firstIndex ?? 0;
 
   const selectedClass = displayedClasses[verticalIndex];
-  const selectedAvailable = isClassUnlocked(selectedClass);
+  const selectedAvailable = hasUnlock(selectedClass);
   const lines = overlay(
     bodyPixels,
     classPixels[displayedClasses[verticalIndex]] || [],
@@ -5571,7 +5571,7 @@ export const displayClass = displayPopupView((world, entity, state) => {
 
     const selected = verticalIndex === rowIndex;
     const chosen = chosenIndex === rowIndex;
-    const available = isClassUnlocked(className);
+    const available = hasUnlock(className);
     const classSprite = entitySprites[className].sprite;
     const classTitle = createText(
       available || selected

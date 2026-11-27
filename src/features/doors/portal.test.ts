@@ -20,7 +20,7 @@ import { collectItem } from "../../engine/systems/collect";
 import { moveEntity } from "../../engine/systems/map";
 import { getMotion, sampleMotion } from "../../engine/motion";
 import { ACTIONABLE } from "../../engine/components/actionable";
-import { setClassesUnlocked } from "../../game/classUnlocks";
+import { setUnlocks } from "../../game/unlocks";
 import { LEVEL } from "../../engine/components/level";
 import { MOVABLE } from "../../engine/components/movable";
 import { PLAYER } from "../../engine/components/player";
@@ -105,7 +105,7 @@ describe("portals", () => {
     expect(world.metadata.gameEntity[LEVEL].name).toBe("LEVEL_MENU");
   });
 
-  it("only lets the hero warp to the next level", () => {
+  it("initially offers only the Dungeon from the Menu", () => {
     const { world, hero } = setup(area, { level: "LEVEL_MENU" });
     const portal = getPortal(world);
     interact(world, 30);
@@ -116,6 +116,24 @@ describe("portals", () => {
 
     selectLevel(world, portal, "LEVEL_ISLAND");
     expect(canWarp(world, hero, portal)).toBe(false);
+  });
+
+  it("offers the Island to a fresh character after it has been unlocked", () => {
+    setUnlocks(true);
+    try {
+      const { world, hero } = setup(area, { level: "LEVEL_MENU" });
+      const portal = getPortal(world);
+      interact(world, 30);
+      press(world, "right", 2);
+      selectLevel(world, portal, "LEVEL_ISLAND");
+      expect(hero[PLAYER].defeatedUnits).toEqual({});
+      expect(canWarp(world, hero, portal)).toBe(true);
+      press(world, "right");
+      expect(hero[PLAYER].popup).toBeUndefined();
+      expect(hero[POSITION]).toEqual(portal[POSITION]);
+    } finally {
+      setUnlocks(false);
+    }
   });
 
   it("adds test menu pickups once to the selected class when entering a level", () => {
@@ -204,7 +222,7 @@ describe("portals", () => {
         expect.objectContaining({ consume: "key", material: "iron" })
       );
     } finally {
-      setClassesUnlocked(false);
+      setUnlocks(false);
       jest.useRealTimers();
     }
   });

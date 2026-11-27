@@ -1,3 +1,4 @@
+import { hasUnlock } from "../../game/unlocks";
 import type { Destination } from "../../game/levels/generation";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -166,6 +167,9 @@ export const canWarp = (world: World, entity: Entity, warp: Entity) => {
   // allow warping everywhere else in test mode
   if (TEST_MODE) return true;
 
+  if (currentLevel === "LEVEL_MENU" && selectedLevel === "LEVEL_ISLAND") {
+    return hasUnlock(selectedLevel);
+  }
   return levelConfig[currentLevel].warps.includes(selectedLevel);
 };
 

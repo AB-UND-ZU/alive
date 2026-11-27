@@ -1,4 +1,4 @@
-import { checkClassUnlocks } from "../classUnlocks";
+import { checkUnlocks } from "../unlocks";
 import { World } from "../../engine";
 import { WorldSnapshot } from "../../engine/snapshot";
 import {
@@ -136,7 +136,7 @@ export const loadSaveSummaries = async (
 };
 
 export const storeGame = async (world: World, snapshot?: WorldSnapshot) => {
-  checkClassUnlocks(world);
+  checkUnlocks(world);
   const save = createSave(world, undefined, snapshot);
   world.metadata.saveId = save.id;
 

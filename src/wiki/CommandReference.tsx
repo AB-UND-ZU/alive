@@ -38,7 +38,7 @@ const commandDescriptions: Record<string, string> = {
   stat: "Read or set a stat, class, hair color, defeated-unit count or view priority.",
   cast: "Cast an ability directly. Material defaults to Wood; Zap and Block cannot be cast this way.",
   tp: "Show your coordinates, or move to coordinates or a named entity. Coordinates wrap at world edges.",
-  mod: "Change movement, faction or combat stats. Use unlock to enable every class or lock to clear class unlocks.",
+  mod: "Change movement, faction or combat stats. Use unlock to open all classes and the Island, or lock to clear those unlocks.",
   focus: "Highlight a named entity. No argument clears the highlight.",
   new: "Place cells ahead. Defaults to one cell facing the hero's direction, or up. Use /new air to clear cells without removing the hero or buildings.",
   pin: "Name a location. Omitted coordinates use the hero's position. Names must be unique.",

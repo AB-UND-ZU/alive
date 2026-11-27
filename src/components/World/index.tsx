@@ -27,7 +27,7 @@ import { createLevel, createSystems, preloadLevel } from "../../engine/ecs";
 import { LevelName } from "../../engine/components/level";
 import { levelConfig } from "../../game/levels";
 import { useDimensions } from "../Dimensions";
-import { checkClassUnlocks } from "../../game/classUnlocks";
+import { checkUnlocks } from "../../game/unlocks";
 import { canSave, pauseSaveDelay } from "../../game/saves";
 import {
   eraseGame,
@@ -153,7 +153,7 @@ export default function World({
       generation.current = controller;
       const menu = destination.level === initialLevel;
       // Defeat counters belong to the departing level.
-      checkClassUnlocks(source);
+      checkUnlocks(source);
       try {
         if (menu) {
           await loadSaveSummaries(persistent ? "readwrite" : "readonly").catch(
@@ -196,7 +196,7 @@ export default function World({
       try {
         const world = await restoreGame(saveId);
         install(world, false);
-        checkClassUnlocks(world);
+        checkUnlocks(world);
       } catch (error) {
         console.error("Loading failed:", error);
         openMenu();

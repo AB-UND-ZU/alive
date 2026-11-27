@@ -16,7 +16,7 @@ import {
   getVerticalIndex,
   isInPopup,
 } from "../../engine/systems/popup";
-import { isClassUnlocked, setClassesUnlocked } from "../../game/classUnlocks";
+import { hasUnlock, setUnlocks } from "../../game/unlocks";
 import { craftingIngredients } from "../../game/balancing/crafting";
 import { closeStation, getShopper, openStation, selectRow } from "./helpers";
 
@@ -97,8 +97,8 @@ describe("crafting at a bench", () => {
     act(world, "right");
 
     expect(countItems(world, hero, { stackable: "gem" })).toBe(1);
-    expect(isClassUnlocked("mage")).toBe(true);
-    setClassesUnlocked(false);
+    expect(hasUnlock("mage")).toBe(true);
+    setUnlocks(false);
     expect(countItems(world, hero, diamond)).toBe(0);
   });
 
