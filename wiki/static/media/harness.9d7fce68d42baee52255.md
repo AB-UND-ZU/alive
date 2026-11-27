@@ -1,0 +1,77 @@
+# Game Tests
+
+`harness.ts` boots game systems without React or WebGL. Use it for rules that should be deterministic. `render.tsx` adds the React Three test renderer when scene graph behavior matters.
+
+## Small worlds
+
+`createAreaWorld` builds a map from rows enclosed in `|` characters. The borders protect meaningful spaces from editor trimming. Each row must have the same width and the map needs a hero.
+
+Pass `legend` to map extra characters to any cell name handled by `createCell`, for example `{ D: "iron_door", K: "kettle" }`. Use it for doors, workstations, units and objects without a built-in character.
+
+`holdMove` holds a direction. `walk` waits for a requested number of cell moves and throws if blocked. Use `holdMove` plus `step` to test a blocked movement rather than asking `walk` to complete an impossible step.
+
+`trigger` queues an action and wakes the hero's reference frame. `step` advances 1/30-second frames. `advance` rounds a duration up to complete frames. `advanceUntil` waits for a condition with a timeout.
+
+## Items and positions
+
+`giveItems` puts items into an inventory and equips gear into free slots, like a first pickup. `getItems` and `countItems` read carried items, e.g. `countItems(world, hero, { stackable: "arrow" })`. `getEntitiesAt` and `findEntityAt` look up entities in a cell. `face` turns the hero before casting or using a tool.
+
+## Saved games
+
+`saveAndLoad` in `saves.ts` saves a world and loads it like a saved game: the snapshot passes the structured clone algorithm IndexedDB uses, and systems start fresh. Continue playing the returned world and assert the feature still works, not only that its data was copied.
+
+## What to assert
+
+Name the feature and its outcome: wading near land, blocking deep water, stopping on release, or opening a matching lock. Check relevant component state or visible output. Keep setup small and use existing factories.
+
+Gameplay feature tests live in `src/features/`, grouped by area with one file per feature, station, spell, skill or tool.
+
+## Run one feature
+
+Jest seeds randomness and records sound calls. Run the affected file in your worktree:
+
+```sh
+npm test -- --watchAll=false --runInBand --runTestsByPath src/features/creatures/prism.test.ts
+```
+
+The same command accepts a `.slow.test.ts` or `.slow.test.tsx` file. For a generation-dependent change, use `npm run test:generation -- --runInBand --runTestsByPath` followed by the affected `.generation.test.ts` path. See `AGENTS.md` for merge checks and [wiki tools](../wiki/index.md) for browser checks.
+
+<!-- source-types -->
+
+## TestWorldOptions
+
+```ts src/testing/harness.ts
+export type TestWorldOptions = {
+  level?: LevelName;
+  /** replace default dimensions, e.g. to shrink the initialized area */
+  dimensions?: Partial<World["metadata"]["dimensions"]>;
+};
+```
+
+## AreaWorldOptions
+
+```ts src/testing/harness.ts
+export type AreaWorldOptions = {
+  level?: LevelName;
+  /** square map size, defaults to the larger side of the area */
+  size?: number;
+  /** extra characters mapped to any cell type, e.g. `{ D: "iron_door" }` */
+  legend?: Record<string, string>;
+};
+```
+
+## HeroAction
+
+```ts src/testing/harness.ts
+export type HeroAction =
+  | "spell"
+  | "skill"
+  | "interact"
+  | NonNullable<Player["actionTriggered"]>;
+```
+
+## GivenItem
+
+```ts src/testing/harness.ts
+export type GivenItem = Omit<Item, "carrier" | "bound"> & { bound?: boolean };
+```
