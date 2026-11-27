@@ -4,7 +4,7 @@ import {
   Material,
   materials,
 } from "../../../engine/components/item";
-import { Sprite } from "../../../engine/components/sprite";
+import { Sprite, SpriteArtwork } from "../../../engine/components/sprite";
 import { colors } from "../colors";
 import { missing } from "../sprites";
 import { recolorSprite } from "../ui";
@@ -46,17 +46,20 @@ export type PartialSpriteTemplate = Partial<
   Record<Material | "default", Partial<Record<Element | "default", Sprite>>>
 >;
 
-export const createTemplate = ({
-  sprite,
-  elementSprite,
-  materialElementSprite,
-  invertWoodIron,
-}: {
-  sprite: Sprite;
-  elementSprite?: Sprite;
-  materialElementSprite?: Sprite;
-  invertWoodIron?: boolean;
-}) => {
+export const createTemplate = (
+  id: string,
+  {
+    sprite,
+    elementSprite,
+    materialElementSprite,
+    invertWoodIron,
+  }: {
+    sprite: SpriteArtwork;
+    elementSprite?: SpriteArtwork;
+    materialElementSprite?: SpriteArtwork;
+    invertWoodIron?: boolean;
+  }
+) => {
   const sprites: SpriteTemplate = {} as any;
 
   // material sprites
@@ -70,13 +73,17 @@ export const createTemplate = ({
       ? materialPalette.primary
       : materialPalette.secondary;
     sprites[material] = {
-      default: recolorSprite(sprite, {
-        [TEMPLATE_COLORS.transparent]: colors.black,
-        [TEMPLATE_COLORS.materialPrimary]: materialPrimary,
-        [TEMPLATE_COLORS.materialSecondary]: materialSecondary,
-        [TEMPLATE_COLORS.elementPrimary]: colors.black,
-        [TEMPLATE_COLORS.elementSecondary]: colors.black,
-      }),
+      default: recolorSprite(
+        sprite,
+        {
+          [TEMPLATE_COLORS.transparent]: colors.black,
+          [TEMPLATE_COLORS.materialPrimary]: materialPrimary,
+          [TEMPLATE_COLORS.materialSecondary]: materialSecondary,
+          [TEMPLATE_COLORS.elementPrimary]: colors.black,
+          [TEMPLATE_COLORS.elementSecondary]: colors.black,
+        },
+        `${id}_${material}_default`
+      ),
     } as any;
   });
 
@@ -84,21 +91,25 @@ export const createTemplate = ({
   sprites.default = { default: missing } as any;
   elements.forEach((element) => {
     const elementPalette = colorPalettes[element];
-    sprites.default[element] = recolorSprite(elementSprite || sprite, {
-      [TEMPLATE_COLORS.transparent]: colors.black,
-      [TEMPLATE_COLORS.materialPrimary]: elementSprite
-        ? colors.black
-        : elementPalette.primary,
-      [TEMPLATE_COLORS.materialSecondary]: elementSprite
-        ? colors.black
-        : elementPalette.secondary,
-      [TEMPLATE_COLORS.elementPrimary]: elementSprite
-        ? elementPalette.primary
-        : colors.black,
-      [TEMPLATE_COLORS.elementSecondary]: elementSprite
-        ? elementPalette.secondary
-        : colors.black,
-    });
+    sprites.default[element] = recolorSprite(
+      elementSprite || sprite,
+      {
+        [TEMPLATE_COLORS.transparent]: colors.black,
+        [TEMPLATE_COLORS.materialPrimary]: elementSprite
+          ? colors.black
+          : elementPalette.primary,
+        [TEMPLATE_COLORS.materialSecondary]: elementSprite
+          ? colors.black
+          : elementPalette.secondary,
+        [TEMPLATE_COLORS.elementPrimary]: elementSprite
+          ? elementPalette.primary
+          : colors.black,
+        [TEMPLATE_COLORS.elementSecondary]: elementSprite
+          ? elementPalette.secondary
+          : colors.black,
+      },
+      `${id}_${element}`
+    );
   });
 
   // material and element sprites
@@ -127,7 +138,8 @@ export const createTemplate = ({
           [TEMPLATE_COLORS.materialSecondary]: materialSecondary,
           [TEMPLATE_COLORS.elementPrimary]: elementPrimary,
           [TEMPLATE_COLORS.elementSecondary]: elementPalette.secondary,
-        }
+        },
+        `${id}_${material}_${element}`
       );
     });
   });

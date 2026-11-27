@@ -1,3 +1,4 @@
+import { spriteRef } from "../game/assets/spriteIds";
 import { openSpriteBuilder } from "../game/assets/spriteBuilder";
 import { rerenderEntity } from "../engine/systems/renderer";
 import { disposeSequence } from "../engine/systems/map";
@@ -82,7 +83,7 @@ const createClientWorld = () => {
     hp: data.stats.maxHp,
     mp: data.stats.maxMp,
   });
-  hero[SPRITE] = data.sprite;
+  hero[SPRITE] = spriteRef(data.sprite);
   hero[SPAWNABLE]!.classKey = "rogue";
   hero[LIGHT] = calculateVision(7);
   for (let x = 4; x <= 16; x++)
@@ -303,7 +304,7 @@ export const createPreviewWorld = (name: SceneName, option = "") => {
     hp: data.stats.maxHp,
     mp: data.stats.maxMp,
   });
-  hero[SPRITE] = data.sprite;
+  hero[SPRITE] = spriteRef(data.sprite);
   hero[SPAWNABLE].classKey =
     name === "classes" && option ? (option as ClassKey) : "rogue";
   hero[LIGHT] = calculateVision(6);
@@ -481,7 +482,7 @@ export const createPreviewWorld = (name: SceneName, option = "") => {
           "mountain",
           "visible"
         ).cell;
-        wall[SPRITE] = none;
+        wall[SPRITE] = spriteRef(none);
         world.removeComponentFromEntity(
           world.assertComponents(wall, ["HARVESTABLE"]),
           "HARVESTABLE"

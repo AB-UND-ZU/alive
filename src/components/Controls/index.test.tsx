@@ -1,3 +1,4 @@
+import { customSprite } from "../../game/assets/spriteIds";
 /* eslint-disable testing-library/no-node-access, testing-library/no-container -- controls are drawn as glyph spans and invisible touch areas without accessible roles */
 import { act, fireEvent } from "@testing-library/react";
 import Controls from ".";
@@ -1614,10 +1615,12 @@ describe("touch controls", () => {
     localStorage.setItem(
       "alive.sprites",
       JSON.stringify(
-        Array.from({ length: 24 }, (_, i) => ({
-          name: `Sprite ${i}`,
-          layers: [],
-        }))
+        Array.from({ length: 24 }, (_, i) =>
+          customSprite({
+            name: `Sprite ${i}`,
+            layers: [],
+          })
+        )
       )
     );
     const { world, hero, container } = setup();

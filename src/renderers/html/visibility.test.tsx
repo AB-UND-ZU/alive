@@ -1,3 +1,8 @@
+import {
+  customSprite,
+  resolveSprite,
+  spriteRef,
+} from "../../game/assets/spriteIds";
 import { characterImage } from "../../components/Row/characters";
 import { render, screen } from "@testing-library/react";
 import HtmlRenderer from ".";
@@ -37,7 +42,10 @@ afterEach(() => jest.restoreAllMocks());
 
 it("keeps the same glyph mounted while sight fades out and returns", () => {
   const { world, entity } = setup();
-  const sprite = { name: "Unit", layers: [{ char: "A", color: colors.white }] };
+  const sprite = customSprite({
+    name: "Unit",
+    layers: [{ char: "A", color: colors.white }],
+  });
   const entry = {
     key: "unit",
     x: 5,
@@ -91,7 +99,7 @@ it("leaves fog shading on body opacity and uses a lower-half water character for
       x: 5,
       y: 3,
       z: 2,
-      sprite: { name: "water", layers: [] },
+      sprite: customSprite({ name: "water", layers: [] }),
       layers: [],
       entity,
       swimming: true,
@@ -108,10 +116,10 @@ it("leaves fog shading on body opacity and uses a lower-half water character for
 
 it("fills a solid block's entire cell without enlarging neighboring glyphs", () => {
   const { world, entity } = setup();
-  const sprite = {
+  const sprite = customSprite({
     name: "Background",
     layers: [{ char: "█", color: colors.black }],
-  };
+  });
   jest.spyOn(frames, "getSceneFrame").mockReturnValue([
     {
       key: "background",
@@ -135,7 +143,10 @@ it("fades loot in and retains collected items only until their fade completes", 
   const { world, entity } = setup();
   let time = 0;
   jest.spyOn(performance, "now").mockImplementation(() => time);
-  const sprite = { name: "Apple", layers: [{ char: "a", color: colors.red }] };
+  const sprite = customSprite({
+    name: "Apple",
+    layers: [{ char: "a", color: colors.red }],
+  });
   const entry = {
     key: "loot1",
     x: 5,
@@ -178,9 +189,12 @@ it("keeps a dropped item visible when its flight reaches the ground", () => {
   step(world);
   const sequence = getSequence(world, drop, "collect")!;
   const particle = world.assertById(sequence.particles.loot);
-  const glyph = { name: "Apple", layers: [{ char: "a", color: colors.red }] };
-  particle[SPRITE] = glyph;
-  world.assertById(sequence.args.itemId)[SPRITE] = glyph;
+  const glyph = customSprite({
+    name: "Apple",
+    layers: [{ char: "a", color: colors.red }],
+  });
+  particle[SPRITE] = spriteRef(glyph);
+  world.assertById(sequence.args.itemId)[SPRITE] = spriteRef(glyph);
   const { rerender } = render(
     <HtmlRenderer world={world} {...dimensions} paused />
   );
@@ -205,7 +219,7 @@ it("dims fogged sand and water without fading particles or making terrain transl
     (sprite) =>
       world
         .getEntities([SPRITE, FOG])
-        .find((entity) => entity[SPRITE].name === sprite.name)!
+        .find((entity) => resolveSprite(entity[SPRITE]).name === sprite.name)!
   );
   expect(targets.every(Boolean)).toBe(true);
   targets.forEach((entity) => (entity[FOG].visibility = "visible"));
@@ -216,7 +230,10 @@ it("dims fogged sand and water without fading particles or making terrain transl
     y: 0,
     z: 9.2,
     entity: targets[0],
-    sprite: { name: "spark", layers: [{ char: "*", color: colors.red }] },
+    sprite: customSprite({
+      name: "spark",
+      layers: [{ char: "*", color: colors.red }],
+    }),
     layers: [{ char: "*", color: colors.red }],
   };
   jest
@@ -225,7 +242,7 @@ it("dims fogged sand and water without fading particles or making terrain transl
       ...getFrame(...args).filter(
         (entry) =>
           targets.some((entity) => entity === entry.entity) &&
-          entry.sprite === entry.entity[SPRITE]
+          entry.sprite.id === entry.entity[SPRITE]?.id
       ),
       particle,
     ]);

@@ -8,20 +8,27 @@ export type Layer = {
   char: string;
   color: string;
 };
-export type Sprite = {
-  name: string;
+export type SpriteLayers = {
   layers: Layer[];
   facing?: Partial<Record<Orientation, Layer[]>>;
   amounts?: Partial<Record<Amount, Layer[]>>;
-  terminal?: Pick<Sprite, "layers" | "facing" | "amounts">;
 };
+export type SpriteArtwork = SpriteLayers & {
+  name?: string;
+  terminal?: SpriteLayers;
+};
+export type Sprite = SpriteArtwork & {
+  id: string;
+};
+
+export type SpriteRef = { id: string; custom?: boolean };
 
 export const SPRITE = "SPRITE";
 
 export default function addSprite(
   world: World,
   entity: TypedEntity,
-  sprite: Sprite
+  sprite: SpriteRef
 ) {
   world.addComponentToEntity(entity, SPRITE, sprite);
 }

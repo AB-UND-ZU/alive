@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../../game/assets/spriteIds";
 import ReactThreeTestRenderer from "@react-three/test-renderer";
 import Entity from ".";
 import { useGame } from "../../interface/hooks";
@@ -85,13 +86,19 @@ it("keeps a homing disc facing its movement while approaching a corner", async (
         .map((node) => node.instance.userData.char);
     const body = (instant = false) =>
       getSceneFrame(world, 15, 11, undefined, { instant }).find(
-        (entry) => entry.entity === disc && entry.sprite === disc[SPRITE]
+        (entry) => entry.entity === disc && entry.sprite.id === disc[SPRITE].id
       )!.layers;
     expect(glyphs()).toEqual(
-      getFacingLayers(disc[SPRITE], "right").map((layer) => layer.char)
+      getFacingLayers(resolveSprite(disc[SPRITE]), "right").map(
+        (layer) => layer.char
+      )
     );
-    expect(body()).toEqual(getFacingLayers(disc[SPRITE], "right"));
-    expect(body(true)).toEqual(getFacingLayers(disc[SPRITE], "down"));
+    expect(body()).toEqual(
+      getFacingLayers(resolveSprite(disc[SPRITE]), "right")
+    );
+    expect(body(true)).toEqual(
+      getFacingLayers(resolveSprite(disc[SPRITE]), "down")
+    );
     for (let frame = 0; frame < 15 && disc[POSITION].y === corner.y; frame++) {
       await ReactThreeTestRenderer.act(async () => {
         step(world);
@@ -100,9 +107,13 @@ it("keeps a homing disc facing its movement while approaching a corner", async (
     }
     expect(disc[POSITION].y).toBe(corner.y + 1);
     expect(glyphs()).toEqual(
-      getFacingLayers(disc[SPRITE], "down").map((layer) => layer.char)
+      getFacingLayers(resolveSprite(disc[SPRITE]), "down").map(
+        (layer) => layer.char
+      )
     );
-    expect(body()).toEqual(getFacingLayers(disc[SPRITE], "down"));
+    expect(body()).toEqual(
+      getFacingLayers(resolveSprite(disc[SPRITE]), "down")
+    );
   } finally {
     await renderer.unmount();
   }

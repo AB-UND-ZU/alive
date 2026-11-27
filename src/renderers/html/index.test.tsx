@@ -1,3 +1,4 @@
+import { customSprite } from "../../game/assets/spriteIds";
 import { act, render, screen } from "@testing-library/react";
 import HtmlRenderer from ".";
 import * as sceneFrame from "../interface/frame";
@@ -95,17 +96,17 @@ it("advances the supplied world, pauses without catchup, and releases its animat
 it("keeps a single glyph as text and resolves stacked layers into one SVG", () => {
   const world = createWorld();
   const entity = assertHero(world);
-  const letter: Sprite = {
+  const letter: Sprite = customSprite({
     name: "Letter",
     layers: [{ char: "A", color: colors.lime }],
-  };
-  const stacked: Sprite = {
+  });
+  const stacked: Sprite = customSprite({
     name: "Stacked letter",
     layers: [
       { char: "█", color: colors.black },
       { char: "B", color: colors.white },
     ],
-  };
+  });
   jest.spyOn(sceneFrame, "getSceneFrame").mockReturnValue([
     {
       key: "letter",
@@ -150,10 +151,10 @@ it("keeps a single glyph as text and resolves stacked layers into one SVG", () =
 it("keeps neighboring cells rigid while snapping the camera to device pixels", () => {
   const world = createWorld();
   const entity = assertHero(world);
-  const sprite: Sprite = {
+  const sprite: Sprite = customSprite({
     name: "Letter",
     layers: [{ char: "A", color: colors.white }],
-  };
+  });
   const camera = motion.createMotion(0, 0, world.metadata.renderTime, {
     duration: 100,
   });

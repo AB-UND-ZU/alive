@@ -1,10 +1,11 @@
+import { namedSprite } from "../spriteIds";
 import { createTemplate, TEMPLATE_COLORS } from ".";
-import { Sprite } from "../../../engine/components/sprite";
+import { Sprite, SpriteArtwork } from "../../../engine/components/sprite";
 import { colors } from "../colors";
 
 // block particles
 
-const blockSide1Template: Sprite = {
+const blockSide1Template: SpriteArtwork = {
   name: "Block",
   layers: [],
   facing: {
@@ -20,9 +21,11 @@ const blockSide1Template: Sprite = {
     ],
   },
 };
-export const blockSide1 = createTemplate({ sprite: blockSide1Template });
+export const blockSide1 = createTemplate("block_side1", {
+  sprite: blockSide1Template,
+});
 
-const blockSide2Template: Sprite = {
+const blockSide2Template: SpriteArtwork = {
   name: "Block",
   layers: [],
   facing: {
@@ -46,9 +49,11 @@ const blockSide2Template: Sprite = {
     ],
   },
 };
-export const blockSide2 = createTemplate({ sprite: blockSide2Template });
+export const blockSide2 = createTemplate("block_side2", {
+  sprite: blockSide2Template,
+});
 
-const blockCorner1Template: Sprite = {
+const blockCorner1Template: SpriteArtwork = {
   name: "Block",
   layers: [],
   facing: {
@@ -74,9 +79,11 @@ const blockCorner1Template: Sprite = {
     ],
   },
 };
-export const blockCorner1 = createTemplate({ sprite: blockCorner1Template });
+export const blockCorner1 = createTemplate("block_corner1", {
+  sprite: blockCorner1Template,
+});
 
-const blockCorner2Template: Sprite = {
+const blockCorner2Template: SpriteArtwork = {
   name: "Block",
   layers: [],
   facing: {
@@ -106,11 +113,13 @@ const blockCorner2Template: Sprite = {
     ],
   },
 };
-export const blockCorner2 = createTemplate({ sprite: blockCorner2Template });
+export const blockCorner2 = createTemplate("block_corner2", {
+  sprite: blockCorner2Template,
+});
 
 // wave particles
 
-const waveSideTemplate: Sprite = {
+const waveSideTemplate: SpriteArtwork = {
   name: "wave_side",
   layers: [
     { char: "┼", color: TEMPLATE_COLORS.materialPrimary },
@@ -123,7 +132,7 @@ const waveSideTemplate: Sprite = {
     left: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
-const waveSideElementTemplate: Sprite = {
+const waveSideElementTemplate: SpriteArtwork = {
   name: "wave_side_element",
   layers: [
     { char: "┼", color: TEMPLATE_COLORS.materialPrimary },
@@ -148,12 +157,12 @@ const waveSideElementTemplate: Sprite = {
     ],
   },
 };
-export const waveSide = createTemplate({
+export const waveSide = createTemplate("wave_side", {
   sprite: waveSideTemplate,
   materialElementSprite: waveSideElementTemplate,
 });
 
-const waveSideDoubleTemplate: Sprite = {
+const waveSideDoubleTemplate: SpriteArtwork = {
   name: "wave_side_double",
   layers: [{ char: "╬", color: TEMPLATE_COLORS.materialPrimary }],
   facing: {
@@ -163,7 +172,7 @@ const waveSideDoubleTemplate: Sprite = {
     left: [{ char: "║", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
-const waveSideDoubleElementTemplate: Sprite = {
+const waveSideDoubleElementTemplate: SpriteArtwork = {
   name: "wave_side_double_element",
   layers: [{ char: "╬", color: TEMPLATE_COLORS.materialPrimary }],
   facing: {
@@ -185,12 +194,12 @@ const waveSideDoubleElementTemplate: Sprite = {
     ],
   },
 };
-export const waveSideDouble = createTemplate({
+export const waveSideDouble = createTemplate("wave_side_double", {
   sprite: waveSideDoubleTemplate,
   materialElementSprite: waveSideDoubleElementTemplate,
 });
 
-const waveCornerTemplate: Sprite = {
+const waveCornerTemplate: SpriteArtwork = {
   name: "wave_corner",
   layers: [],
   facing: {
@@ -212,7 +221,7 @@ const waveCornerTemplate: Sprite = {
     ],
   },
 };
-const waveCornerElementTemplate: Sprite = {
+const waveCornerElementTemplate: SpriteArtwork = {
   name: "wave_corner_element",
   layers: [],
   facing: {
@@ -238,12 +247,12 @@ const waveCornerElementTemplate: Sprite = {
     ],
   },
 };
-export const waveCorner = createTemplate({
+export const waveCorner = createTemplate("wave_corner", {
   sprite: waveCornerTemplate,
   materialElementSprite: waveCornerElementTemplate,
 });
 
-const waveCornerDoubleTemplate: Sprite = {
+const waveCornerDoubleTemplate: SpriteArtwork = {
   name: "wave_corner_double",
   layers: [],
   facing: {
@@ -253,7 +262,7 @@ const waveCornerDoubleTemplate: Sprite = {
     left: [{ char: "╔", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
-const waveCornerDoubleElementTemplate: Sprite = {
+const waveCornerDoubleElementTemplate: SpriteArtwork = {
   name: "wave_corner_double_element",
   layers: [],
   facing: {
@@ -275,12 +284,12 @@ const waveCornerDoubleElementTemplate: Sprite = {
     ],
   },
 };
-export const waveCornerDouble = createTemplate({
+export const waveCornerDouble = createTemplate("wave_corner_double", {
   sprite: waveCornerDoubleTemplate,
   materialElementSprite: waveCornerDoubleElementTemplate,
 });
 
-const triggerTemplate: Sprite = {
+const triggerTemplate: SpriteArtwork = {
   name: "spell_trigger",
   terminal: { layers: [{ char: "\\", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
@@ -289,7 +298,7 @@ const triggerTemplate: Sprite = {
     { char: "▒", color: TEMPLATE_COLORS.transparent },
   ],
 };
-const triggerElementTemplate: Sprite = {
+const triggerElementTemplate: SpriteArtwork = {
   name: "spell_trigger_element",
   terminal: { layers: [{ char: "\\", color: TEMPLATE_COLORS.elementPrimary }] },
   layers: [
@@ -298,7 +307,7 @@ const triggerElementTemplate: Sprite = {
     { char: "▒", color: TEMPLATE_COLORS.transparent },
   ],
 };
-export const trigger = createTemplate({
+export const trigger = createTemplate("trigger", {
   sprite: triggerTemplate,
   materialElementSprite: triggerElementTemplate,
 });
@@ -309,7 +318,7 @@ const triggerLine = (char: string, color = TEMPLATE_COLORS.materialPrimary) => [
   { char: "▒", color: TEMPLATE_COLORS.transparent },
 ];
 
-const triggerSideTemplate: Sprite = {
+const triggerSideTemplate: SpriteArtwork = {
   name: "spell_trigger_side",
   layers: triggerLine("|"),
   facing: {
@@ -317,7 +326,7 @@ const triggerSideTemplate: Sprite = {
     left: triggerLine("-"),
   },
 };
-export const triggerSide = createTemplate({
+export const triggerSide = createTemplate("trigger_side", {
   sprite: triggerSideTemplate,
   materialElementSprite: {
     ...triggerSideTemplate,
@@ -325,7 +334,7 @@ export const triggerSide = createTemplate({
   },
 });
 
-const triggerCornerTemplate: Sprite = {
+const triggerCornerTemplate: SpriteArtwork = {
   name: "spell_trigger_corner",
   layers: triggerLine("\\"),
   facing: {
@@ -333,7 +342,7 @@ const triggerCornerTemplate: Sprite = {
     left: triggerLine("/"),
   },
 };
-export const triggerCorner = createTemplate({
+export const triggerCorner = createTemplate("trigger_corner", {
   sprite: triggerCornerTemplate,
   materialElementSprite: {
     ...triggerCornerTemplate,
@@ -343,7 +352,7 @@ export const triggerCorner = createTemplate({
 
 export const trapBorder = ["─", "┐", "│", "┘", "─", "└", "│", "┌"].map(
   (char, index) =>
-    createTemplate({
+    createTemplate(`trap_border_${index}`, {
       sprite: {
         name: "trap_border",
         layers: [{ char, color: TEMPLATE_COLORS.materialPrimary }],
@@ -363,7 +372,7 @@ export const trapBorder = ["─", "┐", "│", "┘", "─", "└", "│", "┌
     })
 );
 
-const windSideTemplate: Sprite = {
+const windSideTemplate: SpriteArtwork = {
   name: "wind_side",
   layers: [{ char: "~", color: TEMPLATE_COLORS.materialPrimary }],
   facing: {
@@ -373,7 +382,7 @@ const windSideTemplate: Sprite = {
     left: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
-const windSideElementTemplate: Sprite = {
+const windSideElementTemplate: SpriteArtwork = {
   name: "wind_side_element",
   layers: [{ char: "~", color: TEMPLATE_COLORS.elementPrimary }],
   facing: {
@@ -383,12 +392,12 @@ const windSideElementTemplate: Sprite = {
     left: [{ char: "─", color: TEMPLATE_COLORS.elementPrimary }],
   },
 };
-export const windSide = createTemplate({
+export const windSide = createTemplate("wind_side", {
   sprite: windSideTemplate,
   materialElementSprite: windSideElementTemplate,
 });
 
-const windCornerTemplate: Sprite = {
+const windCornerTemplate: SpriteArtwork = {
   name: "wind_corner",
   layers: [{ char: "┼", color: TEMPLATE_COLORS.materialPrimary }],
   facing: {
@@ -398,7 +407,7 @@ const windCornerTemplate: Sprite = {
     left: [{ char: "└", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
-const windCornerElementTemplate: Sprite = {
+const windCornerElementTemplate: SpriteArtwork = {
   name: "wind_corner_element",
   layers: [{ char: "┼", color: TEMPLATE_COLORS.elementPrimary }],
   facing: {
@@ -408,12 +417,12 @@ const windCornerElementTemplate: Sprite = {
     left: [{ char: "└", color: TEMPLATE_COLORS.elementPrimary }],
   },
 };
-export const windCorner = createTemplate({
+export const windCorner = createTemplate("wind_corner", {
   sprite: windCornerTemplate,
   materialElementSprite: windCornerElementTemplate,
 });
 
-const gustSideTemplate: Sprite = {
+const gustSideTemplate: SpriteArtwork = {
   name: "gust_side",
   layers: [{ char: "~", color: TEMPLATE_COLORS.materialPrimary }],
   facing: {
@@ -423,7 +432,7 @@ const gustSideTemplate: Sprite = {
     left: [{ char: "═", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
-const gustSideElementTemplate: Sprite = {
+const gustSideElementTemplate: SpriteArtwork = {
   name: "gust_side_element",
   layers: [{ char: "~", color: TEMPLATE_COLORS.elementPrimary }],
   facing: {
@@ -433,12 +442,12 @@ const gustSideElementTemplate: Sprite = {
     left: [{ char: "═", color: TEMPLATE_COLORS.elementPrimary }],
   },
 };
-export const gustSide = createTemplate({
+export const gustSide = createTemplate("gust_side", {
   sprite: gustSideTemplate,
   materialElementSprite: gustSideElementTemplate,
 });
 
-const gustCornerTemplate: Sprite = {
+const gustCornerTemplate: SpriteArtwork = {
   name: "gust_corner",
   layers: [{ char: "┼", color: TEMPLATE_COLORS.materialPrimary }],
   facing: {
@@ -448,7 +457,7 @@ const gustCornerTemplate: Sprite = {
     left: [{ char: "╚", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
-const gustCornerElementTemplate: Sprite = {
+const gustCornerElementTemplate: SpriteArtwork = {
   name: "gust_corner_element",
   layers: [{ char: "┼", color: TEMPLATE_COLORS.elementPrimary }],
   facing: {
@@ -458,12 +467,12 @@ const gustCornerElementTemplate: Sprite = {
     left: [{ char: "╚", color: TEMPLATE_COLORS.elementPrimary }],
   },
 };
-export const gustCorner = createTemplate({
+export const gustCorner = createTemplate("gust_corner", {
   sprite: gustCornerTemplate,
   materialElementSprite: gustCornerElementTemplate,
 });
 
-const dashTemplate: Sprite = {
+const dashTemplate: SpriteArtwork = {
   name: "spell_dash",
   layers: [{ char: "+", color: TEMPLATE_COLORS.materialPrimary }],
   facing: {
@@ -505,7 +514,7 @@ const dashTemplate: Sprite = {
     ],
   },
 };
-const dashElementTemplate: Sprite = {
+const dashElementTemplate: SpriteArtwork = {
   name: "spell_dash_element",
   layers: [{ char: "+", color: TEMPLATE_COLORS.elementPrimary }],
   facing: {
@@ -528,22 +537,24 @@ const dashElementTemplate: Sprite = {
     left: [{ char: "<", color: TEMPLATE_COLORS.elementPrimary }],
   },
 };
-export const dash = createTemplate({
+export const dash = createTemplate("dash", {
   sprite: dashTemplate,
   materialElementSprite: dashElementTemplate,
 });
 
 // decay sprites
 
-const evaporateTemplate: Sprite = {
+const evaporateTemplate: SpriteArtwork = {
   name: "evaporate",
   layers: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
 };
-export const evaporate = createTemplate({ sprite: evaporateTemplate });
+export const evaporate = createTemplate("evaporate", {
+  sprite: evaporateTemplate,
+});
 
 // arrow sprites
 
-const shotTemplate: Sprite = {
+const shotTemplate: SpriteArtwork = {
   name: "shot",
   layers: [
     { char: "\u011c", color: TEMPLATE_COLORS.materialPrimary },
@@ -571,12 +582,12 @@ const shotTemplate: Sprite = {
     ],
   },
 };
-export const shot = createTemplate({
+export const shot = createTemplate("shot", {
   sprite: shotTemplate,
   invertWoodIron: true,
 });
 
-const shotShadowTemplate: Sprite = {
+const shotShadowTemplate: SpriteArtwork = {
   name: "shot_shadow",
   layers: [
     { char: "\u0100", color: TEMPLATE_COLORS.transparent },
@@ -614,14 +625,14 @@ const shotShadowTemplate: Sprite = {
     ],
   },
 };
-export const shotShadow = createTemplate({
+export const shotShadow = createTemplate("shot_shadow", {
   sprite: shotShadowTemplate,
   invertWoodIron: true,
 });
 
 // slash particles
 
-const slashSideTemplate: Sprite = {
+const slashSideTemplate: SpriteArtwork = {
   name: "slash_side",
   layers: [{ char: "╗", color: TEMPLATE_COLORS.materialPrimary }],
   facing: {
@@ -631,9 +642,11 @@ const slashSideTemplate: Sprite = {
     left: [{ char: "║", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
-export const slashSide = createTemplate({ sprite: slashSideTemplate });
+export const slashSide = createTemplate("slash_side", {
+  sprite: slashSideTemplate,
+});
 
-const slashCornerTemplate: Sprite = {
+const slashCornerTemplate: SpriteArtwork = {
   name: "slash_corner",
   layers: [],
   facing: {
@@ -643,9 +656,11 @@ const slashCornerTemplate: Sprite = {
     left: [{ char: "╚", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
-export const slashCorner = createTemplate({ sprite: slashCornerTemplate });
+export const slashCorner = createTemplate("slash_corner", {
+  sprite: slashCornerTemplate,
+});
 
-const spearLineTemplate: Sprite = {
+const spearLineTemplate: SpriteArtwork = {
   name: "spear_line",
   layers: [{ char: "┼", color: TEMPLATE_COLORS.materialSecondary }],
   facing: {
@@ -655,7 +670,7 @@ const spearLineTemplate: Sprite = {
     left: [{ char: "─", color: TEMPLATE_COLORS.materialSecondary }],
   },
 };
-const spearLineElementTemplate: Sprite = {
+const spearLineElementTemplate: SpriteArtwork = {
   name: "spear_line_element",
   layers: [{ char: "┼", color: TEMPLATE_COLORS.elementPrimary }],
   facing: {
@@ -665,13 +680,13 @@ const spearLineElementTemplate: Sprite = {
     left: [{ char: "─", color: TEMPLATE_COLORS.elementPrimary }],
   },
 };
-export const spearLine = createTemplate({
+export const spearLine = createTemplate("spear_line", {
   sprite: spearLineTemplate,
   materialElementSprite: spearLineElementTemplate,
   invertWoodIron: true,
 });
 
-const spearTipTemplate: Sprite = {
+const spearTipTemplate: SpriteArtwork = {
   name: "spear_tip",
   layers: [{ char: "┼", color: TEMPLATE_COLORS.materialPrimary }],
   facing: {
@@ -681,14 +696,14 @@ const spearTipTemplate: Sprite = {
     left: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
-export const spearTip = createTemplate({
+export const spearTip = createTemplate("spear_tip", {
   sprite: spearTipTemplate,
   invertWoodIron: true,
 });
 
 // homing particles
 
-const summonTemplate: Sprite = {
+const summonTemplate: SpriteArtwork = {
   name: "summon",
   layers: [
     { char: "■", color: TEMPLATE_COLORS.materialPrimary },
@@ -698,9 +713,9 @@ const summonTemplate: Sprite = {
     { char: "·", color: TEMPLATE_COLORS.transparent },
   ],
 };
-export const summon = createTemplate({ sprite: summonTemplate });
+export const summon = createTemplate("summon", { sprite: summonTemplate });
 
-const ballTemplate: Sprite = {
+const ballTemplate: SpriteArtwork = {
   name: "ball",
   layers: [
     { char: "\u0108", color: TEMPLATE_COLORS.materialSecondary },
@@ -708,9 +723,9 @@ const ballTemplate: Sprite = {
     { char: "∙", color: TEMPLATE_COLORS.transparent },
   ],
 };
-export const ball = createTemplate({ sprite: ballTemplate });
+export const ball = createTemplate("ball", { sprite: ballTemplate });
 
-const homingTemplate: Sprite = {
+const homingTemplate: SpriteArtwork = {
   name: "homing",
   layers: [
     { char: "*", color: TEMPLATE_COLORS.materialPrimary },
@@ -749,9 +764,9 @@ const homingTemplate: Sprite = {
     ],
   },
 };
-export const homing = createTemplate({ sprite: homingTemplate });
+export const homing = createTemplate("homing", { sprite: homingTemplate });
 
-const discTemplate: Sprite = {
+const discTemplate: SpriteArtwork = {
   name: "disc",
   layers: [
     { char: "\u0108", color: TEMPLATE_COLORS.materialPrimary },
@@ -782,9 +797,9 @@ const discTemplate: Sprite = {
     ],
   },
 };
-export const disc = createTemplate({ sprite: discTemplate });
+export const disc = createTemplate("disc", { sprite: discTemplate });
 
-const blastTemplate: Sprite = {
+const blastTemplate: SpriteArtwork = {
   name: "iron_blast",
   layers: [{ char: "█", color: TEMPLATE_COLORS.materialPrimary }],
   facing: {
@@ -805,11 +820,11 @@ const blastTemplate: Sprite = {
     ],
   },
 };
-export const blast = createTemplate({ sprite: blastTemplate });
+export const blast = createTemplate("blast", { sprite: blastTemplate });
 
 // beam particles
 
-const boltTemplate: Sprite = {
+const boltTemplate: SpriteArtwork = {
   name: "bolt",
   terminal: { layers: [{ char: "•", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [{ char: "∙", color: TEMPLATE_COLORS.materialPrimary }],
@@ -825,7 +840,7 @@ const boltTemplate: Sprite = {
     ],
   },
 };
-const boltElementTemplate: Sprite = {
+const boltElementTemplate: SpriteArtwork = {
   name: "bolt_element",
   terminal: { layers: [{ char: "•", color: TEMPLATE_COLORS.elementPrimary }] },
   layers: [{ char: "∙", color: TEMPLATE_COLORS.elementPrimary }],
@@ -841,7 +856,7 @@ const boltElementTemplate: Sprite = {
     ],
   },
 };
-const boltWood: Sprite = {
+const boltWood: Sprite = namedSprite("bolt_wood", {
   name: "bolt",
   terminal: { layers: [{ char: "•", color: colors.maroon }] },
   layers: [{ char: "∙", color: colors.maroon }],
@@ -856,14 +871,14 @@ const boltWood: Sprite = {
       { char: "\u0106", color: colors.maroon },
     ],
   },
-};
-export const bolt = createTemplate({
+});
+export const bolt = createTemplate("bolt", {
   sprite: boltTemplate,
   materialElementSprite: boltElementTemplate,
 });
 bolt.wood.default = boltWood;
 
-const edgeTemplate: Sprite = {
+const edgeTemplate: SpriteArtwork = {
   name: "edge",
   layers: [
     { char: "┼", color: TEMPLATE_COLORS.materialPrimary },
@@ -888,7 +903,7 @@ const edgeTemplate: Sprite = {
     ],
   },
 };
-const edgeElementTemplate: Sprite = {
+const edgeElementTemplate: SpriteArtwork = {
   name: "edge_element",
   layers: [
     { char: "┼", color: TEMPLATE_COLORS.materialPrimary },
@@ -918,14 +933,14 @@ const edgeElementTemplate: Sprite = {
     ],
   },
 };
-export const edge = createTemplate({
+export const edge = createTemplate("edge", {
   sprite: edgeTemplate,
   materialElementSprite: edgeElementTemplate,
 });
 
 // totem particles
 
-const bannerTemplate: Sprite = {
+const bannerTemplate: SpriteArtwork = {
   name: "Banner",
   terminal: { layers: [{ char: "t", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
@@ -935,4 +950,4 @@ const bannerTemplate: Sprite = {
     { char: ".", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-export const banner = createTemplate({ sprite: bannerTemplate });
+export const banner = createTemplate("banner", { sprite: bannerTemplate });

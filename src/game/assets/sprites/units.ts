@@ -2,6 +2,7 @@ import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
 export const woodChest: Sprite = {
+  id: "wood_chest",
   name: "Chest",
   terminal: { layers: [{ char: "\u011f", color: colors.maroon }] },
   layers: [
@@ -13,6 +14,7 @@ export const woodChest: Sprite = {
 };
 
 export const ironChest: Sprite = {
+  id: "iron_chest",
   name: "Chest",
   terminal: { layers: [{ char: "\u011f", color: colors.silver }] },
   layers: [
@@ -24,6 +26,7 @@ export const ironChest: Sprite = {
 };
 
 export const goldChest: Sprite = {
+  id: "gold_chest",
   name: "Chest",
   terminal: { layers: [{ char: "\u011f", color: colors.yellow }] },
   layers: [
@@ -35,6 +38,7 @@ export const goldChest: Sprite = {
 };
 
 export const diamondChest: Sprite = {
+  id: "diamond_chest",
   name: "Chest",
   terminal: { layers: [{ char: "\u011f", color: colors.aqua }] },
   layers: [
@@ -46,6 +50,7 @@ export const diamondChest: Sprite = {
 };
 
 export const rubyChest: Sprite = {
+  id: "ruby_chest",
   name: "Chest",
   terminal: { layers: [{ char: "\u011f", color: colors.fuchsia }] },
   layers: [
@@ -57,6 +62,7 @@ export const rubyChest: Sprite = {
 };
 
 export const rose: Sprite = {
+  id: "rose",
   name: "Rose",
   layers: [
     { char: "┐", color: colors.green },
@@ -68,6 +74,7 @@ export const rose: Sprite = {
 };
 
 export const violet: Sprite = {
+  id: "violet",
   name: "Violet",
   layers: [
     { char: "┐", color: colors.green },
@@ -79,6 +86,7 @@ export const violet: Sprite = {
 };
 
 export const clover: Sprite = {
+  id: "clover",
   name: "Clover",
   layers: [
     { char: "┐", color: colors.green },
@@ -90,6 +98,7 @@ export const clover: Sprite = {
 };
 
 export const lily: Sprite = {
+  id: "lily",
   name: "Lily",
   layers: [
     { char: "┐", color: colors.green },
@@ -101,6 +110,7 @@ export const lily: Sprite = {
 };
 
 export const tulip: Sprite = {
+  id: "tulip",
   name: "Tulip",
   layers: [
     { char: "┐", color: colors.green },
@@ -112,6 +122,7 @@ export const tulip: Sprite = {
 };
 
 export const dummy: Sprite = {
+  id: "dummy",
   name: "Dummy",
   terminal: { layers: [{ char: "Ω", color: colors.grey }] },
   layers: [
@@ -125,6 +136,7 @@ export const dummy: Sprite = {
 };
 
 export const campfire: Sprite = {
+  id: "campfire",
   name: "Bonfire",
   layers: [
     { char: "X", color: colors.maroon },
@@ -134,6 +146,7 @@ export const campfire: Sprite = {
 };
 
 export const fountainCorner: Sprite = {
+  id: "fountain_corner",
   name: "fountain_corner",
   terminal: {
     layers: [{ char: "█", color: colors.navy }],
@@ -190,6 +203,7 @@ export const fountainCorner: Sprite = {
 };
 
 export const fountainSide: Sprite = {
+  id: "fountain_side",
   name: "fountain_side",
   terminal: {
     layers: [{ char: "█", color: colors.navy }],
@@ -238,6 +252,7 @@ export const fountainSide: Sprite = {
 };
 
 export const fountain: Sprite = {
+  id: "fountain",
   name: "Fountain",
   terminal: {
     layers: [
@@ -253,6 +268,7 @@ export const fountain: Sprite = {
 };
 
 export const oakLeaves: Sprite = {
+  id: "oak_leaves",
   name: "Oak",
   layers: [
     { char: "█", color: colors.green },
@@ -284,6 +300,7 @@ export const oakLeaves: Sprite = {
 };
 
 export const oakMouth: Sprite = {
+  id: "oak_mouth",
   name: "Oak",
   layers: [
     { char: "█", color: colors.green },
@@ -317,6 +334,7 @@ export const oakMouth: Sprite = {
 };
 
 export const oakStem: Sprite = {
+  id: "oak_stem",
   name: "Oak",
   layers: [{ char: "║", color: colors.maroon }],
   facing: {
@@ -331,6 +349,7 @@ export const oakStem: Sprite = {
 };
 
 export const oakBranchEnd: Sprite = {
+  id: "oak_branch_end",
   name: "Oak",
   layers: [{ char: "╬", color: colors.maroon }],
   facing: {
@@ -354,6 +373,7 @@ export const oakBranchEnd: Sprite = {
 };
 
 export const oakBranchSide: Sprite = {
+  id: "oak_branch_side",
   name: "Oak",
   layers: [{ char: "╬", color: colors.maroon }],
   facing: {
@@ -365,6 +385,7 @@ export const oakBranchSide: Sprite = {
 };
 
 export const oakBranchCorner: Sprite = {
+  id: "oak_branch_corner",
   name: "Oak",
   layers: [{ char: "╬", color: colors.maroon }],
   facing: {
@@ -376,6 +397,7 @@ export const oakBranchCorner: Sprite = {
 };
 
 export const oakBranchSplit: Sprite = {
+  id: "oak_branch_split",
   name: "Oak",
   layers: [{ char: "╬", color: colors.maroon }],
   facing: {
@@ -387,6 +409,7 @@ export const oakBranchSplit: Sprite = {
 };
 
 export const oakLoopSide: Sprite = {
+  id: "oak_loop_side",
   name: "Oak",
   layers: [{ char: "┼", color: colors.maroon }],
   facing: {
@@ -398,6 +421,7 @@ export const oakLoopSide: Sprite = {
 };
 
 export const oakLoopCorner: Sprite = {
+  id: "oak_loop_corner",
   name: "Oak",
   layers: [{ char: "┼", color: colors.maroon }],
   facing: {
@@ -409,6 +433,7 @@ export const oakLoopCorner: Sprite = {
 };
 
 export const fountainHealing: Sprite = {
+  id: "fountain_healing",
   name: "Fountain",
   terminal: {
     layers: [
@@ -424,6 +449,7 @@ export const fountainHealing: Sprite = {
 };
 
 export const pot: Sprite = {
+  id: "pot",
   name: "Vase",
   terminal: { layers: [{ char: "&", color: colors.maroon }] },
   layers: [
@@ -438,6 +464,7 @@ export const pot: Sprite = {
 };
 
 export const leverOff: Sprite = {
+  id: "lever_off",
   name: "Lever",
   layers: [
     { char: "\\", color: colors.maroon },
@@ -447,6 +474,7 @@ export const leverOff: Sprite = {
 };
 
 export const lever: Sprite = {
+  id: "lever",
   name: "Lever",
   layers: [
     { char: "|", color: colors.maroon },
@@ -456,6 +484,7 @@ export const lever: Sprite = {
 };
 
 export const leverOn: Sprite = {
+  id: "lever_on",
   name: "Lever",
   layers: [
     { char: "/", color: colors.maroon },
@@ -465,6 +494,7 @@ export const leverOn: Sprite = {
 };
 
 export const box: Sprite = {
+  id: "box",
   name: "Box",
   layers: [
     { char: "■", color: colors.grey },
@@ -477,6 +507,7 @@ export const box: Sprite = {
 };
 
 export const ironCask: Sprite = {
+  id: "iron_cask",
   name: "Cask",
   layers: [
     { char: "\u011d", color: colors.grey },
@@ -487,6 +518,7 @@ export const ironCask: Sprite = {
 };
 
 export const fireCask: Sprite = {
+  id: "fire_cask",
   name: "Cask",
   layers: [
     { char: "\u011d", color: colors.maroon },
@@ -497,6 +529,7 @@ export const fireCask: Sprite = {
 };
 
 export const waterCask: Sprite = {
+  id: "water_cask",
   name: "Cask",
   layers: [
     { char: "\u011d", color: colors.navy },
@@ -507,6 +540,7 @@ export const waterCask: Sprite = {
 };
 
 export const earthCask: Sprite = {
+  id: "earth_cask",
   name: "Cask",
   layers: [
     { char: "\u011d", color: colors.green },
@@ -517,6 +551,7 @@ export const earthCask: Sprite = {
 };
 
 export const tumbleweed: Sprite = {
+  id: "tumbleweed",
   name: "Bush",
   terminal: {
     layers: [{ char: "/", color: colors.maroon }],
@@ -563,6 +598,7 @@ export const tumbleweed: Sprite = {
 };
 
 export const vineGrown: Sprite = {
+  id: "vine_grown",
   name: "vine_grown",
   layers: [
     { char: "┼", color: colors.olive },
@@ -589,6 +625,7 @@ export const vineGrown: Sprite = {
 };
 
 export const vineHanging: Sprite = {
+  id: "vine_hanging",
   name: "vine_hanging",
   layers: [
     { char: "│", color: colors.olive },
@@ -625,6 +662,7 @@ export const vineHanging: Sprite = {
 };
 
 export const bamboo: Sprite = {
+  id: "bamboo",
   name: "Bamboo",
   layers: [
     { char: "║", color: colors.green },
@@ -633,11 +671,13 @@ export const bamboo: Sprite = {
 };
 
 export const portal: Sprite = {
+  id: "portal",
   name: "Portal",
   layers: [{ char: "∩", color: colors.silver }],
 };
 
 export const portalBackdrop: Sprite = {
+  id: "portal_backdrop",
   name: "",
   layers: [
     { char: "▒", color: colors.black },
@@ -647,6 +687,7 @@ export const portalBackdrop: Sprite = {
 };
 
 export const portalVortex: Sprite = {
+  id: "portal_vortex",
   name: "",
   layers: [
     { char: "±", color: colors.lime },
@@ -661,11 +702,13 @@ export const portalVortex: Sprite = {
 };
 
 export const portalEntered: Sprite = {
+  id: "portal_entered",
   name: "",
   layers: [{ char: "▒", color: colors.black }],
 };
 
 export const egg: Sprite = {
+  id: "egg",
   name: "Egg",
   terminal: { layers: [{ char: "•", color: colors.white }] },
   layers: [
@@ -677,6 +720,7 @@ export const egg: Sprite = {
 };
 
 export const spikes: Sprite = {
+  id: "spikes",
   name: "Spikes",
   layers: [{ char: "-", color: colors.grey }],
   amounts: {
@@ -703,6 +747,7 @@ export const spikes: Sprite = {
 };
 
 export const boat: Sprite = {
+  id: "boat",
   name: "Boat",
   layers: [
     { char: "\u0115", color: colors.maroon },
@@ -711,6 +756,7 @@ export const boat: Sprite = {
 };
 
 export const cart: Sprite = {
+  id: "cart",
   name: "Cart",
   layers: [
     { char: "w", color: colors.grey },

@@ -1,3 +1,4 @@
+import { spriteRef } from "./spriteIds";
 import { entities, World } from "../../engine";
 import {
   Element,
@@ -290,7 +291,7 @@ const executeStat = (
     const { sprite, swimming } = getClassData(
       appearance.classKey, appearance.hairColor
     );
-    entity[SPRITE] = sprite;
+    entity[SPRITE] = spriteRef(sprite);
     requireComponent(entity, SWIMMABLE).sprite = swimming;
     rerenderEntity(world, entity);
     return;
@@ -764,7 +765,7 @@ export const completeCommand = (
       world.getEntity([PLAYER, STATS, SPAWNABLE]);
     const defaultStat = actor && item.stat ? String(classStat(actor, item.stat)) : undefined;
     const hasSprite = (variant: Omit<Item, "amount" | "carrier" | "bound">) =>
-      getItemSprite(variant).name !== missing.name;
+      getItemSprite(variant).id !== missing.id;
     const hasGiveSprite = (
       variant: Omit<Item, "amount" | "carrier" | "bound">
     ) =>

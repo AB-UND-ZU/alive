@@ -21,7 +21,7 @@ it("offers every release newest first with readable 17-cell rows", () => {
   ]);
   for (const update of updates) {
     expect(update.description!.length).toBe(update.title === "V0x00" ? 5 : 9);
-    expect(update.content[0][0]).toBe(listBullet);
+    expect(update.content[0][0].id).toBe(listBullet.id);
   }
   expect(
     updates.flatMap((update) =>
@@ -155,7 +155,7 @@ it("names creatures explicitly when their native labels differ", () => {
   expect(text).toEqual(
     expect.arrayContaining(["Chick animal", "and Tumbleweed"])
   );
-  expect(release.content[text.indexOf("and Tumbleweed")][0]).toBe(none);
+  expect(release.content[text.indexOf("and Tumbleweed")][0].id).toBe(none.id);
 });
 
 it("renders every history character with the existing DOS font", () => {
@@ -200,7 +200,7 @@ it("separates changes while keeping grouped entries as continuations", () => {
     expect(
       release.content.filter(
         (row, index) =>
-          row[0] === listBullet &&
+          row[0]?.id === listBullet.id &&
           index > 0 &&
           release.content[index - 1].length !== 0
       )

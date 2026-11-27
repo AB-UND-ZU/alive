@@ -15,7 +15,7 @@ export function Cell({
   children,
 }: {
   layers: Layer[];
-  name: string;
+  name?: string;
   dots?: number;
   className?: string;
   style?: CSSProperties;

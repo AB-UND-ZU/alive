@@ -407,20 +407,21 @@ export const describeIslandSeeds = (seeds: number[]) =>
             expect(level.biomes[x][y]).toBe("glacier");
             expect(level.cells[x][y]).toBe("air");
             const entities = getCellEntities(world, { x, y });
-            expect(entities.some((entity) => entity.SPRITE === grass)).toBe(
-              !!(dx || dy)
-            );
+            expect(
+              entities.some((entity) => entity.SPRITE?.id === grass.id)
+            ).toBe(!!(dx || dy));
             if (dx && dy) {
               const containers = entities.filter((entity) => entity.INVENTORY);
               expect(containers.length).toBeLessThanOrEqual(1);
               extras += containers.filter((entity) =>
                 (["box", "pot", "woodChest", "ironChest"] as const).some(
-                  (type) => entity.SPRITE === unitDefinitions[type].sprite
+                  (type) =>
+                    entity.SPRITE?.id === unitDefinitions[type].sprite.id
                 )
               ).length;
               chests += containers.filter(
                 (entity) =>
-                  entity.SPRITE === unitDefinitions.goldChest.sprite &&
+                  entity.SPRITE?.id === unitDefinitions.goldChest.sprite.id &&
                   entity.INVENTORY?.items.length
               ).length;
             }

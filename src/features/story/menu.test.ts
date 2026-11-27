@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { getBumpMotion, sampleMotion } from "../../engine/motion";
 import { clickEntity } from "../../engine/systems/click";
 import { CLICKABLE } from "../../engine/components/clickable";
@@ -112,20 +113,20 @@ describe("main menu", () => {
     const { world, menu } = setupMenu();
     const arrow = getArrow(world, menu);
 
-    expect(arrow[SPRITE]).toBe(none);
+    expect(arrow[SPRITE].id).toBe(none.id);
 
     walk(world, "down");
     step(world, 5);
 
     expect(getStep(world, menu)).toBe("tutorial");
-    expect(arrow[SPRITE]).toBe(popupSelection);
+    expect(arrow[SPRITE].id).toBe(popupSelection.id);
     expect(arrow[POSITION]).toEqual({ x: 33, y: 2 });
 
     walk(world, "up");
     step(world, 5);
 
     expect(getStep(world, menu)).toBe("wait");
-    expect(arrow[SPRITE]).toBe(none);
+    expect(arrow[SPRITE].id).toBe(none.id);
   });
 
   it("marks an unavailable menu entry as blocked", () => {
@@ -136,7 +137,7 @@ describe("main menu", () => {
     step(world, 5);
 
     expect(getStep(world, menu)).toBe("continue");
-    expect(arrow[SPRITE]).toBe(popupBlocked);
+    expect(arrow[SPRITE].id).toBe(popupBlocked.id);
     expect(arrow[POSITION]).toEqual({ x: 33, y: 8 });
   });
 
@@ -171,10 +172,12 @@ describe("main menu", () => {
       expect(list.args.detailsPadding).toBe(0);
       const row = index - (list.args.scrollIndex || 0);
       const cell = (column: number, rowIndex = row) =>
-        world.assertByIdAndComponents(
-          list.particles[`popup-content-${rowIndex}-${column}`],
-          [SPRITE]
-        )[SPRITE];
+        resolveSprite(
+          world.assertByIdAndComponents(
+            list.particles[`popup-content-${rowIndex}-${column}`],
+            [SPRITE]
+          )[SPRITE]
+        );
       expect(cell(1).layers.some((layer) => layer.char === "V")).toBe(true);
       const clockColumn = 17 - updates[index].description!.length;
       expect(cell(clockColumn).layers.some((layer) => layer.char === "└")).toBe(
@@ -230,18 +233,18 @@ describe("main menu", () => {
       TOOLTIP,
     ]);
 
-    expect(lever[SPRITE]).toBe(leverOn);
+    expect(lever[SPRITE].id).toBe(leverOn.id);
 
     click(lever);
     step(world, 5);
 
-    expect(lever[SPRITE]).toBe(leverOff);
+    expect(lever[SPRITE].id).toBe(leverOff.id);
     expect(getDialogs(lever)).toEqual(["Sound off"]);
 
     click(lever);
     step(world, 5);
 
-    expect(lever[SPRITE]).toBe(leverOn);
+    expect(lever[SPRITE].id).toBe(leverOn.id);
     expect(getDialogs(lever)).toEqual(["Sound on"]);
     expect(playedSounds).toContain("lever");
   });
@@ -275,7 +278,9 @@ describe("main menu", () => {
       .filter((entity) => !entity[SEQUENCABLE] && !entity[COVERABLE]);
     const block = blocks[0];
     const colors = () =>
-      blocks.map((entity) => entity[SPRITE].layers[0].color).join();
+      blocks
+        .map((entity) => resolveSprite(entity[SPRITE]).layers[0].color)
+        .join();
     const before = colors();
 
     clickEntity(world, hero, block, "up");

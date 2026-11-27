@@ -1,3 +1,4 @@
+import { customSprite } from "../../game/assets/spriteIds";
 import { maxWorldRows } from "../interface/dimensions";
 import { worldLoading } from "../../game/assets/loading";
 import { levelConfig } from "../../game/levels";
@@ -118,15 +119,6 @@ export const getTerminalFrame = (
     ];
     for (const entry of scene) {
       if (
-        ["buy", "sell"].includes(tabs[selected]) &&
-        entry.sprite.name === "Coin"
-      ) {
-        entry.terminalLayers = [
-          { char: "█", color: colors.black },
-          ...getItemSprite({ stackable: "coin", amount: 1 }).terminal!.layers,
-        ];
-      }
-      if (
         entry.particleName?.startsWith("popup-content-") &&
         tabs[selected] === "map" &&
         entry.layers.every(
@@ -223,14 +215,16 @@ export const getTerminalFrame = (
     stat: "hp" | "mp" | "xp",
     depletable = true
   ) =>
-    createProgress(stats, stat, 13, depletable).map((sprite) => ({
-      ...sprite,
-      terminal: {
-        layers: sprite.terminal!.layers.map((layer) =>
-          layer.char === "░" ? { char: "█", color: colors.black } : layer
-        ),
-      },
-    }));
+    createProgress(stats, stat, 13, depletable).map((sprite) =>
+      customSprite({
+        ...sprite,
+        terminal: {
+          layers: sprite.terminal!.layers.map((layer) =>
+            layer.char === "░" ? { char: "█", color: colors.black } : layer
+          ),
+        },
+      })
+    );
   if (hero) {
     const pauseButton = createSpriteButton(
       [session.paused ? pauseInvertPressed : pauseInvert],

@@ -17,8 +17,10 @@ it("uses the actual shared sprite definitions for the warp-map background", () =
   const { background } = getWarpMap(world, portal);
   for (const sprite of [tree1, tree2, sand, waterDeep, ice]) {
     expect(
-      portal[POPUP]!.lines[portal[POPUP]!.horizontalIndex].flat()
-    ).toContain(sprite);
-    expect(background.flat()).toContain(sprite);
+      portal[POPUP]!.lines[portal[POPUP]!.horizontalIndex].flat().map(
+        (cell) => cell.id
+      )
+    ).toContain(sprite.id);
+    expect(background.flat().map((cell) => cell.id)).toContain(sprite.id);
   }
 });

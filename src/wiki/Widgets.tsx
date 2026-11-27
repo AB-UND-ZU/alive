@@ -1,3 +1,4 @@
+import { customSprite } from "../game/assets/spriteIds";
 import { SpriteGallery } from "./SpriteGallery";
 import { getWikiUnitSprite, getWikiUnitName } from "./catalog";
 import { TownMap } from "./WorldMap";
@@ -166,7 +167,7 @@ function CatalogIndex({ entries }: { entries: CatalogIndexEntry[] }) {
   const grouped = groups.size > 1;
   const cellWidth = Math.max(
     8,
-    ...entries.map((entry) => entry.sprite.name.length + 3),
+    ...entries.map((entry) => (entry.sprite.name?.length ?? 0) + 3),
     ...[...groups.keys()].map((group) => displayName(group).length + 2)
   );
   const count = grouped
@@ -201,7 +202,7 @@ function CatalogIndex({ entries }: { entries: CatalogIndexEntry[] }) {
           <MentionStyle preserveColor>
             <span className="Item" style={{ gap: 0 }}>
               <Pixels rows={[[sprite]]} label={sprite.name} />
-              <Text color={color}>{sprite.name}</Text>
+              <Text color={color}>{sprite.name || ""}</Text>
             </span>
           </MentionStyle>,
           true
@@ -562,7 +563,10 @@ export function Widget({ name }: { name: string }) {
             {
               key: "chick",
               kind: "unit",
-              sprite: { ...getWikiUnitSprite("chick"), name: "Chick" },
+              sprite: customSprite({
+                ...getWikiUnitSprite("chick"),
+                name: "Chick",
+              }),
             },
             {
               key: "worm",
@@ -571,10 +575,10 @@ export function Widget({ name }: { name: string }) {
             },
             {
               key: "fish",
-              sprite: {
+              sprite: customSprite({
                 ...getItemSprite(fishItems[0], "display"),
                 name: "Fish",
-              },
+              }),
             },
           ]}
         />
@@ -643,10 +647,10 @@ export function Widget({ name }: { name: string }) {
         <CatalogIndex
           entries={entries.map(([key, item]) => ({
             key,
-            sprite: {
+            sprite: customSprite({
               ...getItemSprite(item, "display"),
               name: displayName(key),
-            },
+            }),
           }))}
         />
         <ItemCatalogEntry
@@ -731,7 +735,10 @@ export function Widget({ name }: { name: string }) {
               ? worldPlantGroups().map((family) => ({
                   key: "world-" + family.name.toLowerCase(),
                   group: family.name === "Palm" ? "Desert" : "Forest",
-                  sprite: { ...family.plants[0].sprites[0], name: family.name },
+                  sprite: customSprite({
+                    ...family.plants[0].sprites[0],
+                    name: family.name,
+                  }),
                   color: colors.grey,
                 }))
               : []),
@@ -757,13 +764,13 @@ export function Widget({ name }: { name: string }) {
                   redirected: Boolean(
                     category && unitPage(key, unit) !== category
                   ),
-                  sprite: {
+                  sprite: customSprite({
                     ...getWikiUnitSprite(key),
                     name:
                       group.length > 1
                         ? displayName(unitFamily(key))
                         : getWikiUnitName(key),
-                  },
+                  }),
                   color:
                     unit.faction === "wild"
                       ? colors.maroon
@@ -793,7 +800,8 @@ export function Widget({ name }: { name: string }) {
   if (name === "classes") {
     const portraits = displayedClasses.map((key) =>
       mergeSprites(
-        classDefinitions[key].backdrop || { name: "", layers: [] },
+        classDefinitions[key].backdrop ||
+          customSprite({ name: "", layers: [] }),
         classDefinitions[key].sprite
       )
     );
@@ -936,7 +944,9 @@ export function Widget({ name }: { name: string }) {
               const unit = (Object.keys(unitDefinitions) as UnitKey[]).find(
                 (key) => isWikiUnit(key) && key.toLowerCase() === cell
               );
-              return unit ? "unit:" + unit : p.sprite.name.toLowerCase();
+              return unit
+                ? "unit:" + unit
+                : (p.sprite.name || "").toLowerCase();
             })()}
             sprite
           >
@@ -1080,7 +1090,7 @@ export function Widget({ name }: { name: string }) {
               const item = previewItem(commandItems[key]);
               const effect = getEffectSprite(item);
               const supported =
-                getItemSprite(item, "display").name !== missing.name;
+                getItemSprite(item, "display").id !== missing.id;
               return (
                 <span key={key} data-item-name={key}>
                   {effect ? (

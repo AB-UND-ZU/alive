@@ -88,7 +88,7 @@ describe("dormant plants", () => {
     const { world, plant } = setup("rose");
 
     holdMove(world, ["right"]);
-    advanceUntil(world, () => plant[TOOLTIP].idle === rage, 2000);
+    advanceUntil(world, () => plant[TOOLTIP].idle?.id === rage.id, 2000);
     holdMove(world, []);
 
     expect(plant[BELONGABLE].faction).toBe("wild");
@@ -129,9 +129,9 @@ describe("dormant plants", () => {
     const { world, hero, plant } = setup("violet");
     awaken(world, plant);
 
-    const idles = trace(world, 6, () => plant[TOOLTIP].idle);
+    const idles = trace(world, 6, () => plant[TOOLTIP].idle?.id);
 
-    expect(idles).toContain(rage);
+    expect(idles).toContain(rage.id);
     expect(hero[STATS].hp).toBeLessThan(hero[STATS].maxHp);
 
     expect(
@@ -151,7 +151,7 @@ describe("dormant plants", () => {
     awaken(world, plant);
     plant[STATS].hp = 10;
 
-    advanceUntil(world, () => plant[TOOLTIP].idle === rage, 10000);
+    advanceUntil(world, () => plant[TOOLTIP].idle?.id === rage.id, 10000);
     const hp = hero[STATS].hp;
     advanceUntil(world, () => plant[STATS].hp > 10, 5000);
 

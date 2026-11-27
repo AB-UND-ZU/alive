@@ -1,21 +1,22 @@
+import { namedSprite } from "../spriteIds";
 import { createTemplate, TEMPLATE_COLORS } from ".";
-import { Sprite } from "../../../engine/components/sprite";
+import { Sprite, SpriteArtwork } from "../../../engine/components/sprite";
 import { colors } from "../colors";
 
 // craftables
 
-const spiritTemplate: Sprite = {
+const spiritTemplate: SpriteArtwork = {
   name: "Spirit",
   layers: [{ char: "æ", color: TEMPLATE_COLORS.elementPrimary }],
 };
-export const spirit = createTemplate({
+export const spirit = createTemplate("spirit", {
   sprite: spiritTemplate,
   materialElementSprite: spiritTemplate,
 });
 
 // consumables
 
-const keyTemplate: Sprite = {
+const keyTemplate: SpriteArtwork = {
   name: "Key",
   terminal: { layers: [{ char: "╒", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
@@ -24,7 +25,7 @@ const keyTemplate: Sprite = {
     { char: "º", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-const keyElementTemplate: Sprite = {
+const keyElementTemplate: SpriteArtwork = {
   name: "Key",
   terminal: {
     layers: [{ char: "╒", color: TEMPLATE_COLORS.elementSecondary }],
@@ -35,7 +36,7 @@ const keyElementTemplate: Sprite = {
     { char: "º", color: TEMPLATE_COLORS.elementSecondary },
   ],
 };
-const fireKey: Sprite = {
+const fireKey: Sprite = namedSprite("fire_key", {
   name: "Key",
   terminal: { layers: [{ char: "╒", color: colors.red }] },
   layers: [
@@ -43,14 +44,14 @@ const fireKey: Sprite = {
     { char: "\u011c", color: colors.black },
     { char: "º", color: colors.red },
   ],
-};
-export const key = createTemplate({
+});
+export const key = createTemplate("key", {
   sprite: keyTemplate,
   elementSprite: keyElementTemplate,
 });
 key.default.fire = fireKey;
 
-const flaskTemplate: Sprite = {
+const flaskTemplate: SpriteArtwork = {
   name: "Flask",
   terminal: { layers: [{ char: "σ", color: TEMPLATE_COLORS.elementPrimary }] },
   layers: [
@@ -61,7 +62,7 @@ const flaskTemplate: Sprite = {
     { char: "∙", color: TEMPLATE_COLORS.elementPrimary },
   ],
 };
-export const flask = createTemplate({
+export const flask = createTemplate("flask", {
   sprite: {
     ...flaskTemplate,
     terminal: {
@@ -71,7 +72,7 @@ export const flask = createTemplate({
   materialElementSprite: flaskTemplate,
 });
 
-const bottleTemplate: Sprite = {
+const bottleTemplate: SpriteArtwork = {
   name: "Bottle",
   terminal: { layers: [{ char: "δ", color: TEMPLATE_COLORS.elementPrimary }] },
   layers: [
@@ -82,7 +83,7 @@ const bottleTemplate: Sprite = {
     { char: "°", color: TEMPLATE_COLORS.materialSecondary },
   ],
 };
-export const bottle = createTemplate({
+export const bottle = createTemplate("bottle", {
   sprite: {
     ...bottleTemplate,
     terminal: {
@@ -92,7 +93,7 @@ export const bottle = createTemplate({
   materialElementSprite: bottleTemplate,
 });
 
-const potionTemplate: Sprite = {
+const potionTemplate: SpriteArtwork = {
   name: "Potion",
   terminal: {
     layers: [{ char: "\u010a", color: TEMPLATE_COLORS.elementPrimary }],
@@ -108,7 +109,7 @@ const potionTemplate: Sprite = {
     { char: "\u0106", color: TEMPLATE_COLORS.elementPrimary },
   ],
 };
-export const potion = createTemplate({
+export const potion = createTemplate("potion", {
   sprite: {
     ...potionTemplate,
     terminal: {
@@ -118,7 +119,7 @@ export const potion = createTemplate({
   materialElementSprite: potionTemplate,
 });
 
-const elixirTemplate: Sprite = {
+const elixirTemplate: SpriteArtwork = {
   name: "Elixir",
   layers: [
     { char: '"', color: TEMPLATE_COLORS.materialSecondary },
@@ -127,9 +128,9 @@ const elixirTemplate: Sprite = {
     { char: "\u0108", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-export const elixir = createTemplate({ sprite: elixirTemplate });
+export const elixir = createTemplate("elixir", { sprite: elixirTemplate });
 
-const bucketTemplate: Sprite = {
+const bucketTemplate: SpriteArtwork = {
   name: "Bucket",
   terminal: { layers: [{ char: "u", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
@@ -137,7 +138,7 @@ const bucketTemplate: Sprite = {
     { char: "▀", color: TEMPLATE_COLORS.transparent },
   ],
 };
-const bucketElementTemplate: Sprite = {
+const bucketElementTemplate: SpriteArtwork = {
   name: "Bucket",
   terminal: { layers: [{ char: "u", color: TEMPLATE_COLORS.elementPrimary }] },
   layers: [
@@ -147,15 +148,15 @@ const bucketElementTemplate: Sprite = {
     { char: "▀", color: TEMPLATE_COLORS.transparent },
   ],
 };
-const ironBucket: Sprite = {
+const ironBucket: Sprite = namedSprite("iron_bucket", {
   name: "Bucket",
   terminal: { layers: [{ char: "u", color: colors.silver }] },
   layers: [
     { char: "U", color: colors.silver },
     { char: "▀", color: colors.black },
   ],
-};
-const ironWaterBucket: Sprite = {
+});
+const ironWaterBucket: Sprite = namedSprite("iron_water_bucket", {
   name: "Water",
   terminal: { layers: [{ char: "u", color: colors.blue }] },
   layers: [
@@ -164,8 +165,8 @@ const ironWaterBucket: Sprite = {
     { char: "U", color: colors.silver },
     { char: "▀", color: colors.black },
   ],
-};
-export const bucket = createTemplate({
+});
+export const bucket = createTemplate("bucket", {
   sprite: bucketTemplate,
   materialElementSprite: bucketElementTemplate,
 });

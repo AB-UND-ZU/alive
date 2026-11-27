@@ -1,3 +1,4 @@
+import { customSprite } from "../game/assets/spriteIds";
 import { useState } from "react";
 import { LargePreview } from "./LargePreview";
 import { classDefinitions } from "../game/balancing/classes";
@@ -84,7 +85,10 @@ export function Damage() {
         <Text color={colors.white}>Attacker</Text>
         <LargePreview
           unit={{
-            sprite: { ...attackerSprite, name: attackerClass.sprite.name },
+            sprite: customSprite({
+              ...attackerSprite,
+              name: attackerClass.sprite.name,
+            }),
           }}
         />
         <ItemView item={weapon} />
@@ -122,10 +126,10 @@ export function Damage() {
         <Text color={colors.white}>Defender</Text>
         <LargePreview
           unit={{
-            sprite: {
+            sprite: customSprite({
               ...defenderSprite,
               name: classDefinitions.knight.sprite.name,
-            },
+            }),
           }}
         />
         <ItemView item={shield} />

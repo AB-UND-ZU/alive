@@ -96,7 +96,7 @@ export type Entity = Record<LevelName, {}> & {
   [SOUL]: Soul;
   [SPAWNABLE]: Spawnable;
   [SPIKABLE]: Spikable;
-  [SPRITE]: Sprite;
+  [SPRITE]: SpriteRef;
   [STATS]: Stats;
   [STRUCTURABLE]: Structurable;
   [SWIMMABLE]: Swimmable;

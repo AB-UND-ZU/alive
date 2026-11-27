@@ -44,7 +44,7 @@ const visibleGrid = (
   });
   const hero = world.getEntities([PLAYER, POSITION])[0];
   const body = scene.find(
-    (entry) => entry.entity === hero && entry.sprite === hero[SPRITE]
+    (entry) => entry.entity === hero && entry.sprite.id === hero[SPRITE]?.id
   );
   const center = body
     ? { x: Math.ceil(body.x), y: Math.ceil(body.y) }

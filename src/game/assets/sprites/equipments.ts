@@ -4,6 +4,7 @@ import { Sprite } from "../../../engine/components/sprite";
 // active spells (no mana)
 
 export const bombActive: Sprite = {
+  id: "bomb_active",
   name: "Bomb",
   layers: [
     { char: "`", color: colors.maroon },
@@ -14,6 +15,7 @@ export const bombActive: Sprite = {
 };
 
 export const emptyFlask: Sprite = {
+  id: "empty_flask",
   name: "Flask",
   terminal: { layers: [{ char: "σ", color: colors.grey }] },
   layers: [
@@ -26,6 +28,7 @@ export const emptyFlask: Sprite = {
 };
 
 export const emptyBottle: Sprite = {
+  id: "empty_bottle",
   name: "Bottle",
   terminal: { layers: [{ char: "δ", color: colors.grey }] },
   layers: [
@@ -37,6 +40,7 @@ export const emptyBottle: Sprite = {
 };
 
 export const emptyPotion: Sprite = {
+  id: "empty_potion",
   name: "Potion",
   terminal: { layers: [{ char: "\u010a", color: colors.grey }] },
   layers: [
@@ -53,6 +57,7 @@ export const emptyPotion: Sprite = {
 };
 
 export const emptyElixir: Sprite = {
+  id: "empty_elixir",
   name: "Elixir",
   terminal: { layers: [{ char: "T", color: colors.grey }] },
   layers: [
@@ -64,6 +69,7 @@ export const emptyElixir: Sprite = {
 };
 
 export const woodStickAir2: Sprite = {
+  id: "wood_stick_air2",
   name: "Sword",
   layers: [
     { char: "/", color: colors.maroon },
@@ -90,6 +96,7 @@ export const woodStickAir2: Sprite = {
 };
 
 export const woodShieldAir2: Sprite = {
+  id: "wood_shield_air2",
   name: "Shield",
   layers: [
     { char: "c", color: colors.white },
@@ -101,6 +108,7 @@ export const woodShieldAir2: Sprite = {
 };
 
 export const bait: Sprite = {
+  id: "bait",
   name: "Bait",
   layers: [
     { char: "\u0108", color: colors.red },
@@ -111,6 +119,7 @@ export const bait: Sprite = {
 };
 
 export const wire: Sprite = {
+  id: "wire",
   name: "Wire",
   layers: [{ char: "┼", color: colors.grey }],
   facing: {
@@ -122,6 +131,7 @@ export const wire: Sprite = {
 };
 
 export const rush1: Sprite = {
+  id: "rush1",
   name: "Rush",
   layers: [
     { char: "-", color: colors.grey },
@@ -130,6 +140,7 @@ export const rush1: Sprite = {
 };
 
 export const rush2: Sprite = {
+  id: "rush2",
   name: "Rush",
   layers: [
     { char: "»", color: colors.grey },
@@ -139,6 +150,7 @@ export const rush2: Sprite = {
 };
 
 export const cloak1: Sprite = {
+  id: "cloak1",
   name: "Cloak",
   layers: [
     { char: "\u011d", color: colors.silver },
@@ -149,6 +161,7 @@ export const cloak1: Sprite = {
 };
 
 export const cloak2: Sprite = {
+  id: "cloak2",
   name: "Cloak",
   layers: [
     { char: "\u011d", color: colors.silver },
@@ -163,6 +176,7 @@ export const cloak2: Sprite = {
 // passives
 
 export const charm: Sprite = {
+  id: "charm",
   name: "Charm",
   layers: [
     { char: "\u0103", color: colors.silver },
@@ -171,6 +185,7 @@ export const charm: Sprite = {
 };
 
 export const diamondCharm1: Sprite = {
+  id: "diamond_charm1",
   name: "Charm",
   layers: [
     { char: "\u0103", color: colors.aqua },
@@ -179,6 +194,7 @@ export const diamondCharm1: Sprite = {
 };
 
 export const fireCharm1: Sprite = {
+  id: "fire_charm1",
   name: "Charm",
   layers: [
     { char: "\u0103", color: colors.red },
@@ -187,6 +203,7 @@ export const fireCharm1: Sprite = {
 };
 
 export const waterCharm1: Sprite = {
+  id: "water_charm1",
   name: "Charm",
   layers: [
     { char: "\u0103", color: colors.blue },
@@ -195,6 +212,7 @@ export const waterCharm1: Sprite = {
 };
 
 export const earthCharm1: Sprite = {
+  id: "earth_charm1",
   name: "Charm",
   layers: [
     { char: "\u0103", color: colors.lime },
@@ -203,6 +221,7 @@ export const earthCharm1: Sprite = {
 };
 
 export const diamondCharm2: Sprite = {
+  id: "diamond_charm2",
   name: "Charm",
   layers: [
     { char: "\u0117", color: colors.aqua },
@@ -216,6 +235,7 @@ export const diamondCharm2: Sprite = {
 };
 
 export const fireCharm2: Sprite = {
+  id: "fire_charm2",
   name: "Charm",
   layers: [
     { char: "\u0117", color: colors.red },
@@ -229,6 +249,7 @@ export const fireCharm2: Sprite = {
 };
 
 export const waterCharm2: Sprite = {
+  id: "water_charm2",
   name: "Charm",
   layers: [
     { char: "\u0117", color: colors.blue },
@@ -242,6 +263,7 @@ export const waterCharm2: Sprite = {
 };
 
 export const earthCharm2: Sprite = {
+  id: "earth_charm2",
   name: "Charm",
   layers: [
     { char: "\u0117", color: colors.lime },
@@ -255,6 +277,7 @@ export const earthCharm2: Sprite = {
 };
 
 export const rubyCharm2: Sprite = {
+  id: "ruby_charm2",
   name: "Charm",
   layers: [
     { char: "\u0117", color: colors.fuchsia },
@@ -268,6 +291,7 @@ export const rubyCharm2: Sprite = {
 };
 
 export const aetherCharm2: Sprite = {
+  id: "aether_charm2",
   name: "Charm",
   layers: [
     { char: "\u0117", color: colors.white },
@@ -281,6 +305,7 @@ export const aetherCharm2: Sprite = {
 };
 
 export const voidCharm2: Sprite = {
+  id: "void_charm2",
   name: "Charm",
   layers: [
     { char: "\u0117", color: colors.white },
@@ -294,6 +319,7 @@ export const voidCharm2: Sprite = {
 };
 
 export const rainbowCharm2: Sprite = {
+  id: "rainbow_charm2",
   name: "Charm",
   layers: [
     { char: "\u0117", color: colors.white },
@@ -307,6 +333,7 @@ export const rainbowCharm2: Sprite = {
 };
 
 export const pet: Sprite = {
+  id: "pet",
   name: "Pet",
   layers: [
     { char: '"', color: colors.red },
@@ -319,6 +346,7 @@ export const pet: Sprite = {
 // accessories
 
 export const woodAmuletAir2: Sprite = {
+  id: "wood_amulet_air2",
   name: "Amulet",
   layers: [
     { char: "│", color: colors.maroon },
@@ -332,6 +360,7 @@ export const woodAmuletAir2: Sprite = {
 };
 
 export const woodRingAir2: Sprite = {
+  id: "wood_ring_air2",
   name: "Ring",
   layers: [
     { char: "\u0117", color: colors.white },
@@ -346,6 +375,7 @@ export const woodRingAir2: Sprite = {
 // spells
 
 export const waveSpellWoodAir2: Sprite = {
+  id: "wave_spell_wood_air2",
   name: "Wave",
   layers: [
     { char: "*", color: colors.maroon },

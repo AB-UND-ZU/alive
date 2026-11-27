@@ -30,7 +30,7 @@ it("shows beam bolts moving through terminal cells before reaching their endpoin
     step(world);
     const scene = getSceneFrame(world, 33, 21, undefined, { instant: true });
     const bolts = collectTerminalSprites(scene).filter((entry) =>
-      entry.sprite.name.startsWith("bolt")
+      entry.sprite.name?.startsWith("bolt")
     );
     const frame = createTerminalFrame(bolts, 33, 21);
     for (const row of frame)
@@ -97,7 +97,7 @@ it.each(orientations)(
         (entry) => entry.entity.CASTABLE && /body0$/.test(entry.key)
       );
       const ring = collectTerminalSprites(scene).filter((entry) =>
-        /^wave_(side|corner)/.test(entry.sprite.name)
+        /^wave_(side|corner)/.test(entry.sprite.name || "")
       );
       if (!center || !ring.length) continue;
       const state = center.entity.SEQUENCABLE?.states.spell;
@@ -156,9 +156,11 @@ it.each(orientations)(
             instant: true,
           });
           const beam = collectTerminalSprites(scene).filter((entry) =>
-            /^(edge|bolt)/.test(entry.sprite.name)
+            /^(edge|bolt)/.test(entry.sprite.name || "")
           );
-          const caps = beam.filter((entry) => /^edge/.test(entry.sprite.name));
+          const caps = beam.filter((entry) =>
+            /^edge/.test(entry.sprite.name || "")
+          );
           if (!caps.length) continue;
           capFrames++;
           const frame = createTerminalFrame(beam, 33, 21);
@@ -170,7 +172,7 @@ it.each(orientations)(
             if (
               beam.some(
                 (entry) =>
-                  /^bolt/.test(entry.sprite.name) &&
+                  /^bolt/.test(entry.sprite.name || "") &&
                   entry.x === cap.x &&
                   entry.y === cap.y
               )

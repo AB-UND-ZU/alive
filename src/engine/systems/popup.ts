@@ -1,3 +1,4 @@
+import { spriteRef } from "../../game/assets/spriteIds";
 import addRestorable, { RESTORABLE } from "../components/restorable";
 import { updateSpriteBuilder } from "../../game/assets/spriteBuilder";
 import { World } from "../ecs";
@@ -1485,7 +1486,7 @@ export default function setupPopup(world: World) {
           pushTabSelection(world, tradeEntity);
           spendItem(world, heroEntity, addItem, ingredient);
           Object.assign(base[ITEM], resultItem);
-          base[SPRITE] = getItemSprite(base[ITEM]);
+          base[SPRITE] = spriteRef(getItemSprite(base[ITEM]));
           if (hotKey !== undefined)
             assignQuickItem(world, heroEntity, base[ITEM], Number(hotKey));
           const xp = tradeEntity[FORGABLE].xp ?? 0;

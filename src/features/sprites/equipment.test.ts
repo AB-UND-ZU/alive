@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import {
   createAreaWorld,
   assertHero,
@@ -116,7 +117,7 @@ it.each([
     particles[`popup-content-3-${"offhand" in gear ? 10 : 13}`],
     [SPRITE]
   );
-  expect(composeCharacterPixels(marker[SPRITE].layers)[12 * 9 + 4]).toBe(
-    colors.silver
-  );
+  expect(
+    composeCharacterPixels(resolveSprite(marker[SPRITE]).layers)[12 * 9 + 4]
+  ).toBe(colors.silver);
 });

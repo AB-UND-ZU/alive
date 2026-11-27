@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../../game/assets/spriteIds";
 import Entity from ".";
 import {
   advance,
@@ -90,7 +91,10 @@ describe("Entity", () => {
 
     const { renderer } = await renderEntity(world, hero);
     const glyphs = getGlyphs(renderer.scene);
-    const expected = getFacingLayers(hero[SPRITE], hero[ORIENTABLE]?.facing)
+    const expected = getFacingLayers(
+      resolveSprite(hero[SPRITE]),
+      hero[ORIENTABLE]?.facing
+    )
       .map((layer) => layer.char)
       .filter((char) => char !== "█" && char.trim());
 

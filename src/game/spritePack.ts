@@ -1,3 +1,4 @@
+import { customSprite } from "./assets/spriteIds";
 import { Sprite } from "../engine/components/sprite";
 import { codePage437 } from "./assets/characters";
 import { orderedColors } from "./assets/colors";
@@ -14,7 +15,7 @@ export const loadSpritePack = (fallback: Sprite[]): Sprite[] => {
       sprites.every(
         (sprite) =>
           sprite &&
-          typeof sprite.name === "string" &&
+          (sprite.name === undefined || typeof sprite.name === "string") &&
           Array.isArray(sprite.layers) &&
           sprite.layers.every(
             (layer: Sprite["layers"][number]) =>
@@ -24,13 +25,15 @@ export const loadSpritePack = (fallback: Sprite[]): Sprite[] => {
           )
       )
     )
-      return sprites.map((sprite) => ({
-        name: sprite.name,
-        layers: sprite.layers.map((layer: Sprite["layers"][number]) => ({
-          char: layer.char,
-          color: layer.color,
-        })),
-      }));
+      return sprites.map((sprite) =>
+        customSprite({
+          name: sprite.name,
+          layers: sprite.layers.map((layer: Sprite["layers"][number]) => ({
+            char: layer.char,
+            color: layer.color,
+          })),
+        })
+      );
   } catch {}
   return fallback;
 };

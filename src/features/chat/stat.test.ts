@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { createAreaWorld } from "../../testing/harness";
 import { BELONGABLE } from "../../engine/components/belongable";
 import { MOVABLE } from "../../engine/components/movable";
@@ -94,7 +95,7 @@ describe("stat command", () => {
     say(world, "/stat class rogue");
     say(world, "/s hair blonde");
     const rogue = getClassData("rogue", colors.olive);
-    expect(hero.SPRITE).toEqual(rogue.sprite);
+    expect(resolveSprite(hero.SPRITE)).toEqual(rogue.sprite);
     expect(hero.SWIMMABLE?.sprite).toEqual(rogue.swimming);
 
     say(world, "/stat hair");

@@ -1,4 +1,5 @@
 import { requireComponent, TypedEntity } from "../../engine/entities";
+import { customSprite } from "./spriteIds";
 import { World } from "../../engine";
 import { Sprite } from "../../engine/components/sprite";
 import { Popup, POPUP } from "../../engine/components/popup";
@@ -43,7 +44,7 @@ export const getWarpMap = (world: World, entity: TypedEntity) => {
         warpColor,
         lockedLevel || currentLevel ? "dashed" : "thick",
         lockedLevel
-          ? { ...blocked, terminal: { layers: player.layers } }
+          ? customSprite({ ...blocked, terminal: { layers: player.layers } })
           : showPlayer
           ? mergeSprites(shadow, player)
           : none

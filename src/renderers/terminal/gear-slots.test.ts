@@ -93,9 +93,10 @@ it("keeps damage symbols red or fuchsia on the dialog background", () => {
     advance(world, 500);
     const scene = getSceneFrame(world, 33, 14, undefined, { instant: true });
     const frame = createTerminalFrame(collectTerminalSprites(scene), 33, 14);
-    for (const entry of scene.filter((entry) =>
-      entry.particleName?.startsWith("popup-") &&
-      ["Melee", "Magic"].includes(entry.sprite.name)
+    for (const entry of scene.filter(
+      (entry) =>
+        entry.particleName?.startsWith("popup-") &&
+        ["Melee", "Magic"].includes(entry.sprite.name || "")
     )) {
       const cell = frame[Math.ceil(entry.y)]?.[Math.ceil(entry.x)];
       expect(cell).toMatchObject({
@@ -103,7 +104,7 @@ it("keeps damage symbols red or fuchsia on the dialog background", () => {
         foreground: entry.sprite.name === "Melee" ? colors.red : colors.fuchsia,
         background: colors.black,
       });
-      seen.add(entry.sprite.name);
+      seen.add(entry.sprite.name || "");
     }
   }
   expect(seen).toEqual(new Set(["Melee", "Magic"]));

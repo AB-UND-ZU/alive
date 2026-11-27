@@ -1,3 +1,4 @@
+import { customSprite, resolveSprite, spriteRef } from "./spriteIds";
 import type { World } from "../../engine";
 import type { SequenceState } from "../../engine/components/sequencable";
 import { getPopupInputs, isPopupViewCurrent, PopupView } from "./popupView";
@@ -233,6 +234,7 @@ import {
   craftDownActive,
   forgeHammer,
   forgeHandle,
+  coin,
   popupCenterStart,
   popupCenterEnd,
   popupSide,
@@ -773,9 +775,9 @@ export const blockCondition: Sequence<ConditionSequence, "ACTIONABLE" | "CONDITI
         [PARTICLE, SPRITE]
       );
       particleEntity[PARTICLE].amount = targetAmount;
-      particleEntity[SPRITE] = particleName.startsWith("side-")
-        ? sideSprite
-        : cornerSprite;
+      particleEntity[SPRITE] = spriteRef(
+        particleName.startsWith("side-") ? sideSprite : cornerSprite
+      );
       rerenderEntity(world, particleEntity);
     }
     updated = true;
@@ -1243,11 +1245,13 @@ export const buildCondition: Sequence<ConditionSequence, "ACTIONABLE" | "CONDITI
     : 1;
 
   if (previewParticle[PARTICLE].amount !== targetAmount) {
-    previewParticle[SPRITE] = showPreview
-      ? plottable
-        ? getPlotPreview(world, construction, condition.modifier, target)
-        : addBackground([blocked], colors.black)[0]
-      : none;
+    previewParticle[SPRITE] = spriteRef(
+      showPreview
+        ? plottable
+          ? getPlotPreview(world, construction, condition.modifier, target)
+          : addBackground([blocked], colors.black)[0]
+        : none
+    );
     previewParticle[PARTICLE].amount = targetAmount;
     rerenderEntity(world, previewParticle);
     updated = true;
@@ -1454,7 +1458,7 @@ export const hookCondition: Sequence<ConditionSequence, "CONDITIONABLE" | "EQUIP
     condition.orientation
   ) {
     // replace bait particle with unit
-    baitParticle[SPRITE] = none;
+    baitParticle[SPRITE] = spriteRef(none);
     rerenderEntity(world, baitParticle);
 
     const delta = orientationPoints[condition.orientation];
@@ -1481,7 +1485,7 @@ export const hookCondition: Sequence<ConditionSequence, "CONDITIONABLE" | "EQUIP
   // dispose bait if caught something
   if (isCatching && baitEntity && baitParticle) {
     if (!world.getEntityById(baitEntity[BAITABLE].caught)) {
-      baitParticle[SPRITE] = bait;
+      baitParticle[SPRITE] = spriteRef(bait);
       rerenderEntity(world, baitParticle);
     }
     disposeEntity(world, baitEntity);
@@ -1800,7 +1804,9 @@ export const tornadoSpin: Sequence<TornadoSequence, "CASTABLE" | "POSITION"> = (
         gustOrientation,
         ringIndex === 0 && gustGeneration !== 0 ? 0 : 1
       );
-      gustEntity[SPRITE] = isCorner ? windCornerSprite : windSideSprite;
+      gustEntity[SPRITE] = spriteRef(
+        isCorner ? windCornerSprite : windSideSprite
+      );
       rerenderEntity(world, gustEntity);
     });
 
@@ -2389,10 +2395,10 @@ export const trapAura: Sequence<AuraSequence, "CASTABLE" | "POSITION"> = (world,
     ]);
     const sprite =
       Math.floor(state.elapsed / trapWarningStep) % 2 ? warnOff : warnOn;
-    if (warning[SPRITE] !== sprite) {
-      warning[SPRITE] = sprite;
+    if (warning[SPRITE].id !== sprite.id) {
+      warning[SPRITE] = spriteRef(sprite);
       rerenderEntity(world, warning);
-      if (sprite === warnOn) play(world, entity, "prompt");
+      if (sprite.id === warnOn.id) play(world, entity, "prompt");
       updated = true;
     }
   }
@@ -3455,7 +3461,7 @@ export const creatureVanish: Sequence<VanishSequence, "POSITION" | "TOOLTIP" | "
             // drop and evaporate before unit is fully decayed with all limbs
             dropEntity(world, entity, entity[POSITION], false, MAX_DROP_RADIUS);
             animateEvaporate(world, entity);
-            entity[SPRITE] = none;
+            entity[SPRITE] = spriteRef(none);
             return;
           }
 
@@ -3474,7 +3480,7 @@ export const creatureVanish: Sequence<VanishSequence, "POSITION" | "TOOLTIP" | "
       if (progress === vanishGrowSprites.length) {
         // evaporate limb
         if (vanishParticle) {
-          vanishParticle[SPRITE] = vanishShrinkSprites[0] || none;
+          vanishParticle[SPRITE] = spriteRef(vanishShrinkSprites[0] || none);
           rerenderEntity(world, vanishParticle);
         }
 
@@ -3498,17 +3504,22 @@ export const creatureVanish: Sequence<VanishSequence, "POSITION" | "TOOLTIP" | "
         // hide limbs
         const limbs = getFragments(world, add(entity[POSITION], delta));
         limbs.forEach((fragmentEntity) => {
-          fragmentEntity[SPRITE] = none;
+          fragmentEntity[SPRITE] = spriteRef(none);
           rerenderEntity(world, fragmentEntity);
         });
-      } else if (progress > vanishGrowSprites.length && vanishParticle) {
+      } else if (
+        !vanished &&
+        progress > vanishGrowSprites.length &&
+        vanishParticle
+      ) {
         // animate shrink
-        vanishParticle[SPRITE] =
-          vanishShrinkSprites[progress - vanishGrowSprites.length];
+        vanishParticle[SPRITE] = spriteRef(
+          vanishShrinkSprites[progress - vanishGrowSprites.length]
+        );
         rerenderEntity(world, vanishParticle);
-      } else if (progress >= 0 && vanishParticle) {
+      } else if (progress < vanishGrowSprites.length && vanishParticle) {
         // animate grow
-        vanishParticle[SPRITE] = vanishGrowSprites[progress];
+        vanishParticle[SPRITE] = spriteRef(vanishGrowSprites[progress]);
         rerenderEntity(world, vanishParticle);
       }
     }
@@ -4044,7 +4055,10 @@ export const displayBuy = displayPopupView((world, entity, state) => {
                   ...createText(`${priceItem.amount}`),
                 ]
               : createText(`${priceItem.amount}`, colors.grey);
-          const priceSprite = getItemSprite(priceItem, "display");
+          const priceSprite =
+            priceItem.stackable === "coin"
+              ? coin
+              : getItemSprite(priceItem, "display");
           const line = [
             ...itemText,
             ...repeat(
@@ -4126,7 +4140,7 @@ export const displaySell = displayPopupView((world, entity, state) => {
           ? [
               ...createText("\u0119", colors.lime),
               ...createText(`${sellPrice.amount}`, textColor),
-              getItemSprite(sellPrice),
+              sellPrice.stackable === "coin" ? coin : getItemSprite(sellPrice),
             ]
           : [];
         const itemText = createText(itemSprite.name, textColor);
@@ -4144,15 +4158,19 @@ export const displaySell = displayPopupView((world, entity, state) => {
           ...amountText,
         ];
 
-        return [
-          none,
-          itemSprite,
-          ...(selected
-            ? sellable
-              ? shaded(line, colors.green, "▄")
-              : dotted(line, colors.red)
-            : line),
-        ];
+        const displayed = !selected
+          ? line
+          : sellable
+          ? shaded(line, colors.green, "▄")
+          : dotted(line, colors.red);
+        if (selected && sellable && sellPrice.stackable === "coin") {
+          const priceIndex = itemText.length + rewardText.length - 1;
+          displayed[priceIndex] = customSprite({
+            ...displayed[priceIndex],
+            terminal: coin.terminal,
+          });
+        }
+        return [none, itemSprite, ...displayed];
       })
     : [createText("Nothing to sell", colors.grey)];
 
@@ -4164,7 +4182,7 @@ export const displaySell = displayPopupView((world, entity, state) => {
     ? [
         createText("Not able to sell", colors.grey),
         createText(
-          getItemSprite(selectedItem[ITEM]).name.toLowerCase(),
+          (getItemSprite(selectedItem[ITEM]).name || "").toLowerCase(),
           colors.grey
         ),
       ]
@@ -4541,10 +4559,12 @@ export const displayBuild: Sequence<PopupSequence, "POPUP"> = (world, entity, st
           );
           const itemLine = [
             ...createText(
-              selected ? itemSprite.name : "─".repeat(itemSprite.name.length),
+              selected
+                ? itemSprite.name
+                : "─".repeat(itemSprite.name?.length ?? 0),
               textColor
             ),
-            ...repeat(none, 7 - itemSprite.name.length),
+            ...repeat(none, 7 - (itemSprite.name?.length ?? 0)),
           ];
           const visibleIndex = rowIndex - scrollIndex;
           const line = constructionLines[visibleIndex] || [];
@@ -4611,7 +4631,7 @@ export const displayBuild: Sequence<PopupSequence, "POPUP"> = (world, entity, st
     topSeparatorParticle[ORIENTABLE].facing !== separatorFacing &&
     selectedConstruction
   ) {
-    topSeparatorParticle[SPRITE] = buildCenterTop;
+    topSeparatorParticle[SPRITE] = spriteRef(buildCenterTop);
     topSeparatorParticle[ORIENTABLE].facing = separatorFacing;
     popupResult.updated = true;
   }
@@ -4636,7 +4656,7 @@ export const displayStats = displayPopupView((world, entity, state) => {
   const verticalIndex = getVerticalIndex(world, entity);
   const classSelected = verticalIndex === 0;
   const classConfig = entitySprites[heroEntity[SPAWNABLE].classKey as ClassKey];
-  const className = classConfig.sprite.name;
+  const className = classConfig.sprite.name || "";
   const classLine = [
     ...createText("Class"),
     ...repeat(none, frameWidth - 9 - className.length),
@@ -5117,10 +5137,10 @@ const buildMapView = (world: World, entity: TypedEntity<"POPUP">): PopupView => 
               },
             ].filter((layer) => layer.color);
 
-            cellSprite = {
+            cellSprite = customSprite({
               name: "",
               layers,
-            };
+            });
 
             if (layers.length < 3) {
               cellSprite = mergeSprites(fogSprite, cellSprite);
@@ -5544,18 +5564,20 @@ export const displayClass = displayPopupView((world, entity, state) => {
   const heroPixels = selectedAvailable
     ? lines
     : lines.map((row) =>
-        row.map((cell) => ({
-          ...recolorSprite(cell, colors.grey),
-          terminal: {
-            layers: cell.layers
-              .filter((layer) => layer.char !== "░")
-              .map((layer) => ({
-                ...layer,
-                color:
-                  layer.color === colors.black ? colors.black : colors.grey,
-              })),
-          },
-        }))
+        row.map((cell) =>
+          customSprite({
+            ...recolorSprite(cell, colors.grey),
+            terminal: {
+              layers: cell.layers
+                .filter((layer) => layer.char !== "░")
+                .map((layer) => ({
+                  ...layer,
+                  color:
+                    layer.color === colors.black ? colors.black : colors.grey,
+                })),
+            },
+          })
+        )
       );
 
   const content: Sprite[][] = Array.from({
@@ -5576,7 +5598,7 @@ export const displayClass = displayPopupView((world, entity, state) => {
     const classTitle = createText(
       available || selected
         ? classSprite.name
-        : "─".repeat(classSprite.name.length),
+        : "─".repeat(classSprite.name?.length ?? 0),
       available && selected ? colors.white : colors.grey
     );
     const line = [
@@ -6041,14 +6063,14 @@ const updateForgeAnimation = (
         (entity[FORGABLE].lastAction === "swing") !==
           (hammerParticle[PARTICLE].duration === tick * forgeTicks))) ||
     (!animateHammer &&
-      (isAnimating || (!isHitting && hammerParticle[SPRITE] !== none)))
+      (isAnimating || (!isHitting && hammerParticle[SPRITE]?.id !== none.id)))
   ) {
     updated = true;
     hammerParticle[PARTICLE].amount = hammerGeneration;
 
     if (animateHammer && entity[FORGABLE].lastAction === "swing") {
       particles.forEach(([particleEntity, sprite], index) => {
-        particleEntity[SPRITE] = sprite;
+        particleEntity[SPRITE] = spriteRef(sprite);
         particleEntity[PARTICLE].offsetX =
           hammerGeneration % (forgeTicks * 2) < forgeTicks
             ? hammerLeft + index
@@ -6109,7 +6131,7 @@ const updateForgeAnimation = (
       }
     } else {
       particles.forEach(([particleEntity, sprite], index) => {
-        particleEntity[SPRITE] = isHitting ? sprite : none;
+        particleEntity[SPRITE] = spriteRef(isHitting ? sprite : none);
         particleEntity[PARTICLE].offsetX = hammerRight + index;
         particleEntity[PARTICLE].duration = tick;
         rerenderEntity(world, particleEntity);
@@ -6215,7 +6237,9 @@ export const displayForge: Sequence<PopupSequence, "FORGABLE" | "POPUP"> = (worl
         yieldSprite,
         ...shaded(
           createText(
-            `${yieldSprite.name}${" ".repeat(7 - yieldSprite.name.length)}`
+            `${yieldSprite.name}${" ".repeat(
+              7 - (yieldSprite.name?.length ?? 0)
+            )}`
           ),
           colors.green,
           "▄"
@@ -6234,7 +6258,10 @@ export const displayForge: Sequence<PopupSequence, "FORGABLE" | "POPUP"> = (worl
             ...createText(valueText, statColor),
             statSprite,
             ...createText(statSprite.name, statColor),
-            ...repeat(none, 9 - valueText.length - statSprite.name.length),
+            ...repeat(
+              none,
+              9 - valueText.length - (statSprite.name?.length ?? 0)
+            ),
           ];
         }),
     ];
@@ -6500,7 +6527,10 @@ export const displayForge: Sequence<PopupSequence, "FORGABLE" | "POPUP"> = (worl
                   `Not able to ${isAdding ? "add" : "forge"}`,
                   colors.grey
                 ),
-            createText(`${selectedSprite.name.toLowerCase()}.`, colors.grey),
+            createText(
+              `${(selectedSprite.name || "").toLowerCase()}.`,
+              colors.grey
+            ),
           ];
     }
 
@@ -6559,15 +6589,15 @@ export const displayForge: Sequence<PopupSequence, "FORGABLE" | "POPUP"> = (worl
     entity[POPUP].tabs.length === 1 &&
     leftSeparatorParticle[ORIENTABLE].facing
   ) {
-    leftSeparatorParticle[SPRITE] = popupCenterStart;
+    leftSeparatorParticle[SPRITE] = spriteRef(popupCenterStart);
     leftSeparatorParticle[ORIENTABLE].facing = undefined;
-    rightSeparatorParticle[SPRITE] = popupCenterEnd;
+    rightSeparatorParticle[SPRITE] = spriteRef(popupCenterEnd);
     rightSeparatorParticle[ORIENTABLE].facing = undefined;
     updated = true;
   } else if (!separatorVisible && !leftSeparatorParticle[ORIENTABLE].facing) {
-    leftSeparatorParticle[SPRITE] = popupSide;
+    leftSeparatorParticle[SPRITE] = spriteRef(popupSide);
     leftSeparatorParticle[ORIENTABLE].facing = "left";
-    rightSeparatorParticle[SPRITE] = popupSide;
+    rightSeparatorParticle[SPRITE] = spriteRef(popupSide);
     rightSeparatorParticle[ORIENTABLE].facing = "right";
     updated = true;
   }
@@ -6678,10 +6708,12 @@ export const displayCraft: Sequence<PopupSequence, "POPUP"> = (world, entity, st
             canShop(world, heroEntity, getCraftingDeal(ingredient));
           const itemLine = [
             ...createText(
-              selected ? itemSprite.name : "─".repeat(itemSprite.name.length),
+              selected
+                ? itemSprite.name
+                : "─".repeat(itemSprite.name?.length ?? 0),
               textColor
             ),
-            ...repeat(none, 7 - itemSprite.name.length),
+            ...repeat(none, 7 - (itemSprite.name?.length ?? 0)),
           ];
           const visibleIndex = rowIndex - scrollIndex;
           const line = ingredientLines[visibleIndex] || [];
@@ -6738,7 +6770,7 @@ export const displayCraft: Sequence<PopupSequence, "POPUP"> = (world, entity, st
     topSeparatorParticle[ORIENTABLE].facing !== separatorFacing &&
     selectedIngredients
   ) {
-    topSeparatorParticle[SPRITE] = craftCenterTop;
+    topSeparatorParticle[SPRITE] = spriteRef(craftCenterTop);
     topSeparatorParticle[ORIENTABLE].facing = separatorFacing;
     popupResult.updated = true;
   }
@@ -6798,7 +6830,10 @@ export const displayBrew = displayPopupView((world, entity, state) => {
     const line = [
       ...createText(viewedSprite.name),
       ...amountText,
-      ...repeat(none, 10 - amountText.length - viewedSprite.name.length),
+      ...repeat(
+        none,
+        10 - amountText.length - (viewedSprite.name?.length ?? 0)
+      ),
     ];
     content = [
       ...repeat([], verticalIndex),
@@ -6854,7 +6889,10 @@ export const displayBrew = displayPopupView((world, entity, state) => {
           ...createText(priceSprite.name),
           ...repeat(
             none,
-            frameWidth - 4 - priceSprite.name.length - ingredientAmount.length
+            frameWidth -
+              4 -
+              (priceSprite.name?.length ?? 0) -
+              ingredientAmount.length
           ),
           ...ingredientAmount,
         ];
@@ -6891,7 +6929,10 @@ export const displayBrew = displayPopupView((world, entity, state) => {
       const line = [
         ...createText(itemSprite.name, textColor),
         ...amountText,
-        ...repeat(none, 10 - amountText.length - itemSprite.name.length),
+        ...repeat(
+          none,
+          10 - amountText.length - (itemSprite.name?.length ?? 0)
+        ),
       ];
 
       return [
@@ -7023,7 +7064,10 @@ export const displayBrew = displayPopupView((world, entity, state) => {
     ? getItemDescription(viewedRecipe?.item || selectedRecipe?.item)
     : [
         createText("Not enough items", colors.grey),
-        createText(`for ${viewedSprite.name.toLowerCase()}.`, colors.grey),
+        createText(
+          `for ${(viewedSprite.name || "").toLowerCase()}.`,
+          colors.grey
+        ),
       ];
   return {
     icon,
@@ -7609,9 +7653,9 @@ export const castWave1: Sequence<SpellSequence, "CASTABLE" | "POSITION"> = (worl
             ? element
             : "default"
         ];
-      if (waveParticle[SPRITE] === cornerSprite) continue;
+      if (waveParticle[SPRITE].id === cornerSprite.id) continue;
 
-      waveParticle[SPRITE] = cornerSprite;
+      waveParticle[SPRITE] = spriteRef(cornerSprite);
       rerenderEntity(world, waveParticle);
     }
 
@@ -7666,7 +7710,7 @@ export const castWave1: Sequence<SpellSequence, "CASTABLE" | "POSITION"> = (worl
       if (
         !bounds[`${particle[PARTICLE].offsetX},${particle[PARTICLE].offsetY}`]
       ) {
-        particle[SPRITE] = none;
+        particle[SPRITE] = spriteRef(none);
         rerenderEntity(world, particle);
       }
     }
@@ -8437,7 +8481,7 @@ export const itemCollect: Sequence<CollectSequence, "INVENTORY" | "LOOTABLE" | "
 
       // set background
       if (!isImmersible(world, entity[POSITION])) {
-        entity[SPRITE] = shadow;
+        entity[SPRITE] = spriteRef(shadow);
       }
       rerenderEntity(world, entity);
     } else {
@@ -8567,7 +8611,9 @@ export const flaskConsume: Sequence<ConsumeSequence, "STATS"> = (
     );
 
     if (consumableParticle) {
-      consumableParticle[SPRITE] = materialFlasks[itemEntity[ITEM].material!];
+      consumableParticle[SPRITE] = spriteRef(
+        materialFlasks[itemEntity[ITEM].material!]
+      );
       rerenderEntity(world, consumableParticle);
     }
 
@@ -8755,9 +8801,11 @@ export const focusCircle: Sequence<FocusSequence, "FOCUSABLE"> = (world, entity,
   const currentIndex = parseInt(
     Object.keys(Array.from({ length: 8 })).find(
       (lineIndex) =>
-        world.assertByIdAndComponents(state.particles[`line-${lineIndex}`], [
-          SPRITE,
-        ])[SPRITE].layers.length > 0
+        resolveSprite(
+          world.assertByIdAndComponents(state.particles[`line-${lineIndex}`], [
+            SPRITE,
+          ])[SPRITE]
+        ).layers.length > 0
     ) || "-1"
   );
   const focusIndex = Math.floor(state.elapsed / focusSpeed) % 4;
@@ -8771,7 +8819,7 @@ export const focusCircle: Sequence<FocusSequence, "FOCUSABLE"> = (world, entity,
         state.particles[`line-${i}`],
         [SPRITE]
       );
-      particle[SPRITE] = none;
+      particle[SPRITE] = spriteRef(none);
     }
 
     updated = true;
@@ -8783,12 +8831,13 @@ export const focusCircle: Sequence<FocusSequence, "FOCUSABLE"> = (world, entity,
         [SPRITE]
       );
       const particleIndex = i % 4;
-      particle[SPRITE] =
+      particle[SPRITE] = spriteRef(
         particleIndex === focusIndex
           ? lineSprites[
               (entity[FOCUSABLE].highlight as Focusable["highlight"])!
             ][i]
-          : none;
+          : none
+      );
     }
 
     updated = true;
@@ -9024,7 +9073,7 @@ export const popupInteract: Sequence<InteractSequence> = (
         state.particles[`cell-${columnIndex}`],
         [PARTICLE, SPRITE]
       );
-      cellParticle[SPRITE] = interactButton[columnIndex];
+      cellParticle[SPRITE] = spriteRef(interactButton[columnIndex]);
       rerenderEntity(world, cellParticle);
     }
   }
@@ -9049,7 +9098,7 @@ export const discoveryIdle: Sequence<DiscoverySequence, "POSITION"> = (
   const interactSequence = getSequence(world, entity, "interact");
   const shouldHide = state.args.force === false;
 
-  const finished = state.args.idle === none;
+  const finished = state.args.idle.id === none.id;
   let updated = false;
 
   if (!state.particles.discovery) {
@@ -9123,8 +9172,8 @@ export const discoveryIdle: Sequence<DiscoverySequence, "POSITION"> = (
     : discovery;
 
   // hide or reveal
-  if (visibleSprite !== discoveryParticle[SPRITE]) {
-    discoveryParticle[SPRITE] = visibleSprite;
+  if (visibleSprite.id !== discoveryParticle[SPRITE].id) {
+    discoveryParticle[SPRITE] = spriteRef(visibleSprite);
     rerenderEntity(world, discoveryParticle);
     updated = true;
   }
@@ -9183,7 +9232,8 @@ export const dialogText: Sequence<DialogSequence, "POSITION" | "SPRITE" | "TOOLT
     (state.args.overridden ||
       (state.args.isIdle &&
         (!isAdjacent ||
-          (entity[TOOLTIP].dialogs.length === 0 && !entity[SPRITE].name))) ||
+          (entity[TOOLTIP].dialogs.length === 0 &&
+            !resolveSprite(entity[SPRITE]).name))) ||
       isCloseBy);
 
   const orientation =
@@ -9263,7 +9313,7 @@ export const dialogText: Sequence<DialogSequence, "POSITION" | "SPRITE" | "TOOLT
       state.particles[particleName],
       [SPRITE]
     );
-    return !particleEntity || particleEntity[SPRITE] === none;
+    return !particleEntity || particleEntity[SPRITE].id === none.id;
   });
   const currentLength = cursorIndex === -1 ? totalLength : cursorIndex;
 
@@ -9313,7 +9363,7 @@ export const dialogText: Sequence<DialogSequence, "POSITION" | "SPRITE" | "TOOLT
       );
       charParticle[PARTICLE].offsetX = charPosition.x;
       charParticle[PARTICLE].offsetY = charPosition.y;
-      charParticle[SPRITE] = charSprite;
+      charParticle[SPRITE] = spriteRef(charSprite);
     }
   }
 
@@ -9334,9 +9384,9 @@ export const dialogText: Sequence<DialogSequence, "POSITION" | "SPRITE" | "TOOLT
     state.args.isDialog &&
     bubbleSprite &&
     bubbleParticle &&
-    bubbleSprite !== bubbleParticle[SPRITE]
+    bubbleSprite.id !== bubbleParticle[SPRITE].id
   ) {
-    bubbleParticle[SPRITE] = bubbleSprite;
+    bubbleParticle[SPRITE] = spriteRef(bubbleSprite);
     const bubbleOffset =
       orientationPoints[
         orientations[
@@ -9520,8 +9570,8 @@ export const pointerArrow: Sequence<PointerSequence, "POSITION"> = (
   );
 
   // update pointer highlight
-  if (highlight && pointerParticle[SPRITE] !== pointers[highlight]) {
-    pointerParticle[SPRITE] = pointers[highlight];
+  if (highlight && pointerParticle[SPRITE]?.id !== pointers[highlight].id) {
+    pointerParticle[SPRITE] = spriteRef(pointers[highlight]);
     updated = true;
   }
 
@@ -9636,7 +9686,7 @@ export const vortexDots: Sequence<VortexSequence, "POSITION"> = (world, entity, 
         state.particles.backdrop,
         [PARTICLE]
       );
-      backdropParticle[SPRITE] = portalEntered;
+      backdropParticle[SPRITE] = spriteRef(portalEntered);
     }
 
     const shuffledColors = shuffle([...vortexColors]);
@@ -9647,20 +9697,22 @@ export const vortexDots: Sequence<VortexSequence, "POSITION"> = (world, entity, 
         state.particles[particleName],
         [PARTICLE]
       );
-      vortexParticle[SPRITE] = {
-        name: "",
-        layers: [
-          {
-            color:
-              colors[
-                shuffledColors[
-                  parseInt(particleName.split("-")[1]) % shuffledColors.length
-                ]
-              ],
-            char: choice(...vortexChars),
-          },
-        ],
-      };
+      vortexParticle[SPRITE] = spriteRef(
+        customSprite({
+          name: "",
+          layers: [
+            {
+              color:
+                colors[
+                  shuffledColors[
+                    parseInt(particleName.split("-")[1]) % shuffledColors.length
+                  ]
+                ],
+              char: choice(...vortexChars),
+            },
+          ],
+        })
+      );
     }
 
     state.args.generation = generation;
@@ -9735,7 +9787,7 @@ export const fountainSplash: Sequence<FountainSequence, "POSITION"> = (
         }
       } else if (waterParticle[PARTICLE].offsetY >= -1) {
         // disperse drop and heal player every X ticks
-        if (waterParticle[SPRITE] === fountainHeal) {
+        if (waterParticle[SPRITE]?.id === fountainHeal.id) {
           if (
             particleName.endsWith("-left") &&
             generation >= (state.args.healed || 0) + fountainTicks &&
@@ -9802,10 +9854,10 @@ export const fountainSplash: Sequence<FountainSequence, "POSITION"> = (
       state.particles.fountain,
       [SPRITE]
     );
-    if (emitHealing && fountainParticle[SPRITE] !== fountainHealing) {
-      fountainParticle[SPRITE] = fountainHealing;
-    } else if (!emitHealing && fountainParticle[SPRITE] !== fountain) {
-      fountainParticle[SPRITE] = fountain;
+    if (emitHealing && fountainParticle[SPRITE].id !== fountainHealing.id) {
+      fountainParticle[SPRITE] = spriteRef(fountainHealing);
+    } else if (!emitHealing && fountainParticle[SPRITE].id !== fountain.id) {
+      fountainParticle[SPRITE] = spriteRef(fountain);
     }
 
     state.args.generation = generation;
@@ -9875,10 +9927,11 @@ export const oakBranch: Sequence<BranchSequence, "ORIENTABLE"> = (world, entity,
           1
         )[0];
         if (state.args.limbs.length > 0) {
-          lastLimb[SPRITE] =
+          lastLimb[SPRITE] = spriteRef(
             splitOrientation === lastLimb[ORIENTABLE].facing
               ? oakBranchSplit
-              : oakBranchSide;
+              : oakBranchSide
+          );
           rerenderEntity(world, lastLimb);
         }
 
@@ -9977,7 +10030,7 @@ export const oakBranch: Sequence<BranchSequence, "ORIENTABLE"> = (world, entity,
       } else if (previousLimb[ORIENTABLE].facing) {
         // update last limb
         if (previousLimb[ORIENTABLE].facing === limbOrientation) {
-          previousLimb[SPRITE] = oakBranchSide;
+          previousLimb[SPRITE] = spriteRef(oakBranchSide);
         } else {
           // rotate corners
           const cornerOrientation = rotateOrientation(
@@ -9987,7 +10040,7 @@ export const oakBranch: Sequence<BranchSequence, "ORIENTABLE"> = (world, entity,
               ? 0
               : 1
           );
-          previousLimb[SPRITE] = oakBranchCorner;
+          previousLimb[SPRITE] = spriteRef(oakBranchCorner);
           previousLimb[ORIENTABLE].facing = cornerOrientation;
         }
       }
@@ -10149,7 +10202,10 @@ export const unitLimbs: Sequence<LimbSequence, "ORIENTABLE" | "POSITION"> = (wor
           SPRITE,
           ORIENTABLE,
         ]);
-        if (!getFacingLayers(part[SPRITE], part[ORIENTABLE].facing).length)
+        if (
+          !getFacingLayers(resolveSprite(part[SPRITE]), part[ORIENTABLE].facing)
+            .length
+        )
           continue;
         const fragment = entities.createGround(world, {
           [FOG]: { visibility: "visible", type: "float", fixed: true },
@@ -10301,9 +10357,9 @@ export const unitLimbs: Sequence<LimbSequence, "ORIENTABLE" | "POSITION"> = (wor
             particleEntity[PARTICLE].offsetY === target.y
         );
       if (limbParticle) {
-        const needsAoE =
-          limbParticle[SPRITE].facing?.[limbParticle[ORIENTABLE].facing!]
-            ?.length;
+        const needsAoE = resolveSprite(limbParticle[SPRITE]).facing?.[
+          limbParticle[ORIENTABLE].facing!
+        ]?.length;
         const hasAoE = hasComponent(aoeEntity, EXERTABLE);
         if (needsAoE && !hasAoE) {
           world.addComponentToEntity(aoeEntity, EXERTABLE, {

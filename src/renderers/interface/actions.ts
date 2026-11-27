@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { World } from "../../engine";
 import { TypedEntity } from "../../engine/entities";
 import { ITEM, Item, rechargables } from "../../engine/components/item";
@@ -24,7 +25,8 @@ export const getActionName = (
   hero: TypedEntity,
   actionEntity: TypedEntity<"ITEM" | "SPRITE">
 ) => {
-  if (!actionEntity[ITEM].tool) return actionEntity[SPRITE].name.toUpperCase();
+  if (!actionEntity[ITEM].tool)
+    return (resolveSprite(actionEntity[SPRITE]).name || "").toUpperCase();
   const weaponEntity = world.getEntityByIdAndComponents(
     hero[EQUIPPABLE]?.weapon,
     [SPRITE]
@@ -39,7 +41,9 @@ export const getActionName = (
     hero[CONDITIONABLE]?.hammer ||
     hookCondition
   ) {
-    return (weaponEntity?.[SPRITE].name || "Stow").toUpperCase();
+    return (
+      resolveSprite(weaponEntity?.[SPRITE])?.name || "Stow"
+    ).toUpperCase();
   }
   if (actionEntity[ITEM].tool === "pickaxe") {
     return "MINE";
@@ -49,7 +53,7 @@ export const getActionName = (
     return "BUILD";
   }
 
-  return actionEntity[SPRITE].name.toUpperCase();
+  return (resolveSprite(actionEntity[SPRITE]).name || "").toUpperCase();
 };
 
 export const getActionActivations = (
@@ -99,7 +103,7 @@ export const getActionActivations = (
       hero[EQUIPPABLE]?.weapon,
       [SPRITE]
     );
-    return centerSprites([weaponEntity?.[SPRITE] || none], 6);
+    return centerSprites([resolveSprite(weaponEntity?.[SPRITE]) || none], 6);
   } else if (
     item.tool === "hook" &&
     hookCondition &&
@@ -109,7 +113,7 @@ export const getActionActivations = (
       hero[EQUIPPABLE]?.weapon,
       [SPRITE]
     );
-    return centerSprites([weaponEntity?.[SPRITE] || none], 6);
+    return centerSprites([resolveSprite(weaponEntity?.[SPRITE]) || none], 6);
   } else if (item.spell) {
     const mp = hero[STATS]?.mp || 0;
     const mpSegment =
@@ -130,7 +134,7 @@ export const getActionActivations = (
       hero[EQUIPPABLE]?.weapon,
       [SPRITE]
     );
-    return centerSprites([weaponEntity?.[SPRITE] || none], 6);
+    return centerSprites([resolveSprite(weaponEntity?.[SPRITE]) || none], 6);
   }
 
   return repeat(none, 6);

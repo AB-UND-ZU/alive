@@ -1,5 +1,6 @@
+import { customSprite, resolveSprite } from "../game/assets/spriteIds";
 import { World } from "../engine";
-import { Sprite } from "../engine/components/sprite";
+import { Layer, Sprite } from "../engine/components/sprite";
 import { getSegments, lootHeight } from "../renderers/interface/segments";
 import { getFacingLayers } from "../game/assets/ui";
 import { isLootable } from "../engine/systems/collect";
@@ -21,14 +22,14 @@ export function worldRows(
   const grid = Array.from({ length: bounds.height }, () =>
     Array.from(
       { length: bounds.width },
-      () => [] as { z: number; sprite: Sprite }[]
+      () => [] as { z: number; layers: Layer[] }[]
     )
   );
-  const put = (x: number, y: number, z: number, sprite: Sprite) => {
+  const put = (x: number, y: number, z: number, layers: Layer[]) => {
     const size = world.metadata.gameEntity.LEVEL.size;
     const row = grid[Math.round(normalize(y - bounds.y, size))];
     const cell = row?.[Math.round(normalize(x - bounds.x, size))];
-    if (cell) cell.push({ z, sprite });
+    if (cell) cell.push({ z, layers });
   };
   for (const entity of world.getEntities([
     "SPRITE",
@@ -49,53 +50,45 @@ export function worldRows(
         entity.POSITION.x + segment.offsetX,
         entity.POSITION.y + segment.offsetY,
         segment.offsetZ + index / 1000,
-        {
-          ...segment.sprite,
-          layers: getFacingLayers(
-            segment.sprite,
-            segment.facing,
-            segment.amount
-          ),
-        }
+        getFacingLayers(segment.sprite, segment.facing, segment.amount)
       )
     );
     if (isLootable(world, entity))
       for (const id of entity.INVENTORY?.items || []) {
         const item = world.getEntityByIdAndComponents(id, ["SPRITE", "ITEM"]);
         if (item)
-          put(entity.POSITION.x, entity.POSITION.y, lootHeight, {
-            ...item.SPRITE,
-            layers: getFacingLayers(
-              item.SPRITE,
+          put(
+            entity.POSITION.x,
+            entity.POSITION.y,
+            lootHeight,
+            getFacingLayers(
+              resolveSprite(item.SPRITE),
               item.ORIENTABLE?.facing,
               item.ITEM.amount
-            ),
-          });
+            )
+          );
       }
     for (const particle of getParticles(world, entity))
       put(
         entity.POSITION.x + particle.PARTICLE.offsetX,
         entity.POSITION.y + particle.PARTICLE.offsetY,
         particle.PARTICLE.offsetZ,
-        {
-          ...particle.SPRITE,
-          layers: getFacingLayers(
-            particle.SPRITE,
-            particle.ORIENTABLE?.facing,
-            particle.PARTICLE.amount
-          ),
-        }
+        getFacingLayers(
+          resolveSprite(particle.SPRITE),
+          particle.ORIENTABLE?.facing,
+          particle.PARTICLE.amount
+        )
       );
   }
   return grid.map((row) =>
     row.map((cell) =>
       cell.length
-        ? {
+        ? customSprite({
             name: "World cell",
             layers: cell
               .sort((a, b) => a.z - b.z)
-              .flatMap(({ sprite }) => sprite.layers),
-          }
+              .flatMap(({ layers }) => layers),
+          })
         : none
     )
   );

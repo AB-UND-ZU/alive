@@ -167,7 +167,7 @@ export const restoreSavedWorld = (save: SaveGame) => {
   // A save captures the recipes and stock that existed when the island was built.
   for (const entity of world.getEntities([POPUP])) {
     const popup = entity[POPUP];
-    if (entity[SPRITE] === bench && popup.tabs.includes("craft")) {
+    if (entity[SPRITE]?.id === bench.id && popup.tabs.includes("craft")) {
       popup.ingredients = craftingIngredients;
     } else if (
       entity[NPC]?.type.endsWith("Trader") &&

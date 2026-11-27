@@ -1,3 +1,4 @@
+import { customSprite } from "../../game/assets/spriteIds";
 import "../../engine";
 import {
   createAreaWorld,
@@ -78,11 +79,11 @@ it("preserves every declared single-character sprite through dialog decoration",
           !layers.slice(0, -1).every((layer) => layer.char === "█")
         )
           continue;
-        const resolved: Sprite = {
+        const resolved: Sprite = customSprite({
           name: sprite.name,
           layers: getFacingLayers(sprite, facing, amount),
           terminal: { layers },
-        };
+        });
         const contexts: Record<string, Sprite> = {
           plain: resolved,
           black: addBackground([resolved], colors.black)[0],
@@ -154,11 +155,11 @@ it("keeps every colored resolved sprite visible on a black dialog background", (
           )
         )
           continue;
-        const resolved: Sprite = {
+        const resolved: Sprite = customSprite({
           name: sprite.name,
           layers,
           ...(terminal && { terminal: { layers: terminal } }),
-        };
+        });
         const cell = projectSprite(addBackground([resolved], colors.black)[0]);
         const visible =
           (cell.background && cell.background !== colors.black) ||
@@ -255,18 +256,18 @@ it("keeps the Melee stat icon on black rather than an extra gray background", ()
 });
 
 it("keeps explicitly hidden sprites transparent through dialog decoration", () => {
-  const hidden: Sprite = {
+  const hidden: Sprite = customSprite({
     name: "hidden",
     layers: [{ char: ".", color: colors.red }],
     terminal: { layers: [] },
-  };
-  const ground = {
+  });
+  const ground = customSprite({
     name: "water",
     layers: [
       { char: "█", color: colors.navy },
       { char: "~", color: colors.blue },
     ],
-  };
+  });
   for (const sprite of [
     hidden,
     addBackground([hidden], colors.grey)[0],

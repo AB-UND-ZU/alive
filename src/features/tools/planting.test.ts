@@ -121,7 +121,7 @@ describe("planting", () => {
       watered: false,
     });
     expect(sapling[HARVESTABLE].resource).toBe(plantConfigs.berry!.harvest);
-    expect(sapling[SPRITE]).toBe(sapling1);
+    expect(sapling[SPRITE]?.id).toBe(sapling1.id);
     expect(hero[ACTIONABLE].plant).toBeUndefined();
     expect(playedSounds).toContain("confirm");
   });
@@ -148,7 +148,7 @@ describe("planting", () => {
     walk(world, "left");
 
     advanceUntil(world, () => soil[FARMABLE].progress === 1, 60000);
-    expect(sapling[SPRITE]).not.toBe(sapling1);
+    expect(sapling[SPRITE]?.id).not.toBe(sapling1.id);
 
     advanceUntil(world, () => !soil[FARMABLE].planted, 120000);
     step(world, 30);

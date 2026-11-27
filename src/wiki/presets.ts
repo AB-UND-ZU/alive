@@ -1,3 +1,4 @@
+import { spriteRef } from "../game/assets/spriteIds";
 import { createRng } from "../game/math/rng";
 import { createTestWorld, assertHero } from "../testing/harness";
 import { populateInventory } from "../bindings/creation";
@@ -199,7 +200,7 @@ export function preparePreset(
   hero.EQUIPPABLE = {};
   const classData = getClassData("rogue", hero.SPAWNABLE.hairColor);
   hero.SPAWNABLE.classKey = "rogue";
-  hero.SPRITE = classData.sprite;
+  hero.SPRITE = spriteRef(classData.sprite);
   if (hero.SWIMMABLE) hero.SWIMMABLE.sprite = classData.swimming;
   const { level: levelNumber, items, equipment } = getPresetLoadout(name);
   const stats = getLevelStats("rogue", levelNumber!);

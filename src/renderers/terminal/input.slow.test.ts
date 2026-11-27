@@ -65,7 +65,9 @@ describe("native terminal controls", () => {
     const combined = collectTerminalSprites(scene).filter(
       (entry) => entry.x === original[0].x && entry.y === original[0].y
     );
-    const body = combined.find((entry) => entry.sprite === hero[SPRITE])!;
+    const body = combined.find(
+      (entry) => entry.sprite.id === hero[SPRITE]?.id
+    )!;
     expect(body.layers.length).toBe(
       original.reduce((sum, entry) => sum + entry.layers.length, 0)
     );

@@ -10,6 +10,7 @@ The native Sword sprite uses two layers. Facing changes the blade from diagonal 
 
 ```ts src/game/assets/sprites/equipments.ts
 export const woodStickAir2: Sprite = {
+  id: "wood_stick_air2",
   name: "Sword",
   layers: [
     { char: "/", color: colors.maroon },

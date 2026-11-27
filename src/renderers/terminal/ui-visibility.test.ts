@@ -86,7 +86,7 @@ it("keeps path patterning without filling the background under occupants", () =>
     y: 0,
     z: 1,
     unit: true,
-    sprite: { name: "text_generic" },
+    sprite: { id: "text_generic", name: "text_generic" },
     layers: [{ char: "Ω", color: colors.grey }],
   };
   expect(createTerminalFrame([ground], 1, 1)[0][0]).toMatchObject({

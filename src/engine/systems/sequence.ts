@@ -1,3 +1,4 @@
+import { spriteRef } from "../../game/assets/spriteIds";
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
 import {
@@ -31,7 +32,7 @@ const shotParticle: ReturnType<typeof entities.createParticle> = {
     offsetZ: lootHeight,
   },
   [RENDERABLE]: { generation: 0 },
-  [SPRITE]: shotHit,
+  [SPRITE]: spriteRef(shotHit),
 };
 
 export const getParticles = (world: World, entity: TypedEntity) => {

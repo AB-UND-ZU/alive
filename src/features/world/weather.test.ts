@@ -208,7 +208,7 @@ describe("weather", () => {
     advance(world, 60000);
 
     expect(soil[FARMABLE].watered).toBe(true);
-    expect(soil[SPRITE]).toBe(soilWet);
+    expect(soil[SPRITE].id).toBe(soilWet.id);
   });
 
   it("rain puts out a campfire", () => {
@@ -314,7 +314,7 @@ describe("weather", () => {
       )
     );
     expect(covers.length).toBeGreaterThan(0);
-    covers.forEach((cover) => expect(cover[SPRITE]).toBe(snowCover));
+    covers.forEach((cover) => expect(cover[SPRITE]?.id).toBe(snowCover.id));
   });
 
   it("settles snow above rubble and both jetty orientations", () => {
@@ -328,10 +328,11 @@ describe("weather", () => {
       coverSnow(world, position);
       world.update(0);
       const surface = getEntitiesAt(world, position).find(
-        (e) => e[SPRITE] === jetty || e.HARVESTABLE?.resource === "rubble"
+        (e) =>
+          e[SPRITE]?.id === jetty.id || e.HARVESTABLE?.resource === "rubble"
       )!;
       const cover = findEntityAt(world, position, [COVERABLE])!;
-      expect(cover[SPRITE]).toBe(snowCover);
+      expect(cover[SPRITE]?.id).toBe(snowCover.id);
       const props = { isTransparent: false, receiveShadow: false };
       expect(getSegments(world, cover, props)[0].offsetZ).toBeGreaterThan(
         getSegments(world, surface, props)[0].offsetZ

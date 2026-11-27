@@ -59,7 +59,7 @@ it("preserves sand inside the Island selection and uses olive under its frame", 
   const framed: { x: number; y: number }[] = [];
   background.forEach((line, y) =>
     line.forEach((sprite, x) => {
-      if (sprite !== sand) return;
+      if (sprite.id !== sand.id) return;
       const layers = selection[y]?.[x]?.layers || [];
       if (layers.every((layer) => layer.char === " ")) {
         plain.push({ x, y });

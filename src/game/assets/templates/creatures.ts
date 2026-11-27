@@ -1,7 +1,7 @@
 import { createTemplate, TEMPLATE_COLORS } from ".";
-import { Sprite } from "../../../engine/components/sprite";
+import { SpriteArtwork } from "../../../engine/components/sprite";
 
-const prismTemplate: Sprite = {
+const prismTemplate: SpriteArtwork = {
   name: "Prism",
   layers: [{ char: "\u010f", color: TEMPLATE_COLORS.materialPrimary }],
   facing: {
@@ -11,15 +11,15 @@ const prismTemplate: Sprite = {
     left: [{ char: "\u0110", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
-export const prism = createTemplate({ sprite: prismTemplate });
+export const prism = createTemplate("prism", { sprite: prismTemplate });
 
-const orbTemplate: Sprite = {
+const orbTemplate: SpriteArtwork = {
   name: "Orb",
   layers: [{ char: "Φ", color: TEMPLATE_COLORS.materialPrimary }],
 };
-export const orb = createTemplate({ sprite: orbTemplate });
+export const orb = createTemplate("orb", { sprite: orbTemplate });
 
-const eyeTemplate: Sprite = {
+const eyeTemplate: SpriteArtwork = {
   name: "Eye",
   terminal: {
     layers: [{ char: "O", color: TEMPLATE_COLORS.materialPrimary }],
@@ -59,9 +59,9 @@ const eyeTemplate: Sprite = {
     ],
   },
 };
-export const eye = createTemplate({ sprite: eyeTemplate });
+export const eye = createTemplate("eye", { sprite: eyeTemplate });
 
-const beamTowerTemplate: Sprite = {
+const beamTowerTemplate: SpriteArtwork = {
   name: "Tower",
   layers: [
     { char: "│", color: TEMPLATE_COLORS.materialPrimary },
@@ -71,18 +71,22 @@ const beamTowerTemplate: Sprite = {
     { char: "∙", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-export const beamTower = createTemplate({ sprite: beamTowerTemplate });
+export const beamTower = createTemplate("beam_tower", {
+  sprite: beamTowerTemplate,
+});
 
-const waveTowerTemplate: Sprite = {
+const waveTowerTemplate: SpriteArtwork = {
   name: "Tower",
   layers: [
     { char: "Y", color: TEMPLATE_COLORS.materialPrimary },
     { char: '"', color: TEMPLATE_COLORS.materialSecondary },
   ],
 };
-export const waveTower = createTemplate({ sprite: waveTowerTemplate });
+export const waveTower = createTemplate("wave_tower", {
+  sprite: waveTowerTemplate,
+});
 
-const cubeTemplate: Sprite = {
+const cubeTemplate: SpriteArtwork = {
   name: "Cube",
   layers: [
     { char: "■", color: TEMPLATE_COLORS.materialPrimary },
@@ -91,4 +95,4 @@ const cubeTemplate: Sprite = {
     { char: "±", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-export const cube = createTemplate({ sprite: cubeTemplate });
+export const cube = createTemplate("cube", { sprite: cubeTemplate });

@@ -1,3 +1,4 @@
+import { customSprite } from "../game/assets/spriteIds";
 import { Item } from "../engine/components/item";
 import { Sprite } from "../engine/components/sprite";
 import { getItemSprite } from "../game/assets/utils";
@@ -81,7 +82,7 @@ export function previewRows(
     rows.push(
       Array.from({ length: right - left + 1 }, (_, offset) => {
         const x = left + offset;
-        return {
+        return customSprite({
           name: "preview_pixel_pair",
           layers: [
             {
@@ -96,7 +97,7 @@ export function previewRows(
                   : colors.black,
             },
           ],
-        };
+        });
       })
     );
   return rows;
@@ -131,22 +132,24 @@ export function previewGridRows(grid: Sprite[][]): Sprite[][] {
   const rows: Sprite[][] = [];
   for (let y = top; y <= bottom; y += 2)
     rows.push(
-      Array.from({ length: right - left + 1 }, (_, offset) => ({
-        name: "preview_pixel_pair",
-        layers: [
-          {
-            char: "▀",
-            color: pixels[y * width + left + offset] || colors.black,
-          },
-          {
-            char: "▄",
-            color:
-              y < bottom
-                ? pixels[(y + 1) * width + left + offset] || colors.black
-                : colors.black,
-          },
-        ],
-      }))
+      Array.from({ length: right - left + 1 }, (_, offset) =>
+        customSprite({
+          name: "preview_pixel_pair",
+          layers: [
+            {
+              char: "▀",
+              color: pixels[y * width + left + offset] || colors.black,
+            },
+            {
+              char: "▄",
+              color:
+                y < bottom
+                  ? pixels[(y + 1) * width + left + offset] || colors.black
+                  : colors.black,
+            },
+          ],
+        })
+      )
     );
   return rows;
 }

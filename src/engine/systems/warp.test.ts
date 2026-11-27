@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { receiveGeneratedWorld } from "../../testing/saves";
 import { createSnapshot, restoreSnapshot } from "../snapshot";
 import { createSystems, preloadLevel } from "../ecs";
@@ -63,12 +64,12 @@ describe("warping", () => {
       hero[SPAWNABLE].hairColor
     );
     expect(hero[SWIMMABLE].swimming).toBe(false);
-    expect(hero[SPRITE]).toEqual(sprite);
+    expect(resolveSprite(hero[SPRITE])).toEqual(sprite);
     expect(hero[SWIMMABLE].sprite).toEqual(swimming);
 
     advance(world, 1000);
     expect(hero[SWIMMABLE].swimming).toBe(false);
-    expect(hero[SPRITE]).toEqual(sprite);
+    expect(resolveSprite(hero[SPRITE])).toEqual(sprite);
     expect(getSequence(world, hero, "quest")?.name).not.toBe("menuQuest");
     expect(warnings.mock.calls).toEqual([]);
   });

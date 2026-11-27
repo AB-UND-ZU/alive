@@ -13,8 +13,13 @@ export function SpriteCode({ sprite }: { sprite?: Sprite }) {
           { text: " = {", kind: "plain" },
         ],
         [
+          { text: "  id: ", kind: "plain" },
+          { text: JSON.stringify(sprite.id), kind: "string" },
+          { text: ",", kind: "plain" },
+        ],
+        [
           { text: "  name: ", kind: "plain" },
-          { text: JSON.stringify(sprite.name), kind: "string" },
+          { text: JSON.stringify(sprite.name || ""), kind: "string" },
           { text: ",", kind: "plain" },
         ],
         [{ text: "  layers: [", kind: "plain" }],

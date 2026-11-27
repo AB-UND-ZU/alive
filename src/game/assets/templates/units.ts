@@ -1,18 +1,19 @@
+import { namedSprite } from "../spriteIds";
 import { createTemplate, TEMPLATE_COLORS } from ".";
-import { Sprite } from "../../../engine/components/sprite";
+import { Sprite, SpriteArtwork } from "../../../engine/components/sprite";
 import { colors } from "../colors";
 import { recolorSprite } from "../ui";
 
 // doors
 
-const doorOpenTemplate: Sprite = {
+const doorOpenTemplate: SpriteArtwork = {
   name: "Door",
   terminal: { layers: [] },
   layers: [{ char: "▌", color: colors.maroon }],
 };
-export const doorOpen = createTemplate({ sprite: doorOpenTemplate });
+export const doorOpen = createTemplate("door_open", { sprite: doorOpenTemplate });
 
-const doorClosedTemplate: Sprite = {
+const doorClosedTemplate: SpriteArtwork = {
   name: "Locked",
   terminal: {
     layers: [
@@ -27,7 +28,7 @@ const doorClosedTemplate: Sprite = {
     { char: ".", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-const doorClosedElementTemplate: Sprite = {
+const doorClosedElementTemplate: SpriteArtwork = {
   name: "Locked",
   terminal: {
     layers: [
@@ -42,7 +43,7 @@ const doorClosedElementTemplate: Sprite = {
     { char: ".", color: TEMPLATE_COLORS.elementSecondary },
   ],
 };
-const doorClosedWood: Sprite = {
+const doorClosedWood: Sprite = namedSprite("door_closed_wood", {
   name: "Door",
   terminal: {
     layers: [
@@ -55,8 +56,8 @@ const doorClosedWood: Sprite = {
     { char: "∙", color: colors.maroon },
     { char: ".", color: colors.black },
   ],
-};
-const doorClosedFire: Sprite = {
+});
+const doorClosedFire: Sprite = namedSprite("door_closed_fire_locked", {
   name: "Door",
   terminal: {
     layers: [
@@ -70,22 +71,22 @@ const doorClosedFire: Sprite = {
     { char: "∙", color: colors.black },
     { char: ".", color: colors.red },
   ],
-};
-export const doorClosed = createTemplate({
+});
+export const doorClosed = createTemplate("door_closed", {
   sprite: doorClosedTemplate,
   elementSprite: doorClosedElementTemplate,
 });
 doorClosed.wood.default = doorClosedWood;
 doorClosed.default.fire = doorClosedFire;
 
-export const portOpenTemplate: Sprite = {
+export const portOpenTemplate: SpriteArtwork = {
   name: "Port",
   terminal: { layers: [] },
   layers: [{ char: "▌", color: colors.silver }],
 };
-export const portOpen = createTemplate({ sprite: portOpenTemplate });
+export const portOpen = createTemplate("port_open", { sprite: portOpenTemplate });
 
-const portClosedTemplate: Sprite = {
+const portClosedTemplate: SpriteArtwork = {
   name: "Port",
   terminal: {
     layers: [
@@ -100,7 +101,7 @@ const portClosedTemplate: Sprite = {
     { char: ".", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-const portClosedElementTemplate: Sprite = {
+const portClosedElementTemplate: SpriteArtwork = {
   name: "Port",
   terminal: {
     layers: [
@@ -115,7 +116,7 @@ const portClosedElementTemplate: Sprite = {
     { char: ".", color: TEMPLATE_COLORS.elementSecondary },
   ],
 };
-const portClosedWood: Sprite = {
+const portClosedWood: Sprite = namedSprite("port_closed_wood", {
   name: "Port",
   terminal: {
     layers: [
@@ -128,8 +129,8 @@ const portClosedWood: Sprite = {
     { char: "\u0106", color: colors.black },
     { char: ".", color: colors.black },
   ],
-};
-const portClosedFire: Sprite = {
+});
+const portClosedFire: Sprite = namedSprite("port_closed_fire_locked", {
   name: "Port",
   terminal: {
     layers: [
@@ -143,22 +144,22 @@ const portClosedFire: Sprite = {
     { char: "∙", color: colors.black },
     { char: ".", color: colors.red },
   ],
-};
-export const portClosed = createTemplate({
+});
+export const portClosed = createTemplate("port_closed", {
   sprite: portClosedTemplate,
   elementSprite: portClosedElementTemplate,
 });
 portClosed.wood.default = portClosedWood;
 portClosed.default.fire = portClosedFire;
 
-const frame = (port: Sprite): Sprite => ({
+const frame = (id: string, port: Sprite): Sprite => namedSprite(id, {
   ...recolorSprite(port, { [colors.silver]: colors.teal }),
   name: "Frame",
 });
-export const frameOpen = { wood: { default: frame(portOpen.wood.default) } };
-export const frameClosed = { wood: { default: frame(portClosed.wood.default) } };
+export const frameOpen = { wood: { default: frame("frame_open", portOpen.wood.default) } };
+export const frameClosed = { wood: { default: frame("frame_closed", portClosed.wood.default) } };
 
-const entryClosedTemplate: Sprite = {
+const entryClosedTemplate: SpriteArtwork = {
   name: "Entry",
   terminal: {
     layers: [
@@ -173,7 +174,7 @@ const entryClosedTemplate: Sprite = {
     { char: ".", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-const entryClosedElementTemplate: Sprite = {
+const entryClosedElementTemplate: SpriteArtwork = {
   name: "Entry",
   terminal: {
     layers: [
@@ -188,7 +189,7 @@ const entryClosedElementTemplate: Sprite = {
     { char: ".", color: TEMPLATE_COLORS.elementSecondary },
   ],
 };
-const entryClosedWood: Sprite = {
+const entryClosedWood: Sprite = namedSprite("entry_closed_wood", {
   name: "Entry",
   terminal: {
     layers: [
@@ -201,8 +202,8 @@ const entryClosedWood: Sprite = {
     { char: "\u0106", color: colors.black },
     { char: ".", color: colors.black },
   ],
-};
-const entryClosedIron: Sprite = {
+});
+const entryClosedIron: Sprite = namedSprite("entry_closed_iron", {
   name: "Entry",
   terminal: {
     layers: [
@@ -216,8 +217,8 @@ const entryClosedIron: Sprite = {
     { char: "∙", color: colors.black },
     { char: ".", color: colors.silver },
   ],
-};
-const entryClosedFire: Sprite = {
+});
+const entryClosedFire: Sprite = namedSprite("entry_closed_fire_locked", {
   name: "Entry",
   terminal: {
     layers: [
@@ -231,8 +232,8 @@ const entryClosedFire: Sprite = {
     { char: "∙", color: colors.black },
     { char: ".", color: colors.red },
   ],
-};
-export const entryClosed = createTemplate({
+});
+export const entryClosed = createTemplate("entry_closed", {
   sprite: entryClosedTemplate,
   elementSprite: entryClosedElementTemplate,
 });
@@ -240,7 +241,7 @@ entryClosed.wood.default = entryClosedWood;
 entryClosed.iron.default = entryClosedIron;
 entryClosed.default.fire = entryClosedFire;
 
-const entryClosedDisplayTemplate: Sprite = {
+const entryClosedDisplayTemplate: SpriteArtwork = {
   name: "Entry",
   terminal: {
     layers: [
@@ -255,7 +256,7 @@ const entryClosedDisplayTemplate: Sprite = {
     { char: ".", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-const entryClosedDisplayElementTemplate: Sprite = {
+const entryClosedDisplayElementTemplate: SpriteArtwork = {
   name: "Entry",
   terminal: {
     layers: [
@@ -270,7 +271,7 @@ const entryClosedDisplayElementTemplate: Sprite = {
     { char: ".", color: TEMPLATE_COLORS.elementSecondary },
   ],
 };
-const entryClosedDisplayWood: Sprite = {
+const entryClosedDisplayWood: Sprite = namedSprite("entry_closed_display_wood", {
   name: "Entry",
   terminal: {
     layers: [
@@ -282,8 +283,8 @@ const entryClosedDisplayWood: Sprite = {
     { char: "\u0107", color: colors.grey },
     { char: ".", color: colors.black },
   ],
-};
-const entryClosedDisplayIron: Sprite = {
+});
+const entryClosedDisplayIron: Sprite = namedSprite("entry_closed_display_iron", {
   name: "Entry",
   terminal: {
     layers: [
@@ -297,8 +298,8 @@ const entryClosedDisplayIron: Sprite = {
     { char: "∙", color: colors.black },
     { char: ".", color: colors.silver },
   ],
-};
-const entryClosedDisplayFire: Sprite = {
+});
+const entryClosedDisplayFire: Sprite = namedSprite("entry_closed_display_fire_locked", {
   name: "Entry",
   terminal: {
     layers: [
@@ -312,8 +313,8 @@ const entryClosedDisplayFire: Sprite = {
     { char: "∙", color: colors.black },
     { char: ".", color: colors.red },
   ],
-};
-export const entryClosedDisplay = createTemplate({
+});
+export const entryClosedDisplay = createTemplate("entry_closed_display", {
   sprite: entryClosedDisplayTemplate,
   elementSprite: entryClosedDisplayElementTemplate,
 });
@@ -321,7 +322,7 @@ entryClosedDisplay.wood.default = entryClosedDisplayWood;
 entryClosedDisplay.iron.default = entryClosedDisplayIron;
 entryClosedDisplay.default.fire = entryClosedDisplayFire;
 
-const fenceDoorClosedTemplate: Sprite = {
+const fenceDoorClosedTemplate: SpriteArtwork = {
   name: "Gate",
   terminal: { layers: [{ char: "m", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
@@ -336,7 +337,7 @@ const fenceDoorClosedTemplate: Sprite = {
     { char: ".", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-const woodFenceDoorClosed: Sprite = {
+const woodFenceDoorClosed: Sprite = namedSprite("wood_fence_door_closed", {
   name: "Gate",
   terminal: { layers: [{ char: "m", color: colors.maroon }] },
   layers: [
@@ -345,13 +346,13 @@ const woodFenceDoorClosed: Sprite = {
     { char: "]", color: colors.black },
     { char: "=", color: colors.grey },
   ],
-};
-export const fenceDoorClosed = createTemplate({
+});
+export const fenceDoorClosed = createTemplate("fence_door_closed", {
   sprite: fenceDoorClosedTemplate,
 });
 fenceDoorClosed.wood.default = woodFenceDoorClosed;
 
-const fenceDoorOpenTemplate: Sprite = {
+const fenceDoorOpenTemplate: SpriteArtwork = {
   name: "Gate",
   terminal: { layers: [] },
   layers: [
@@ -362,7 +363,7 @@ const fenceDoorOpenTemplate: Sprite = {
     { char: "]", color: colors.black },
   ],
 };
-const woodFenceDoorOpen: Sprite = {
+const woodFenceDoorOpen: Sprite = namedSprite("wood_fence_door_open", {
   name: "Gate",
   terminal: { layers: [] },
   layers: [
@@ -371,13 +372,13 @@ const woodFenceDoorOpen: Sprite = {
     { char: "[", color: colors.black },
     { char: "]", color: colors.black },
   ],
-};
-export const fenceDoorOpen = createTemplate({
+});
+export const fenceDoorOpen = createTemplate("fence_door_open", {
   sprite: fenceDoorOpenTemplate,
 });
 fenceDoorOpen.wood.default = woodFenceDoorOpen;
 
-const palisadeDoorClosedTemplate: Sprite = {
+const palisadeDoorClosedTemplate: SpriteArtwork = {
   name: "Gate",
   terminal: {
     layers: [
@@ -397,7 +398,7 @@ const palisadeDoorClosedTemplate: Sprite = {
     { char: ".", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-const woodPalisadeDoorClosed: Sprite = {
+const woodPalisadeDoorClosed: Sprite = namedSprite("wood_palisade_door_closed", {
   name: "Gate",
   terminal: {
     layers: [
@@ -412,13 +413,13 @@ const woodPalisadeDoorClosed: Sprite = {
     { char: "■", color: colors.maroon },
     { char: "±", color: colors.maroon },
   ],
-};
-export const palisadeDoorClosed = createTemplate({
+});
+export const palisadeDoorClosed = createTemplate("palisade_door_closed", {
   sprite: palisadeDoorClosedTemplate,
 });
 palisadeDoorClosed.wood.default = woodPalisadeDoorClosed;
 
-const palisadeDoorOpenTemplate: Sprite = {
+const palisadeDoorOpenTemplate: SpriteArtwork = {
   name: "Gate",
   terminal: { layers: [] },
   layers: [
@@ -429,7 +430,7 @@ const palisadeDoorOpenTemplate: Sprite = {
     { char: "]", color: colors.black },
   ],
 };
-const woodPalisadeDoorOpen: Sprite = {
+const woodPalisadeDoorOpen: Sprite = namedSprite("wood_palisade_door_open", {
   name: "Gate",
   terminal: { layers: [] },
   layers: [
@@ -439,13 +440,13 @@ const woodPalisadeDoorOpen: Sprite = {
     { char: "[", color: colors.black },
     { char: "]", color: colors.black },
   ],
-};
-export const palisadeDoorOpen = createTemplate({
+});
+export const palisadeDoorOpen = createTemplate("palisade_door_open", {
   sprite: palisadeDoorOpenTemplate,
 });
 palisadeDoorOpen.wood.default = woodPalisadeDoorOpen;
 
-const barrierDoorClosedTemplate: Sprite = {
+const barrierDoorClosedTemplate: SpriteArtwork = {
   name: "Gate",
   terminal: {
     layers: [
@@ -467,7 +468,7 @@ const barrierDoorClosedTemplate: Sprite = {
     { char: ".", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-const woodBarrierDoorClosed: Sprite = {
+const woodBarrierDoorClosed: Sprite = namedSprite("wood_barrier_door_closed", {
   name: "Gate",
   terminal: {
     layers: [
@@ -483,13 +484,13 @@ const woodBarrierDoorClosed: Sprite = {
     { char: "]", color: colors.black },
     { char: "=", color: colors.maroon },
   ],
-};
-export const barrierDoorClosed = createTemplate({
+});
+export const barrierDoorClosed = createTemplate("barrier_door_closed", {
   sprite: barrierDoorClosedTemplate,
 });
 barrierDoorClosed.wood.default = woodBarrierDoorClosed;
 
-const barrierDoorOpenTemplate: Sprite = {
+const barrierDoorOpenTemplate: SpriteArtwork = {
   name: "Gate",
   terminal: { layers: [] },
   layers: [
@@ -502,7 +503,7 @@ const barrierDoorOpenTemplate: Sprite = {
     { char: "]", color: colors.black },
   ],
 };
-const woodBarrierDoorOpen: Sprite = {
+const woodBarrierDoorOpen: Sprite = namedSprite("wood_barrier_door_open", {
   name: "Gate",
   terminal: { layers: [] },
   layers: [
@@ -513,13 +514,13 @@ const woodBarrierDoorOpen: Sprite = {
     { char: "[", color: colors.black },
     { char: "]", color: colors.black },
   ],
-};
-export const barrierDoorOpen = createTemplate({
+});
+export const barrierDoorOpen = createTemplate("barrier_door_open", {
   sprite: barrierDoorOpenTemplate,
 });
 barrierDoorOpen.wood.default = woodBarrierDoorOpen;
 
-const lockTemplate: Sprite = {
+const lockTemplate: SpriteArtwork = {
   name: "Lock",
   terminal: { layers: [{ char: "╒", color: TEMPLATE_COLORS.materialPrimary }] },
   layers: [
@@ -528,7 +529,7 @@ const lockTemplate: Sprite = {
     { char: ".", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-const lockElementTemplate: Sprite = {
+const lockElementTemplate: SpriteArtwork = {
   name: "Lock",
   terminal: {
     layers: [{ char: "╒", color: TEMPLATE_COLORS.elementSecondary }],
@@ -539,7 +540,7 @@ const lockElementTemplate: Sprite = {
     { char: ".", color: TEMPLATE_COLORS.elementSecondary },
   ],
 };
-const fireLock: Sprite = {
+const fireLock: Sprite = namedSprite("fire_lock", {
   name: "Lock",
   terminal: { layers: [{ char: "╒", color: colors.red }] },
   layers: [
@@ -547,8 +548,8 @@ const fireLock: Sprite = {
     { char: "∙", color: colors.black },
     { char: ".", color: colors.red },
   ],
-};
-export const lock = createTemplate({
+});
+export const lock = createTemplate("lock", {
   sprite: lockTemplate,
   elementSprite: lockElementTemplate,
 });

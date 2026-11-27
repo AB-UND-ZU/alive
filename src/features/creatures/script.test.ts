@@ -126,7 +126,7 @@ describe("scripted npc patterns", () => {
     script({ name: "enrage", memory: { shout: "Get out" } });
 
     advanceUntil(world, () => npc[BELONGABLE].faction === "hostile", 2000);
-    expect(npc[TOOLTIP].idle).toBe(rage);
+    expect(npc[TOOLTIP].idle?.id).toBe(rage.id);
     expect(npc[TOOLTIP].dialogs).toHaveLength(1);
 
     script({ name: "soothe", memory: {} });

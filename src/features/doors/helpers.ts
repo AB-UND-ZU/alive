@@ -1,3 +1,4 @@
+import { customSprite } from "../../game/assets/spriteIds";
 import { World } from "../../engine";
 import { ACTIONABLE } from "../../engine/components/actionable";
 import { INVENTORY } from "../../engine/components/inventory";
@@ -95,16 +96,18 @@ export const getMessageIcons = (world: World, entity: TypedEntity) =>
   getMessageLines(world, entity).map((line) =>
     line
       .filter((sprite) => sprite.name !== "text_generic")
-      .map((sprite) => ({
-        ...sprite,
-        layers: sprite.layers.slice(1),
-        ...(sprite.terminal && {
-          terminal: {
-            ...sprite.terminal,
-            layers: sprite.terminal.layers.slice(1),
-          },
-        }),
-      }))
+      .map((sprite) =>
+        customSprite({
+          ...sprite,
+          layers: sprite.layers.slice(1),
+          ...(sprite.terminal && {
+            terminal: {
+              ...sprite.terminal,
+              layers: sprite.terminal.layers.slice(1),
+            },
+          }),
+        })
+      )
   );
 
 /** Text of the interaction prompt shown on an entity, e.g. "OPEN". */

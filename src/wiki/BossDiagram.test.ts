@@ -1,4 +1,5 @@
 import { requireComponent } from "../engine/entities";
+import { customSprite, resolveSprite } from "../game/assets/spriteIds";
 import { getIdentifierAndComponents } from "../engine/utils";
 import { wormSide } from "../game/assets/sprites";
 import { getParticles } from "../engine/systems/sequence";
@@ -54,7 +55,7 @@ test("Worm diagram uses its generated cave with the mouth centered over the lake
       .getEntities(["SPRITE", "POSITION"])
       .some(
         (entity) =>
-          entity.SPRITE === wormSide &&
+          entity.SPRITE.id === wormSide.id &&
           entity.POSITION.x === center.POSITION.x &&
           entity.POSITION.y === center.POSITION.y + 1
       )
@@ -75,7 +76,7 @@ test("Golem unfolds its factory stones into native body and arm fragments after 
     .getEntities(["NPC", "STATS", "SPRITE"])
     .find((entity) => entity.NPC.type === "golem")!;
   expect(root.STATS.hp).toBe(root.STATS.maxHp);
-  expect(root.SPRITE).toEqual(rock2);
+  expect(resolveSprite(root.SPRITE)).toEqual(rock2);
   expect(getLimbs(dormant, root)).toHaveLength(5);
   expect(
     getLimbs(dormant, root).every((limb) => requireComponent(limb, "BELONGABLE").faction === "unit")
@@ -86,12 +87,14 @@ test("Golem unfolds its factory stones into native body and arm fragments after 
     .getEntities(["NPC", "STATS", "SPRITE", "POSITION"])
     .find((entity) => entity.NPC.type === "golem")!;
   expect(unfolded.STATS.hp).toBe(unfolded.STATS.maxHp - 1);
-  expect(unfolded.SPRITE).toEqual({ ...golem, name: "" });
+  expect(resolveSprite(unfolded.SPRITE)).toEqual(
+    customSprite({ ...golem, name: "" })
+  );
   const limbs = getLimbs(active, unfolded).filter((limb) => limb !== unfolded);
   expect(limbs).toHaveLength(4);
   for (const limb of limbs) {
     const vertical = ["up", "down"].some((side) => side === limb.ORIENTABLE?.facing);
-    expect(limb.SPRITE).toEqual(vertical ? golemBody : golemArm);
+    expect(resolveSprite(limb.SPRITE)).toEqual(vertical ? golemBody : golemArm);
     expect(requireComponent(limb, "BELONGABLE").faction).toBe("wild");
     const position = requireComponent(limb, "POSITION");
     expect(

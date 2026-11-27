@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { spendItem } from "../../engine/systems/trigger";
 import { SPRITE } from "../../engine/components/sprite";
 import { composeCharacterPixels } from "../../components/Row/characters";
@@ -166,7 +167,11 @@ describe("forging at an anvil", () => {
           particles[`popup-content-7-${11 + i}`],
           [SPRITE]
         );
-        return cell[SPRITE].layers.find((layer) => layer.color === color)?.char ?? " ";
+        return (
+          resolveSprite(cell[SPRITE]).layers.find(
+            (layer) => layer.color === color
+          )?.char ?? " "
+        );
       }).join("");
     for (const [text, color] of [
       ["Ouch!", colors.red],
@@ -199,7 +204,7 @@ describe("forging at an anvil", () => {
     const ouch = world.assertByIdAndComponents(particles["popup-content-0-7"], [
       SPRITE,
     ]);
-    expect(projectSprite(ouch[SPRITE])).toMatchObject({
+    expect(projectSprite(resolveSprite(ouch[SPRITE]))).toMatchObject({
       char: "x",
       foreground: colors.red,
     });
@@ -217,7 +222,9 @@ describe("forging at an anvil", () => {
         ...getItemSprite(forge.steps[stepIndex].item).layers,
       ];
       if (stepIndex === 1) expected.push({ char: "^", color: colors.lime });
-      expect(cell[SPRITE].layers.slice(-expected.length)).toEqual(expected);
+      expect(
+        resolveSprite(cell[SPRITE]).layers.slice(-expected.length)
+      ).toEqual(expected);
     }
   });
 
@@ -252,9 +259,12 @@ describe("forging at an anvil", () => {
     expect(finalStep.misses).toHaveLength(extraSlots);
     const particles = getSequence(world, anvil, "popup")!.particles;
     const layersAt = (row: number, col: number) =>
-      world.assertByIdAndComponents(particles[`popup-content-${row}-${col}`], [
-        SPRITE,
-      ])[SPRITE].layers;
+      resolveSprite(
+        world.assertByIdAndComponents(
+          particles[`popup-content-${row}-${col}`],
+          [SPRITE]
+        )[SPRITE]
+      ).layers;
     for (let i = 0; i < hittingArea; i++) {
       expect(layersAt(4, hittingOffset + i)).toEqual([
         ...layersAt(4, 0),
@@ -393,7 +403,9 @@ describe("forging at an anvil", () => {
     const state = getSequence(world, anvil, "popup")!;
     for (let index = 0; index < hittingArea; index += 1) {
       const id = state.particles[`popup-content-4-${hittingOffset + index}`];
-      const layers = world.assertByIdAndComponents(id, [SPRITE])[SPRITE].layers;
+      const layers = resolveSprite(
+        world.assertByIdAndComponents(id, [SPRITE])[SPRITE]
+      ).layers;
       const marker =
         index >= next.offset && index < next.offset + next.width
           ? forgeHit
@@ -425,9 +437,9 @@ describe("forging at an anvil", () => {
           entity[ITEM].element === "air"
       );
     expect(forged).toBeDefined();
-    expect(composeCharacterPixels(forged![SPRITE].layers)).toContain(
-      colors.silver
-    );
+    expect(
+      composeCharacterPixels(resolveSprite(forged![SPRITE]).layers)
+    ).toContain(colors.silver);
   });
 
   it("opens the anvil and lists the carried items", () => {

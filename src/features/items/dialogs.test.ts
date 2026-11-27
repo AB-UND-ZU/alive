@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import {
   act,
   advance,
@@ -82,7 +83,9 @@ const text = (world: World, popup = menu(world), row?: number) => {
   return Array.from({ length: frameHeight - 2 }, (_, rowIndex) =>
     Array.from({ length: frameWidth - 2 }, (_, column) => {
       const id = sequence.particles[`popup-content-${rowIndex}-${column}`];
-      const sprite = world.getEntityByIdAndComponents(id, [SPRITE])?.[SPRITE];
+      const sprite = resolveSprite(
+        world.getEntityByIdAndComponents(id, [SPRITE])?.[SPRITE]
+      );
       return (
         sprite?.layers.find((layer) => /^[a-zA-Z0-9?!/.,]$/.test(layer.char))
           ?.char || " "
@@ -98,7 +101,9 @@ const button = (world: World, popup = menu(world)) => {
   return Object.entries(sequence.particles)
     .filter(([name]) => name.startsWith("popup-next-"))
     .flatMap(
-      ([, id]) => world.assertByIdAndComponents(id, [SPRITE])[SPRITE].layers
+      ([, id]) =>
+        resolveSprite(world.assertByIdAndComponents(id, [SPRITE])[SPRITE])
+          .layers
     );
 };
 
@@ -455,10 +460,11 @@ describe("background dialog updates", () => {
     expect(text(world)).not.toBe(before);
     expect(text(world)).toContain("Spear");
     const sequence = getSequence(world, menu(world), "popup")!;
-    const icon = world.assertByIdAndComponents(
-      sequence.particles["popup-content-0-1"],
-      [SPRITE]
-    )[SPRITE];
+    const icon = resolveSprite(
+      world.assertByIdAndComponents(sequence.particles["popup-content-0-1"], [
+        SPRITE,
+      ])[SPRITE]
+    );
     expect(composeCharacterPixels(getFacingLayers(icon))).toEqual(
       composeCharacterPixels(
         getItemSprite(spear[ITEM], "display", undefined, 1).layers
@@ -640,7 +646,7 @@ it("restores the frame when details disappear without changing the number of row
     sequence.particles["popup-right-1"],
     [SPRITE, "ORIENTABLE"]
   );
-  const original = side[SPRITE];
+  const original = resolveSprite(side[SPRITE]);
   const content = Array.from({ length: frameHeight - 2 }, () =>
     createText("Item")
   );
@@ -652,7 +658,7 @@ it("restores the frame when details disappear without changing the number of row
   expect(sequence.args.scrollMax).toBeGreaterThan(0);
   renderPopup(world, popup, sequence, "view-3", () => ({ content: content }));
   expect(sequence.args.scrollMax).toBeUndefined();
-  expect(side[SPRITE]).toBe(original);
+  expect(side[SPRITE].id).toBe(original.id);
   expect(side.ORIENTABLE.facing).toBe("right");
 });
 

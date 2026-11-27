@@ -1,3 +1,4 @@
+import { customSprite, spriteRef } from "./spriteIds";
 import { getPopupInputs, getPopupView, PopupView } from "./popupView";
 import { getIdentifierAndComponents } from "../../engine/utils";
 import { updateParticleMotion } from "../../engine/motion";
@@ -505,18 +506,18 @@ export const renderPopup = (
         state.particles[`popup-down-${(frameWidth - 3) / 2 + 1}`],
         [PARTICLE]
       );
-      downStartParticle[SPRITE] = spriteConfig.downStart;
+      downStartParticle[SPRITE] = spriteRef(spriteConfig.downStart);
       const downEndParticle = world.assertByIdAndComponents(
         state.particles[`popup-down-${(frameWidth - 3) / 2 - 1}`],
         [PARTICLE]
       );
-      downEndParticle[SPRITE] = spriteConfig.downEnd;
+      downEndParticle[SPRITE] = spriteRef(spriteConfig.downEnd);
       const downCenterName = `popup-down-${(frameWidth - 3) / 2}`;
       const downCenterParticle = world.assertByIdAndComponents(
         state.particles[downCenterName],
         [PARTICLE]
       );
-      downCenterParticle[SPRITE] = addBackground([icon], colors.black)[0];
+      downCenterParticle[SPRITE] = spriteRef(addBackground([icon], colors.black)[0]);
     }
 
     // add background
@@ -563,17 +564,17 @@ export const renderPopup = (
     // top and bottom handles
     world.assertByIdAndComponents(state.particles["popup-right-0"], [PARTICLE])[
       SPRITE
-    ] = spriteConfig.scrollBarTop;
+    ] = spriteRef(spriteConfig.scrollBarTop);
     world.assertByIdAndComponents(
       state.particles[`popup-right-${windowHeight - 3}`],
       [PARTICLE]
-    )[SPRITE] = spriteConfig.scrollBarBottom;
+    )[SPRITE] = spriteRef(spriteConfig.scrollBarBottom);
 
     // render bar
     for (let row = 1; row < windowHeight - 3; row += 1) {
       world.assertByIdAndComponents(state.particles[`popup-right-${row}`], [
         PARTICLE,
-      ])[SPRITE] = spriteConfig.scrollBar;
+      ])[SPRITE] = spriteRef(spriteConfig.scrollBar);
     }
 
     const progress = Math.floor(lerp(2, (windowHeight - 5) * 2, scrollRatio));
@@ -583,19 +584,19 @@ export const renderPopup = (
       state.particles[`popup-right-${Math.floor(progress / 2)}`],
       [PARTICLE, ORIENTABLE]
     );
-    handleStart[SPRITE] = spriteConfig.scrollHandle;
+    handleStart[SPRITE] = spriteRef(spriteConfig.scrollHandle);
     handleStart[ORIENTABLE].facing = progress % 2 === 1 ? "down" : undefined;
     const handleCenter = world.assertByIdAndComponents(
       state.particles[`popup-right-${Math.floor(progress / 2) + 1}`],
       [PARTICLE, ORIENTABLE]
     );
-    handleCenter[SPRITE] = spriteConfig.scrollHandle;
+    handleCenter[SPRITE] = spriteRef(spriteConfig.scrollHandle);
     handleCenter[ORIENTABLE].facing = undefined;
     const handleEnd = world.assertByIdAndComponents(
       state.particles[`popup-right-${Math.ceil(progress / 2) + 1}`],
       [PARTICLE, ORIENTABLE]
     );
-    handleEnd[SPRITE] = spriteConfig.scrollHandle;
+    handleEnd[SPRITE] = spriteRef(spriteConfig.scrollHandle);
     handleEnd[ORIENTABLE].facing = progress % 2 === 1 ? "up" : undefined;
 
     state.args.scrollIndex = scrollIndex;
@@ -610,7 +611,7 @@ export const renderPopup = (
         state.particles[`popup-right-${row}`],
         [PARTICLE, ORIENTABLE]
       );
-      sideParticle[SPRITE] = spriteConfig.side;
+      sideParticle[SPRITE] = spriteRef(spriteConfig.side);
       sideParticle[ORIENTABLE].facing = "right";
     }
 
@@ -633,11 +634,11 @@ export const renderPopup = (
         state.particles[`popup-tab-${offset}`],
         [PARTICLE, ORIENTABLE]
       );
-      upStartParticle[SPRITE] = selected
+      upStartParticle[SPRITE] = spriteRef(selected
         ? spriteConfig.separatorSelected
         : tabIndex === displayedHorizontalIndex + 1
         ? spriteConfig.separatorInverted
-        : spriteConfig.separator;
+        : spriteConfig.separator);
       upStartParticle[ORIENTABLE].facing =
         tabIndex === 0
           ? displayedTabs.length === 3
@@ -649,9 +650,9 @@ export const renderPopup = (
           state.particles[`popup-tab-${offset + 6}`],
           [PARTICLE, ORIENTABLE]
         );
-        upEndParticle[SPRITE] = selected
+        upEndParticle[SPRITE] = spriteRef(selected
           ? spriteConfig.separatorSelected
-          : spriteConfig.separator;
+          : spriteConfig.separator);
         upEndParticle[ORIENTABLE].facing = tabIndex === 2 ? "down" : "left";
       }
       const transaction = displayedTabs[tabIndex];
@@ -662,7 +663,7 @@ export const renderPopup = (
           state.particles[`popup-tab-${offset + index + 1}`],
           [PARTICLE]
         );
-        charParticle[SPRITE] = char;
+        charParticle[SPRITE] = spriteRef(char);
       });
     }
     updated = true;
@@ -676,17 +677,17 @@ export const renderPopup = (
       state.particles[`popup-left-${detailsHeight}`],
       [PARTICLE]
     );
-    centerStartParticle[SPRITE] = details
+    centerStartParticle[SPRITE] = spriteRef(details
       ? spriteConfig.centerStart
-      : spriteConfig.side;
+      : spriteConfig.side);
     if (!visibleScroll) {
       const centerEndParticle = world.assertByIdAndComponents(
         state.particles[`popup-right-${windowHeight - detailsHeight - 3}`],
         [PARTICLE]
       );
-      centerEndParticle[SPRITE] = details
+      centerEndParticle[SPRITE] = spriteRef(details
         ? spriteConfig.centerEnd
-        : spriteConfig.side;
+        : spriteConfig.side);
     }
 
     updated = true;
@@ -716,7 +717,7 @@ export const renderPopup = (
         [PARTICLE, SPRITE]
       );
 
-      particleEntity[SPRITE] = spriteConfig.background;
+      particleEntity[SPRITE] = spriteRef(spriteConfig.background);
     }
 
     renderContent = true;
@@ -732,9 +733,9 @@ export const renderPopup = (
         ],
         [PARTICLE]
       );
-      centerParticle[SPRITE] = details
+      centerParticle[SPRITE] = spriteRef(details
         ? spriteConfig.center
-        : spriteConfig.background;
+        : spriteConfig.background);
     }
 
     updated = true;
@@ -779,12 +780,12 @@ export const renderPopup = (
           lines >= windowHeight - 2 - detailsHeight - overscan &&
           row === scrollContent.length - 1 &&
           scrollContent.length > windowHeight - detailsHeight - 3;
-        charParticle[SPRITE] = cropContent
-          ? {
+        charParticle[SPRITE] = spriteRef(cropContent
+          ? customSprite({
               ...mergeSprites(char, spriteConfig.centerCrop),
               terminal: { layers: spriteConfig.center.layers },
-            }
-          : char;
+            })
+          : char);
         rerenderEntity(world, charParticle);
       }
     }
@@ -827,7 +828,7 @@ export const renderPopup = (
           ],
           [PARTICLE, SPRITE]
         );
-        charParticle[SPRITE] = char;
+        charParticle[SPRITE] = spriteRef(char);
         rerenderEntity(world, charParticle);
       }
     }
@@ -891,7 +892,7 @@ export const renderPopup = (
           [RENDERABLE]: { generation: 1 },
           [SPRITE]: leftSprite,
         });
-      leftParticle[SPRITE] = leftSprite;
+      leftParticle[SPRITE] = spriteRef(leftSprite);
       rerenderEntity(world, leftParticle);
       state.particles[leftName] = world.getEntityId(leftParticle);
     }
@@ -926,7 +927,7 @@ export const renderPopup = (
           [RENDERABLE]: { generation: 1 },
           [SPRITE]: rightSprite,
         });
-      rightParticle[SPRITE] = rightSprite;
+      rightParticle[SPRITE] = spriteRef(rightSprite);
       rightParticle[PARTICLE].offsetX =
         (frameWidth - 1) / 2 + column - rightButton.length + 2;
       rerenderEntity(world, rightParticle);
@@ -1021,8 +1022,8 @@ export const renderPopup = (
 
     // update selection type if needed
     const selectionSprite = selectionSprites[selection];
-    if (selectionParticle[SPRITE] !== selectionSprite) {
-      selectionParticle[SPRITE] = selectionSprite;
+    if (selectionParticle[SPRITE]?.id !== selectionSprite.id) {
+      selectionParticle[SPRITE] = spriteRef(selectionSprite);
       rerenderEntity(world, selectionParticle);
     }
 
@@ -1326,20 +1327,15 @@ export const getItemSprite = (
 
   if (!sprite) return missing;
 
-  return {
+  const layers = getFacingLayers(sprite, orientation, amount);
+  const terminal = sprite.terminal;
+  const terminalLayers = terminal && getFacingLayers(terminal, orientation, amount ?? item.amount);
+  if (layers === sprite.layers && terminalLayers === terminal?.layers) return sprite;
+  return customSprite({
     ...sprite,
-    layers: getFacingLayers(sprite, orientation, amount),
-    ...(sprite.terminal && {
-      terminal: {
-        ...sprite.terminal,
-        layers: getFacingLayers(
-          sprite.terminal,
-          orientation,
-          amount ?? item.amount
-        ),
-      },
-    }),
-  };
+    layers,
+    ...(terminal && { terminal: { ...terminal, layers: terminalLayers! } }),
+  });
 };
 
 export const createItemText = (

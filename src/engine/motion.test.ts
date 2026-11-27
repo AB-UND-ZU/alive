@@ -1,3 +1,4 @@
+import { customSprite } from "../game/assets/spriteIds";
 import { ACTIONABLE } from "./components/actionable";
 import { PARTICLE } from "./components/particle";
 import { entities } from ".";
@@ -179,7 +180,7 @@ test("removed particles keep their visual trajectory without accepting new targe
       animatedOrigin: { x: 0, y: 0 },
     },
     RENDERABLE: { generation: 0 },
-    SPRITE: { name: "particle", layers: [] },
+    SPRITE: customSprite({ name: "particle", layers: [] }),
   });
   world.update(50);
   const before = sampleMotion(getMotion(particle)!, world.metadata.elapsed);

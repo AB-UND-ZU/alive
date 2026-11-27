@@ -170,7 +170,9 @@ it("renders the same fountain frame through the game scene and terminal interfac
   }).filter((entry) => !entry.particle || entry.particleName === "fountain");
   const geometry = createTerminalFrame(
     collectTerminalSprites(scene).filter(
-      (entry) => entry.sprite !== fountainDrop && entry.sprite !== fountainHeal
+      (entry) =>
+        entry.sprite.id !== fountainDrop.id &&
+        entry.sprite.id !== fountainHeal.id
     ),
     layout.width,
     layout.height

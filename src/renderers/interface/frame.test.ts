@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { createCell } from "../../bindings/creation";
 import { HOMING } from "../../engine/components/homing";
 import { shootHoming } from "../../engine/systems/homing";
@@ -56,7 +57,9 @@ describe("Scene frame", () => {
     const scene = getSceneFrame(world, 15, 11);
     const player = scene.filter((entry) => entry.entity === hero);
     expect(player.length).toBeGreaterThan(0);
-    expect(player.some((entry) => entry.sprite === hero[SPRITE])).toBe(true);
+    expect(player.some((entry) => entry.sprite.id === hero[SPRITE]?.id)).toBe(
+      true
+    );
     hero[FOG]!.visibility = "fog";
     expect(
       getSceneFrame(world, 15, 11).filter(
@@ -73,7 +76,7 @@ describe("Scene frame", () => {
     hero[FOG]!.visibility = "visible";
     const elapsed = world.metadata.elapsed;
     const sprite = getSceneFrame(world, 15, 11).find(
-      (entry) => entry.sprite === hero[SPRITE]
+      (entry) => entry.sprite.id === hero[SPRITE]?.id
     );
     expect(sprite?.x).toBe(7);
     expect(sprite?.y).toBe(5);
@@ -96,15 +99,15 @@ it("keeps the idle sword facing independent of walking and applies its attack fa
   weapon[ORIENTABLE].facing = undefined;
   expect(
     getSceneFrame(world, 15, 11).find(
-      (entry) => entry.sprite === weapon[SPRITE]
+      (entry) => entry.sprite.id === weapon[SPRITE].id
     )?.layers
-  ).toEqual(weapon[SPRITE].layers);
+  ).toEqual(resolveSprite(weapon[SPRITE]).layers);
   weapon[ORIENTABLE].facing = "left";
   expect(
     getSceneFrame(world, 15, 11).find(
-      (entry) => entry.sprite === weapon[SPRITE]
+      (entry) => entry.sprite.id === weapon[SPRITE].id
     )?.layers
-  ).toEqual(getFacingLayers(weapon[SPRITE], "left"));
+  ).toEqual(getFacingLayers(resolveSprite(weapon[SPRITE]), "left"));
 });
 
 it("leaves straight tooltip segments and inactive focus pointers unoriented", () => {
@@ -130,14 +133,14 @@ it("leaves straight tooltip segments and inactive focus pointers unoriented", ()
     state.particles[key] = world.getEntityId(particle);
   }
   const frame = getSceneFrame(world, 15, 11);
-  const lines = frame.filter((entry) => entry.sprite === tooltipLine);
+  const lines = frame.filter((entry) => entry.sprite.id === tooltipLine.id);
   expect(lines.map((entry) => entry.layers)).toEqual([
     tooltipLine.layers,
     getFacingLayers(tooltipLine, "up"),
   ]);
-  expect(frame.find((entry) => entry.sprite === questPointer)?.layers).toEqual(
-    []
-  );
+  expect(
+    frame.find((entry) => entry.sprite.id === questPointer.id)?.layers
+  ).toEqual([]);
 });
 
 it("resets a loose worm's sprite while its carrier keeps the last movement direction", () => {
@@ -157,14 +160,16 @@ it("resets a loose worm's sprite while its carrier keeps the last movement direc
   carrier[ORIENTABLE].facing = "right";
   world.addComponentToEntity(worm, ORIENTABLE, { facing: "right" });
   expect(
-    getSceneFrame(world, 15, 11).find((entry) => entry.sprite === worm[SPRITE])
-      ?.layers
-  ).toEqual(getFacingLayers(worm[SPRITE], "right"));
+    getSceneFrame(world, 15, 11).find(
+      (entry) => entry.sprite.id === worm[SPRITE].id
+    )?.layers
+  ).toEqual(getFacingLayers(resolveSprite(worm[SPRITE]), "right"));
   world.assertComponents(worm, [ORIENTABLE])[ORIENTABLE].facing = undefined;
   expect(
-    getSceneFrame(world, 15, 11).find((entry) => entry.sprite === worm[SPRITE])
-      ?.layers
-  ).toEqual(worm[SPRITE].layers);
+    getSceneFrame(world, 15, 11).find(
+      (entry) => entry.sprite.id === worm[SPRITE].id
+    )?.layers
+  ).toEqual(resolveSprite(worm[SPRITE]).layers);
 });
 
 it("keeps unit and fog nodes available for visibility transitions and preserves moving keys", () => {
@@ -173,7 +178,7 @@ it("keeps unit and fog nodes available for visibility transitions and preserves 
   hero[FOG]!.visibility = "visible";
   const before = getSceneFrame(world, 15, 11, undefined, {
     includeHidden: true,
-  }).find((entry) => entry.sprite === hero[SPRITE])!;
+  }).find((entry) => entry.sprite.id === hero[SPRITE]?.id)!;
   expect(before.hidden).toBe(false);
   expect(
     getSceneFrame(world, 15, 11, undefined, { includeHidden: true }).find(
@@ -184,11 +189,13 @@ it("keeps unit and fog nodes available for visibility transitions and preserves 
   hero[FOG]!.visibility = "fog";
   const hidden = getSceneFrame(world, 15, 11, undefined, {
     includeHidden: true,
-  }).find((entry) => entry.sprite === hero[SPRITE])!;
+  }).find((entry) => entry.sprite.id === hero[SPRITE]?.id)!;
   expect(hidden.hidden).toBe(true);
   expect(hidden.key).toBe(before.key);
   expect(
-    getSceneFrame(world, 15, 11).some((entry) => entry.sprite === hero[SPRITE])
+    getSceneFrame(world, 15, 11).some(
+      (entry) => entry.sprite.id === hero[SPRITE]?.id
+    )
   ).toBe(false);
 });
 
@@ -198,15 +205,16 @@ it("gives wrapped copies separate stable keys and keeps the center copy across a
   hero[MOVABLE].spring = { duration: 0 };
   moveEntity(world, hero, { x: 0, y: hero[POSITION].y });
   const first = getSceneFrame(world, 15, 11).find(
-    (entry) => entry.sprite === hero[SPRITE]
+    (entry) => entry.sprite.id === hero[SPRITE]?.id
   )!;
   moveEntity(world, hero, { x: 47, y: hero[POSITION].y });
   expect(
-    getSceneFrame(world, 15, 11).find((entry) => entry.sprite === hero[SPRITE])
-      ?.key
+    getSceneFrame(world, 15, 11).find(
+      (entry) => entry.sprite.id === hero[SPRITE]?.id
+    )?.key
   ).toBe(first.key);
   const copies = getSceneFrame(world, 110, 11).filter(
-    (entry) => entry.sprite === hero[SPRITE]
+    (entry) => entry.sprite.id === hero[SPRITE]?.id
   );
   expect(copies.length).toBeGreaterThan(1);
   expect(new Set(copies.map((entry) => entry.key)).size).toBe(copies.length);
@@ -223,7 +231,7 @@ it("exposes swimming water above the body but not while flying", () => {
   expect(overlay).toBeDefined();
   expect(overlay?.hidden).toBe(false);
   expect(overlay!.z).toBeGreaterThan(
-    frame.find((entry) => entry.sprite === hero[SPRITE])!.z
+    frame.find((entry) => entry.sprite.id === hero[SPRITE]?.id)!.z
   );
   hero[MOVABLE]!.flying = true;
   expect(
@@ -246,7 +254,7 @@ it("stops sampling cached body and particle motion when animation flags are remo
   world.metadata.renderTime = world.metadata.elapsed + 100;
   const body = () =>
     getSceneFrame(world, 15, 11).find(
-      (entry) => entry.sprite === hero[SPRITE]
+      (entry) => entry.sprite.id === hero[SPRITE].id
     )!;
   expect(body().x).toBe(6);
   expect(getMotion(hero)).toBeDefined();
@@ -272,7 +280,7 @@ it("stops sampling cached body and particle motion when animation flags are remo
   updateParticleMotion(world, particle);
   const pointer = () =>
     getSceneFrame(world, 15, 11).find(
-      (entry) => entry.sprite === questPointer
+      (entry) => entry.sprite.id === questPointer.id
     )!;
   expect(pointer().x).toBe(9);
   particle[PARTICLE].animatedOrigin = undefined;
@@ -292,7 +300,7 @@ it("keeps instant actors centered on their camera target throughout movement and
   const started = world.metadata.elapsed;
   const body = (instant: boolean) =>
     getSceneFrame(world, 15, 11, undefined, { instant }).find(
-      (entry) => entry.sprite === hero[SPRITE]
+      (entry) => entry.sprite.id === hero[SPRITE].id
     )!;
   for (const position of [
     { x: 8, y: 2 },
@@ -317,7 +325,7 @@ it("ignores bumps in an instant frame while keeping normal body interpolation", 
   bumpEntity(world, hero, "right");
   const body = (instant: boolean) =>
     getSceneFrame(world, 15, 11, undefined, { instant }).find(
-      (entry) => entry.sprite === hero[SPRITE]
+      (entry) => entry.sprite.id === hero[SPRITE].id
     )!;
   expect(body(false).x).toBeGreaterThan(7);
   expect(body(true).x).toBe(7);
@@ -346,7 +354,7 @@ it("animates sequence particles while keeping actors instant", () => {
   world.metadata.renderTime = world.metadata.elapsed + 100;
   const pointer = (instant: boolean) =>
     getSceneFrame(world, 15, 11, undefined, { instant }).find(
-      (entry) => entry.sprite === questPointer
+      (entry) => entry.sprite.id === questPointer.id
     )!;
   expect(pointer(false).x).toBe(9);
   expect(pointer(true).x).toBe(9);
@@ -377,22 +385,24 @@ it("marks explored fog on world sprites without changing interface particle colo
     pointer: world.getEntityId(particle),
   };
   const frame = getSceneFrame(world, 15, 11, undefined, { instant: true });
-  expect(frame.find((entry) => entry.sprite === hero[SPRITE])?.fog).toBe(false);
+  expect(frame.find((entry) => entry.sprite.id === hero[SPRITE].id)?.fog).toBe(
+    false
+  );
   expect(
     frame.find(
-      (entry) => entry.entity === crate && entry.sprite === crate[SPRITE]
+      (entry) => entry.entity === crate && entry.sprite.id === crate[SPRITE].id
     )?.fog
   ).toBe(true);
   expect(
-    frame.find((entry) => entry.sprite === questPointer)?.fog
+    frame.find((entry) => entry.sprite.id === questPointer.id)?.fog
   ).toBeUndefined();
-  expect(frame.find((entry) => entry.sprite === questPointer)?.layers).toEqual(
-    getFacingLayers(questPointer, "right")
-  );
+  expect(
+    frame.find((entry) => entry.sprite.id === questPointer.id)?.layers
+  ).toEqual(getFacingLayers(questPointer, "right"));
   crate[FOG]!.visibility = "visible";
   expect(
     getSceneFrame(world, 15, 11).find(
-      (entry) => entry.entity === crate && entry.sprite === crate[SPRITE]
+      (entry) => entry.entity === crate && entry.sprite.id === crate[SPRITE].id
     )?.fog
   ).toBe(false);
 });
@@ -410,10 +420,13 @@ it("marks unexplored air for terminal fog coloring while keeping the hero's cell
   hero[FOG].visibility = "fog";
   const frame = getSceneFrame(world, 15, 11, undefined, { instant: true });
   expect(
-    frame.find((entry) => entry.entity === air && entry.sprite === air[SPRITE])
-      ?.fog
+    frame.find(
+      (entry) => entry.entity === air && entry.sprite.id === air[SPRITE]?.id
+    )?.fog
   ).toBe(true);
-  expect(frame.find((entry) => entry.sprite === hero[SPRITE])?.fog).toBe(false);
+  expect(frame.find((entry) => entry.sprite.id === hero[SPRITE].id)?.fog).toBe(
+    false
+  );
 });
 
 it("removes closed popup particles from an instant frame before the next engine update", () => {
@@ -436,7 +449,7 @@ it("removes closed popup particles from an instant frame before the next engine 
     world.getEntityId(marker);
   const hasPopup = (instant: boolean) =>
     getSceneFrame(world, 15, 11, undefined, { instant }).some(
-      (entry) => entry.entity === popup && entry.sprite === first[SPRITE]
+      (entry) => entry.entity === popup && entry.sprite.id === first[SPRITE].id
     );
   expect(hasPopup(true)).toBe(true);
   closePopup(world, hero, popup);
@@ -444,7 +457,7 @@ it("removes closed popup particles from an instant frame before the next engine 
   expect(hasPopup(true)).toBe(false);
   expect(
     getSceneFrame(world, 15, 11, undefined, { instant: true }).some(
-      (entry) => entry.sprite === questPointer
+      (entry) => entry.sprite.id === questPointer.id
     )
   ).toBe(true);
 });
@@ -467,18 +480,26 @@ it("keeps a homing disc aligned to its visible movement until it reaches a corne
   world.metadata.renderTime = world.metadata.elapsed + 50;
   const body = (instant = false) =>
     getSceneFrame(world, 15, 11, undefined, { instant }).find(
-      (entry) => entry.entity === disc && entry.sprite === disc[SPRITE]
+      (entry) => entry.entity === disc && entry.sprite.id === disc[SPRITE].id
     )!;
-  expect(body().layers).toEqual(getFacingLayers(disc[SPRITE], "right"));
-  expect(body(true).layers).toEqual(getFacingLayers(disc[SPRITE], "down"));
+  expect(body().layers).toEqual(
+    getFacingLayers(resolveSprite(disc[SPRITE]), "right")
+  );
+  expect(body(true).layers).toEqual(
+    getFacingLayers(resolveSprite(disc[SPRITE]), "down")
+  );
   expect(disc[ORIENTABLE].facing).toBe("down");
   expect(disc[HOMING].positions).toHaveLength(2);
   world.metadata.renderTime += 50;
-  expect(body().layers).toEqual(getFacingLayers(disc[SPRITE], "down"));
+  expect(body().layers).toEqual(
+    getFacingLayers(resolveSprite(disc[SPRITE]), "down")
+  );
   world.metadata.elapsed += 100;
   moveEntity(world, disc, { x: start.x + 1, y: start.y + 1 });
   world.metadata.renderTime = world.metadata.elapsed + 50;
-  expect(body().layers).toEqual(getFacingLayers(disc[SPRITE], "down"));
+  expect(body().layers).toEqual(
+    getFacingLayers(resolveSprite(disc[SPRITE]), "down")
+  );
 });
 
 it.each([{}, { includeHidden: true }, { instant: true }])(
@@ -587,7 +608,7 @@ it("draws a dropped stack's dots above remains and swimming independently of its
   const carrier = world.assertByIdAndComponents(item[ITEM].carrier, [FOG]);
   carrier[FOG].visibility = "visible";
   const frame = getSceneFrame(world, 15, 11);
-  const loot = frame.find((entry) => entry.sprite === item[SPRITE])!;
+  const loot = frame.find((entry) => entry.sprite.id === item[SPRITE].id)!;
   const dots = frame.find((entry) => entry.entity === carrier && entry.dots)!;
   expect(dots).toBeDefined();
   expect(dots.dots).toBe(4);

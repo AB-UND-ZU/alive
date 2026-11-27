@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import {
   act,
   advanceUntil,
@@ -137,11 +138,11 @@ describe("axe", () => {
     expect(getLootItems(world, tree)).toEqual([yieldItem]);
     const stump = world.assertComponents(getResource(world, tree)!, ["SPRITE"]);
     expect(stump.HARVESTABLE?.resource).toBe("stump");
-    expect(stump.SPRITE.layers).toContainEqual({
+    expect(resolveSprite(stump.SPRITE).layers).toContainEqual({
       char: "│",
       color: colors.silver,
     });
-    expect(stump.SPRITE.layers).toEqual(
+    expect(resolveSprite(stump.SPRITE).layers).toEqual(
       expect.arrayContaining([expect.objectContaining({ color: colors.grey })])
     );
   });

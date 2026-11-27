@@ -1,3 +1,4 @@
+import { customSprite } from "./spriteIds";
 import { glacierTrees } from "../../bindings/creation";
 import type { Dialog } from "../../engine/components/popup";
 import type { Sprite } from "../../engine/components/sprite";
@@ -59,7 +60,7 @@ const update = (
   title: `V${version}`,
   description: [sprites.delay, ...createText(date, colors.white)],
   content: content.flatMap((row, index) =>
-    index && row[0] === sprites.listBullet ? [[], row] : [row]
+    index && row[0]?.id === sprites.listBullet.id ? [[], row] : [row]
   ),
 });
 
@@ -72,7 +73,7 @@ const originalGrass = mergeSprites(
   glyph(",", colors.olive)
 );
 const originalEye = mergeSprites(
-  { ...glyph("0", colors.white), name: "Eye" },
+  customSprite({ ...glyph("0", colors.white), name: "Eye" }),
   sprites.hostileBar
 );
 const originalChest = mergeSprites(
@@ -184,10 +185,10 @@ export const getUpdates = (): Dialog[] =>
           label(sprites.rain, "Rain"),
           " and ",
           label(
-            {
+            customSprite({
               ...sprites.snowflake,
               layers: getFacingLayers(sprites.snowflake, undefined, 3),
-            },
+            }),
             "Snow"
           ),
         ],

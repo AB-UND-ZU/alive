@@ -146,7 +146,7 @@ describe("chest boss", () => {
 
       expect(towerElements()).toHaveLength(4);
       named(world, "chest_tower").forEach((tower) =>
-        expect(tower[SPRITE]).toBe(waveTower.iron[element])
+        expect(tower[SPRITE]?.id).toBe(waveTower.iron[element].id)
       );
     }
   );

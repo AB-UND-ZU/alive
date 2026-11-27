@@ -32,7 +32,7 @@ const cells: Record<string, { name: string; page: string; anchor?: string }> = {
   footing: { name: "Broken Palisade", page: "harvesting" },
   fence_hinge: { name: "Burnt Fence Door", page: "harvesting" },
   palisade_hinge: { name: "Broken Palisade Door", page: "harvesting" },
-  plot: { name: plot.name, page: "building" },
+  plot: { name: plot.name || "Plot", page: "building" },
   air: { name: "Air", page: "terrain" },
   snow: { name: "Snow", page: "terrain" },
   soil: { name: "Dry Soil", page: "farming" },

@@ -1,3 +1,4 @@
+import { customSprite } from "../game/assets/spriteIds";
 import {
   previewItem,
   displayName,
@@ -171,11 +172,13 @@ export function Frame({
       ? recolorLine(tab, { [colors.white]: titleBackground })
       : tab
   ).map((row) =>
-    row.map((sprite) => ({
-      ...sprite,
-      // The native crop adds transparent spaces over borders and titles.
-      layers: sprite.layers.filter((layer) => layer.char !== " "),
-    }))
+    row.map((sprite) =>
+      customSprite({
+        ...sprite,
+        // The native crop adds transparent spaces over borders and titles.
+        layers: sprite.layers.filter((layer) => layer.char !== " "),
+      })
+    )
   );
   return (
     <div
@@ -487,7 +490,7 @@ export function SlotLabel({ slot }: { slot: Equipment }) {
             />
           }
         >
-          {sprite.name}
+          {sprite.name || ""}
         </Text>
       </span>
     </ReferenceLink>
@@ -541,7 +544,7 @@ export function ItemView({
           .filter(
             (value) =>
               Boolean(value) &&
-              !sprite.name
+              !(sprite.name || "")
                 .toLowerCase()
                 .split(" ")
                 .includes(value!.toLowerCase())
@@ -550,7 +553,7 @@ export function ItemView({
       : [];
   const baseName = getEffectSprite(resolved)
     ? displayName(resolved.spell!)
-    : displayName(sprite.name.replace(/_/g, " "));
+    : displayName(sprite.name?.replace(/_/g, " ") || "");
   const name = [...qualifiers, baseName].join(" ");
   return (
     <ReferenceLink
@@ -592,10 +595,12 @@ export function ItemView({
   );
 }
 export function Key({ label }: { label: string; compact?: boolean }) {
-  const text = textSprites(label, colors.black).map((sprite) => ({
-    ...sprite,
-    layers: [{ char: "█", color: colors.white }, ...sprite.layers],
-  }));
+  const text = textSprites(label, colors.black).map((sprite) =>
+    customSprite({
+      ...sprite,
+      layers: [{ char: "█", color: colors.white }, ...sprite.layers],
+    })
+  );
   return (
     <Pixels
       className="Key"
@@ -711,7 +716,10 @@ export function Button({
                 ? [
                     Array.from({ length: text.length + 2 }, (_, column) =>
                       column === Math.floor((text.length + 2) / 2)
-                        ? { ...interactBar, layers: interactBar.facing!.down! }
+                        ? customSprite({
+                            ...interactBar,
+                            layers: interactBar.facing!.down!,
+                          })
                         : none
                     ),
                   ]
@@ -1027,10 +1035,12 @@ export function Heading({
                   <Pixels
                     className="HeadingLetter"
                     rows={(letters[letter] || letters["?"]).map((row) =>
-                      textSprites(row, color).map((sprite) => ({
-                        ...sprite,
-                        name: "heading",
-                      }))
+                      textSprites(row, color).map((sprite) =>
+                        customSprite({
+                          ...sprite,
+                          name: "heading",
+                        })
+                      )
                     )}
                   />
                 </Fragment>

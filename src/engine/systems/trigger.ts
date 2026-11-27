@@ -1,4 +1,5 @@
 import { hasUnlock } from "../../game/unlocks";
+import { resolveSprite, spriteRef } from "../../game/assets/spriteIds";
 import type { Destination } from "../../game/levels/generation";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -286,7 +287,7 @@ export const unlockDoor = (world: World, entity: TypedEntity<"POSITION">, lockab
 export const openDoor = (world: World, entity: TypedEntity) => {
   const lock = requireComponent(entity, LOCKABLE);
   lock.locked = false;
-  entity[SPRITE] = lock.sprite || none;
+  entity[SPRITE] = spriteRef(lock.sprite || none);
 
   if (entity[LIGHT]) {
     if (requireComponent(entity, LOCKABLE).sprite) {
@@ -326,16 +327,18 @@ export const openDoor = (world: World, entity: TypedEntity) => {
 export const lockDoor = (world: World, entity: TypedEntity) => {
   const lock = requireComponent(entity, LOCKABLE);
   lock.locked = true;
-  entity[SPRITE] = getItemSprite(
-    {
-      materialized: lock.type,
-      material: lock.material,
-      element: lock.element,
-    },
-    "resource"
+  entity[SPRITE] = spriteRef(
+    getItemSprite(
+      {
+        materialized: lock.type,
+        material: lock.material,
+        element: lock.element,
+      },
+      "resource"
+    )
   );
   if (entity[ENTERABLE]) {
-    entity[ENTERABLE].sprite = entity[SPRITE];
+    entity[ENTERABLE].sprite = resolveSprite(entity[SPRITE]);
     entity[ENTERABLE].orientation = undefined;
   }
   requireComponent(entity, LIGHT).orientation = undefined;

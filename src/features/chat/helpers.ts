@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { World } from "../../engine";
 import { INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
@@ -95,7 +96,7 @@ export const readMenu = (world: World) => {
         popup.particles[`popup-content-${row}-${column}`],
         [SPRITE]
       );
-      const char = particle && getText([particle[SPRITE]])[0];
+      const char = particle && getText([resolveSprite(particle[SPRITE])])[0];
       return !char || char === "█" ? " " : char;
     })
       .join("")

@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { completeCommand } from "../../game/assets/commands";
 import {
   completeChat,
@@ -128,10 +129,12 @@ it("wraps gray suggestions inside the chat and leaves the caret at the typed pos
   world.metadata.gameEntity.RENDERABLE.generation = 2;
   displayChat(world, menu, sequence);
   const cell = (row: number, column: number) =>
-    world.assertByIdAndComponents(
-      sequence.particles[`popup-content-${row}-${column}`],
-      ["SPRITE"]
-    ).SPRITE;
+    resolveSprite(
+      world.assertByIdAndComponents(
+        sequence.particles[`popup-content-${row}-${column}`],
+        ["SPRITE"]
+      ).SPRITE
+    );
   expect(cell(1, 4).layers).toContainEqual({ char: "r", color: colors.grey });
   expect(cell(1, 5).layers).toContainEqual({ char: "e", color: colors.grey });
   expect(cell(1, 3).layers).toContainEqual({
@@ -150,10 +153,11 @@ it("keeps every gray suggestion pixel visible in both caret phases", () => {
   const phases = [2, 3].map((generation) => {
     world.metadata.gameEntity.RENDERABLE.generation = generation;
     displayChat(world, menu, sequence);
-    const sprite = world.assertByIdAndComponents(
-      sequence.particles["popup-content-1-3"],
-      ["SPRITE"]
-    ).SPRITE;
+    const sprite = resolveSprite(
+      world.assertByIdAndComponents(sequence.particles["popup-content-1-3"], [
+        "SPRITE",
+      ]).SPRITE
+    );
     return composeCharacterPixels(sprite.layers);
   });
   const grayPixels = (pixels: (string | undefined)[]) =>
@@ -171,10 +175,11 @@ it("keeps the typing position visible when a command exceeds the four chat rows"
   const sequence = getSequence(world, menu, "popup")!;
   world.metadata.gameEntity.RENDERABLE.generation = 2;
   displayChat(world, menu, sequence);
-  const caret = world.assertByIdAndComponents(
-    sequence.particles["popup-content-3-0"],
-    ["SPRITE"]
-  ).SPRITE;
+  const caret = resolveSprite(
+    world.assertByIdAndComponents(sequence.particles["popup-content-3-0"], [
+      "SPRITE",
+    ]).SPRITE
+  );
   expect(caret.layers).toContainEqual({ char: "\u0107", color: colors.white });
 });
 

@@ -1,3 +1,4 @@
+import { customSprite, resolveSprite } from "../../game/assets/spriteIds";
 import { collectScene as collectEntities } from "./scene";
 import { requireComponent, TypedEntity } from "../../engine/entities";
 import { World } from "../../engine";
@@ -52,6 +53,11 @@ import {
   transientHeight,
   tooltipHeight,
 } from "./segments";
+
+const visibilitySprite = customSprite({ name: "visibility", layers: [] });
+const swimmingSprite = customSprite({ name: "swimming", layers: [] });
+const stackDots = customSprite({ name: "stack dots", layers: [] });
+const healthSprite = customSprite({ name: "health", layers: [] });
 
 export type SceneSprite = {
   key: string;
@@ -137,7 +143,7 @@ export const getSceneFrame = (
           y,
           z: -Infinity,
           layers: [],
-          sprite: { name: "visibility", layers: [] },
+          sprite: visibilitySprite,
           entity: world.metadata.gameEntity,
           fog:
             !(instant && heroCell?.x === mapX && heroCell?.y === mapY) &&
@@ -267,7 +273,7 @@ export const getSceneFrame = (
           segment.offsetX,
           segment.offsetY,
           segment.amount,
-          segment.sprite === entity[SPRITE]
+          segment.sprite.id === entity[SPRITE]?.id
             ? movingFacing || segment.facing
             : segment.facing
         );
@@ -280,11 +286,7 @@ export const getSceneFrame = (
       !entity[MOVABLE]?.flying &&
       (entity[SWIMMABLE].swimming || includeHidden)
     ) {
-      const entry = add(
-        { name: "swimming", layers: [] },
-        "swimming",
-        immersibleHeight
-      );
+      const entry = add(swimmingSprite, "swimming", immersibleHeight);
       entry.swimming = true;
       entry.hidden = hidden || !entity[SWIMMABLE].swimming;
     }
@@ -299,7 +301,7 @@ export const getSceneFrame = (
         .flatMap((item) => (item ? [item] : []));
       items.forEach((item, index) => {
         const entry = add(
-          requireComponent(item!, SPRITE),
+          resolveSprite(requireComponent(item!, SPRITE)),
           `loot${world.getEntityId(item)}`,
           (opaque ? oreHeight : lootHeight) + index / 1000,
           0,
@@ -317,7 +319,7 @@ export const getSceneFrame = (
             (amount > 1 && !(amount <= 3 && entry.sprite.amounts?.multiple))
           ) {
             const dots = add(
-              { name: "stack dots", layers: [] },
+              stackDots,
               `loot${world.getEntityId(item)}:dots`,
               dotsHeight
             );
@@ -350,8 +352,8 @@ export const getSceneFrame = (
             Object.entries(message.particles)
               .filter(
                 ([, id]) =>
-                  world.getEntityById(id)?.[SPRITE]?.terminal?.layers.length !==
-                  0
+                  resolveSprite(world.getEntityById(id)?.[SPRITE])?.terminal
+                    ?.layers.length !== 0
               )
               .map(([key]) => key.split("-")[1])
           ),
@@ -378,7 +380,7 @@ export const getSceneFrame = (
         ? sampleMotion(motion, world.metadata.renderTime)
         : undefined;
       const entry = add(
-        particle[SPRITE],
+        resolveSprite(particle[SPRITE]),
         `particle${index}`,
         particle[PARTICLE].offsetZ,
         particle[PARTICLE].offsetX + (point && motion ? point.x - motion.x : 0),
@@ -395,10 +397,11 @@ export const getSceneFrame = (
         entry.particleSequence === "discoveryIdle" &&
         entry.layers.length
       ) {
-        const revealed = visible && !hidden && particle[SPRITE] !== discovery;
+        const revealed =
+          visible && !hidden && particle[SPRITE]?.id !== discovery.id;
         entry.y = hidden ? py : py - 1;
         entry.terminalLayers = revealed
-          ? getFacingLayers(particle[SPRITE].terminal || particle[SPRITE])
+          ? getFacingLayers(entry.sprite.terminal || entry.sprite)
           : [{ char: "°", color: colors.lime }];
       }
       const messageRow = messageParticles.get(world.getEntityId(particle));
@@ -442,11 +445,7 @@ export const getSceneFrame = (
         stats.maxHp > 0 &&
         !(neutral && stats.hp >= stats.maxHp)
       ) {
-        const entry = add(
-          { name: "health", layers: [] },
-          "hp",
-          particleHeight + 0.01
-        );
+        const entry = add(healthSprite, "hp", particleHeight + 0.01);
         entry.hidden = !visible;
         entry.hp = {
           value: Math.max(0, Math.floor(stats.hp)),

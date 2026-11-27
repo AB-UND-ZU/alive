@@ -2,11 +2,13 @@ import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
 export const heart: Sprite = {
+  id: "heart",
   name: "HP",
   layers: [{ char: "\u0102", color: colors.red }],
 };
 
 export const heartUp: Sprite = {
+  id: "heart_up",
   name: "Max HP",
   terminal: { layers: [{ char: "\u0102", color: colors.lime }] },
   layers: [
@@ -16,11 +18,13 @@ export const heartUp: Sprite = {
 };
 
 export const mana: Sprite = {
+  id: "mana",
   name: "MP",
   layers: [{ char: "\u0103", color: colors.blue }],
 };
 
 export const manaUp: Sprite = {
+  id: "mana_up",
   name: "Max MP",
   terminal: { layers: [{ char: "\u0103", color: colors.lime }] },
   layers: [
@@ -30,6 +34,7 @@ export const manaUp: Sprite = {
 };
 
 export const shroom: Sprite = {
+  id: "shroom",
   name: "Shroom",
   terminal: { layers: [{ char: "∙", color: colors.maroon }] },
   layers: [
@@ -40,6 +45,7 @@ export const shroom: Sprite = {
 };
 
 export const appleDrop: Sprite = {
+  id: "apple_drop",
   name: "Apple",
   layers: [
     { char: "∙", color: colors.red },
@@ -50,6 +56,7 @@ export const appleDrop: Sprite = {
 };
 
 export const apple: Sprite = {
+  id: "apple",
   name: "Apple",
   terminal: {
     layers: [{ char: "•", color: colors.red }],
@@ -77,6 +84,7 @@ export const apple: Sprite = {
 };
 
 export const bananaDrop: Sprite = {
+  id: "banana_drop",
   name: "Banana",
   layers: [
     { char: "«", color: colors.yellow },
@@ -85,6 +93,7 @@ export const bananaDrop: Sprite = {
 };
 
 export const banana: Sprite = {
+  id: "banana",
   name: "Banana",
   terminal: { layers: [{ char: "«", color: colors.yellow }] },
   layers: [
@@ -105,6 +114,7 @@ export const banana: Sprite = {
 };
 
 export const coconutDrop: Sprite = {
+  id: "coconut_drop",
   name: "Coconut",
   terminal: { layers: [{ char: "\u0108", color: colors.maroon }] },
   layers: [
@@ -116,6 +126,7 @@ export const coconutDrop: Sprite = {
 };
 
 export const coconut: Sprite = {
+  id: "coconut",
   name: "Coconut",
   terminal: { layers: [{ char: "\u0108", color: colors.maroon }] },
   layers: [
@@ -143,6 +154,7 @@ export const coconut: Sprite = {
 };
 
 export const mineral: Sprite = {
+  id: "mineral",
   name: "Mineral",
   terminal: { layers: [{ char: "•", color: colors.lime }] },
   layers: [
@@ -153,6 +165,7 @@ export const mineral: Sprite = {
 };
 
 export const crystal: Sprite = {
+  id: "crystal",
   name: "Crystal",
   terminal: { layers: [{ char: "•", color: colors.aqua }] },
   layers: [
@@ -163,6 +176,7 @@ export const crystal: Sprite = {
 };
 
 export const thorn: Sprite = {
+  id: "thorn",
   name: "Thorn",
   layers: [
     { char: "<", color: colors.white },
@@ -172,6 +186,7 @@ export const thorn: Sprite = {
 };
 
 export const spore: Sprite = {
+  id: "spore",
   name: "Spore",
   terminal: { layers: [{ char: ":", color: colors.white }] },
   layers: [
@@ -182,11 +197,13 @@ export const spore: Sprite = {
 };
 
 export const level: Sprite = {
+  id: "level",
   name: "Level",
   layers: [{ char: "#", color: colors.lime }],
 };
 
 export const xp: Sprite = {
+  id: "xp",
   name: "XP",
   terminal: {
     layers: [{ char: "x", color: colors.lime }],
@@ -213,6 +230,7 @@ export const xp: Sprite = {
 };
 
 export const power: Sprite = {
+  id: "power",
   name: "Power",
   layers: [
     { char: "=", color: colors.teal },
@@ -227,6 +245,7 @@ export const power: Sprite = {
 };
 
 export const wisdom: Sprite = {
+  id: "wisdom",
   name: "Wisdom",
   layers: [
     { char: "\u0103", color: colors.fuchsia },
@@ -236,6 +255,7 @@ export const wisdom: Sprite = {
 };
 
 export const armor: Sprite = {
+  id: "armor",
   name: "Armor",
   layers: [
     { char: "\u0108", color: colors.teal },
@@ -246,6 +266,7 @@ export const armor: Sprite = {
 };
 
 export const resist: Sprite = {
+  id: "resist",
   name: "Resist",
   layers: [
     { char: "\u0106", color: colors.purple },
@@ -258,6 +279,7 @@ export const resist: Sprite = {
 };
 
 export const vision: Sprite = {
+  id: "vision",
   name: "Vision",
   layers: [
     { char: "\u0108", color: colors.grey },
@@ -267,11 +289,13 @@ export const vision: Sprite = {
 };
 
 export const haste: Sprite = {
+  id: "haste",
   name: "Haste",
   layers: [{ char: "»", color: colors.green }],
 };
 
 export const damp: Sprite = {
+  id: "damp",
   name: "Damp",
   layers: [
     { char: "*", color: colors.olive },
@@ -280,6 +304,7 @@ export const damp: Sprite = {
 };
 
 export const thaw: Sprite = {
+  id: "thaw",
   name: "Thaw",
   layers: [
     { char: "\u0101", color: colors.navy },
@@ -290,6 +315,7 @@ export const thaw: Sprite = {
 };
 
 export const spike: Sprite = {
+  id: "spike",
   name: "Spike",
   layers: [
     { char: "<", color: colors.red },
@@ -298,6 +324,7 @@ export const spike: Sprite = {
 };
 
 export const logging: Sprite = {
+  id: "logging",
   name: "Logging",
   layers: [
     { char: "'", color: colors.lime },
@@ -308,6 +335,7 @@ export const logging: Sprite = {
 };
 
 export const farming: Sprite = {
+  id: "farming",
   name: "Farming",
   layers: [
     { char: "I", color: colors.green },
@@ -319,6 +347,7 @@ export const farming: Sprite = {
 };
 
 export const mining: Sprite = {
+  id: "mining",
   name: "Mining",
   layers: [
     { char: "\u0119", color: colors.lime },
@@ -327,6 +356,7 @@ export const mining: Sprite = {
 };
 
 export const fishing: Sprite = {
+  id: "fishing",
   name: "Fishing",
   terminal: { layers: [{ char: "⌠", color: colors.green }] },
   layers: [
@@ -340,6 +370,7 @@ export const fishing: Sprite = {
 };
 
 export const build: Sprite = {
+  id: "build",
   name: "Build",
   layers: [
     { char: "|", color: colors.green },
@@ -350,6 +381,7 @@ export const build: Sprite = {
 };
 
 export const coin: Sprite = {
+  id: "coin",
   name: "Coin",
   terminal: {
     layers: [{ char: "°", color: colors.yellow }],
@@ -374,6 +406,7 @@ export const coin: Sprite = {
 };
 
 export const nugget: Sprite = {
+  id: "nugget",
   name: "Nugget",
   terminal: { layers: [{ char: "•", color: colors.yellow }] },
   layers: [
@@ -386,6 +419,7 @@ export const nugget: Sprite = {
 };
 
 export const ingot: Sprite = {
+  id: "ingot",
   name: "Ingot",
   terminal: { layers: [{ char: "▬", color: colors.yellow }] },
   layers: [
@@ -397,6 +431,7 @@ export const ingot: Sprite = {
 };
 
 export const stick: Sprite = {
+  id: "stick",
   name: "Stick",
   layers: [{ char: "-", color: colors.maroon }],
   amounts: {
@@ -407,6 +442,7 @@ export const stick: Sprite = {
 };
 
 export const wood: Sprite = {
+  id: "wood",
   name: "Wood",
   terminal: { layers: [{ char: "•", color: colors.maroon }] },
   layers: [
@@ -420,6 +456,7 @@ export const wood: Sprite = {
 };
 
 export const plank: Sprite = {
+  id: "plank",
   name: "Plank",
   terminal: { layers: [{ char: "■", color: colors.maroon }] },
   layers: [
@@ -432,6 +469,7 @@ export const plank: Sprite = {
 };
 
 export const leaf: Sprite = {
+  id: "leaf",
   name: "Leaf",
   terminal: {
     layers: [{ char: "-", color: colors.lime }],
@@ -470,6 +508,7 @@ export const leaf: Sprite = {
 };
 
 export const sapling: Sprite = {
+  id: "sapling",
   name: "Sapling",
   layers: [
     { char: ",", color: colors.maroon },
@@ -479,6 +518,7 @@ export const sapling: Sprite = {
 };
 
 export const berryDrop: Sprite = {
+  id: "berry_drop",
   name: "Berry",
   terminal: {
     layers: [{ char: "'", color: colors.fuchsia }],
@@ -497,6 +537,7 @@ export const berryDrop: Sprite = {
 };
 
 export const berry: Sprite = {
+  id: "berry",
   name: "Berry",
   terminal: {
     layers: [{ char: "'", color: colors.fuchsia }],
@@ -527,11 +568,13 @@ export const berry: Sprite = {
 };
 
 export const fruit: Sprite = {
+  id: "fruit",
   name: "Fruit",
   layers: [{ char: "\u0105", color: colors.purple }],
 };
 
 export const flowerDrop: Sprite = {
+  id: "flower_drop",
   name: "Flower",
   terminal: {
     layers: [{ char: "·", color: colors.teal }],
@@ -553,6 +596,7 @@ export const flowerDrop: Sprite = {
 };
 
 export const flower: Sprite = {
+  id: "flower",
   name: "Flower",
   terminal: {
     layers: [{ char: "·", color: colors.teal }],
@@ -584,6 +628,7 @@ export const flower: Sprite = {
 };
 
 export const herb: Sprite = {
+  id: "herb",
   name: "Herb",
   layers: [
     { char: "\u010e", color: colors.teal },
@@ -592,6 +637,7 @@ export const herb: Sprite = {
 };
 
 export const oreDrop: Sprite = {
+  id: "ore_drop",
   name: "Ore",
   terminal: {
     layers: [{ char: ".", color: colors.silver }],
@@ -615,6 +661,7 @@ export const oreDrop: Sprite = {
 };
 
 export const ore: Sprite = {
+  id: "ore",
   name: "Ore",
   terminal: {
     layers: [{ char: ".", color: colors.silver }],
@@ -645,6 +692,7 @@ export const ore: Sprite = {
 };
 
 export const oreDisplay: Sprite = {
+  id: "ore_display",
   name: "Ore",
   terminal: {
     layers: [{ char: ".", color: colors.silver }],
@@ -662,6 +710,7 @@ export const oreDisplay: Sprite = {
 };
 
 export const iron: Sprite = {
+  id: "iron",
   name: "Iron",
   terminal: { layers: [{ char: "■", color: colors.grey }] },
   layers: [
@@ -672,6 +721,7 @@ export const iron: Sprite = {
 };
 
 export const gold: Sprite = {
+  id: "gold",
   name: "Gold",
   terminal: { layers: [{ char: "■", color: colors.yellow }] },
   layers: [
@@ -682,6 +732,7 @@ export const gold: Sprite = {
 };
 
 export const diamond: Sprite = {
+  id: "diamond",
   name: "Diamond",
   terminal: { layers: [{ char: "■", color: colors.aqua }] },
   layers: [
@@ -692,6 +743,7 @@ export const diamond: Sprite = {
 };
 
 export const diamondGem: Sprite = {
+  id: "diamond_gem",
   name: "Gem",
   terminal: { layers: [{ char: "■", color: colors.aqua }] },
   layers: [
@@ -703,6 +755,7 @@ export const diamondGem: Sprite = {
 };
 
 export const ruby: Sprite = {
+  id: "ruby",
   name: "Ruby",
   terminal: { layers: [{ char: "■", color: colors.fuchsia }] },
   layers: [
@@ -713,6 +766,7 @@ export const ruby: Sprite = {
 };
 
 export const rubyGem: Sprite = {
+  id: "ruby_gem",
   name: "Ruby",
   terminal: { layers: [{ char: "■", color: colors.fuchsia }] },
   layers: [
@@ -724,6 +778,7 @@ export const rubyGem: Sprite = {
 };
 
 export const arrow: Sprite = {
+  id: "arrow",
   name: "Arrow",
   terminal: { layers: [{ char: "»", color: colors.maroon }] },
   layers: [
@@ -735,6 +790,7 @@ export const arrow: Sprite = {
 };
 
 export const doubleArrow: Sprite = {
+  id: "double_arrow",
   name: "Arrow",
   terminal: { layers: [{ char: "»", color: colors.maroon }] },
   layers: [
@@ -745,6 +801,7 @@ export const doubleArrow: Sprite = {
 };
 
 export const charge: Sprite = {
+  id: "charge",
   name: "Charge",
   layers: [
     { char: "^", color: colors.grey },
@@ -754,6 +811,7 @@ export const charge: Sprite = {
 };
 
 export const worm: Sprite = {
+  id: "worm",
   name: "Worm",
   terminal: {
     layers: [{ char: "~", color: colors.red }],
@@ -789,6 +847,7 @@ export const worm: Sprite = {
 };
 
 export const algae: Sprite = {
+  id: "algae",
   name: "Seaweed",
   terminal: { layers: [{ char: "w", color: colors.green }] },
   layers: [
@@ -801,6 +860,7 @@ export const algae: Sprite = {
 };
 
 export const pearl: Sprite = {
+  id: "pearl",
   name: "Pearl",
   terminal: { layers: [{ char: "∙", color: colors.white }] },
   layers: [
@@ -811,6 +871,7 @@ export const pearl: Sprite = {
 };
 
 export const tea: Sprite = {
+  id: "tea",
   name: "Tea",
   terminal: { layers: [{ char: "▬", color: colors.blue }] },
   layers: [
@@ -823,6 +884,7 @@ export const tea: Sprite = {
 };
 
 export const curry: Sprite = {
+  id: "curry",
   name: "Curry",
   terminal: { layers: [{ char: "■", color: colors.blue }] },
   layers: [
@@ -835,6 +897,7 @@ export const curry: Sprite = {
 };
 
 export const soup: Sprite = {
+  id: "soup",
   name: "Soup",
   terminal: { layers: [{ char: "▄", color: colors.blue }] },
   layers: [
@@ -847,6 +910,7 @@ export const soup: Sprite = {
 };
 
 export const juice: Sprite = {
+  id: "juice",
   name: "Juice",
   terminal: { layers: [{ char: "■", color: colors.red }] },
   layers: [
@@ -858,6 +922,7 @@ export const juice: Sprite = {
 };
 
 export const granola: Sprite = {
+  id: "granola",
   name: "Granola",
   terminal: { layers: [{ char: "▬", color: colors.red }] },
   layers: [
@@ -869,6 +934,7 @@ export const granola: Sprite = {
 };
 
 export const schema: Sprite = {
+  id: "schema",
   name: "Schema",
   terminal: { layers: [{ char: "#", color: colors.white }] },
   layers: [
@@ -882,6 +948,7 @@ export const schema: Sprite = {
 };
 
 export const letter: Sprite = {
+  id: "letter",
   name: "Letter",
   terminal: { layers: [{ char: "#", color: colors.grey }] },
   layers: [
@@ -892,6 +959,7 @@ export const letter: Sprite = {
 };
 
 export const letterRead: Sprite = {
+  id: "letter_read",
   name: "Letter",
   terminal: { layers: [{ char: "#", color: colors.grey }] },
   layers: [
@@ -902,6 +970,7 @@ export const letterRead: Sprite = {
 };
 
 export const aetherGem: Sprite = {
+  id: "aether_gem",
   name: "Aether",
   layers: [
     { char: "\u0103", color: colors.white },
@@ -912,6 +981,7 @@ export const aetherGem: Sprite = {
 };
 
 export const voidShard: Sprite = {
+  id: "void_shard",
   name: "Shard",
   layers: [
     { char: "+", color: colors.grey },
@@ -920,6 +990,7 @@ export const voidShard: Sprite = {
 };
 
 export const voidGem: Sprite = {
+  id: "void_gem",
   name: "Void",
   layers: [
     { char: "\u0103", color: colors.silver },
@@ -930,6 +1001,7 @@ export const voidGem: Sprite = {
 };
 
 export const rainbowShard: Sprite = {
+  id: "rainbow_shard",
   name: "Shard",
   layers: [
     { char: "+", color: colors.olive },
@@ -938,6 +1010,7 @@ export const rainbowShard: Sprite = {
 };
 
 export const rainbowGem: Sprite = {
+  id: "rainbow_gem",
   name: "Rainbow",
   layers: [
     { char: "\u0103", color: colors.yellow },
@@ -948,6 +1021,7 @@ export const rainbowGem: Sprite = {
 };
 
 export const vine: Sprite = {
+  id: "vine",
   name: "Vine",
   layers: [
     { char: "\u0119", color: colors.olive },
@@ -958,6 +1032,7 @@ export const vine: Sprite = {
 };
 
 export const avocadoOpen: Sprite = {
+  id: "avocado_open",
   name: "Avocado",
   layers: [
     { char: "!", color: colors.green },
@@ -972,6 +1047,7 @@ export const avocadoOpen: Sprite = {
 };
 
 export const avocadoSeed: Sprite = {
+  id: "avocado_seed",
   name: "Avocado",
   layers: [
     { char: "!", color: colors.green },
@@ -984,6 +1060,7 @@ export const avocadoSeed: Sprite = {
 };
 
 export const avocadoClosed: Sprite = {
+  id: "avocado_closed",
   name: "Avocado",
   layers: [
     { char: "!", color: colors.maroon },
@@ -997,6 +1074,7 @@ export const avocadoClosed: Sprite = {
 };
 
 export const avocadoHanging: Sprite = {
+  id: "avocado_hanging",
   name: "Avocado",
   layers: [
     { char: "┘", color: colors.grey },
@@ -1012,6 +1090,7 @@ export const avocadoHanging: Sprite = {
 };
 
 export const lemon: Sprite = {
+  id: "lemon",
   name: "Lemon",
   layers: [
     { char: "`", color: colors.maroon },
@@ -1024,6 +1103,7 @@ export const lemon: Sprite = {
 };
 
 export const grain: Sprite = {
+  id: "grain",
   name: "Grain",
   terminal: { layers: [{ char: "∙", color: colors.yellow }] },
   layers: [
@@ -1033,6 +1113,7 @@ export const grain: Sprite = {
 };
 
 export const wheat: Sprite = {
+  id: "wheat",
   name: "Wheat",
   terminal: { layers: [{ char: "¥", color: colors.yellow }] },
   layers: [
@@ -1047,6 +1128,7 @@ export const wheat: Sprite = {
 };
 
 export const bread: Sprite = {
+  id: "bread",
   name: "Bread",
   layers: [
     { char: "»", color: colors.yellow },
@@ -1056,6 +1138,7 @@ export const bread: Sprite = {
 };
 
 export const toast: Sprite = {
+  id: "toast",
   name: "Toast",
   terminal: { layers: [{ char: "▄", color: colors.red }] },
   layers: [
@@ -1069,6 +1152,7 @@ export const toast: Sprite = {
 };
 
 export const golemHead: Sprite = {
+  id: "golem_head",
   name: "Head",
   terminal: { layers: [{ char: "\u0101", color: colors.grey }] },
   layers: [
@@ -1082,6 +1166,7 @@ export const golemHead: Sprite = {
 };
 
 export const sandBlock: Sprite = {
+  id: "sand_block",
   name: "Sand",
   terminal: { layers: [{ char: "%", color: colors.yellow }] },
   layers: [
@@ -1091,6 +1176,7 @@ export const sandBlock: Sprite = {
 };
 
 export const gravelBlock: Sprite = {
+  id: "gravel_block",
   name: "Gravel",
   terminal: { layers: [{ char: "%", color: colors.silver }] },
   layers: [

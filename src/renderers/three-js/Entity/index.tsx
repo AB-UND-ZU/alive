@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../../game/assets/spriteIds";
 import React, { useContext, useState } from "react";
 import { useSpring } from "@react-spring/three";
 import { useDimensions } from "../../../components/Dimensions";
@@ -163,7 +164,7 @@ function Entity({
 
       lootSegments.push({
         id: itemId,
-        sprite: item[SPRITE],
+        sprite: resolveSprite(item[SPRITE]),
         facing: item[ORIENTABLE]?.facing,
         amount: item[ITEM].amount,
         offsetX: 0,
@@ -184,7 +185,7 @@ function Entity({
   const particleSegments: Segment[] = getParticles(ecs, entity).map(
     (particle, index) => ({
       id: ecs.getEntityId(particle) || index,
-      sprite: particle[SPRITE],
+      sprite: resolveSprite(particle[SPRITE]),
       facing: particle[ORIENTABLE]?.facing,
       offsetX: particle[PARTICLE].offsetX,
       offsetY: particle[PARTICLE].offsetY,
@@ -251,7 +252,9 @@ function Entity({
         !isLiquid &&
         !(isInside && !isFloat && inRadius) &&
         !((isOpaque || isFloat) && inRadius) &&
-        !(isTransparent || (hasLoot && !isDotsTransparent)) && <FogOfWar surface={entity[SPRITE]} />}
+        !(isTransparent || (hasLoot && !isDotsTransparent)) && (
+          <FogOfWar surface={resolveSprite(entity[SPRITE])} />
+        )}
     </Container>
   );
 }

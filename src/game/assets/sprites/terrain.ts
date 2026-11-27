@@ -2,22 +2,26 @@ import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
 export const mist: Sprite = {
+  id: "mist",
   name: "mist",
   layers: [{ char: "≈", color: colors.white }],
 };
 
 export const fog: Sprite = {
+  id: "fog",
   name: "fog_hidden",
   // colors.grey with shadow,
   layers: [{ char: "≈", color: "#2e2e2e" }],
 };
 
 export const fogOfWar: Sprite = {
+  id: "fog_of_war",
   name: "fog_war",
   layers: [{ color: colors.black, char: "░" }],
 };
 
 export const snowFogOfWar: Sprite = {
+  id: "snow_fog_of_war",
   name: "snow_fog_war",
   layers: [{ char: "░", color: colors.grey }],
   terminal: {
@@ -29,6 +33,7 @@ export const snowFogOfWar: Sprite = {
 };
 
 export const wall: Sprite = {
+  id: "wall",
   name: "wall_solid",
   terminal: { layers: [{ char: "█", color: colors.silver }] },
   layers: [{ char: "█", color: colors.grey }],
@@ -55,11 +60,13 @@ export const wall: Sprite = {
 };
 
 export const granite: Sprite = {
+  id: "granite",
   name: "wall_granite",
   layers: [{ char: "█", color: colors.white }],
 };
 
 export const ironMine: Sprite = {
+  id: "iron_mine",
   name: "Iron",
   layers: [
     { char: "█", color: colors.grey },
@@ -94,7 +101,8 @@ export const ironMine: Sprite = {
   },
 };
 
-const mineDisplay = (color: string): Sprite => ({
+const mineDisplay = (id: string, color: string): Sprite => ({
+  id,
   name: "Mine",
   layers: [
     { char: "\u0106", color: colors.grey },
@@ -104,12 +112,16 @@ const mineDisplay = (color: string): Sprite => ({
   ],
 });
 
-export const ironMineDisplay = mineDisplay(colors.silver);
-export const goldMineDisplay = mineDisplay(colors.yellow);
-export const diamondMineDisplay = mineDisplay(colors.aqua);
-export const rubyMineDisplay = mineDisplay(colors.fuchsia);
+export const ironMineDisplay = mineDisplay("iron_mine_display", colors.silver);
+export const goldMineDisplay = mineDisplay("gold_mine_display", colors.yellow);
+export const diamondMineDisplay = mineDisplay(
+  "diamond_mine_display",
+  colors.aqua
+);
+export const rubyMineDisplay = mineDisplay("ruby_mine_display", colors.fuchsia);
 
 export const goldMine: Sprite = {
+  id: "gold_mine",
   name: "Gold",
   layers: [
     { char: "█", color: colors.grey },
@@ -145,6 +157,7 @@ export const goldMine: Sprite = {
 };
 
 export const diamondMine: Sprite = {
+  id: "diamond_mine",
   name: "Diamond",
   layers: [
     { char: "█", color: colors.grey },
@@ -180,6 +193,7 @@ export const diamondMine: Sprite = {
 };
 
 export const rubyMine: Sprite = {
+  id: "ruby_mine",
   name: "Ruby",
   layers: [
     { char: "█", color: colors.grey },
@@ -215,6 +229,7 @@ export const rubyMine: Sprite = {
 };
 
 export const waterShallow: Sprite = {
+  id: "water_shallow",
   name: "water_shallow",
   layers: [
     { char: "█", color: colors.navy },
@@ -225,11 +240,13 @@ export const waterShallow: Sprite = {
 };
 
 export const waterDeep: Sprite = {
+  id: "water_deep",
   name: "water_deep",
   layers: [{ char: "█", color: colors.navy }],
 };
 
 export const ice: Sprite = {
+  id: "ice",
   name: "water_ice",
   layers: [
     { char: "█", color: colors.teal },
@@ -240,6 +257,7 @@ export const ice: Sprite = {
 };
 
 export const sand: Sprite = {
+  id: "sand",
   name: "Desert",
   terminal: {
     layers: [
@@ -255,11 +273,13 @@ export const sand: Sprite = {
 };
 
 export const beach: Sprite = {
+  id: "beach",
   name: "sand_beach",
   layers: [{ char: "▒", color: colors.olive }],
 };
 
 export const path: Sprite = {
+  id: "path",
   name: "Path",
   terminal: { layers: [{ char: "░", color: colors.silver }] },
   layers: [
@@ -272,6 +292,7 @@ export const path: Sprite = {
 };
 
 export const gravel1: Sprite = {
+  id: "gravel1",
   name: "gravel_one",
   terminal: { layers: [{ char: "%", color: colors.grey }] },
   layers: [
@@ -283,6 +304,7 @@ export const gravel1: Sprite = {
 };
 
 export const gravel2: Sprite = {
+  id: "gravel2",
   name: "gravel_two",
   terminal: { layers: [{ char: "%", color: colors.grey }] },
   layers: [
@@ -295,6 +317,7 @@ export const gravel2: Sprite = {
 };
 
 export const soil: Sprite = {
+  id: "soil",
   name: "Soil",
   layers: [
     { char: "\u0107", color: colors.maroon },
@@ -304,6 +327,7 @@ export const soil: Sprite = {
 };
 
 export const soilWet: Sprite = {
+  id: "soil_wet",
   name: "Soil",
   layers: [
     { char: "\u0107", color: colors.maroon },
@@ -315,6 +339,7 @@ export const soilWet: Sprite = {
 };
 
 export const jetty: Sprite = {
+  id: "jetty",
   name: "Dock",
   layers: [
     { char: "█", color: colors.maroon },
@@ -361,6 +386,7 @@ export const jetty: Sprite = {
 };
 
 export const birch: Sprite = {
+  id: "birch",
   name: "tree_birch",
   layers: [
     { char: "Y", color: colors.green },
@@ -374,6 +400,7 @@ export const birch: Sprite = {
 };
 
 export const stem: Sprite = {
+  id: "stem",
   name: "tree_stem",
   layers: [
     { char: "│", color: colors.maroon },
@@ -383,6 +410,7 @@ export const stem: Sprite = {
 };
 
 export const leaves: Sprite = {
+  id: "leaves",
   name: "tree_leaves",
   layers: [
     { char: "\u0106", color: colors.green },
@@ -394,6 +422,7 @@ export const leaves: Sprite = {
 };
 
 export const stemRottenLeft: Sprite = {
+  id: "stem_rotten_left",
   name: "tree_stem_rotten_left",
   terminal: { layers: [{ char: "╗", color: colors.maroon }] },
   layers: [
@@ -409,6 +438,7 @@ export const stemRottenLeft: Sprite = {
 };
 
 export const stemRottenRight: Sprite = {
+  id: "stem_rotten_right",
   name: "tree_stem_rotten_right",
   terminal: { layers: [{ char: "╔", color: colors.maroon }] },
   layers: [
@@ -423,6 +453,7 @@ export const stemRottenRight: Sprite = {
 };
 
 export const branchRottenLeft: Sprite = {
+  id: "branch_rotten_left",
   name: "tree_branch_rotten_left",
   layers: [
     { char: "+", color: colors.maroon },
@@ -437,6 +468,7 @@ export const branchRottenLeft: Sprite = {
 };
 
 export const branchRottenRight: Sprite = {
+  id: "branch_rotten_right",
   name: "tree_branch_rotten_right",
   layers: [
     { char: "|", color: colors.maroon },
@@ -451,6 +483,7 @@ export const branchRottenRight: Sprite = {
 };
 
 export const leavesRottenLeft: Sprite = {
+  id: "leaves_rotten_left",
   name: "tree_leaves_rotten_left",
   terminal: { layers: [{ char: "▐", color: colors.green }] },
   layers: [
@@ -466,6 +499,7 @@ export const leavesRottenLeft: Sprite = {
 };
 
 export const leavesRottenRight: Sprite = {
+  id: "leaves_rotten_right",
   name: "tree_leaves_rotten_right",
   terminal: { layers: [{ char: "▌", color: colors.green }] },
   layers: [
@@ -479,6 +513,7 @@ export const leavesRottenRight: Sprite = {
 };
 
 export const palm1: Sprite = {
+  id: "palm1",
   name: "palm_one",
   terminal: { layers: [{ char: "Y", color: colors.green }] },
   layers: [
@@ -495,6 +530,7 @@ export const palm1: Sprite = {
 };
 
 export const palm2: Sprite = {
+  id: "palm2",
   name: "palm_two",
   terminal: { layers: [{ char: "⌠", color: colors.green }] },
   layers: [
@@ -508,6 +544,7 @@ export const palm2: Sprite = {
 };
 
 export const palmBurnt1: Sprite = {
+  id: "palm_burnt1",
   name: "palm_burnt_one",
   terminal: { layers: [{ char: ",", color: colors.maroon }] },
   layers: [
@@ -520,6 +557,7 @@ export const palmBurnt1: Sprite = {
 };
 
 export const palmBurnt2: Sprite = {
+  id: "palm_burnt2",
   name: "palm_burnt_two",
   terminal: { layers: [{ char: ",", color: colors.maroon }] },
   layers: [
@@ -533,6 +571,7 @@ export const palmBurnt2: Sprite = {
 };
 
 export const desertPalmBurnt1: Sprite = {
+  id: "desert_palm_burnt1",
   name: "desert_palm_burnt_one",
   terminal: { layers: [{ char: ",", color: colors.maroon }] },
   layers: [
@@ -551,6 +590,7 @@ export const desertPalmBurnt1: Sprite = {
 };
 
 export const desertPalmBurnt2: Sprite = {
+  id: "desert_palm_burnt2",
   name: "desert_palm_burnt_two",
   terminal: { layers: [{ char: ",", color: colors.maroon }] },
   layers: [
@@ -570,11 +610,13 @@ export const desertPalmBurnt2: Sprite = {
 };
 
 export const hedge1: Sprite = {
+  id: "hedge1",
   name: "hedge_one",
   layers: [{ char: "\u0104", color: colors.green }],
 };
 
 export const hedge2: Sprite = {
+  id: "hedge2",
   name: "hedge_two",
   layers: [
     { char: "ß", color: colors.green },
@@ -583,6 +625,7 @@ export const hedge2: Sprite = {
 };
 
 export const hedgeDry1: Sprite = {
+  id: "hedge_dry1",
   name: "hedge_one_dry",
   layers: [
     { char: "\u0100", color: colors.black },
@@ -592,6 +635,7 @@ export const hedgeDry1: Sprite = {
 };
 
 export const hedgeDry2: Sprite = {
+  id: "hedge_dry2",
   name: "hedge_two_dry",
   layers: [
     { char: "\u0100", color: colors.black },
@@ -602,6 +646,7 @@ export const hedgeDry2: Sprite = {
 };
 
 export const flowerStem: Sprite = {
+  id: "flower_stem",
   name: "flower_stem",
   layers: [
     { char: "\u0100", color: colors.black },
@@ -613,6 +658,7 @@ export const flowerStem: Sprite = {
 };
 
 export const tree1: Sprite = {
+  id: "tree1",
   name: "tree_one",
   terminal: {
     layers: [
@@ -652,6 +698,7 @@ export const tree1: Sprite = {
 };
 
 export const tree2: Sprite = {
+  id: "tree2",
   name: "tree_two",
   terminal: {
     layers: [
@@ -691,6 +738,7 @@ export const tree2: Sprite = {
 };
 
 export const treeBurnt1: Sprite = {
+  id: "tree_burnt1",
   name: "tree_burnt_one",
   terminal: { layers: [{ char: ",", color: colors.maroon }] },
   layers: [
@@ -703,6 +751,7 @@ export const treeBurnt1: Sprite = {
 };
 
 export const treeBurnt2: Sprite = {
+  id: "tree_burnt2",
   name: "tree_burnt_two",
   terminal: { layers: [{ char: ",", color: colors.maroon }] },
   layers: [
@@ -714,6 +763,7 @@ export const treeBurnt2: Sprite = {
 };
 
 export const oakBurnt: Sprite = {
+  id: "oak_burnt",
   name: "oak_burnt",
   terminal: { layers: [{ char: ",", color: colors.maroon }] },
   layers: [
@@ -725,11 +775,13 @@ export const oakBurnt: Sprite = {
 };
 
 export const avodadoStem: Sprite = {
+  id: "avodado_stem",
   name: "avocado_stem",
   layers: [{ char: "│", color: colors.maroon }],
 };
 
 export const avodadoLeaves: Sprite = {
+  id: "avodado_leaves",
   name: "avocado_leaves",
   layers: [
     { char: "█", color: colors.green },
@@ -749,6 +801,7 @@ export const avodadoLeaves: Sprite = {
 };
 
 export const mahagonyStemLeft: Sprite = {
+  id: "mahagony_stem_left",
   name: "mahagony_stem_left",
   layers: [
     { char: "\u0106", color: colors.maroon },
@@ -759,6 +812,7 @@ export const mahagonyStemLeft: Sprite = {
 };
 
 export const mahagonyStemRight: Sprite = {
+  id: "mahagony_stem_right",
   name: "mahagony_stem_right",
   layers: [
     { char: "▌", color: colors.maroon },
@@ -767,6 +821,7 @@ export const mahagonyStemRight: Sprite = {
 };
 
 export const mahagonyLeaves: Sprite = {
+  id: "mahagony_leaves",
   name: "mahagony_leaves",
   layers: [
     { char: "█", color: colors.green },
@@ -781,26 +836,31 @@ export const mahagonyLeaves: Sprite = {
 };
 
 export const bush: Sprite = {
+  id: "bush",
   name: "bush_empty",
   layers: [{ char: "\u03c4", color: colors.olive }],
 };
 
 export const grass: Sprite = {
+  id: "grass",
   name: "grass_empty",
   layers: [{ char: ",", color: colors.olive }],
 };
 
 export const sapling1: Sprite = {
+  id: "sapling1",
   name: "sapling_one",
   layers: [{ char: ".", color: colors.green }],
 };
 
 export const sapling2: Sprite = {
+  id: "sapling2",
   name: "sapling_two",
   layers: [{ char: ",", color: colors.green }],
 };
 
 export const sapling3: Sprite = {
+  id: "sapling3",
   name: "sapling_three",
   layers: [
     { char: ",", color: colors.green },
@@ -809,6 +869,7 @@ export const sapling3: Sprite = {
 };
 
 export const sapling4: Sprite = {
+  id: "sapling4",
   name: "sapling_four",
   layers: [
     { char: "+", color: colors.green },
@@ -820,6 +881,7 @@ export const sapling4: Sprite = {
 };
 
 export const sapling5: Sprite = {
+  id: "sapling5",
   name: "sapling_five",
   layers: [
     { char: ",", color: colors.green },
@@ -828,6 +890,7 @@ export const sapling5: Sprite = {
 };
 
 export const cactus1: Sprite = {
+  id: "cactus1",
   name: "cactus_one",
   terminal: { layers: [{ char: "√", color: colors.green }] },
   layers: [
@@ -840,12 +903,14 @@ export const cactus1: Sprite = {
 };
 
 export const cactus2: Sprite = {
+  id: "cactus2",
   name: "cactus_two",
   terminal: { layers: [{ char: "¥", color: colors.green }] },
   layers: [{ char: "¥", color: colors.green }],
 };
 
 export const desertCactus2: Sprite = {
+  id: "desert_cactus2",
   name: "desert_cactus_two",
   terminal: { layers: [{ char: "¥", color: colors.green }] },
   layers: [
@@ -860,6 +925,7 @@ export const desertCactus2: Sprite = {
 };
 
 export const tombstone1: Sprite = {
+  id: "tombstone1",
   name: "",
   layers: [
     { char: "!", color: colors.black },
@@ -871,6 +937,7 @@ export const tombstone1: Sprite = {
 };
 
 export const tombstone2: Sprite = {
+  id: "tombstone2",
   name: "",
   layers: [
     { char: "'", color: colors.black },
@@ -884,6 +951,7 @@ export const tombstone2: Sprite = {
 
 // ghost without halo and with a hit marker, for defeated units
 export const kills: Sprite = {
+  id: "kills",
   name: "Kills",
   layers: [
     // 50% of silver
@@ -895,6 +963,7 @@ export const kills: Sprite = {
 };
 
 export const rock1: Sprite = {
+  id: "rock1",
   name: "",
   terminal: { layers: [{ char: "▬", color: colors.silver }] },
   layers: [
@@ -904,6 +973,7 @@ export const rock1: Sprite = {
 };
 
 export const rock2: Sprite = {
+  id: "rock2",
   name: "",
   terminal: { layers: [{ char: "•", color: colors.silver }] },
   layers: [
@@ -916,6 +986,7 @@ export const rock2: Sprite = {
 };
 
 export const enemySpawner: Sprite = {
+  id: "enemy_spawner",
   name: "Spawn",
   terminal: { layers: [{ char: ".", color: colors.red }] },
   layers: [
@@ -928,6 +999,7 @@ export const enemySpawner: Sprite = {
 };
 
 export const friendlySpawner: Sprite = {
+  id: "friendly_spawner",
   name: "Spawn",
   terminal: { layers: [{ char: ".", color: colors.lime }] },
   layers: [

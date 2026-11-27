@@ -1,3 +1,4 @@
+import { customSprite } from "../game/assets/spriteIds";
 import { getWikiUnitSprite, getWikiUnitName, displayName } from "./catalog";
 import { PresetName } from "./presets";
 import { muteAudio, setAudioActive } from "../game/sound/resumable";
@@ -346,10 +347,10 @@ for (const [name, item] of Object.entries(commandItems)) {
   const sprite =
     getEffectSprite(previewItem(item)) ||
     getItemSprite(previewItem(item), "display");
-  if (sprite !== missing && !/[?]{2,}/.test(sprite.name))
+  if (sprite.id !== missing.id && !/[?]{2,}/.test(sprite.name || ""))
     decorations[name.toLowerCase()] = {
       sprite,
-      name: displayName(sprite.name.replace(/_/g, " ")),
+      name: displayName(sprite.name?.replace(/_/g, " ") || ""),
     };
 }
 for (const stat of Object.keys(statConfig) as (keyof DisplayStats)[]) {
@@ -375,7 +376,10 @@ if (decorations.blast) decorations.blast.name = "Blast";
 for (const name of Object.keys(unitDefinitions).filter(isWikiUnit)) {
   const data = generateUnitData(name as UnitKey);
   const decoration = {
-    sprite: { ...getWikiUnitSprite(name as UnitKey), name: data.sprite.name },
+    sprite: customSprite({
+      ...getWikiUnitSprite(name as UnitKey),
+      name: data.sprite.name,
+    }),
     name: getWikiUnitName(name as UnitKey),
     color:
       data.faction === "wild"
@@ -394,7 +398,7 @@ for (const key of Object.keys(unitDefinitions).filter(
   isWikiUnit
 ) as UnitKey[]) {
   const name = (
-    key === "rotten" ? "Rotten Tree" : unitDefinitions[key].sprite.name
+    key === "rotten" ? "Rotten Tree" : unitDefinitions[key].sprite.name || ""
   )
     .replace(/_/g, " ")
     .toLowerCase();
@@ -421,7 +425,7 @@ for (const [key, item] of Object.entries(commandItems)) {
   const sprite =
     getEffectSprite(previewItem(item)) ||
     getItemSprite(previewItem(item), "display");
-  const name = sprite.name.replace(/_/g, " ").toLowerCase();
+  const name = (sprite.name || "").replace(/_/g, " ").toLowerCase();
   if (name && !name.includes("?"))
     nativeItemNames.set(name, [...(nativeItemNames.get(name) || []), key]);
 }
@@ -483,7 +487,7 @@ for (const [name, reference] of Object.entries(references)) {
     continue;
   const original = decorationsByTarget.get(reference.href);
   if (original?.sprite) {
-    const canonical = original.name || original.sprite.name;
+    const canonical = original.name || original.sprite.name || "";
     decorations[name] = {
       ...original,
       name: matchesReferenceName(name, canonical)

@@ -112,7 +112,7 @@ describe("prism", () => {
       "right"
     );
 
-    advanceUntil(world, () => prism[TOOLTIP].idle === rage, 2000);
+    advanceUntil(world, () => prism[TOOLTIP].idle?.id === rage.id, 2000);
   });
 
   it("stays calm when a wall blocks its line to the hero", () => {
@@ -123,9 +123,9 @@ describe("prism", () => {
       "left"
     );
 
-    const idles = trace(world, 6, () => prism[TOOLTIP].idle);
+    const idles = trace(world, 6, () => prism[TOOLTIP].idle?.id);
 
-    expect(idles).not.toContain(rage);
+    expect(idles).not.toContain(rage.id);
   });
 
   it("attacks the hero by walking into it", () => {

@@ -1,3 +1,4 @@
+import { customSprite } from "../game/assets/spriteIds";
 import { render, screen } from "@testing-library/react";
 import { SpriteCode } from "./SpriteCode";
 import { colors } from "../game/assets/colors";
@@ -11,12 +12,14 @@ beforeAll(() => {
 });
 
 test("sprite code preserves character escapes and updates to the selected sprite", () => {
-  const first = {
+  const first = customSprite({
     name: 'Sprite "one"',
     layers: [{ char: "\\", color: colors.maroon }],
-  };
+  });
   const { rerender } = render(<SpriteCode sprite={first} />);
-  const text = `export const sprite: Sprite = {\n  name: ${JSON.stringify(
+  const text = `export const sprite: Sprite = {\n  id: ${JSON.stringify(
+    first.id
+  )},\n  name: ${JSON.stringify(
     first.name
   )},\n  layers: [\n    { char: ${JSON.stringify(
     "\\"
@@ -25,10 +28,10 @@ test("sprite code preserves character escapes and updates to the selected sprite
   expect(screen.getByRole("button", { name: "Copy" })).toBeInTheDocument();
   rerender(
     <SpriteCode
-      sprite={{
+      sprite={customSprite({
         name: "Sprite #2",
         layers: [{ char: "A", color: colors.green }],
-      }}
+      })}
     />
   );
   expect(
@@ -41,7 +44,7 @@ test("sprite code preserves character escapes and updates to the selected sprite
 
 test("keeps an empty code fence when no sprite is selected", () => {
   const { rerender } = render(
-    <SpriteCode sprite={{ name: "Sprite #1", layers: [] }} />
+    <SpriteCode sprite={customSprite({ name: "Sprite #1", layers: [] })} />
   );
   expect(screen.getByLabelText(/^export const sprite:/)).toBeInTheDocument();
   rerender(<SpriteCode />);

@@ -1,3 +1,4 @@
+import { customSprite } from "../game/assets/spriteIds";
 import { Item } from "../engine/components/item";
 import { Sprite } from "../engine/components/sprite";
 import { getClassSprite, getItemSprite } from "../game/assets/utils";
@@ -11,10 +12,10 @@ export function equippedPortrait(item: Partial<Item>): Sprite | null {
     getItemSprite(item),
     item.weapon ? "down" : undefined
   );
-  return {
+  return customSprite({
     name: "Equipped Scout",
     layers: item.offhand ? [...equipment, ...scout] : [...scout, ...equipment],
-  };
+  });
 }
 export function EquippedPreview({ item }: { item: Partial<Item> }) {
   const sprite = equippedPortrait(item);

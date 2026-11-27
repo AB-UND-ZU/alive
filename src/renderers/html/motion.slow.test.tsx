@@ -40,7 +40,7 @@ it("samples a long timed movement at the same pace as Three.js", async () => {
       await renderer.advanceFrames(1, 0);
     });
     const body = getSceneFrame(world, 21, 15).find(
-      (entry) => entry.entity === hero && entry.sprite === hero[SPRITE]
+      (entry) => entry.entity === hero && entry.sprite.id === hero[SPRITE]?.id
     )!;
     const camera = sampleMotion(
       getCameraMotion(world)!,

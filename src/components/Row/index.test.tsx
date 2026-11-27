@@ -1,3 +1,4 @@
+import { customSprite } from "../../game/assets/spriteIds";
 import { renderToStaticMarkup } from "react-dom/server";
 import Row from "./index";
 import { characterImage } from "./characters";
@@ -26,13 +27,13 @@ test("layered sprites resolve covered pixels into one graphic", () => {
   const view = renderToStaticMarkup(
     <Row
       cells={[
-        {
+        customSprite({
           name: "layered",
           layers: [
             { char: "█", color: colors.red },
             { char: "█", color: colors.blue },
           ],
-        },
+        }),
       ]}
     />
   );

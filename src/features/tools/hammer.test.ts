@@ -340,7 +340,7 @@ describe("hammer", () => {
 
     expect(findEntityAt(world, water, [ORIENTABLE, SPRITE])).toMatchObject({
       [ORIENTABLE]: { facing: "up" },
-      [SPRITE]: jettySprite,
+      [SPRITE]: { id: jettySprite.id },
     });
     expect(
       getEntitiesAt(world, water).some((entity) => IMMERSIBLE in entity)

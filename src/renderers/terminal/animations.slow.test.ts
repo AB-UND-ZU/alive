@@ -18,7 +18,7 @@ it("keeps fountain side drops mirrored throughout their path", () => {
     const scene = getSceneFrame(world, 25, 17, undefined, { instant: true });
     const center = scene.find((entry) => entry.particleName === "fountain")!;
     const drops = collectTerminalSprites(scene).filter((entry) =>
-      ["fountain_drop", "fountain_heal"].includes(entry.sprite.name)
+      ["fountain_drop", "fountain_heal"].includes(entry.sprite.name || "")
     );
     const left = drops.filter((entry) => entry.x < Math.ceil(center.x));
     for (const drop of left) {

@@ -64,7 +64,9 @@ describe("destroying objects", () => {
     const { world } = createCombatWorld("|♀     C     |", { C: "bandit_camp" });
     const chest = world
       .getEntities([STATS, SPRITE])
-      .find((entity) => entity[SPRITE] === unitDefinitions.goldChest.sprite)!;
+      .find(
+        (entity) => entity[SPRITE].id === unitDefinitions.goldChest.sprite.id
+      )!;
     chest[STATS].hp = 0;
     step(world, 120);
     const items = getDrops(world).map(({ item }) => item);

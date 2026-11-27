@@ -1,5 +1,6 @@
+import { spriteRef } from "../game/assets/spriteIds";
 import type { LevelDestination } from "../game/levels/generation";
-import type { Sprite } from "./components/sprite";
+import { SPRITE, type Sprite, type SpriteRef } from "./components/sprite";
 import {
   initializeParticleMotion,
   releaseMotion,
@@ -163,7 +164,14 @@ export default function createWorld() {
     componentName: C,
     componentData: Entity[C]
   ) => {
-    ECS.addComponentToEntity(world, entity, componentName, componentData);
+    ECS.addComponentToEntity(
+      world,
+      entity,
+      componentName,
+      componentName === SPRITE
+        ? spriteRef(componentData as SpriteRef)
+        : componentData
+    );
     if (componentName === PARTICLE) initializeParticleMotion(ecs, entity);
   };
   const removeComponentFromEntity = <C extends keyof Entity>(

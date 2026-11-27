@@ -1253,7 +1253,7 @@ export default function Controls({
             ? [
                 ...repeat(
                   none,
-                  inventoryWidth - equipmentSprite.name.length - 1
+                  inventoryWidth - (equipmentSprite.name?.length ?? 0) - 1
                 ),
                 ...createText(equipmentSprite.name, colors.grey),
                 equipmentSprite,
@@ -1263,7 +1263,7 @@ export default function Controls({
                 ...createText(equipmentSprite.name, colors.grey),
                 ...repeat(
                   none,
-                  inventoryWidth - equipmentSprite.name.length - 1
+                  inventoryWidth - (equipmentSprite.name?.length ?? 0) - 1
                 ),
               ];
         })

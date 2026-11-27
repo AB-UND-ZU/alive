@@ -1,3 +1,4 @@
+import { resolveSprite } from "../game/assets/spriteIds";
 /**
  * Headless, deterministic game harness.
  *
@@ -272,7 +273,8 @@ export const snapshot = (world: World) =>
     .getEntities([POSITION])
     .map((entity) => {
       const { x, y } = entity[POSITION];
-      const sprite = (entity as TypedEntity<"SPRITE">)[SPRITE]?.name ?? "";
+      const sprite =
+        resolveSprite((entity as TypedEntity<"SPRITE">)[SPRITE])?.name ?? "";
       return `${x},${y}:${sprite}`;
     })
     .sort()

@@ -2,6 +2,7 @@ import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
 export const sign: Sprite = {
+  id: "sign",
   name: "Sign",
   layers: [
     { char: "┐", color: colors.maroon },
@@ -14,6 +15,7 @@ export const sign: Sprite = {
 };
 
 export const housePlate: Sprite = {
+  id: "house_plate",
   name: "Sign",
   layers: [
     { char: "█", color: colors.grey },
@@ -24,6 +26,7 @@ export const housePlate: Sprite = {
 };
 
 export const houseDruid: Sprite = {
+  id: "house_druid",
   name: "house_druid",
   terminal: {
     layers: [
@@ -38,6 +41,7 @@ export const houseDruid: Sprite = {
 };
 
 export const houseMage: Sprite = {
+  id: "house_mage",
   name: "house_mage",
   terminal: {
     layers: [
@@ -54,6 +58,7 @@ export const houseMage: Sprite = {
 };
 
 export const houseSmith: Sprite = {
+  id: "house_smith",
   name: "house_smith",
   terminal: {
     layers: [
@@ -70,6 +75,7 @@ export const houseSmith: Sprite = {
 };
 
 export const houseTrader: Sprite = {
+  id: "house_trader",
   name: "house_trader",
   terminal: {
     layers: [
@@ -84,6 +90,7 @@ export const houseTrader: Sprite = {
 };
 
 export const houseHunter: Sprite = {
+  id: "house_hunter",
   name: "house_hunter",
   terminal: {
     layers: [
@@ -99,6 +106,7 @@ export const houseHunter: Sprite = {
 };
 
 export const fence: Sprite = {
+  id: "fence",
   name: "Fence",
   layers: [
     { char: "=", color: colors.maroon },
@@ -119,6 +127,7 @@ export const fence: Sprite = {
 };
 
 export const palisade: Sprite = {
+  id: "palisade",
   name: "Wall",
   layers: [
     { char: "±", color: colors.grey },
@@ -165,6 +174,7 @@ export const palisade: Sprite = {
 };
 
 export const barrier: Sprite = {
+  id: "barrier",
   name: "Barrier",
   layers: [
     { char: "±", color: colors.grey },
@@ -211,6 +221,7 @@ export const barrier: Sprite = {
 };
 
 export const brokenPalisade1: Sprite = {
+  id: "broken_palisade1",
   name: "palisade_broken_1",
   layers: [
     { char: "±", color: colors.grey },
@@ -222,6 +233,7 @@ export const brokenPalisade1: Sprite = {
 };
 
 export const brokenPalisade2: Sprite = {
+  id: "broken_palisade2",
   name: "palisade_broken_2",
   layers: [
     { char: "±", color: colors.grey },
@@ -236,6 +248,7 @@ export const brokenPalisade2: Sprite = {
 };
 
 export const fenceBurnt1: Sprite = {
+  id: "fence_burnt1",
   name: "fence_burnt_one",
   layers: [
     { char: "|", color: colors.maroon },
@@ -246,6 +259,7 @@ export const fenceBurnt1: Sprite = {
 };
 
 export const fenceBurnt2: Sprite = {
+  id: "fence_burnt2",
   name: "fence_burnt_two",
   layers: [
     { char: "|", color: colors.maroon },
@@ -255,6 +269,7 @@ export const fenceBurnt2: Sprite = {
 };
 
 export const fenceDoorBurnt: Sprite = {
+  id: "fence_door_burnt",
   name: "fence_door_burnt",
   layers: [
     { char: "\u011f", color: colors.maroon },
@@ -266,6 +281,7 @@ export const fenceDoorBurnt: Sprite = {
 };
 
 export const palisadeDoorBroken: Sprite = {
+  id: "palisade_door_broken",
   name: "palisade_door_broken",
   layers: [
     { char: "\u011f", color: colors.grey },
@@ -277,6 +293,7 @@ export const palisadeDoorBroken: Sprite = {
 };
 
 export const stairs: Sprite = {
+  id: "stairs",
   name: "Stairs",
   layers: [
     { char: "M", color: colors.grey },
@@ -287,6 +304,7 @@ export const stairs: Sprite = {
 };
 
 export const anvil: Sprite = {
+  id: "anvil",
   name: "Anvil",
   terminal: { layers: [{ char: "▬", color: colors.silver }] },
   layers: [
@@ -297,6 +315,7 @@ export const anvil: Sprite = {
 };
 
 export const kettle: Sprite = {
+  id: "kettle",
   name: "Kettle",
   terminal: { layers: [{ char: "U", color: colors.silver }] },
   layers: [
@@ -310,6 +329,7 @@ export const kettle: Sprite = {
 };
 
 export const bench: Sprite = {
+  id: "bench",
   name: "Bench",
   layers: [
     { char: "\u011e", color: colors.silver },
@@ -319,6 +339,7 @@ export const bench: Sprite = {
 };
 
 export const iglooWall: Sprite = {
+  id: "igloo_wall",
   name: "igloo_wall",
   layers: [
     { char: "█", color: colors.teal },
@@ -335,6 +356,7 @@ export const iglooWall: Sprite = {
 };
 
 export const iglooRoofLeftUp: Sprite = {
+  id: "igloo_roof_left_up",
   name: "igloo_roof_left",
   layers: [
     { char: "▄", color: colors.aqua },
@@ -346,6 +368,7 @@ export const iglooRoofLeftUp: Sprite = {
 };
 
 export const iglooRoofUp: Sprite = {
+  id: "igloo_roof_up",
   name: "igloo_roof_up",
   layers: [
     { char: "▄", color: colors.aqua },
@@ -358,6 +381,7 @@ export const iglooRoofUp: Sprite = {
 };
 
 export const iglooRoofUpRight: Sprite = {
+  id: "igloo_roof_up_right",
   name: "igloo_roof_right",
   layers: [
     { char: "▄", color: colors.aqua },
@@ -369,6 +393,7 @@ export const iglooRoofUpRight: Sprite = {
 };
 
 export const iglooLeftInside: Sprite = {
+  id: "igloo_left_inside",
   name: "igloo_left_inside",
   layers: [
     { char: "▌", color: colors.aqua },
@@ -379,6 +404,7 @@ export const iglooLeftInside: Sprite = {
 };
 
 export const iglooLeftUpInside: Sprite = {
+  id: "igloo_left_up_inside",
   name: "igloo_left_up_inside",
   layers: [
     { char: "▌", color: colors.aqua },
@@ -389,6 +415,7 @@ export const iglooLeftUpInside: Sprite = {
 };
 
 export const iglooUpInside: Sprite = {
+  id: "igloo_up_inside",
   name: "igloo_up_inside",
   layers: [
     { char: "▀", color: colors.aqua },
@@ -399,6 +426,7 @@ export const iglooUpInside: Sprite = {
 };
 
 export const iglooUpRightInside: Sprite = {
+  id: "igloo_up_right_inside",
   name: "igloo_up_right_inside",
   layers: [
     { char: "▐", color: colors.aqua },
@@ -409,6 +437,7 @@ export const iglooUpRightInside: Sprite = {
 };
 
 export const iglooRightInside: Sprite = {
+  id: "igloo_right_inside",
   name: "igloo_right_inside",
   layers: [
     { char: "▐", color: colors.aqua },
@@ -419,6 +448,7 @@ export const iglooRightInside: Sprite = {
 };
 
 export const iglooRightDownInside: Sprite = {
+  id: "igloo_right_down_inside",
   name: "igloo_right_down_inside",
   layers: [
     { char: "▐", color: colors.aqua },
@@ -429,6 +459,7 @@ export const iglooRightDownInside: Sprite = {
 };
 
 export const iglooDownInside: Sprite = {
+  id: "igloo_down_inside",
   name: "igloo_down_inside",
   layers: [
     { char: "▄", color: colors.aqua },
@@ -439,6 +470,7 @@ export const iglooDownInside: Sprite = {
 };
 
 export const iglooDownLeftInside: Sprite = {
+  id: "igloo_down_left_inside",
   name: "igloo_down_left_inside",
   layers: [
     { char: "▌", color: colors.aqua },
@@ -450,12 +482,14 @@ export const iglooDownLeftInside: Sprite = {
 
 
 export const fortressRoof: Sprite = {
+  id: "fortress_roof",
   name: "fortress_roof_center",
   terminal: { layers: [{ char: "█", color: colors.silver }] },
   layers: [{ char: "█", color: colors.olive }],
 };
 
 export const fortressRoofLeft: Sprite = {
+  id: "fortress_roof_left",
   name: "fortress_roof_left",
   terminal: {
     layers: [
@@ -476,6 +510,7 @@ export const fortressRoofLeft: Sprite = {
 };
 
 export const fortressRoofRight: Sprite = {
+  id: "fortress_roof_right",
   name: "fortress_roof_right",
   terminal: {
     layers: [
@@ -496,6 +531,7 @@ export const fortressRoofRight: Sprite = {
 };
 
 export const fortressRoofUp: Sprite = {
+  id: "fortress_roof_up",
   name: "fortress_roof_up",
   terminal: {
     layers: [
@@ -512,6 +548,7 @@ export const fortressRoofUp: Sprite = {
 };
 
 export const fortressRoofUpInside: Sprite = {
+  id: "fortress_roof_up_inside",
   name: "fortress_roof_up_inside",
   terminal: {
     layers: [
@@ -529,6 +566,7 @@ export const fortressRoofUpInside: Sprite = {
 };
 
 export const fortressRoofUpRight: Sprite = {
+  id: "fortress_roof_up_right",
   name: "fortress_roof_up_right",
   terminal: {
     layers: [
@@ -546,6 +584,7 @@ export const fortressRoofUpRight: Sprite = {
 };
 
 export const fortressRoofUpRightInside: Sprite = {
+  id: "fortress_roof_up_right_inside",
   name: "fortress_roof_up_right_inside",
   terminal: {
     layers: [
@@ -564,6 +603,7 @@ export const fortressRoofUpRightInside: Sprite = {
 };
 
 export const fortressRoofDownLeft: Sprite = {
+  id: "fortress_roof_down_left",
   name: "fortress_roof_down_left",
   terminal: {
     layers: [
@@ -584,6 +624,7 @@ export const fortressRoofDownLeft: Sprite = {
 };
 
 export const fortressRoofDown: Sprite = {
+  id: "fortress_roof_down",
   name: "fortress_roof_down",
   terminal: {
     layers: [
@@ -603,6 +644,7 @@ export const fortressRoofDown: Sprite = {
 };
 
 export const fortressRoofRightDown: Sprite = {
+  id: "fortress_roof_right_down",
   name: "fortress_roof_right_down",
   terminal: {
     layers: [
@@ -625,6 +667,7 @@ export const fortressRoofRightDown: Sprite = {
 };
 
 export const fortressRoofLeftUp: Sprite = {
+  id: "fortress_roof_left_up",
   name: "fortress_roof_left_up",
   terminal: {
     layers: [
@@ -642,6 +685,7 @@ export const fortressRoofLeftUp: Sprite = {
 };
 
 export const fortressRoofLeftUpInside: Sprite = {
+  id: "fortress_roof_left_up_inside",
   name: "fortress_roof_left_up_inside",
   terminal: {
     layers: [
@@ -660,6 +704,7 @@ export const fortressRoofLeftUpInside: Sprite = {
 };
 
 export const fortressHouse: Sprite = {
+  id: "fortress_house",
   name: "fortress_house",
   terminal: { layers: [{ char: "█", color: colors.silver }] },
   layers: [
@@ -672,6 +717,7 @@ export const fortressHouse: Sprite = {
 };
 
 export const fortressHouseLeft: Sprite = {
+  id: "fortress_house_left",
   name: "fortress_house_left",
   terminal: {
     layers: [
@@ -689,6 +735,7 @@ export const fortressHouseLeft: Sprite = {
 };
 
 export const fortressHouseLeftInside: Sprite = {
+  id: "fortress_house_left_inside",
   name: "fortress_house_left_inside",
   terminal: {
     layers: [
@@ -706,6 +753,7 @@ export const fortressHouseLeftInside: Sprite = {
 };
 
 export const fortressBasementLeftInside: Sprite = {
+  id: "fortress_basement_left_inside",
   name: "fortress_basement_left_inside",
   terminal: {
     layers: [
@@ -724,6 +772,7 @@ export const fortressBasementLeftInside: Sprite = {
 };
 
 export const fortressHouseRight: Sprite = {
+  id: "fortress_house_right",
   name: "fortress_house_right",
   terminal: {
     layers: [
@@ -741,6 +790,7 @@ export const fortressHouseRight: Sprite = {
 };
 
 export const fortressHouseRightInside: Sprite = {
+  id: "fortress_house_right_inside",
   name: "fortress_house_right_inside",
   terminal: {
     layers: [
@@ -758,6 +808,7 @@ export const fortressHouseRightInside: Sprite = {
 };
 
 export const fortressBasementRightInside: Sprite = {
+  id: "fortress_basement_right_inside",
   name: "fortress_basement_right_inside",
   terminal: {
     layers: [
@@ -776,6 +827,7 @@ export const fortressBasementRightInside: Sprite = {
 };
 
 export const fortressWallInside: Sprite = {
+  id: "fortress_wall_inside",
   name: "fortress_wall_inside",
   terminal: {
     layers: [
@@ -793,6 +845,7 @@ export const fortressWallInside: Sprite = {
 };
 
 export const fortressWindow: Sprite = {
+  id: "fortress_window",
   name: "fortress_window",
   terminal: {
     layers: [
@@ -809,6 +862,7 @@ export const fortressWindow: Sprite = {
 };
 
 export const fortressWindowInside: Sprite = {
+  id: "fortress_window_inside",
   name: "fortress_window_inside",
   terminal: {
     layers: [
@@ -826,6 +880,7 @@ export const fortressWindowInside: Sprite = {
 };
 
 export const roof: Sprite = {
+  id: "roof",
   name: "roof_center",
   terminal: {
     layers: [
@@ -840,6 +895,7 @@ export const roof: Sprite = {
 };
 
 export const roofLeft: Sprite = {
+  id: "roof_left",
   name: "roof_left",
   terminal: {
     layers: [
@@ -855,6 +911,7 @@ export const roofLeft: Sprite = {
 };
 
 export const roofRight: Sprite = {
+  id: "roof_right",
   name: "roof_right",
   terminal: {
     layers: [
@@ -870,6 +927,7 @@ export const roofRight: Sprite = {
 };
 
 export const roofUp: Sprite = {
+  id: "roof_up",
   name: "roof_up",
   terminal: {
     layers: [
@@ -885,6 +943,7 @@ export const roofUp: Sprite = {
 };
 
 export const roofUpInside: Sprite = {
+  id: "roof_up_inside",
   name: "roof_up_inside",
   terminal: {
     layers: [
@@ -899,6 +958,7 @@ export const roofUpInside: Sprite = {
 };
 
 export const roofUpRight: Sprite = {
+  id: "roof_up_right",
   name: "roof_up_right",
   terminal: {
     layers: [
@@ -916,6 +976,7 @@ export const roofUpRight: Sprite = {
 };
 
 export const roofUpRightInside: Sprite = {
+  id: "roof_up_right_inside",
   name: "roof_up_right_inside",
   terminal: {
     layers: [
@@ -931,6 +992,7 @@ export const roofUpRightInside: Sprite = {
 };
 
 export const roofDownLeft: Sprite = {
+  id: "roof_down_left",
   name: "roof_down_left",
   terminal: {
     layers: [
@@ -948,6 +1010,7 @@ export const roofDownLeft: Sprite = {
 };
 
 export const roofDown: Sprite = {
+  id: "roof_down",
   name: "roof_down",
   terminal: {
     layers: [
@@ -964,6 +1027,7 @@ export const roofDown: Sprite = {
 };
 
 export const roofRightDown: Sprite = {
+  id: "roof_right_down",
   name: "roof_right_down",
   terminal: {
     layers: [
@@ -981,6 +1045,7 @@ export const roofRightDown: Sprite = {
 };
 
 export const roofLeftUp: Sprite = {
+  id: "roof_left_up",
   name: "roof_left_up",
   terminal: {
     layers: [
@@ -998,6 +1063,7 @@ export const roofLeftUp: Sprite = {
 };
 
 export const roofLeftUpInside: Sprite = {
+  id: "roof_left_up_inside",
   name: "roof_left_up_inside",
   terminal: {
     layers: [
@@ -1013,12 +1079,14 @@ export const roofLeftUpInside: Sprite = {
 };
 
 export const house: Sprite = {
+  id: "house",
   name: "house",
   terminal: { layers: [{ char: "█", color: colors.silver }] },
   layers: [{ char: "█", color: colors.grey }],
 };
 
 export const houseLeft: Sprite = {
+  id: "house_left",
   name: "house_left",
   terminal: {
     layers: [
@@ -1033,6 +1101,7 @@ export const houseLeft: Sprite = {
 };
 
 export const basementLeftInside: Sprite = {
+  id: "basement_left_inside",
   name: "basement_left_inside",
   terminal: {
     layers: [
@@ -1048,6 +1117,7 @@ export const basementLeftInside: Sprite = {
 };
 
 export const houseRight: Sprite = {
+  id: "house_right",
   name: "house_right",
   terminal: {
     layers: [
@@ -1062,6 +1132,7 @@ export const houseRight: Sprite = {
 };
 
 export const basementRightInside: Sprite = {
+  id: "basement_right_inside",
   name: "basement_right_inside",
   terminal: {
     layers: [
@@ -1077,6 +1148,7 @@ export const basementRightInside: Sprite = {
 };
 
 export const wallInside: Sprite = {
+  id: "wall_inside",
   name: "wall_inside",
   terminal: {
     layers: [
@@ -1091,6 +1163,7 @@ export const wallInside: Sprite = {
 };
 
 export const window: Sprite = {
+  id: "window",
   name: "window",
   terminal: {
     layers: [
@@ -1105,6 +1178,7 @@ export const window: Sprite = {
 };
 
 export const windowInside: Sprite = {
+  id: "window_inside",
   name: "window_inside",
   terminal: {
     layers: [
@@ -1116,6 +1190,7 @@ export const windowInside: Sprite = {
 };
 
 export const bedItem: Sprite = {
+  id: "bed_item",
   name: "bed_item",
   layers: [
     { char: "Γ", color: colors.maroon },
@@ -1128,6 +1203,7 @@ export const bedItem: Sprite = {
 };
 
 export const bedHeadLeft: Sprite = {
+  id: "bed_head_left",
   name: "bed_head_left",
   terminal: { layers: [{ char: "╞", color: colors.maroon }] },
   layers: [
@@ -1139,6 +1215,7 @@ export const bedHeadLeft: Sprite = {
 };
 
 export const bedHeadRight: Sprite = {
+  id: "bed_head_right",
   name: "bed_head_right",
   terminal: { layers: [{ char: "╡", color: colors.maroon }] },
   layers: [
@@ -1150,6 +1227,7 @@ export const bedHeadRight: Sprite = {
 };
 
 export const bedCenter: Sprite = {
+  id: "bed_center",
   name: "bed_center",
   terminal: { layers: [{ char: "═", color: colors.silver }] },
   layers: [
@@ -1159,6 +1237,7 @@ export const bedCenter: Sprite = {
 };
 
 export const bedEndRight: Sprite = {
+  id: "bed_end_right",
   name: "bed_end_right",
   terminal: { layers: [{ char: "╕", color: colors.maroon }] },
   layers: [
@@ -1172,6 +1251,7 @@ export const bedEndRight: Sprite = {
 };
 
 export const bedEndLeft: Sprite = {
+  id: "bed_end_left",
   name: "bed_end_right",
   terminal: { layers: [{ char: "╒", color: colors.maroon }] },
   layers: [
@@ -1185,6 +1265,7 @@ export const bedEndLeft: Sprite = {
 };
 
 export const table: Sprite = {
+  id: "table",
   name: "Table",
   terminal: { layers: [{ char: "╥", color: colors.maroon }] },
   layers: [
@@ -1195,6 +1276,7 @@ export const table: Sprite = {
 };
 
 export const chairLeft: Sprite = {
+  id: "chair_left",
   name: "Chair",
   terminal: { layers: [{ char: "_", color: colors.maroon }] },
   layers: [
@@ -1204,6 +1286,7 @@ export const chairLeft: Sprite = {
 };
 
 export const chairRight: Sprite = {
+  id: "chair_right",
   name: "Chair",
   terminal: { layers: [{ char: "_", color: colors.maroon }] },
   layers: [
@@ -1213,6 +1296,7 @@ export const chairRight: Sprite = {
 };
 
 export const railSide: Sprite = {
+  id: "rail_side",
   name: "rail_side",
   layers: [
     { char: "φ", color: colors.maroon },
@@ -1245,6 +1329,7 @@ export const railSide: Sprite = {
 };
 
 export const railCorner: Sprite = {
+  id: "rail_corner",
   name: "rail_corner",
   layers: [
     { char: "\\", color: colors.maroon },

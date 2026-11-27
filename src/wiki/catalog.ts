@@ -1,3 +1,4 @@
+import { customSprite } from "../game/assets/spriteIds";
 import { stemRottenRight } from "../game/assets/sprites";
 import { getUnitSprite } from "../game/assets/utils";
 import { fishingDistributionLevels } from "../game/balancing/fishing";
@@ -99,7 +100,7 @@ export const getWikiUnitName = (key: UnitKey, full = false) =>
       : displayName(key)
     : key === "rotten"
     ? "Rotten Tree"
-    : displayName(unitDefinitions[key].sprite.name.replace(/_/g, " ") || key);
+    : displayName(unitDefinitions[key].sprite.name?.replace(/_/g, " ") || key);
 
 export const displayName = (key: string) =>
   key
@@ -224,7 +225,7 @@ export const itemVariants = (definition: Partial<Item>): Partial<Item>[] => {
     if (seen.has(id)) continue;
     seen.add(id);
     const sprite = getItemSprite(item, "display");
-    if (sprite.name === missing.name) continue;
+    if (sprite.id === missing.id) continue;
     const stats = getItemStats(item);
     const numericStats = Object.values(stats).some(
       (value) => typeof value === "number" && value !== 0
@@ -263,7 +264,7 @@ export const itemVariants = (definition: Partial<Item>): Partial<Item>[] => {
 export const catalogItems = Object.fromEntries(
   Object.entries(commandItems).filter(
     ([, item]) =>
-      getItemSprite(previewItem(item), "display").name !== missing.name &&
+      getItemSprite(previewItem(item), "display").id !== missing.id &&
       itemVariants(item).length > 0
   )
 );
@@ -475,5 +476,5 @@ export const unitOverviewGroup = (key: UnitKey) => {
 
 export const getWikiUnitSprite = (unit: UnitKey) =>
   unit === "rotten"
-    ? { ...stemRottenRight, name: "Rotten Tree" }
+    ? customSprite({ ...stemRottenRight, name: "Rotten Tree" })
     : getUnitSprite(unit);

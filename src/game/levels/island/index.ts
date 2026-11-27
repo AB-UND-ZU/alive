@@ -1,3 +1,4 @@
+import { resolveSprite, spriteRef } from "../../assets/spriteIds";
 import { mapLoading, worldLoading } from "../../assets/loading";
 import { levelConfig } from "..";
 import { entities, World } from "../../../engine";
@@ -2086,7 +2087,9 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
           [],
         ],
       ]);
-      desertSign[SPRITE] = mergeSprites(shadow, desertSign[SPRITE]);
+      desertSign[SPRITE] = spriteRef(
+        mergeSprites(shadow, resolveSprite(desertSign[SPRITE]))
+      );
 
       const fireHaven = entities.createProcessor(world, {
         [RENDERABLE]: { generation: 0 },

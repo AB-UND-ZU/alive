@@ -1,3 +1,4 @@
+import { customSprite } from "../game/assets/spriteIds";
 import { worldPlantGroups } from "./WorldPlants";
 import { narrativeRows, getCatalogDescription } from "./CatalogEntry";
 import { UnitKey, unitDefinitions } from "../game/balancing/units";
@@ -46,7 +47,7 @@ describe("item catalog", () => {
             (
               getEffectSprite(previewItem(item)) ||
               getItemSprite(previewItem(item), "display")
-            ).name
+            ).name || ""
           )
       )
     ).toEqual([]);
@@ -58,7 +59,7 @@ describe("item catalog", () => {
           (
             getEffectSprite(previewItem(item)) ||
             getItemSprite(previewItem(item), "display")
-          ).name
+          ).name || ""
         )
       )
       .map(([key]) => key);
@@ -112,9 +113,9 @@ describe("item catalog", () => {
         .flatMap((sprite) => sprite.layers.map((layer) => layer.char))
         .join("");
       expect(text).not.toContain("Found at a");
-      expect(rows.flat().some((sprite) => /^\?+$/.test(sprite.name))).toBe(
-        false
-      );
+      expect(
+        rows.flat().some((sprite) => /^\?+$/.test(sprite.name || ""))
+      ).toBe(false);
       expect(text).toContain("Used to forge");
     }
   });
@@ -315,14 +316,17 @@ describe("world flora", () => {
   });
   it("layers fruit trees with the native one-item loot sprite rather than its full inventory portrait", () => {
     const apple = worldPlantGroups()[0].plants[2].sprites[0];
-    const native = mergeSprites(tree2, {
-      name: "Apple",
-      layers: getFacingLayers(
-        getItemSprite({ stackable: "apple" }, "resource"),
-        undefined,
-        1
-      ),
-    });
+    const native = mergeSprites(
+      tree2,
+      customSprite({
+        name: "Apple",
+        layers: getFacingLayers(
+          getItemSprite({ stackable: "apple" }, "resource"),
+          undefined,
+          1
+        ),
+      })
+    );
     expect(composeCharacterPixels(apple.layers)).toEqual(
       composeCharacterPixels(native.layers)
     );
@@ -337,6 +341,25 @@ describe("world flora", () => {
       .join("");
     expect(text).toContain("Crisp apple");
   });
+  it.each(["ring", "amulet", "block"] as const)(
+    "omits repeated %s stats and retains charge costs",
+    (name) => {
+      const item = { ...commandItems[name], material: "wood" as const };
+      const rows = narrativeRows(
+        getCatalogDescription(item),
+        Object.keys(getItemStats(item)),
+        name === "block"
+      );
+      const text = rows.map((row) =>
+        row
+          .filter((cell) => cell.name === "text_generic")
+          .map((cell) => cell.layers[cell.layers.length - 1]?.char)
+          .join("")
+      );
+      expect(text.join(" ")).not.toMatch(/Max HP|Max MP|Absorb/);
+      expect(text.includes("-1Charge")).toBe(name === "block");
+    }
+  );
   it("omits blocked-slot metadata while preserving weapon descriptions", () => {
     for (const item of [commandItems.spear, commandItems.wand]) {
       const rows = narrativeRows(getCatalogDescription(item));

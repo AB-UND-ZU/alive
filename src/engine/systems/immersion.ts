@@ -1,4 +1,5 @@
 import { hasComponent, TypedEntity } from "../entities";
+import { resolveSprite, spriteRef } from "../../game/assets/spriteIds";
 import { IMMERSIBLE } from "../components/immersible";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -73,8 +74,8 @@ export default function setupImmersion(world: World) {
 
         const swapSprite = entity[SWIMMABLE].sprite;
         if (swapSprite) {
-          entity[SWIMMABLE].sprite = entity[SPRITE];
-          entity[SPRITE] = swapSprite;
+          entity[SWIMMABLE].sprite = resolveSprite(entity[SPRITE]);
+          entity[SPRITE] = spriteRef(swapSprite);
         }
         rerenderEntity(world, entity);
       }

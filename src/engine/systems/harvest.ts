@@ -1,3 +1,4 @@
+import { resolveSprite, spriteRef } from "../../game/assets/spriteIds";
 import { bumpEntity } from "../motion";
 import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { LIQUID } from "../components/liquid";
@@ -372,7 +373,7 @@ export const canPlant = (world: World, entity: TypedEntity<"POSITION">) => {
 };
 
 export const isCell = (world: World, entity: TypedEntity) =>
-  entity[SPRITE] && entity[SPRITE].layers.length > 0;
+  entity[SPRITE] && resolveSprite(entity[SPRITE]).layers.length > 0;
 
 export const canPlow = (world: World, entity: TypedEntity, position: Position) =>
   !getCellEntities(world, position).some(
@@ -578,7 +579,7 @@ export const plantSeed = (world: World, entity: TypedEntity, item: TypedEntity<"
   });
 
   // mark as planted
-  farmable[SPRITE] = soil;
+  farmable[SPRITE] = spriteRef(soil);
   farmable[FARMABLE].watered = false;
   farmable[FARMABLE].planted = stackable;
   farmable[FARMABLE].sapling = world.getEntityId(saplingEntity);
@@ -729,7 +730,9 @@ export default function setupHarvest(world: World) {
           continue;
         } else {
           // grow sapling
-          saplingEntity[SPRITE] = saplings[entity[FARMABLE].progress];
+          saplingEntity[SPRITE] = spriteRef(
+            saplings[entity[FARMABLE].progress]
+          );
           rerenderEntity(world, saplingEntity);
         }
       }
@@ -794,7 +797,7 @@ export default function setupHarvest(world: World) {
           RENDERABLE,
           SPRITE,
         ]);
-        itemEntity[SPRITE] = brewItem;
+        itemEntity[SPRITE] = spriteRef(brewItem);
         rerenderEntity(world, itemEntity);
       });
 
@@ -830,7 +833,7 @@ export default function setupHarvest(world: World) {
           );
 
         if (waterBucket) {
-          soil[SPRITE] = soilWet;
+          soil[SPRITE] = spriteRef(soilWet);
           soil[FARMABLE].watered = true;
           rerenderEntity(world, soil);
           queueMessage(world, entity, {

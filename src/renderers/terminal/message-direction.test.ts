@@ -26,7 +26,7 @@ it("places damage below a target attacked downwards so it cannot cover the hero"
   advance(world, 20);
   const frame = getSceneFrame(world, 15, 11, undefined, { instant: true });
   const bodies = frame.filter(
-    (entry) => entry.entity === target && entry.sprite === target[SPRITE]
+    (entry) => entry.entity === target && entry.sprite.id === target[SPRITE]?.id
   );
   const damage = frame.filter(
     (entry) =>

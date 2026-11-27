@@ -114,10 +114,10 @@ describe("defeating mobs", () => {
         expect(drops).toContainEqual(expect.objectContaining(item));
       step(world, 120);
       const sprites = getEntitiesAt(world, target).map(
-        (entity) => entity[SPRITE]
+        (entity) => entity[SPRITE]?.id
       );
-      expect(sprites).not.toContain(tombstone1);
-      expect(sprites).not.toContain(tombstone2);
+      expect(sprites).not.toContain(tombstone1.id);
+      expect(sprites).not.toContain(tombstone2.id);
       expect(
         world.assertComponents(unit, [INVENTORY])[INVENTORY].items
       ).toHaveLength(loot.filter((item) => item.bound).length);

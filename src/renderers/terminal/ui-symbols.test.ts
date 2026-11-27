@@ -125,7 +125,19 @@ it("renders real sell prices with their coin variants and selected multiplicatio
   createPopup(world, hero, { tabs: ["sell"] });
   openPopup(world, hero, hero);
   advance(world, 2100);
-  const text = frameToText(getTerminalFrame(world, 80, 30));
+  const frame = getTerminalFrame(world, 80, 30);
+  const selected = frame.find((row) =>
+    row
+      .map((cell) => cell.char)
+      .join("")
+      .includes(">~Worm")
+  )!;
+  expect(selected.find((cell) => cell.char === "°")).toEqual({
+    char: "°",
+    foreground: colors.yellow,
+    background: colors.black,
+  });
+  const text = frameToText(frame);
   expect(text).toContain("1°");
   expect(text).toContain("2°");
   expect(text).toContain("4°");
@@ -184,7 +196,7 @@ it("keeps the moving forge head opaque over the step item throughout its swing",
     advance(world, 100);
     const head = getSceneFrame(world, layout.width, layout.height, undefined, {
       instant: true,
-    }).find((entry) => entry.sprite === forgeHammer)!;
+    }).find((entry) => entry.sprite.id === forgeHammer.id)!;
     expect(head).toBeDefined();
     const frame = getTerminalFrame(world, 80, 30);
     expect(
@@ -230,7 +242,7 @@ it("uses a hash for letters, schematics and maps without changing their web laye
     .find((entity) => entity[POPUP].tabs.every((tab) => tab === "info"))!;
   const warpReferences = sign[POPUP].lines
     .flat(2)
-    .filter((sprite) => ["Map", "Portal"].includes(sprite.name));
+    .filter((sprite) => ["Map", "Portal"].includes(sprite.name || ""));
   expect(warpReferences).toHaveLength(2);
   expect(warpReferences.map((sprite) => projectSprite(sprite).char)).toEqual([
     "#",
@@ -254,7 +266,9 @@ it("keeps the same warp glyph before and after approaching its interaction", () 
     advance(world, 600);
     const body = getSceneFrame(world, layout.width, layout.height, undefined, {
       instant: true,
-    }).find((entry) => entry.entity === warp && entry.sprite === warp[SPRITE])!;
+    }).find(
+      (entry) => entry.entity === warp && entry.sprite.id === warp[SPRITE].id
+    )!;
     expect(body).toBeDefined();
     for (let tick = 0; tick < 6; tick++) {
       const frame = getTerminalFrame(world, 80, 30);

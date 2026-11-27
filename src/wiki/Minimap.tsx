@@ -1,8 +1,15 @@
 import { useState } from "react";
 import { Pixels, Text } from "./visuals";
+import { customSprite } from "../game/assets/spriteIds";
 import snapshot from "./minimap.json";
 
-export const minimapSnapshots = () => snapshot.sample;
+const sample = {
+  ...snapshot.sample,
+  rows: snapshot.sample.rows.map((rows) =>
+    rows.map((row) => row.map(customSprite))
+  ),
+};
+export const minimapSnapshots = () => sample;
 
 export function Minimap() {
   const [sample] = useState(minimapSnapshots);

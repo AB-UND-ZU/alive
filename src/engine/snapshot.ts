@@ -1,6 +1,7 @@
+import { readLegacySprite } from "../game/assets/spriteIds";
 import createWorld, { World } from "./ecs";
 import * as sprites from "../game/assets/sprites";
-import { Sprite } from "./components/sprite";
+import { SpriteArtwork } from "./components/sprite";
 import { BEHAVIOUR } from "./components/behaviour";
 import { NPC } from "./components/npc";
 import { STATS } from "./components/stats";
@@ -31,24 +32,7 @@ export type WorldSnapshot = {
   entities: [number, Record<string, unknown>][];
 };
 
-type SpriteToken = { $sprite: string };
 type EntityToken = { $entity: number };
-
-// game code compares sprites by identity, so they are stored by export name
-const spriteNames = new Map<unknown, string>();
-const namedSprites: Record<string, Sprite> = {};
-for (const [name, value] of Object.entries(sprites)) {
-  if (
-    !value ||
-    typeof value !== "object" ||
-    !Array.isArray((value as Sprite).layers) ||
-    spriteNames.has(value)
-  )
-    continue;
-
-  spriteNames.set(value, name);
-  namedSprites[name] = value as Sprite;
-}
 
 // also accept objects of other realms, e.g. as returned by structured cloning
 const isPlainObject = (value: unknown): value is Record<string, unknown> => {
@@ -86,9 +70,6 @@ export const createSnapshot = (world: World): WorldSnapshot => {
   const ecs = world.metadata.ecs;
   const copies = new Map<unknown, unknown>();
   const replace = (value: object) => {
-    const spriteName = spriteNames.get(value);
-    if (spriteName) return { $sprite: spriteName } as SpriteToken;
-
     const entityId = ecs.entityIds.get(value);
     if (entityId) return { $entity: entityId } as EntityToken;
   };
@@ -126,12 +107,14 @@ export const restoreSnapshot = (snapshot: WorldSnapshot) => {
     world.restoreEntity(entityId)
   );
   const replace = (value: object) => {
+    // Pre-ID saves stored exported sprites by their JavaScript export name.
     if ("$sprite" in value) {
-      const spriteName = (value as SpriteToken).$sprite;
-      const sprite = namedSprites[spriteName];
-      if (!sprite) throw new Error(`Unknown sprite "${spriteName}"!`);
+      const sprite = sprites[value.$sprite as keyof typeof sprites];
+      if (!sprite) throw new Error(`Unknown legacy sprite: ${value.$sprite}`);
       return sprite;
     }
+    if ("layers" in value && !("id" in value) && "name" in value)
+      return readLegacySprite(value as SpriteArtwork);
 
     if ("$entity" in value) {
       // keep detached entities as placeholders, same as removed entities

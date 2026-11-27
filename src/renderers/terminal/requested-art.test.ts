@@ -109,9 +109,12 @@ it("uses the same gray empty flask in the potion sign and consume animation", ()
     "POSITION",
     "STATS",
   ]);
-  const sign = world
-    .getEntities(["POPUP"])
-    .find((entity) => entity.POPUP.lines.flat(2).includes(emptyFlask))!;
+  const sign = world.getEntities(["POPUP"]).find((entity) =>
+    entity.POPUP.lines
+      .flat(2)
+      .map((sprite) => sprite.id)
+      .includes(emptyFlask.id)
+  )!;
   expect(sign).toBeDefined();
   expect(projectSprite(emptyFlask)).toMatchObject({
     char: "σ",
@@ -128,14 +131,14 @@ it("uses the same gray empty flask in the potion sign and consume animation", ()
     const particle =
       sequence?.particles.consumable &&
       world.getEntityById(sequence.particles.consumable);
-    return !!particle && particle.SPRITE === emptyFlask;
+    return !!particle && particle.SPRITE?.id === emptyFlask.id;
   });
   const sequence = getSequence(world, hero, "consume")!;
   const particle = world.assertByIdAndComponents(
     sequence.particles.consumable,
     ["SPRITE"]
   );
-  expect(particle.SPRITE).toBe(emptyFlask);
+  expect(particle.SPRITE.id).toBe(emptyFlask.id);
 });
 
 it("shows a tree apple on brown while leaving dropped apples without that background", () => {

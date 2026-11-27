@@ -154,13 +154,13 @@ describe("tutorial rooms", () => {
     const isBlocked = () =>
       getCellEntities(world, shortcut).some((entity) => COLLIDABLE in entity);
 
-    expect(lever[SPRITE]).toBe(leverOff);
+    expect(lever[SPRITE].id).toBe(leverOff.id);
     expect(isBlocked()).toBe(true);
 
     lever[CLICKABLE].clicked = true;
     step(world, 5);
 
-    expect(lever[SPRITE]).toBe(leverOn);
+    expect(lever[SPRITE].id).toBe(leverOn.id);
     expect(isBlocked()).toBe(false);
   });
 });

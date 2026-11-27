@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../../game/assets/spriteIds";
 import ReactThreeTestRenderer from "@react-three/test-renderer";
 import * as THREE from "three";
 import { WorldProvider } from "../../interface/hooks";
@@ -227,7 +228,7 @@ test("dissolving Wave edges stay on their trajectory until the next React commit
       {particles.map((particle, index) => (
         <group key={index} name={`wave-edge-${index}`}>
           <AnimatedSprite
-            sprite={particle.SPRITE}
+            sprite={resolveSprite(particle.SPRITE)}
             facing={particle.ORIENTABLE.facing}
             offsetX={particle.PARTICLE.offsetX * aspectRatio}
             offsetY={-particle.PARTICLE.offsetY}

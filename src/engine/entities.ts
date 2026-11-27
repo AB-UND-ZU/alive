@@ -38,7 +38,7 @@ import { Sequencable, SEQUENCABLE } from "./components/sequencable";
 import { Soul, SOUL } from "./components/soul";
 import { Spawnable, SPAWNABLE } from "./components/spawnable";
 import { Spikable, SPIKABLE } from "./components/spikable";
-import { Sprite, SPRITE } from "./components/sprite";
+import { SpriteRef, SPRITE } from "./components/sprite";
 import { Stats, STATS } from "./components/stats";
 import { Swimmable, SWIMMABLE } from "./components/swimmable";
 import { Tooltip, TOOLTIP } from "./components/tooltip";
@@ -143,7 +143,7 @@ export type Entity = Record<LevelName, {}> & {
   [SOUL]: Soul;
   [SPAWNABLE]: Spawnable;
   [SPIKABLE]: Spikable;
-  [SPRITE]: Sprite;
+  [SPRITE]: SpriteRef;
   [STATS]: Stats;
   [STRUCTURABLE]: Structurable;
   [SWIMMABLE]: Swimmable;

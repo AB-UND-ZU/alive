@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { World, entities } from "../../engine";
 import { AFFECTABLE } from "../../engine/components/affectable";
 import { BURNABLE } from "../../engine/components/burnable";
@@ -133,7 +134,7 @@ describe("trap spell", () => {
     const { world, spell } = setup();
     const particles = spell[SEQUENCABLE].states.aura!.particles;
     const marker = world.assertByIdAndComponents(particles.placement, [SPRITE, PARTICLE]);
-    expect(marker[SPRITE]).toBe(rage2);
+    expect(marker[SPRITE].id).toBe(rage2.id);
     expect(marker[PARTICLE].offsetY).toBe(-1);
     advance(world, 500);
     expect(particles.placement).toBeUndefined();
@@ -201,17 +202,17 @@ describe("trap spell", () => {
         spell[SEQUENCABLE].states.aura!.particles.warning,
         [SPRITE]
       );
-      expect(warning[SPRITE]).toBe(warnOn);
+      expect(warning[SPRITE].id).toBe(warnOn.id);
       expect(warningSounds()).toHaveLength(beeps);
       advanceTriggerTo(world, spell, 99);
       expect(warningSounds()).toHaveLength(beeps);
       advanceTriggerTo(world, spell, 100);
-      expect(warning[SPRITE]).toBe(warnOff);
+      expect(warning[SPRITE].id).toBe(warnOff.id);
       expect(warningSounds()).toHaveLength(beeps);
       advanceTriggerTo(world, spell, 101);
       expect(warningSounds()).toHaveLength(beeps);
       advanceTriggerTo(world, spell, 200);
-      expect(warning[SPRITE]).toBe(warnOn);
+      expect(warning[SPRITE].id).toBe(warnOn.id);
       expect(warningSounds()).toHaveLength(beeps * 2);
       advanceTriggerTo(world, spell, 499);
       expect(warningSounds()).toHaveLength(beeps * 3);
@@ -280,7 +281,7 @@ describe("trap spell", () => {
       { x: -1, y: 0 },
       { x: -1, y: -1 },
     ]);
-    expect(border.map((entity) => entity[SPRITE].layers[0].char)).toEqual([
+    expect(border.map((entity) => resolveSprite(entity[SPRITE]).layers[0].char)).toEqual([
       "─",
       "┐",
       "│",

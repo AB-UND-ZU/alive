@@ -1,3 +1,4 @@
+import { customSprite, spriteDefinition } from "./spriteIds";
 import { loadSpritePack, saveSpritePack } from "../spritePack";
 import { requireComponent, TypedEntity, createDialog } from "../../engine/entities";
 import { registerEntity } from "../../engine/systems/map";
@@ -53,10 +54,12 @@ export const openSpriteBuilder = (world: World, hero: TypedEntity<"CONDITIONABLE
         [
           getItemSprite({ weapon: "sword", material: "wood" }),
           getItemSprite({ stackable: "apple" }),
-        ].map((sprite, index) => ({
-          name: `Sprite #${index + 1}`,
-          layers: sprite.layers.map((layer) => ({ ...layer })),
-        }))
+        ].map((sprite, index) =>
+          customSprite({
+            name: `Sprite #${index + 1}`,
+            layers: sprite.layers.map((layer) => ({ ...layer })),
+          })
+        )
       ),
       selected: 0,
       color: orderedColors.indexOf(colors.white),
@@ -67,13 +70,14 @@ export const openSpriteBuilder = (world: World, hero: TypedEntity<"CONDITIONABLE
   openPopup(world, hero, popup);
 };
 
-const layerSprite = (char: string, color: string): Sprite => ({
-  name: "sprite_layer",
-  layers: [
-    ...(color === colors.black ? [{ char: "█", color: colors.white }] : []),
-    { char, color },
-  ],
-});
+const layerSprite = (char: string, color: string): Sprite =>
+  customSprite({
+    name: "sprite_layer",
+    layers: [
+      ...(color === colors.black ? [{ char: "█", color: colors.white }] : []),
+      { char, color },
+    ],
+  });
 
 export const spriteBuilderPreview = (sprite: Sprite): Sprite[][] => {
   const pixels = composeCharacterPixels(sprite.layers);
@@ -81,7 +85,7 @@ export const spriteBuilderPreview = (sprite: Sprite): Sprite[][] => {
     const top = row === 0;
     const bottom = row === innerHeight - 1;
     return [
-      {
+      customSprite({
         name: "sprite_frame_left",
         layers: [
           { char: bottom ? "▀" : "▐", color: colors.white },
@@ -95,19 +99,21 @@ export const spriteBuilderPreview = (sprite: Sprite): Sprite[][] => {
           { char: "│", color: colors.black },
           ...(top ? [{ char: "▀", color: colors.black }] : []),
         ],
-      },
-      ...Array.from({ length: 9 }, (_, column) => ({
-        name: "sprite_pixel_pair",
-        layers: [
-          {
-            char: "▀",
-            color: pixels[(row * 2 - 1) * 9 + column] || colors.black,
-          },
-          { char: "▄", color: pixels[row * 18 + column] || colors.black },
-          ...(top || bottom ? [{ char: "─", color: colors.white }] : []),
-        ],
-      })),
-      {
+      }),
+      ...Array.from({ length: 9 }, (_, column) =>
+        customSprite({
+          name: "sprite_pixel_pair",
+          layers: [
+            {
+              char: "▀",
+              color: pixels[(row * 2 - 1) * 9 + column] || colors.black,
+            },
+            { char: "▄", color: pixels[row * 18 + column] || colors.black },
+            ...(top || bottom ? [{ char: "─", color: colors.white }] : []),
+          ],
+        })
+      ),
+      customSprite({
         name: "sprite_frame_right",
         layers: [
           { char: bottom ? "▀" : "▌", color: colors.white },
@@ -120,7 +126,7 @@ export const spriteBuilderPreview = (sprite: Sprite): Sprite[][] => {
           { char: "║", color: colors.black },
           ...(top ? [{ char: "▀", color: colors.black }] : []),
         ],
-      },
+      }),
     ];
   });
 };
@@ -147,10 +153,12 @@ export const updateSpriteBuilder = (
   const ensureSprite = () => {
     if (!editor.sprites[editor.selected]) {
       changed = true;
-      editor.sprites.push({
-        name: `Sprite #${editor.selected + 1}`,
-        layers: [],
-      });
+      editor.sprites.push(
+        customSprite({
+          name: `Sprite #${editor.selected + 1}`,
+          layers: [],
+        })
+      );
     }
     return editor.sprites[editor.selected];
   };
@@ -283,7 +291,11 @@ export const updateSpriteBuilder = (
     }
     play(world, undefined, "back");
   }
-  if (changed) saveSpritePack(editor.sprites);
+  if (changed) {
+    const edited = editor.sprites[editor.selected];
+    if (edited) edited.id = spriteDefinition(edited);
+    saveSpritePack(editor.sprites);
+  }
 };
 
 const spriteBuilderView = displayPopupView((world, entity, state) => {

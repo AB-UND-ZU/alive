@@ -26,7 +26,7 @@ describe("orb", () => {
 |♀      O|
 `);
 
-    advanceUntil(world, () => orb[TOOLTIP].idle === rage, 3000);
+    advanceUntil(world, () => orb[TOOLTIP].idle?.id === rage.id, 3000);
 
     expect(orb[ORIENTABLE].facing).toBe("left");
   });
@@ -49,9 +49,9 @@ describe("orb", () => {
 `);
     const start = { ...orb[POSITION] };
 
-    const idles = trace(world, 8, () => orb[TOOLTIP].idle);
+    const idles = trace(world, 8, () => orb[TOOLTIP].idle?.id);
 
-    expect(idles).not.toContain(rage);
+    expect(idles).not.toContain(rage.id);
     expect(getSpells(world, orb)).toHaveLength(0);
     expect(orb[POSITION]).toEqual(start);
   });
@@ -68,7 +68,7 @@ describe("orb", () => {
 `);
     holdMove(world, ["down"]);
 
-    advanceUntil(world, () => orb[TOOLTIP].idle === rage, 3000);
+    advanceUntil(world, () => orb[TOOLTIP].idle?.id === rage.id, 3000);
 
     expect(orb[ORIENTABLE].facing).toBe("left");
     expect(hero[POSITION].y).toBeLessThan(orb[POSITION].y);
@@ -94,8 +94,8 @@ describe("orb", () => {
 |♀           O|
 `);
 
-    const idles = trace(world, 6, () => orb[TOOLTIP].idle);
+    const idles = trace(world, 6, () => orb[TOOLTIP].idle?.id);
 
-    expect(idles).not.toContain(rage);
+    expect(idles).not.toContain(rage.id);
   });
 });

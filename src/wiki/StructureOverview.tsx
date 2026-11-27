@@ -1,3 +1,4 @@
+import { resolveSprite } from "../game/assets/spriteIds";
 import {
   mapHouse,
   mapFortress,
@@ -109,14 +110,14 @@ export function StructureOverview() {
           "Wood House": mapHouse,
           "Desert Fort": mapFortress,
           Igloo: buildings[2].outside[0][0],
-          Doors: buildings[0].door!.SPRITE!,
+          Doors: resolveSprite(buildings[0].door!.SPRITE)!,
           Boat: boat,
           Jetty: jetty,
           Furniture: table,
           Fireplace: campfire,
           Workstations: bench,
-          Portal: portal.SPRITE!,
-          Lever: lever.SPRITE!,
+          Portal: resolveSprite(portal.SPRITE)!,
+          Lever: resolveSprite(lever.SPRITE)!,
         }).map(([name, sprite]) => (
           <div key={name}>
             <ReferenceLink name={name} sprite>
@@ -164,10 +165,13 @@ export function StructureOverview() {
               <Text
                 color={colors.grey}
                 prefix={
-                  <Pixels rows={[[door!.SPRITE!]]} label={door!.SPRITE!.name} />
+                  <Pixels
+                    rows={[[resolveSprite(door!.SPRITE)!]]}
+                    label={resolveSprite(door!.SPRITE)!.name}
+                  />
                 }
               >
-                {door!.SPRITE!.name}
+                {resolveSprite(door!.SPRITE)!.name || ""}
               </Text>
             )),
           ],
@@ -193,24 +197,34 @@ export function StructureOverview() {
             <span id="portal">
               <Text
                 color={colors.grey}
-                prefix={<Pixels rows={[[portal.SPRITE!]]} label="Portal" />}
+                prefix={
+                  <Pixels
+                    rows={[[resolveSprite(portal.SPRITE)!]]}
+                    label="Portal"
+                  />
+                }
               >
                 Portal
               </Text>
             </span>,
-            <LargePreview unit={{ sprite: portal.SPRITE! }} />,
+            <LargePreview unit={{ sprite: resolveSprite(portal.SPRITE)! }} />,
             <ReferenceText text="Open the world Map and select a connected Level. Portals cannot be attacked." />,
           ],
           [
             <span id="lever">
               <Text
                 color={colors.grey}
-                prefix={<Pixels rows={[[lever.SPRITE!]]} label="Lever" />}
+                prefix={
+                  <Pixels
+                    rows={[[resolveSprite(lever.SPRITE)!]]}
+                    label="Lever"
+                  />
+                }
               >
                 Lever
               </Text>
             </span>,
-            <LargePreview unit={{ sprite: lever.SPRITE! }} />,
+            <LargePreview unit={{ sprite: resolveSprite(lever.SPRITE)! }} />,
             <Text>
               Move into it to activate its switch. Levers cannot be attacked.
             </Text>,
@@ -309,7 +323,7 @@ function StructureDetails() {
           "Name",
           ...details.doors.map((door, index) => (
             <ReferenceLink name="doors" sprite>
-              <Text prefix={<Pixels rows={[[door.SPRITE!]]} />}>
+              <Text prefix={<Pixels rows={[[resolveSprite(door.SPRITE)!]]} />}>
                 {doorTypes[index]
                   .replace("_", " ")
                   .split(" ")
@@ -323,7 +337,7 @@ function StructureDetails() {
           [
             "Preview",
             ...details.doors.map((door) => (
-              <LargePreview unit={{ sprite: door.SPRITE! }} />
+              <LargePreview unit={{ sprite: resolveSprite(door.SPRITE)! }} />
             )),
           ],
           [

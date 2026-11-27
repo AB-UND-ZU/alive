@@ -1,3 +1,4 @@
+import { customSprite } from "../game/assets/spriteIds";
 import { previewRows, previewBounds, previewGridRows } from "./LargePreview";
 import { colors } from "../game/assets/colors";
 import { getUnitSprite } from "../game/assets/utils";
@@ -9,10 +10,10 @@ import {
 
 describe("large sprite portraits", () => {
   it("trims transparent margins and preserves every visible pixel", () => {
-    const sprite = {
+    const sprite = customSprite({
       name: "Test",
       layers: [{ char: "!", color: colors.white }],
-    };
+    });
     const source = composeCharacterPixels(sprite.layers);
     const occupied = source.flatMap((color, index) => (color ? [index] : []));
     const left = Math.min(...occupied.map((index) => index % characterWidth));
@@ -41,12 +42,16 @@ describe("large sprite portraits", () => {
     );
   });
   it("does not reserve space for empty or black sprites", () => {
-    expect(previewRows({ name: "Empty", layers: [] })).toEqual([]);
+    expect(previewRows(customSprite({ name: "Empty", layers: [] }))).toEqual(
+      []
+    );
     expect(
-      previewRows({
-        name: "Black",
-        layers: [{ char: "█", color: colors.black }],
-      })
+      previewRows(
+        customSprite({
+          name: "Black",
+          layers: [{ char: "█", color: colors.black }],
+        })
+      )
     ).toEqual([]);
   });
   it("keeps an oak trunk aligned below its canopy when cropping the whole tree", () => {
@@ -84,10 +89,10 @@ describe("large sprite portraits", () => {
 });
 
 test("a large multi-cell portrait keeps horizontal fragments in their native positions", () => {
-  const sprite = {
+  const sprite = customSprite({
     name: "Block",
     layers: [{ char: "█", color: colors.white }],
-  };
+  });
   const grid = previewGridRows([[sprite, sprite, sprite]]);
   expect(grid[0]).toHaveLength(characterWidth * 3);
   expect(grid).toHaveLength(8);

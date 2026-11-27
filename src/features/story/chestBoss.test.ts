@@ -92,7 +92,7 @@ describe("chest boss story", () => {
     step(world, 5);
 
     expect(chest[STATS].hp).toBe(chest[STATS].maxHp);
-    expect(chest[SPRITE]).toBe(woodChest);
+    expect(chest[SPRITE].id).toBe(woodChest.id);
     expect(chest[BELONGABLE].faction).toBe("unit");
     expect(named(world, "chest_mob")).toHaveLength(0);
     advanceUntil(

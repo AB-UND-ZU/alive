@@ -111,7 +111,7 @@ const isSameLayerProps = (prev: LayerProps, next: LayerProps) =>
 
 // a changed particle rerenders its whole entity, so skip unchanged siblings
 const isSameSprite = (prev: SpriteProps, next: SpriteProps) =>
-  prev.sprite === next.sprite &&
+  prev.sprite.id === next.sprite.id &&
   prev.facing === next.facing &&
   prev.amount === next.amount &&
   prev.offsetX === next.offsetX &&

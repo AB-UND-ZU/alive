@@ -40,7 +40,7 @@ export type TerminalSprite = {
   terminalLayers?: Layer[];
   unit?: boolean;
   floating?: boolean;
-  sprite: { name: string };
+  sprite: Pick<Sprite, "id" | "name">;
   fog?: boolean;
   overlay?: boolean;
   ui?: boolean;

@@ -1,3 +1,4 @@
+import { customSprite, spriteRef } from "../game/assets/spriteIds";
 import { ReferenceContext, MentionStyle } from "./references";
 import { useState, useContext } from "react";
 import { worldRows } from "./WorldDiagram";
@@ -110,7 +111,8 @@ export function cellSnapshot(cell: string, variant?: Sprite) {
   const created = createCell(world, { x: 6, y: 6 }, cell, "visible", false);
   if (variant)
     for (const entity of created.all)
-      if (entity.HARVESTABLE && entity.SPRITE) entity.SPRITE = variant;
+      if (entity.HARVESTABLE && entity.SPRITE)
+        entity.SPRITE = spriteRef(variant);
   const positions: number[] = [];
   const crops = new Map<number, Item>();
   const harvest = created.all.find((entity) => entity.HARVESTABLE)?.HARVESTABLE;
@@ -138,10 +140,13 @@ export function cellSnapshot(cell: string, variant?: Sprite) {
     inside: true,
   });
   if (cell === "fireplace")
-    grid[0][0] = mergeSprites(grid[0][0], {
-      ...fire,
-      layers: getFacingLayers(fire, undefined, 2),
-    });
+    grid[0][0] = mergeSprites(
+      grid[0][0],
+      customSprite({
+        ...fire,
+        layers: getFacingLayers(fire, undefined, 2),
+      })
+    );
   return {
     grid,
     sprites: worldRows(world, {
@@ -281,7 +286,7 @@ export function RottenPreview() {
   return (
     <LargePreview
       grid={rottenRows}
-      unit={{ sprite: { name: "Rotten Tree", layers: [] } }}
+      unit={{ sprite: customSprite({ name: "Rotten Tree", layers: [] }) }}
     />
   );
 }

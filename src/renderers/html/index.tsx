@@ -122,7 +122,7 @@ export default function HtmlRenderer({
   if (suspended) return null;
   const scene = getSceneFrame(world, columns, rows, sceneState, {
     includeHidden: true,
-  }).filter((entry) => entry.sprite !== fogOfWar);
+  }).filter((entry) => entry.sprite.id !== fogOfWar.id);
   const now = performance.now();
   const present = new Set<string>();
   const appearing = new Set<string>();

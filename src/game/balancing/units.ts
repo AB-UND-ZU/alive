@@ -1,3 +1,4 @@
+import { namedSprite } from "../assets/spriteIds";
 import { Pattern } from "../../engine/components/behaviour";
 import {
   bandit,
@@ -185,10 +186,10 @@ const townSmith = (
   ],
   drops: [],
   patternNames: [],
-  sprite: {
+  sprite: namedSprite(`unit_${faction}_smith`, {
     ...recolorSprite(knight, { [colors.white]: color }),
     name: "Smith",
-  },
+  }),
   remains: "tombstone1",
   evaporate: { sprite: ghost, fast: false },
 });
@@ -205,12 +206,12 @@ const townTrader = (
   equipments: [],
   drops: [],
   patternNames: [],
-  sprite: {
+  sprite: namedSprite(`unit_${faction}_trader`, {
     ...recolorSprite(rogue, {
       [colors.white]: color,
     }),
     name: "Trader",
-  },
+  }),
   swimming: recolorSprite(swimmingRogue, {
     [colors.white]: color,
   }),
@@ -236,10 +237,10 @@ const townDruid = (
   equipments: [],
   drops: [],
   patternNames: [],
-  sprite: {
+  sprite: namedSprite(`unit_${faction}_druid`, {
     ...recolorSprite(mage, { [colors.white]: color }),
     name: "Druid",
-  },
+  }),
   remains: "tombstone1",
   evaporate: { sprite: ghost, fast: false },
 });
@@ -270,10 +271,10 @@ const townChief = (
   ],
   drops: [],
   patternNames: ["defend"],
-  sprite: {
+  sprite: namedSprite(`unit_${faction}_chief`, {
     ...recolorSprite(bandit, { [colors.white]: color }),
     name: "Chief",
-  },
+  }),
   remains: "tombstone2",
   evaporate: { sprite: ghost, fast: false },
 });
@@ -308,7 +309,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     drops: [{ chance: 100, items: [{ stat: "xp", amount: 5 }] }],
     patternNames: [],
-    sprite: { ...chief, name: "Guide" },
+    sprite: namedSprite("unit_guide", { ...chief, name: "Guide" }),
     remains: "tombstone1",
     evaporate: { sprite: ghost, fast: false },
   },
@@ -345,10 +346,10 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     drops: [],
     patternNames: ["defend", "guard"],
-    sprite: {
+    sprite: namedSprite("unit_earth_guard", {
       ...recolorSprite(knight, { [colors.white]: colors.lime }),
       name: "Guard",
-    },
+    }),
     remains: "tombstone1",
     evaporate: { sprite: ghost, fast: false },
   },
@@ -385,10 +386,10 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     drops: [],
     patternNames: ["defend"],
-    sprite: {
+    sprite: namedSprite("unit_fire_guard", {
       ...recolorSprite(knight, { [colors.white]: colors.red }),
       name: "Guard",
-    },
+    }),
     remains: "tombstone1",
     evaporate: { sprite: ghost, fast: false },
   },
@@ -421,10 +422,10 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     drops: [],
     patternNames: ["defend"],
-    sprite: {
+    sprite: namedSprite("unit_fire_gate_guard", {
       ...recolorSprite(knight, { [colors.white]: colors.red }),
       name: "Guard",
-    },
+    }),
     remains: "tombstone1",
     evaporate: { sprite: ghost, fast: false },
   },
@@ -457,10 +458,10 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     drops: [],
     patternNames: ["defend"],
-    sprite: {
+    sprite: namedSprite("unit_fire_jetty_guard", {
       ...recolorSprite(knight, { [colors.white]: colors.red }),
       name: "Guard",
-    },
+    }),
     remains: "tombstone1",
     evaporate: { sprite: ghost, fast: false },
   },
@@ -485,10 +486,10 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     drops: [],
     patternNames: ["defend"],
-    sprite: {
+    sprite: namedSprite("unit_water_guard", {
       ...recolorSprite(knight, { [colors.white]: colors.blue }),
       name: "Guard",
-    },
+    }),
     remains: "tombstone1",
     evaporate: { sprite: ghost, fast: false },
   },
@@ -524,10 +525,10 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: {
+    sprite: namedSprite("unit_fire_nomad", {
       ...recolorSprite(knight, { [colors.white]: colors.red }),
       name: "Nomad",
-    },
+    }),
     remains: "tombstone2",
     evaporate: { sprite: ghost, fast: false },
   },
@@ -674,7 +675,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: ["tutorial_boss", "archer"],
-    sprite: { ...bandit, name: "Bandit" },
+    sprite: namedSprite("unit_tutorial_boss", { ...bandit, name: "Bandit" }),
     remains: "tombstone2",
     evaporate: { sprite: ghost, fast: false },
   },
@@ -737,7 +738,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: mergeSprites(slotShadow, woodChest),
+    sprite: namedSprite("unit_wood_chest", mergeSprites(slotShadow, woodChest)),
   },
   ironChest: {
     faction: "unit",
@@ -774,7 +775,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: mergeSprites(slotShadow, ironChest),
+    sprite: namedSprite("unit_iron_chest", mergeSprites(slotShadow, ironChest)),
   },
   goldChest: {
     faction: "unit",
@@ -808,7 +809,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: mergeSprites(slotShadow, goldChest),
+    sprite: namedSprite("unit_gold_chest", mergeSprites(slotShadow, goldChest)),
   },
   diamondChest: {
     faction: "unit",
@@ -820,7 +821,10 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     drops: [],
     patternNames: [],
-    sprite: mergeSprites(slotShadow, diamondChest),
+    sprite: namedSprite(
+      "unit_diamond_chest",
+      mergeSprites(slotShadow, diamondChest)
+    ),
   },
   rubyChest: {
     faction: "unit",
@@ -832,7 +836,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     drops: [],
     patternNames: [],
-    sprite: mergeSprites(slotShadow, rubyChest),
+    sprite: namedSprite("unit_ruby_chest", mergeSprites(slotShadow, rubyChest)),
   },
   pot: {
     faction: "unit",
@@ -881,7 +885,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       { chance: 5, items: [{ stat: "mp", amount: 1 }] },
     ],
     patternNames: [],
-    sprite: mergeSprites(slotShadow, pot),
+    sprite: namedSprite("unit_pot", mergeSprites(slotShadow, pot)),
   },
   box: {
     faction: "unit",
@@ -930,7 +934,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: mergeSprites(slotShadow, box),
+    sprite: namedSprite("unit_box", mergeSprites(slotShadow, box)),
   },
   woodTotem: {
     faction: "settler",
@@ -995,7 +999,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: ["dummy"],
-    sprite: mergeSprites(slotShadow, dummy),
+    sprite: namedSprite("unit_dummy", mergeSprites(slotShadow, dummy)),
     remains: "stump",
   },
   sign: {
@@ -1017,7 +1021,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: mergeSprites(slotShadow, sign),
+    sprite: namedSprite("unit_sign", mergeSprites(slotShadow, sign)),
     remains: "stump",
   },
   fence: {
@@ -1037,7 +1041,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: [],
     swimming: mergeSprites(recolorSprite(emptySlot, colors.navy), fence),
-    sprite: mergeSprites(slotShadow, fence),
+    sprite: namedSprite("unit_fence", mergeSprites(slotShadow, fence)),
     remains: "post",
   },
   fenceDoor: {
@@ -1059,7 +1063,10 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: mergeSprites(shadow, fenceDoorClosed.wood.default),
+    sprite: namedSprite(
+      "unit_fence_door",
+      mergeSprites(shadow, fenceDoorClosed.wood.default)
+    ),
     remains: "fence_hinge",
   },
   palisade: {
@@ -1079,7 +1086,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: [],
     swimming: mergeSprites(recolorSprite(emptySlot, colors.navy), palisade),
-    sprite: mergeSprites(slotShadow, palisade),
+    sprite: namedSprite("unit_palisade", mergeSprites(slotShadow, palisade)),
     remains: "footing",
   },
   palisadeDoor: {
@@ -1101,7 +1108,10 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: mergeSprites(shadow, palisadeDoorClosed.wood.default),
+    sprite: namedSprite(
+      "unit_palisade_door",
+      mergeSprites(shadow, palisadeDoorClosed.wood.default)
+    ),
     remains: "palisade_hinge",
   },
   barrier: {
@@ -1125,7 +1135,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: [],
     swimming: mergeSprites(recolorSprite(emptySlot, colors.navy), barrier),
-    sprite: mergeSprites(slotShadow, barrier),
+    sprite: namedSprite("unit_barrier", mergeSprites(slotShadow, barrier)),
     remains: "footing",
   },
   barrierDoor: {
@@ -1152,7 +1162,10 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       recolorSprite(emptySlot, colors.navy),
       barrierDoorClosed.default.fire
     ),
-    sprite: mergeSprites(slotShadow, barrierDoorClosed.default.fire),
+    sprite: namedSprite(
+      "unit_barrier_door",
+      mergeSprites(slotShadow, barrierDoorClosed.default.fire)
+    ),
     remains: "footing",
   },
   cactus1: {
@@ -1167,7 +1180,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     harvestable: "cactus",
     drops: [{ chance: 100, items: [{ stackable: "thorn", amount: 3 }] }],
     patternNames: [],
-    sprite: mergeSprites(shadow, cactus1),
+    sprite: namedSprite("unit_cactus1", mergeSprites(shadow, cactus1)),
   },
   cactus2: {
     faction: "unit",
@@ -1180,7 +1193,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     harvestable: "cactus",
     drops: [{ chance: 100, items: [{ stackable: "thorn", amount: 3 }] }],
     patternNames: [],
-    sprite: mergeSprites(shadow, cactus2),
+    sprite: namedSprite("unit_cactus2", mergeSprites(shadow, cactus2)),
   },
   rock1: {
     faction: "unit",
@@ -1197,7 +1210,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       { chance: 10, items: [{ stackable: "mineral", amount: 1 }] },
     ],
     patternNames: [],
-    sprite: mergeSprites(shadow, rock1),
+    sprite: namedSprite("unit_rock1", mergeSprites(shadow, rock1)),
   },
   rock2: {
     faction: "unit",
@@ -1214,7 +1227,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       { chance: 10, items: [{ stackable: "crystal", amount: 1 }] },
     ],
     patternNames: [],
-    sprite: mergeSprites(shadow, rock2),
+    sprite: namedSprite("unit_rock2", mergeSprites(shadow, rock2)),
   },
   tumbleweed: {
     faction: "unit",
@@ -1240,7 +1253,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       { chance: 10, items: [{ stackable: "coin", amount: 1 }] },
     ],
     patternNames: [],
-    sprite: mergeSprites(slotShadow, hedge1),
+    sprite: namedSprite("unit_hedge1", mergeSprites(slotShadow, hedge1)),
   },
   hedge2: {
     faction: "unit",
@@ -1256,7 +1269,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       { chance: 10, items: [{ stackable: "coin", amount: 1 }] },
     ],
     patternNames: [],
-    sprite: mergeSprites(slotShadow, hedge2),
+    sprite: namedSprite("unit_hedge2", mergeSprites(slotShadow, hedge2)),
   },
   rotten: {
     faction: "unit",
@@ -1580,7 +1593,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: ["chick"],
-    sprite: { ...chick, name: "" },
+    sprite: namedSprite("unit_chick", { ...chick, name: "" }),
   },
   fairy: {
     faction: "wild",
@@ -1826,7 +1839,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: ["tulip"],
-    sprite: { ...tulip, name: "" },
+    sprite: namedSprite("unit_ilex_tulip", { ...tulip, name: "" }),
   },
   ilexChest: {
     faction: "unit",
@@ -1858,7 +1871,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: mergeSprites(slotShadow, ironChest),
+    sprite: namedSprite("unit_ilex_chest", mergeSprites(slotShadow, ironChest)),
   },
   oakBoss: {
     faction: "unit",
@@ -1905,7 +1918,10 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     drops: [],
     patternNames: [],
-    sprite: { ...waveTower.iron.default, name: "" },
+    sprite: namedSprite("unit_oak_tower", {
+      ...waveTower.iron.default,
+      name: "",
+    }),
     evaporate: { sprite: evaporate.iron.default, fast: true },
   },
   oakLily: {
@@ -1929,7 +1945,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: ["oak_lily"],
-    sprite: { ...lily, name: "" },
+    sprite: namedSprite("unit_oak_lily", { ...lily, name: "" }),
   },
   oakHedge1: {
     faction: "unit",
@@ -1991,7 +2007,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: mergeSprites(slotShadow, goldChest),
+    sprite: namedSprite("unit_oak_chest", mergeSprites(slotShadow, goldChest)),
   },
   nomadChest: {
     faction: "unit",
@@ -2021,7 +2037,10 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: mergeSprites(slotShadow, goldChest),
+    sprite: namedSprite(
+      "unit_nomad_chest",
+      mergeSprites(slotShadow, goldChest)
+    ),
   },
   golem: {
     faction: "wild",
@@ -2096,7 +2115,10 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: ["worm_tower"],
-    sprite: { ...beamTower.iron.fire, name: "" },
+    sprite: namedSprite("unit_worm_tower", {
+      ...beamTower.iron.fire,
+      name: "",
+    }),
     evaporate: { sprite: evaporate.iron.fire, fast: true },
   },
   wormBoss: {
@@ -2143,7 +2165,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: mergeSprites(slotShadow, goldChest),
+    sprite: namedSprite("unit_worm_chest", mergeSprites(slotShadow, goldChest)),
   },
   chestBoss: {
     faction: "unit",

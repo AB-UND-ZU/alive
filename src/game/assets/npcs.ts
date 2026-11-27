@@ -1,3 +1,4 @@
+import { resolveSprite, spriteRef } from "./spriteIds";
 import { entities } from "../../engine";
 import { BEHAVIOUR, Pattern } from "../../engine/components/behaviour";
 import { buildConstructions } from "../balancing/building";
@@ -227,9 +228,14 @@ const deselectItem = (stage: QuestStage<NpcSequence>) => {
     ).find((entity) => entity[COLLIDABLE]);
 
     if (dotEntity) {
-      dotEntity[SPRITE] = menuArrows.includes(groundIndex)
-        ? menuDot
-        : recolorSprite(requireComponent(dotEntity, SPRITE), colors.grey);
+      dotEntity[SPRITE] = spriteRef(
+        menuArrows.includes(groundIndex)
+          ? menuDot
+          : recolorSprite(
+              resolveSprite(requireComponent(dotEntity, SPRITE)),
+              colors.grey
+            )
+      );
       rerenderEntity(stage.world, dotEntity);
     }
   }
@@ -345,15 +351,15 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
   );
 
   if (soundLever[CLICKABLE].clicked) {
-    if (soundLever[SPRITE] === leverOn) {
+    if (soundLever[SPRITE].id === leverOn.id) {
       muteAudio();
-      soundLever[SPRITE] = leverOff;
+      soundLever[SPRITE] = spriteRef(leverOff);
       soundLever[TOOLTIP].dialogs = [createDialog("Sound off")];
       soundLever[TOOLTIP].changed = true;
     } else {
       unmuteAudio();
       play(world, undefined, "lever", { intensity: 1 });
-      soundLever[SPRITE] = leverOn;
+      soundLever[SPRITE] = spriteRef(leverOn);
       soundLever[TOOLTIP].dialogs = [createDialog("Sound on")];
       soundLever[TOOLTIP].changed = true;
     }
@@ -363,16 +369,16 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
   }
 
   if (controlsLever[CLICKABLE].clicked) {
-    if (controlsLever[SPRITE] === leverOn) {
+    if (controlsLever[SPRITE].id === leverOn.id) {
       world.metadata.setFlipped(true);
       play(world, undefined, "lever", { intensity: 2 });
-      controlsLever[SPRITE] = leverOff;
+      controlsLever[SPRITE] = spriteRef(leverOff);
       controlsLever[TOOLTIP].dialogs = [createDialog("Right side")];
       controlsLever[TOOLTIP].changed = true;
     } else {
       world.metadata.setFlipped(false);
       play(world, undefined, "lever", { intensity: 1 });
-      controlsLever[SPRITE] = leverOn;
+      controlsLever[SPRITE] = spriteRef(leverOn);
       controlsLever[TOOLTIP].dialogs = [createDialog("Left side")];
       controlsLever[TOOLTIP].changed = true;
     }
@@ -395,7 +401,10 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
         rendered: circleGeneration - 1,
         color:
           circleColors[
-            (circleColors.indexOf(clickEntity[SPRITE].layers[0].color) + 1) %
+            (circleColors.indexOf(
+              resolveSprite(clickEntity[SPRITE]).layers[0].color
+            ) +
+              1) %
               circleColors.length
           ],
       });
@@ -437,16 +446,15 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
       getClickables(world, pixel).forEach((clickable) => {
         // eslint-disable-next-line no-mixed-operators
         const half = pixel.y > 0 !== (fraction.y % 1 === 0) ? "▀" : "▄";
-        if (
-          clickable &&
-          (pixel.y === 0 || requireComponent(clickable, SPRITE).layers[0].char === half)
-        ) {
-          const sprite = requireComponent(clickable, SPRITE);
-          clickable[SPRITE] = recolorSprite(
-            sprite,
-            sprite.layers[0].color === colors.black
-              ? { [colors.black]: circle.color }
-              : circle.color
+        const sprite = resolveSprite(requireComponent(clickable, SPRITE));
+        if (pixel.y === 0 || sprite.layers[0].char === half) {
+          clickable[SPRITE] = spriteRef(
+            recolorSprite(
+              sprite,
+              sprite.layers[0].color === colors.black
+                ? { [colors.black]: circle.color }
+                : circle.color
+            )
           );
           rerenderEntity(world, clickable);
         }
@@ -487,7 +495,9 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
       onEnter: () => {
         const blocked = !!disabled?.();
         deselectItem(stage);
-        arrowEntity[SPRITE] = blocked ? popupBlocked : popupSelection;
+        arrowEntity[SPRITE] = spriteRef(
+          blocked ? popupBlocked : popupSelection
+        );
         moveEntity(
           world,
           arrowEntity,
@@ -518,10 +528,14 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
           );
 
           if (dotEntity) {
-            dotEntity[SPRITE] =
+            dotEntity[SPRITE] = spriteRef(
               menuArrows.includes(cellIndex) && !blocked
                 ? menuArrow
-                : recolorSprite(requireComponent(dotEntity, SPRITE), colors.white);
+                : recolorSprite(
+                    resolveSprite(requireComponent(dotEntity, SPRITE)),
+                    colors.white
+                  )
+            );
             rerenderEntity(world, dotEntity);
           }
         }
@@ -540,7 +554,7 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
       isCompleted: () => !within(topLeft, bottomRight, heroPosition, size),
       onLeave: () => {
         deselectItem(stage);
-        arrowEntity[SPRITE] = none;
+        arrowEntity[SPRITE] = spriteRef(none);
         rerenderEntity(world, arrowEntity);
 
         return "wait";
@@ -582,13 +596,16 @@ export const tutorialNpc: Sequence<NpcSequence, "VIEWABLE"> = (world, entity, st
     TOOLTIP,
   ]);
 
-  if (unlockLever[CLICKABLE].clicked && unlockLever[SPRITE] === leverOff) {
+  if (
+    unlockLever[CLICKABLE].clicked &&
+    unlockLever[SPRITE].id === leverOff.id
+  ) {
     getCellEntities(world, { x: 0, y: roomSize.y / 2 }).forEach((entity) => {
       if (!entity[COLLIDABLE]) return;
       disposeEntity(world, entity);
     });
 
-    unlockLever[SPRITE] = leverOn;
+    unlockLever[SPRITE] = spriteRef(leverOn);
     play(world, unlockLever, "lever", { intensity: 1 });
     rerenderEntity(world, unlockLever);
   }
@@ -3517,7 +3534,7 @@ export const chestNpc: Sequence<NpcSequence, "BEHAVIOUR" | "BELONGABLE" | "POSIT
     onEnter: () => {
       // restore boss to normal state
       entity[STATS].hp = entity[STATS].maxHp;
-      entity[SPRITE] = woodChest;
+      entity[SPRITE] = spriteRef(woodChest);
       entity[BELONGABLE].faction = "unit";
       entity[BEHAVIOUR].patterns = [
         { name: "vulnerable", memory: {} },
@@ -3732,8 +3749,8 @@ export const wormRoom: Sequence<NpcSequence, "VIEWABLE"> = (world, entity, state
         (world.metadata.gameEntity[REFERENCE].tick / 2)
     );
     const sprite = blink % 2 ? warnOff : warnOn;
-    if (marker[SPRITE] !== sprite) {
-      marker[SPRITE] = sprite;
+    if (marker[SPRITE]?.id !== sprite.id) {
+      marker[SPRITE] = spriteRef(sprite);
       rerenderEntity(world, marker);
     }
   }

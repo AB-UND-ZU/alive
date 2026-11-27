@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import {
   createAreaWorld,
   assertHero,
@@ -204,7 +205,7 @@ describe("worm cave encounter", () => {
       BEHAVIOUR,
     ]);
     const origin = { ...mob[POSITION] };
-    expect(mob[SPRITE].facing).toEqual(
+    expect(resolveSprite(mob[SPRITE]).facing).toEqual(
       getItemSprite({ stackable: "worm" }).facing
     );
     expect(bait[STATS].scale).toBe(0);
@@ -277,7 +278,7 @@ describe("worm cave encounter", () => {
     ]);
     expect(fires.length).toBeGreaterThan(0);
     for (const fire of fires) {
-      expect(fire[SPRITE]).toEqual(none);
+      expect(resolveSprite(fire[SPRITE])).toEqual(none);
       expect(fire[BURNABLE].smokeless).toBe(true);
       expect(getSequence(world, fire, "burn")).toBeDefined();
       expect(getSequence(world, fire, "smoke")).toBeUndefined();
@@ -421,7 +422,7 @@ describe("worm cave encounter", () => {
       BURNABLE,
       SEQUENCABLE,
     ])) {
-      expect(fire[SPRITE]).toEqual(none);
+      expect(resolveSprite(fire[SPRITE])).toEqual(none);
       expect(fire[BURNABLE].smokeless).toBe(true);
       expect(getSequence(world, fire, "smoke")).toBeUndefined();
     }
@@ -475,7 +476,7 @@ describe("worm cave encounter", () => {
     );
     expect(body).toBeDefined();
     expect(getAttackable(world, body![POSITION]!)).toBe(boss);
-    expect(body![SPRITE]).not.toEqual(none);
+    expect(resolveSprite(body![SPRITE])).not.toEqual(none);
     const arena = new Set(
       pixelCircle(room[POSITION], wormRadius, undefined, true).map(
         ({ x, y }) => `${x},${y}`
@@ -506,7 +507,7 @@ describe("worm cave encounter", () => {
       expect(trails).toHaveLength(3);
       for (const [, id] of trails) {
         const trail = world.assertByIdAndComponents(id, [PARTICLE, SPRITE]);
-        expect(trail[SPRITE].layers[0].char).toBe("│");
+        expect(resolveSprite(trail[SPRITE]).layers[0].char).toBe("│");
         expect(trail[PARTICLE].animatedOrigin).toBeDefined();
       }
       advanceUntil(world, () => memory.ticks % 7 === 5);
@@ -684,10 +685,12 @@ describe("worm cave encounter", () => {
         memory.ticks === 3
     );
     const warning = getSequence(world, boss, "dialog")!;
-    expect(world.assertComponents(boss, [TOOLTIP])[TOOLTIP].idle).toBe(rage);
+    expect(world.assertComponents(boss, [TOOLTIP])[TOOLTIP].idle?.id).toBe(
+      rage.id
+    );
     expect(
       Object.values(warning.particles).some(
-        (id) => world.getEntityById(id)?.[SPRITE] === rage
+        (id) => world.getEntityById(id)?.[SPRITE]?.id === rage.id
       )
     ).toBe(true);
     advanceUntil(world, () => memory.phase === "artillery", 120000);
@@ -699,7 +702,9 @@ describe("worm cave encounter", () => {
       world,
       () => memory.phase === "rage" && memory.rageStarted && memory.ticks === 14
     );
-    expect(world.assertComponents(boss, [TOOLTIP])[TOOLTIP].idle).toBe(rage);
+    expect(world.assertComponents(boss, [TOOLTIP])[TOOLTIP].idle?.id).toBe(
+      rage.id
+    );
     const center = getIdentifier(world, "wormRoom")![POSITION]!;
     expect(boss[POSITION]).toEqual({ x: center.x, y: center.y });
     advance(world, 2000);
@@ -711,8 +716,10 @@ describe("worm cave encounter", () => {
     const center = { ...room[POSITION] };
     advanceUntil(world, () => memory.phase === "surface" && memory.ticks === 2);
     expect(boss[POSITION]).toEqual({ x: center.x, y: center.y + 1 });
-    expect(boss[SPRITE]).toEqual(none);
-    expect(getIdentifier(world, "worm:hole")![SPRITE]).toEqual(shadow);
+    expect(resolveSprite(boss[SPRITE])).toEqual(none);
+    expect(resolveSprite(getIdentifier(world, "worm:hole")![SPRITE])).toEqual(
+      shadow
+    );
     expect(getAttackable(world, center)).toBeUndefined();
     advanceUntil(world, () => memory.phase === "surface" && memory.ticks === 4);
     expect(boss[ORIENTABLE]?.facing).toBe("up");
@@ -746,7 +753,7 @@ describe("worm cave encounter", () => {
     advanceUntil(world, () => memory.phase === "retreat" && memory.ticks === 2);
     expect(world.getEntityById(bodyId)).toBeUndefined();
     advanceUntil(world, () => memory.phase === "hidden");
-    expect(boss[SPRITE]).toEqual(none);
+    expect(resolveSprite(boss[SPRITE])).toEqual(none);
     expect(boss[ORIENTABLE]?.facing).toBeUndefined();
     expect(boss[ATTACKABLE]).toBeUndefined();
     expect(boss[AFFECTABLE]).toBeUndefined();
@@ -852,8 +859,10 @@ describe("worm cave encounter", () => {
       for (const id of Object.values(sequence.particles)) {
         const particle = world.assertByIdAndComponents(id, [PARTICLE, SPRITE]);
         if (
-          !getFacingLayers(particle[SPRITE], particle[ORIENTABLE]?.facing)
-            .length
+          !getFacingLayers(
+            resolveSprite(particle[SPRITE]),
+            particle[ORIENTABLE]?.facing
+          ).length
         )
           continue;
         const x = wave[POSITION].x + particle[PARTICLE].offsetX;
@@ -1107,7 +1116,9 @@ describe("worm cave encounter", () => {
     const meshId = getSequence(world, world.assertById(id), "decay")!.particles
       .decay;
     const mesh = world.assertByIdAndComponents(meshId, [PARTICLE, SPRITE]);
-    expect(mesh[SPRITE].layers).toEqual([{ char: "▒", color: colors.black }]);
+    expect(resolveSprite(mesh[SPRITE]).layers).toEqual([
+      { char: "▒", color: colors.black },
+    ]);
     expect(mesh[PARTICLE].offsetZ).toBeGreaterThan(fixedHeight);
     advanceUntil(
       world,
@@ -1191,7 +1202,7 @@ describe("worm cave encounter", () => {
     memory.rageAttack = "wave";
     memory.ticks = 0;
     advanceUntil(world, () => memory.rageStarted && memory.ticks === 14);
-    expect(boss[TOOLTIP]?.idle).toBe(rage);
+    expect(boss[TOOLTIP]?.idle?.id).toBe(rage.id);
     advanceUntil(world, () => memory.ticks === 24);
     expect(boss[TOOLTIP]?.idle).toBeUndefined();
     advanceUntil(world, () => memory.ticks === 0);
@@ -1261,14 +1272,14 @@ describe("worm cave encounter", () => {
         world.metadata.gameEntity[LEVEL].cells[finish.x][finish.y]
       ).not.toMatch(/^jetty/);
       advanceUntil(world, () => memory.phase === "hidden", 20000);
-      expect(boss[SPRITE]).toEqual(none);
+      expect(resolveSprite(boss[SPRITE])).toEqual(none);
       expect(getAttackable(world, boss[POSITION])).toBeUndefined();
       expect(getAffectable(world, boss[POSITION])).toBeUndefined();
       expect(
         getSegments(world, boss, {
           isTransparent: false,
           receiveShadow: false,
-        }).some((segment) => segment.sprite === shadow)
+        }).some((segment) => segment.sprite.id === shadow.id)
       ).toBe(false);
       memory.next = "burrow";
       advanceUntil(
@@ -1333,7 +1344,7 @@ describe("worm cave encounter", () => {
         ORIENTABLE,
       ]);
       const visible = getFacingLayers(
-        part[SPRITE],
+        resolveSprite(part[SPRITE]),
         part[ORIENTABLE].facing
       ).length;
       if (visible)
@@ -1357,13 +1368,17 @@ describe("worm cave encounter", () => {
       const vanish = getSequence(world, boss, "vanish");
       for (const id of Object.values(vanish?.particles || {})) {
         const part = world.assertByIdAndComponents(id, [PARTICLE, SPRITE]);
-        if (part[SPRITE].layers.some(({ color }) => color === colors.red))
+        if (
+          resolveSprite(part[SPRITE]).layers.some(
+            ({ color }) => color === colors.red
+          )
+        )
           covered.add(
             `${boss[POSITION].x + part[PARTICLE].offsetX},${
               boss[POSITION].y + part[PARTICLE].offsetY
             }`
           );
-        square ||= part[SPRITE].layers.some(
+        square ||= resolveSprite(part[SPRITE]).layers.some(
           ({ color, char }) => color === colors.red && char === "█"
         );
       }
@@ -1561,7 +1576,7 @@ describe("worm cave encounter", () => {
         120000
       );
       expect(memory.limbs).toHaveLength(1);
-      expect(boss[SPRITE]).not.toEqual(none);
+      expect(resolveSprite(boss[SPRITE])).not.toEqual(none);
       expect(boss[ORIENTABLE]?.facing).toBe("up");
       for (const id of Object.values(
         getSequence(world, boss, "limb")!.particles
@@ -1591,7 +1606,9 @@ describe("worm cave encounter", () => {
     advanceUntil(world, () => memory.phase === "hidden", 20000);
     const id = memory.entryHole;
     const generation = world.metadata.gameEntity[RENDERABLE].generation;
-    expect(world.assertByIdAndComponents(id, [SPRITE])[SPRITE]).toEqual(shadow);
+    expect(
+      resolveSprite(world.assertByIdAndComponents(id, [SPRITE])[SPRITE])
+    ).toEqual(shadow);
     expect(getAttackable(world, boss[POSITION])).toBeUndefined();
     expect(getAffectable(world, boss[POSITION])).toBeUndefined();
     advanceUntil(
@@ -1838,9 +1855,10 @@ describe("worm cave encounter", () => {
       getSequence(world, slash, "slash")!.particles
     ).flatMap((id) => {
       const particle = world.assertByIdAndComponents(id, [SPRITE, ORIENTABLE]);
-      return getFacingLayers(particle[SPRITE], particle[ORIENTABLE].facing).map(
-        (layer) => layer.color
-      );
+      return getFacingLayers(
+        resolveSprite(particle[SPRITE]),
+        particle[ORIENTABLE].facing
+      ).map((layer) => layer.color);
     });
     expect(palette).not.toContain(colors.red);
     expect(palette).not.toContain(colors.yellow);
@@ -2101,7 +2119,7 @@ describe("worm cave encounter", () => {
     memory.slashes = 3;
     memory.ticks = 0;
     advanceUntil(world, () => memory.ticks === 1);
-    expect(boss[TOOLTIP]?.idle).toBe(rage2);
+    expect(boss[TOOLTIP]?.idle?.id).toBe(rage2.id);
     const warned = world.metadata.gameEntity[RENDERABLE].generation;
     advanceUntil(world, () =>
       world
@@ -2341,12 +2359,12 @@ describe("worm cave encounter", () => {
       120000
     );
     const marker = world.assertByIdAndComponents(memory.marker, [SPRITE, FOG]);
-    const initial = marker[SPRITE];
+    const initial = resolveSprite(marker[SPRITE]);
     expect(marker[FOG].type).toBe("object");
     advance(world, 200);
-    expect(marker[SPRITE]).not.toBe(initial);
+    expect(marker[SPRITE].id).not.toBe(initial.id);
     advance(world, 200);
-    expect(marker[SPRITE]).toBe(initial);
+    expect(marker[SPRITE].id).toBe(initial.id);
   });
 
   it("keeps two orbiting tower discs during artillery and stops them on exit", () => {
@@ -2720,7 +2738,7 @@ describe("fire chief worm quest", () => {
     step(world, 2);
     expect(chief[POPUP]).toBeUndefined();
     boat.all
-      .filter((entity) => entity[SPRITE])
+      .filter((entity) => resolveSprite(entity[SPRITE]))
       .forEach((entity) => disposeEntity(world, entity));
   });
 });

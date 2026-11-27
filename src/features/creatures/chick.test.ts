@@ -89,7 +89,7 @@ describe("chick", () => {
     dropGrain(world, { x: 6, y: 5 });
 
     advanceTicks(world, 2);
-    expect(chick[TOOLTIP].idle).toBe(heart);
+    expect(chick[TOOLTIP].idle?.id).toBe(heart.id);
 
     advanceUntil(
       world,
@@ -108,7 +108,7 @@ describe("chick", () => {
 
     advanceTicks(world, 2);
 
-    expect(chick[TOOLTIP].idle).not.toBe(heart);
+    expect(chick[TOOLTIP].idle?.id).not.toBe(heart.id);
     expect(countDrops(world, { stackable: "grain" })).toBe(1);
   });
 

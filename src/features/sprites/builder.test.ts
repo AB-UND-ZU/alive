@@ -1,3 +1,4 @@
+import { customSprite, resolveSprite } from "../../game/assets/spriteIds";
 import {
   createAreaWorld,
   assertHero,
@@ -118,10 +119,12 @@ it("keeps the enlarged preview fixed while a long layer list scrolls", () => {
     return Array.from({ length: 9 }, (_, row) =>
       Array.from({ length: 11 }, (_, col) =>
         composeCharacterPixels(
-          world.assertByIdAndComponents(
-            sequence.particles[`popup-content-${row}-${col + 6}`],
-            [SPRITE]
-          )[SPRITE].layers
+          resolveSprite(
+            world.assertByIdAndComponents(
+              sequence.particles[`popup-content-${row}-${col + 6}`],
+              [SPRITE]
+            )[SPRITE]
+          ).layers
         )
       )
     );
@@ -150,10 +153,12 @@ it("ignores the character-grid gutter and closes with the normal close action", 
 });
 
 it("renders an untrimmed 9 by 16 sprite inside a single white frame", () => {
-  const rows = spriteBuilderPreview({
-    name: "test",
-    layers: [{ char: "·", color: colors.red }],
-  });
+  const rows = spriteBuilderPreview(
+    customSprite({
+      name: "test",
+      layers: [{ char: "·", color: colors.red }],
+    })
+  );
   expect(rows).toHaveLength(9);
   expect(rows.every((row) => row.length === 11)).toBe(true);
   for (const row of [0, 4, 8]) {
@@ -183,10 +188,11 @@ it("shows black characters on white and scrolls through the last character row",
   act(world, "down");
   advance(world, 2000);
   const sequence = getSequence(world, popup, "popup")!;
-  const cell = world.assertByIdAndComponents(
-    sequence.particles["popup-content-4-1"],
-    [SPRITE]
-  )[SPRITE];
+  const cell = resolveSprite(
+    world.assertByIdAndComponents(sequence.particles["popup-content-4-1"], [
+      SPRITE,
+    ])[SPRITE]
+  );
   expect(cell.layers).toEqual(
     expect.arrayContaining([
       { char: "█", color: colors.white },
@@ -230,12 +236,13 @@ it("lists a single New row and brackets only the selected layer character", () =
       Array.from(
         { length: 6 },
         (_, column) =>
-          world
-            .assertByIdAndComponents(
+          resolveSprite(
+            world.assertByIdAndComponents(
               sequence.particles[`popup-content-${row}-${column}`],
               [SPRITE]
-            )
-            [SPRITE].layers.filter(
+            )[SPRITE]
+          )
+            .layers.filter(
               (layer) => !["█", "▀", "▄", "░"].includes(layer.char)
             )
             .at(-1)?.char || " "
@@ -292,10 +299,12 @@ it("blinks the brackets and large layer preview while keeping the small characte
   act(world, "right");
   const cell = (row: number, column: number) => {
     const sequence = getSequence(world, popup, "popup")!;
-    return world.assertByIdAndComponents(
-      sequence.particles[`popup-content-${row}-${column}`],
-      [SPRITE]
-    )[SPRITE];
+    return resolveSprite(
+      world.assertByIdAndComponents(
+        sequence.particles[`popup-content-${row}-${column}`],
+        [SPRITE]
+      )[SPRITE]
+    );
   };
   const previewColors = () =>
     Array.from({ length: 9 }, (_, row) =>
@@ -347,10 +356,12 @@ it("moves an edited layer with blinking digits and places it without changing it
   expect(getVerticalIndex(world, popup)).toBe(1);
   const cell = (column: number) => {
     const seq = getSequence(world, popup, "popup")!;
-    return world.assertByIdAndComponents(
-      seq.particles[`popup-content-1-${column}`],
-      [SPRITE]
-    )[SPRITE];
+    return resolveSprite(
+      world.assertByIdAndComponents(
+        seq.particles[`popup-content-1-${column}`],
+        [SPRITE]
+      )[SPRITE]
+    );
   };
   advanceUntil(
     world,
@@ -413,9 +424,14 @@ it("keeps a deleted pack empty when the editor reopens", () => {
 it.each([
   "{",
   JSON.stringify([
-    { name: "Bad", layers: [{ char: "many", color: colors.white }] },
+    customSprite({
+      name: "Bad",
+      layers: [{ char: "many", color: colors.white }],
+    }),
   ]),
-  JSON.stringify([{ name: "Bad", layers: [{ char: "A", color: "missing" }] }]),
+  JSON.stringify([
+    customSprite({ name: "Bad", layers: [{ char: "A", color: "missing" }] }),
+  ]),
 ])(
   "uses the initial examples when stored sprites are invalid: %s",
   (stored) => {
@@ -457,10 +473,12 @@ it("inverts black layer rows while leaving the existing selection gutter clear",
   );
   const cell = (row: number, column: number) => {
     const sequence = getSequence(world, popup, "popup")!;
-    return world.assertByIdAndComponents(
-      sequence.particles[`popup-content-${row}-${column}`],
-      [SPRITE]
-    )[SPRITE];
+    return resolveSprite(
+      world.assertByIdAndComponents(
+        sequence.particles[`popup-content-${row}-${column}`],
+        [SPRITE]
+      )[SPRITE]
+    );
   };
   for (const row of [0, 1])
     for (let column = 1; column < 6; column++)
@@ -497,10 +515,12 @@ it("inverts black layer rows while leaving the existing selection gutter clear",
   expect(cell(0, 3).layers).toContainEqual({ char: "[", color: colors.black });
   expect(cell(0, 4).layers).toContainEqual({ char: "A", color: colors.black });
   const arrow = () =>
-    world.assertByIdAndComponents(
-      getSequence(world, popup, "popup")!.particles.selection,
-      [SPRITE]
-    )[SPRITE];
+    resolveSprite(
+      world.assertByIdAndComponents(
+        getSequence(world, popup, "popup")!.particles.selection,
+        [SPRITE]
+      )[SPRITE]
+    );
   expect(arrow().layers).toEqual([{ char: ">", color: colors.white }]);
   expect(cell(0, 0).layers).not.toContainEqual({
     char: "█",
@@ -546,24 +566,32 @@ it("uses active selection for saved sprites and moving layers, and dotted select
   const { world, popup, editor } = setup();
   const sequence = () => getSequence(world, popup, "popup")!;
   const arrow = () =>
-    world.assertByIdAndComponents(sequence().particles.selection, [SPRITE])[
-      SPRITE
-    ];
+    resolveSprite(
+      world.assertByIdAndComponents(sequence().particles.selection, [SPRITE])[
+        SPRITE
+      ]
+    );
   const cell = (column: number) =>
-    world.assertByIdAndComponents(
-      sequence().particles[`popup-content-0-${column}`],
-      [SPRITE]
-    )[SPRITE];
+    resolveSprite(
+      world.assertByIdAndComponents(
+        sequence().particles[`popup-content-0-${column}`],
+        [SPRITE]
+      )[SPRITE]
+    );
   advance(world, 2000);
   expect(arrow()).toEqual(popupActive);
   expect(cell(2).layers).toContainEqual({ char: "░", color: colors.grey });
   for (let i = 0; i < editor.sprites.length; i++) act(world, "down");
   expect(arrow()).toEqual(popupSelection);
   const selected = sequence().args.scrollIndex || 0;
-  const newCell = world.assertByIdAndComponents(
-    sequence().particles[`popup-content-${editor.sprites.length - selected}-2`],
-    [SPRITE]
-  )[SPRITE];
+  const newCell = resolveSprite(
+    world.assertByIdAndComponents(
+      sequence().particles[
+        `popup-content-${editor.sprites.length - selected}-2`
+      ],
+      [SPRITE]
+    )[SPRITE]
+  );
   expect(newCell.layers).toContainEqual({ char: "░", color: colors.grey });
   for (let i = 0; i < editor.sprites.length; i++) act(world, "up");
   act(world, "right");
@@ -590,9 +618,11 @@ it("uses active selection for saved sprites and moving layers, and dotted select
   act(world, "down");
   expect(sequence().args.backButton).toBe(true);
   expect(
-    world.assertByIdAndComponents(sequence().particles["popup-content-1-1"], [
-      SPRITE,
-    ])[SPRITE].layers
+    resolveSprite(
+      world.assertByIdAndComponents(sequence().particles["popup-content-1-1"], [
+        SPRITE,
+      ])[SPRITE]
+    ).layers
   ).toContainEqual({ char: "N", color: colors.white });
   expect(arrow()).toEqual(popupSelection);
   act(world, "left");

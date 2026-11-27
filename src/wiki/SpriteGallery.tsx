@@ -1,33 +1,48 @@
+import { customSprite } from "../game/assets/spriteIds";
 import { displayName } from "./catalog";
 import * as ui from "../game/assets/ui";
 import { unitDefinitions } from "../game/balancing/units";
 import { classDefinitions } from "../game/balancing/classes";
 import { useContext, useMemo, useState } from "react";
 import * as sprites from "../game/assets/sprites";
+import { orientations } from "../engine/components/orientable";
 import { Sprite } from "../engine/components/sprite";
 import { Button, Input, Pixels, PlainTable, Text } from "./visuals";
 import { ReferenceContext } from "./references";
 
 export function spriteVariations() {
-  const entries: { key: string; sprite: Sprite }[] = [];
+  const entries: { key: string; sprite: Sprite; sourceId: string }[] = [];
   const visit = (value: unknown, key: string) => {
     if (!value || typeof value !== "object") return;
     const sprite = value as Sprite;
     if (Array.isArray(sprite.layers)) {
-      entries.push({
-        key,
-        sprite: { name: sprite.name, layers: sprite.layers },
-      });
+      entries.push({ key, sprite, sourceId: sprite.id });
       for (const [kind, variants] of Object.entries({
         facing: sprite.facing,
         amount: sprite.amounts,
-      }))
-        for (const [variant, layers] of Object.entries(variants || {}))
-          if (layers)
-            entries.push({
-              key: `${key}.${kind}.${variant}`,
-              sprite: { name: sprite.name, layers },
-            });
+      })) {
+        if (!variants) continue;
+        // An empty view table inherits the base artwork at every facing or quantity.
+        const keys = Object.keys(variants);
+        const views = keys.length
+          ? keys
+          : kind === "facing"
+          ? orientations
+          : ["single", "double", "multiple"];
+        for (const variant of views) {
+          const layers =
+            (variants as Record<string, Sprite["layers"]>)[variant] ||
+            sprite.layers;
+          entries.push({
+            key: `${key}.${kind}.${variant}`,
+            sourceId: sprite.id,
+            sprite:
+              layers === sprite.layers
+                ? sprite
+                : customSprite({ name: sprite.name, layers }),
+          });
+        }
+      }
     } else
       for (const [name, child] of Object.entries(value))
         visit(child, key ? `${key}.${name}` : name);
@@ -50,7 +65,7 @@ export function SpriteGallery() {
     link,
   } = useContext(ReferenceContext);
   const matches = all.filter(({ key, sprite }) =>
-    `${key} ${sprite.name}`.toLowerCase().includes(query.toLowerCase())
+    `${key} ${sprite.name || ""}`.toLowerCase().includes(query.toLowerCase())
   );
   const pages = Math.max(1, Math.ceil(matches.length / pageSize));
   return (
@@ -79,22 +94,26 @@ export function SpriteGallery() {
         headers={["Sprite", "Source"]}
         rows={matches
           .slice(page * pageSize, (page + 1) * pageSize)
-          .map(({ key, sprite }) => {
-            const name = sprite.name.toLowerCase();
-            const alias =
-              name &&
-              Object.keys(decorations).find(
-                (key) => decorations[key].sprite?.name.toLowerCase() === name
-              );
+          .map(({ key, sprite, sourceId }) => {
+            const name = (sprite.name || "").toLowerCase();
+            const alias = Object.keys(decorations).find(
+              (key) => decorations[key].sprite?.id === sourceId
+            );
             const unit = key.match(/^units\.([^.]*)\./)?.[1];
             const classKey = key.match(/^classes\.([^.]*)\./)?.[1];
+            const sourceUnit = Object.entries(unitDefinitions).find(
+              ([, unit]) => unit.sprite.id === sourceId
+            )?.[0];
             const reference =
               (unit && entries["unit:" + unit]) ||
               (classKey && entries[classKey]) ||
               (/rotten/i.test(key) && entries["unit:rotten"]) ||
               entries[name] ||
               features[name] ||
-              (alias && (entries[alias] || features[alias]));
+              (alias && (entries[alias] || features[alias])) ||
+              (name &&
+                (entries["unit:" + sourceId] ||
+                  (sourceUnit && entries["unit:" + sourceUnit])));
             const view = (
               <Text
                 prefix={<Pixels rows={[[sprite]]} label={sprite.name || key} />}

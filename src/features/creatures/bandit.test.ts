@@ -101,7 +101,7 @@ describe("tutorial boss", () => {
 
   it("turns to shoot back at the hero after dashing through them mid-aim", () => {
     const { world, hero, bandit } = setup("tutorialBoss", "|      ♀        B|");
-    advanceUntil(world, () => bandit[TOOLTIP].idle === rage);
+    advanceUntil(world, () => bandit[TOOLTIP].idle?.id === rage.id);
     expect(bandit[ORIENTABLE].facing).toBe("left");
 
     bandit[STATS].hp = bandit[STATS].maxHp * 0.8;
@@ -140,20 +140,20 @@ describe("bandit camp", () => {
 
     const notes = trace(world, 12, () => {
       expect(knight[TOOLTIP].idle).toBeUndefined();
-      return rogue[TOOLTIP].idle;
+      return rogue[TOOLTIP].idle?.id;
     });
-    expect(notes).toContain(whistle1);
-    expect(notes).toContain(whistle2);
+    expect(notes).toContain(whistle1.id);
+    expect(notes).toContain(whistle2.id);
     moveEntity(world, hero, { x: 11, y: 0 });
     advanceTicks(world, 3);
-    expect(rogue[TOOLTIP].idle).toBe(confused);
+    expect(rogue[TOOLTIP].idle?.id).toBe(confused.id);
     expect(knight[TOOLTIP].idle).toBeUndefined();
     expect(rogue[POSITION]).toEqual({ x: 6, y: 0 });
     expect(knight[POSITION]).toEqual({ x: 8, y: 0 });
 
     moveEntity(world, hero, { x: 4, y: 0 });
     advanceUntil(world, () =>
-      [rogue, knight].every((member) => member[TOOLTIP].idle === rage)
+      [rogue, knight].every((member) => member[TOOLTIP].idle?.id === rage.id)
     );
     advanceUntil(world, () => rogue[POSITION].x === 5);
     moveEntity(world, hero, { x: 0, y: 0 });
@@ -173,11 +173,11 @@ describe("bandit camp", () => {
     moveEntity(world, knight, { x: 7, y: -1 });
 
     advanceTicks(world, 2);
-    expect([whistle1, whistle2]).toContain(knight[TOOLTIP].idle);
+    expect([whistle1.id, whistle2.id]).toContain(knight[TOOLTIP].idle?.id);
     expect(rogue[TOOLTIP].idle).toBeUndefined();
     moveEntity(world, hero, { x: 10, y: 0 });
     advanceTicks(world, 1);
-    expect(knight[TOOLTIP].idle).toBe(confused);
+    expect(knight[TOOLTIP].idle?.id).toBe(confused.id);
     expect(rogue[TOOLTIP].idle).toBeUndefined();
   });
 
@@ -199,7 +199,7 @@ describe("bandit camp", () => {
     advanceUntil(world, () => rogue[STATS].hp < rogue[STATS].maxHp);
     expect(knight[STATS].hp).toBe(knight[STATS].maxHp);
     advanceUntil(world, () =>
-      [rogue, knight].every((member) => member[TOOLTIP].idle === rage)
+      [rogue, knight].every((member) => member[TOOLTIP].idle?.id === rage.id)
     );
     advanceUntil(world, () => hero[STATS].hp < hero[STATS].maxHp);
 
@@ -229,7 +229,7 @@ describe("bandit camp", () => {
     advanceTicks(world, 2);
     castAs(world, hero, { spell: "beam", material: "iron" }, "right");
     advanceUntil(world, () => rogue[STATS].hp === 0);
-    advanceUntil(world, () => knight[TOOLTIP].idle === rage);
+    advanceUntil(world, () => knight[TOOLTIP].idle?.id === rage.id);
     expect(knight[STATS].hp).toBe(knight[STATS].maxHp);
     advanceUntil(world, () => hero[STATS].hp < hero[STATS].maxHp);
   });
@@ -255,7 +255,7 @@ describe("bandit camp", () => {
       advanceTicks(world, 2);
       castAs(world, hero, { spell: "beam", material: "gold" }, "right");
       advanceUntil(world, () => target[STATS].hp < target[STATS].maxHp);
-      advanceUntil(world, () => knight[TOOLTIP].idle === rage);
+      advanceUntil(world, () => knight[TOOLTIP].idle?.id === rage.id);
       moveEntity(world, hero, { x: 20, y: 20 });
       advanceUntil(
         world,
@@ -267,7 +267,9 @@ describe("bandit camp", () => {
       );
       advanceUntil(world, () =>
         [knight, priest].some((mate) =>
-          [whistle1, whistle2].includes(mate[TOOLTIP].idle!)
+          [whistle1, whistle2].some(
+            (whistle) => whistle.id === mate[TOOLTIP].idle?.id
+          )
         )
       );
       moveEntity(world, hero, { x: 0, y: 0 });
@@ -336,13 +338,13 @@ describe("bandit knight", () => {
     moveEntity(world, hero, { x: 0, y: 0 });
     advanceTicks(world, 1);
     expect(bandit[POSITION].x).toBe(4);
-    advanceUntil(world, () => bandit[TOOLTIP].idle === rage2);
+    advanceUntil(world, () => bandit[TOOLTIP].idle?.id === rage2.id);
     advanceTicks(world, 1);
-    expect(bandit[TOOLTIP].idle).toBe(rage2);
+    expect(bandit[TOOLTIP].idle?.id).toBe(rage2.id);
     const showsWarning = () =>
       world
         .getEntities([PARTICLE, SPRITE])
-        .some((particle) => particle[SPRITE] === rage2);
+        .some((particle) => particle[SPRITE].id === rage2.id);
     expect(showsWarning()).toBe(true);
     expect(slash()).toBeUndefined();
     advanceTicks(world, 1);
@@ -366,7 +368,7 @@ describe("bandit mage", () => {
     const { world, hero, bandit } = setup("banditMage", "|     ♀ B|");
     advanceUntil(world, () => traps(world).length > 0);
     moveEntity(world, hero, { x: 0, y: 0 });
-    advanceUntil(world, () => bandit[TOOLTIP].idle === rage);
+    advanceUntil(world, () => bandit[TOOLTIP].idle?.id === rage.id);
     advanceTicks(world, 1);
     expect(bandit[TOOLTIP].idle).toBeUndefined();
     advanceUntil(world, () => hero[STATS].hp < hero[STATS].maxHp);
@@ -513,7 +515,7 @@ it("regroups with surviving campmates if the campfire is gone", () => {
     world,
     () => distanceBetween(world, knight[POSITION], rogue[POSITION]) <= 2
   );
-  expect([whistle1, whistle2]).toContain(knight[TOOLTIP].idle);
+  expect([whistle1.id, whistle2.id]).toContain(knight[TOOLTIP].idle?.id);
   expect(rogue[TOOLTIP].idle).toBeUndefined();
 });
 

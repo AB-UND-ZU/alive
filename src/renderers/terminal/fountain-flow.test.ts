@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import {
   advance,
   assertHero,
@@ -72,7 +73,7 @@ it("keeps healing flow lime without changing the engine's water particles", () =
   expect(drops.length).toBeGreaterThan(0);
   const before = drops.map(([, id]) => {
     const particle = world.assertByIdAndComponents(id, [PARTICLE, SPRITE]);
-    return { ...particle[PARTICLE], sprite: particle[SPRITE] };
+    return { ...particle[PARTICLE], sprite: resolveSprite(particle[SPRITE]) };
   });
   const result = collectTerminalSprites(scene).filter(
     (entry) => entry.sprite.name === "fountain_heal"
@@ -84,7 +85,7 @@ it("keeps healing flow lime without changing the engine's water particles", () =
   expect(
     drops.map(([, id]) => {
       const particle = world.assertByIdAndComponents(id, [PARTICLE, SPRITE]);
-      return { ...particle[PARTICLE], sprite: particle[SPRITE] };
+      return { ...particle[PARTICLE], sprite: resolveSprite(particle[SPRITE]) };
     })
   ).toEqual(before);
 });
@@ -105,8 +106,8 @@ it("keeps all displayed water lime while an earlier healing drop is still in the
       const center = scene.find((entry) => entry.particleName === "fountain");
       return (
         !!center &&
-        center.sprite === fountain &&
-        scene.some((entry) => entry.sprite === fountainHeal) &&
+        center.sprite.id === fountain.id &&
+        scene.some((entry) => entry.sprite.id === fountainHeal.id) &&
         Math.floor(
           getSequence(world, center.entity, "fountain")!.elapsed / 125
         ) %
@@ -117,19 +118,20 @@ it("keeps all displayed water lime while an earlier healing drop is still in the
     1000
   );
   const center = scene.find((entry) => entry.particleName === "fountain")!;
-  expect(center.sprite).toBe(fountain);
-  expect(scene.some((entry) => entry.sprite === fountainHeal)).toBe(true);
+  expect(center.sprite.id).toBe(fountain.id);
+  expect(scene.some((entry) => entry.sprite.id === fountainHeal.id)).toBe(true);
   const displayed = collectTerminalSprites(scene);
   const water = displayed.filter((entry) =>
-    ["fountain_drop", "fountain_heal"].includes(entry.sprite.name)
+    ["fountain_drop", "fountain_heal"].includes(entry.sprite.name || "")
   );
   expect(water.length).toBeGreaterThan(0);
   expect(water.every((entry) => entry.layers[0].color === colors.lime)).toBe(
     true
   );
   expect(
-    displayed.find((entry) => entry.overlay && entry.sprite === center.sprite)!
-      .terminalLayers
+    displayed.find(
+      (entry) => entry.overlay && entry.sprite.id === center.sprite.id
+    )!.terminalLayers
   ).toEqual([
     { char: "█", color: colors.navy },
     { char: "v", color: colors.lime },

@@ -1,3 +1,4 @@
+import { customSprite } from "../game/assets/spriteIds";
 import { Fragment, useState, useContext, useLayoutEffect, useRef } from "react";
 import { Sprite } from "../engine/components/sprite";
 import { Orientation } from "../engine/components/orientable";
@@ -8,10 +9,11 @@ import { Button, Pixels, Text } from "./visuals";
 import { ReferenceContext } from "./references";
 import { WikiToken } from "./types";
 import "./CodeBlock.css";
-const facing = (sprite: Sprite, orientation: Orientation): Sprite => ({
-  ...sprite,
-  layers: getFacingLayers(sprite, orientation),
-});
+const facing = (sprite: Sprite, orientation: Orientation): Sprite =>
+  customSprite({
+    ...sprite,
+    layers: getFacingLayers(sprite, orientation),
+  });
 const syntaxColors = {
   plain: colors.white,
   keyword: colors.aqua,

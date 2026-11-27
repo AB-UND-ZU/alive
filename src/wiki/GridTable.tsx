@@ -1,3 +1,4 @@
+import { customSprite } from "../game/assets/spriteIds";
 import {
   CSSProperties,
   ReactNode,
@@ -25,10 +26,10 @@ import {
 } from "./references";
 import { colors } from "../game/assets/colors";
 import "./GridTable.css";
-const edgeSprite = {
+const edgeSprite = customSprite({
   name: "table rule",
   layers: [{ char: "│", color: colors.silver }],
-};
+});
 const emptyCell = (value: ReactNode): boolean => {
   if (value === null || value === undefined || value === false || value === 0)
     return true;

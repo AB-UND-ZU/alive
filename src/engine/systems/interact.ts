@@ -202,7 +202,7 @@ export default function setupInteract(world: World) {
               generation: 0,
               text,
               sprite:
-                !sprite || sprite === none
+                !sprite || sprite.id === none.id
                   ? none
                   : addBackground([sprite], colors.black)[0],
               offset: buildCondition ? delta : { x: 0, y: 0 },

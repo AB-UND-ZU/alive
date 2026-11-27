@@ -12,7 +12,7 @@ Only one level exists at a time, because warping removes the old level. The leve
 
 Components keep shared objects and references to other entities. The copy keeps both:
 
-- Exported sprites are stored as `{ $sprite: "exportName" }`. Game code compares sprites by identity, such as `entity[SPRITE] === none`, so loading returns the same exported object. Generated sprites, such as recolored ones, are stored as data.
+- The sprite component stores its asset ID, or its definition and a custom flag. Other components can contain ordinary sprite data with IDs.
 - Objects that are entities, such as NPC memories or the level's position map, are stored as `{ $entity: id }` and point to the restored entity.
 - Other objects shared within the world stay shared within the snapshot.
 
@@ -26,7 +26,7 @@ Older saves can contain inventory IDs for loot that was already removed by arena
 
 Traps saved during their warning or burst resume with the time remaining. Restoration moves the old trigger timer onto the spell’s own clock and keeps its targets and area.
 
-Renaming or removing an exported sprite makes older snapshots fail to load unless a save upgrade maps the name.
+Keep named sprite IDs stable across releases. The loader accepts earlier export-name tokens and inline sprite artwork.
 <!-- source-types -->
 
 ## WorldSnapshot
@@ -40,12 +40,6 @@ export type WorldSnapshot = {
   render: number;
   entities: [number, Record<string, unknown>][];
 };
-```
-
-## SpriteToken
-
-```ts src/engine/snapshot.ts
-type SpriteToken = { $sprite: string };
 ```
 
 ## EntityToken

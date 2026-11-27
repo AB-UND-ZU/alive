@@ -1,3 +1,8 @@
+import {
+  customSprite,
+  resolveSprite,
+  spriteRef,
+} from "../../game/assets/spriteIds";
 import { STATS } from "../../engine/components/stats";
 import { AFFECTABLE } from "../../engine/components/affectable";
 import {
@@ -51,7 +56,7 @@ const sprite = (char: string, x: number, y: number, z = 0): TerminalSprite => ({
   x,
   y,
   z,
-  sprite: { name: "text_generic" },
+  sprite: { id: "text_generic", name: "text_generic" },
   layers: [{ char, color: colors.white }],
 });
 
@@ -74,7 +79,7 @@ describe("terminal frame", () => {
     expect(lower).toBeDefined();
     const pair = scene.filter(
       (entry) =>
-        /^block_(up|down)$/.test(entry.sprite.name) &&
+        /^block_(up|down)$/.test(entry.sprite.name || "") &&
         entry.x === lower.x &&
         entry.y === lower.y &&
         entry.z === lower.z
@@ -96,6 +101,37 @@ describe("terminal frame", () => {
     ).toHaveLength(2);
   });
 
+  it("keeps both title halves visible while a click recolors them", () => {
+    const world = createTestWorld({ level: "LEVEL_MENU" });
+    advance(world, 10000);
+    const getScene = () =>
+      getSceneFrame(world, 33, 16, undefined, { instant: true });
+    const scene = getScene();
+    const lower = scene.find(
+      (entry) =>
+        entry.sprite.id === "block_down" &&
+        scene.some(
+          (other) =>
+            other.sprite.id === "block_up" &&
+            other.x === entry.x &&
+            other.y === entry.y &&
+            other.z === entry.z
+        )
+    )!;
+    lower.entity.CLICKABLE!.clicked = true;
+    advance(world, 100);
+    const frame = createTerminalFrame(
+      collectTerminalSprites(getScene()),
+      33,
+      16
+    );
+    expect(frame[Math.ceil(lower.y)][Math.ceil(lower.x)]).toEqual({
+      char: "▄",
+      foreground: colors.grey,
+      background: colors.maroon,
+    });
+  });
+
   it("snaps motion to the next cell and clips sprites outside the screen", () => {
     const frame = createTerminalFrame(
       [sprite("@", 0.1, 0.1), sprite("x", 2, 2)],
@@ -108,7 +144,13 @@ describe("terminal frame", () => {
   it("keeps terrain background under a foreground sprite and ignores transparent space", () => {
     const frame = createTerminalFrame(
       [
-        { x: 0, y: 0, z: 0, sprite: { name: "water_deep" }, layers: [] },
+        {
+          x: 0,
+          y: 0,
+          z: 0,
+          sprite: { id: "water_deep", name: "water_deep" },
+          layers: [],
+        },
         sprite("@", 0, 0, 1),
         sprite(" ", 0, 0, 2),
       ],
@@ -385,7 +427,7 @@ it("keeps yellow sand and blue water recognizable in fog", () => {
         x: 1,
         y: 0,
         z: 0,
-        sprite: { name: "water_deep" },
+        sprite: { id: "water_deep", name: "water_deep" },
         layers: [],
         fog: true,
       },
@@ -607,11 +649,11 @@ it("does not let an invisible terminal message push visible messages away", () =
   advance(world, 2000);
   queueMessage(world, hero, {
     line: [
-      {
+      customSprite({
         name: "pulse",
         layers: [{ char: "∙", color: colors.maroon }],
         terminal: { layers: [] },
-      },
+      }),
     ],
     fast: true,
     delay: 0,
@@ -674,7 +716,7 @@ it("keeps non-player units above world effects except for o, x and X hit markers
 it("keeps a player ghost yellow instead of applying the living hero color", () => {
   const world = createAreaWorld("| ♀ |", { size: 48 });
   const hero = assertHero(world);
-  hero.SPRITE = ghost;
+  hero.SPRITE = spriteRef(ghost);
   hero.PLAYER.ghost = true;
   const sprites = collectTerminalSprites(
     getSceneFrame(world, 11, 9, undefined, { instant: true })
@@ -689,7 +731,7 @@ it("renders living heroes white and the same human sprites as silver NPCs", () =
   const world = createAreaWorld("| ♀ |", { size: 48 });
   const hero = assertHero(world);
   for (const human of [rogue, mage, knight, bandit, alien]) {
-    hero.SPRITE = human;
+    hero.SPRITE = spriteRef(human);
     const scene = getSceneFrame(world, 11, 9, undefined, {
       instant: true,
     }).filter((entry) => entry.entity === hero);
@@ -840,7 +882,8 @@ it("places revealed discovery above its owner and hidden markers on its cell", (
   const vaseScene = getSceneFrame(world, 21, 13, undefined, { instant: true });
   const vase = vaseScene.find(
     (entry) =>
-      entry.entity.SPRITE?.name === "Vase" && /body\d+$/.test(entry.key)
+      resolveSprite(entry.entity.SPRITE)?.name === "Vase" &&
+      /body\d+$/.test(entry.key)
   )!;
   const vaseFrame = createTerminalFrame(
     collectTerminalSprites(vaseScene),
@@ -1019,7 +1062,10 @@ it("keeps engine fountain drops from overlapping the terminal flow", () => {
       ...body,
       key: `${source.key}:drop-${generation + 1}-${orientation}`,
       particleName: `drop-${generation + 1}-${orientation}`,
-      sprite: { ...fountainDrop, name: `${generation + 1}-${orientation}` },
+      sprite: customSprite({
+        ...fountainDrop,
+        name: `${generation + 1}-${orientation}`,
+      }),
       layers: fountainDrop.layers,
     }))
   ).flat();
@@ -1047,7 +1093,7 @@ it("keeps fountain healing unchanged while reducing terminal splash particles", 
       const result = collectTerminalSprites(scene);
       if (
         result.filter((entry) =>
-          ["fountain_drop", "fountain_heal"].includes(entry.sprite.name)
+          ["fountain_drop", "fountain_heal"].includes(entry.sprite.name || "")
         ).length < drops.length
       )
         reduced = true;
@@ -1055,7 +1101,7 @@ it("keeps fountain healing unchanged while reducing terminal splash particles", 
       expect(drops.every((entry) => entry.entity)).toBe(true);
       expect(
         result.filter((entry) =>
-          ["fountain_drop", "fountain_heal"].includes(entry.sprite.name)
+          ["fountain_drop", "fountain_heal"].includes(entry.sprite.name || "")
         ).length
       ).toBeLessThanOrEqual(4);
       return hero[STATS].hp === hero[STATS].maxHp;
@@ -1125,7 +1171,7 @@ it("keeps discovery above a rendered Sign outside vision", () => {
   advance(world, 1000);
   const sign = world
     .getEntities(["POPUP", "POSITION", "FOG", "SEQUENCABLE"])
-    .find((entity) => entity.SPRITE?.name === "Sign")!;
+    .find((entity) => resolveSprite(entity.SPRITE)?.name === "Sign")!;
   sign.FOG.visibility = "fog";
   const scene = getSceneFrame(world, 25, 13, undefined, { instant: true });
   const body = scene.find(

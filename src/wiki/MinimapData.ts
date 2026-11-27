@@ -27,7 +27,7 @@ export function createMinimapWorld() {
   const landmarks = world
     .getEntities(["POI", "POSITION"])
     .filter((entity) =>
-      [mapHouse, mapFortress, mapNomad].includes(entity.POI.sprite)
+      [mapHouse.id, mapFortress.id, mapNomad.id].includes(entity.POI.sprite.id)
     );
   const reveal = (position: { x: number; y: number }, radius: number) =>
     initializeArea(
@@ -67,9 +67,9 @@ export function createMinimapWorld() {
     route.push(...segment);
     origin = segment[segment.length - 1];
     visitedLandmarks.push(
-      landmark.POI.sprite === mapHouse
+      landmark.POI.sprite.id === mapHouse.id
         ? "Earth Town"
-        : landmark.POI.sprite === mapFortress
+        : landmark.POI.sprite.id === mapFortress.id
         ? "Fire Haven"
         : "Nomad"
     );

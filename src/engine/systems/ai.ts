@@ -1,3 +1,8 @@
+import {
+  customSprite,
+  resolveSprite,
+  spriteRef,
+} from "../../game/assets/spriteIds";
 import { spawnerPulse } from "../../game/assets/sprites";
 import { bumpEntity, syncMovementSpring } from "../motion";
 import { Position, POSITION } from "../components/position";
@@ -375,7 +380,7 @@ export default function setupAi(world: World) {
                 : closest === 3
                 ? confused
                 : [whistle1, whistle2][generation % 2];
-            if (tooltip.idle !== idle) {
+            if (tooltip.idle?.id !== idle?.id) {
               tooltip.idle = idle;
               tooltip.changed = true;
             }
@@ -560,7 +565,9 @@ export default function setupAi(world: World) {
 
           if (entity[CLICKABLE]?.clicked) {
             entity[BELONGABLE].faction = "wild";
-            entity[SPRITE] = { ...entity[SPRITE], name: "" };
+            entity[SPRITE] = spriteRef(
+              customSprite({ ...resolveSprite(entity[SPRITE]), name: "" })
+            );
             entity[TOOLTIP].idle = rage;
             entity[TOOLTIP].changed = true;
 
@@ -1120,7 +1127,7 @@ export default function setupAi(world: World) {
               : [sleep1, sleep2][
                   world.metadata.gameEntity[RENDERABLE].generation % 2
                 ];
-            if (entity[TOOLTIP].idle !== sprite) {
+            if (entity[TOOLTIP].idle?.id !== sprite.id) {
               entity[TOOLTIP].idle = sprite;
               entity[TOOLTIP].changed = true;
             }
@@ -1135,7 +1142,7 @@ export default function setupAi(world: World) {
             break;
           }
 
-          if (entity[TOOLTIP].idle === rage) {
+          if (entity[TOOLTIP].idle?.id === rage.id) {
             entity[TOOLTIP].idle = undefined;
             entity[TOOLTIP].changed = true;
           } else if (!isMoving) {
@@ -1384,7 +1391,7 @@ export default function setupAi(world: World) {
               shootingOrientation
             ) {
               entity[ORIENTABLE].facing = shootingOrientation;
-              if (entity[TOOLTIP].idle !== rage) {
+              if (entity[TOOLTIP].idle?.id !== rage.id) {
                 playRage(world, entity);
               }
               entity[TOOLTIP].idle = rage;
@@ -1604,10 +1611,10 @@ export default function setupAi(world: World) {
           const memory = pattern.memory;
 
           if (
-            (memory.idle === rage || memory.idle === rage2) &&
-            entity[TOOLTIP].idle !== memory.idle
+            (memory.idle?.id === rage.id || memory.idle?.id === rage2.id) &&
+            entity[TOOLTIP].idle?.id !== memory.idle?.id
           ) {
-            playRage(world, entity, memory.idle === rage2);
+            playRage(world, entity, memory.idle?.id === rage2.id);
           }
 
           if (
@@ -1748,7 +1755,7 @@ export default function setupAi(world: World) {
               });
 
               if (entity[TOOLTIP]) {
-                if (entity[TOOLTIP].idle !== rage) {
+                if (entity[TOOLTIP].idle?.id !== rage.id) {
                   playRage(world, entity);
                 }
                 entity[TOOLTIP].idle = rage;
@@ -2467,8 +2474,8 @@ export default function setupAi(world: World) {
             fishEntity && isImmersible(world, fishEntity[POSITION])
               ? none
               : shadow;
-          if (fishEntity && fishEntity[SPRITE] !== fishShadow) {
-            fishEntity[SPRITE] = fishShadow;
+          if (fishEntity && fishEntity[SPRITE]?.id !== fishShadow.id) {
+            fishEntity[SPRITE] = spriteRef(fishShadow);
             rerenderEntity(world, fishEntity);
           }
 
@@ -3887,7 +3894,7 @@ export default function setupAi(world: World) {
             });
             break;
           } else if (pattern.memory.phase === 1) {
-            entity[SPRITE] = { ...golem, name: "" };
+            entity[SPRITE] = spriteRef(customSprite({ ...golem, name: "" }));
             rerenderEntity(world, entity);
 
             patterns.splice(patterns.indexOf(pattern), 1, {
@@ -3901,7 +3908,7 @@ export default function setupAi(world: World) {
               if (limb === entity) return;
 
               moveEntity(world, limb, entity[POSITION]);
-              limb[SPRITE] = rock1;
+              limb[SPRITE] = spriteRef(rock1);
               rerenderEntity(world, limb);
             });
             entity[STATS].offsetY = 0;
@@ -3953,7 +3960,7 @@ export default function setupAi(world: World) {
                 add(entity[POSITION], orientationPoints[orientation])
               );
 
-              limb[SPRITE] = golemBody;
+              limb[SPRITE] = spriteRef(golemBody);
               rerenderEntity(world, limb);
             });
             entity[STATS].offsetY = 1;
@@ -3987,7 +3994,7 @@ export default function setupAi(world: World) {
                 add(entity[POSITION], orientationPoints[orientation])
               );
 
-              limb[SPRITE] = golemArm;
+              limb[SPRITE] = spriteRef(golemArm);
               rerenderEntity(world, limb);
             });
 
@@ -4129,7 +4136,7 @@ export default function setupAi(world: World) {
 
             if (preferStrike && !preferStomp) {
               // prepare for strike
-              closestArm[SPRITE] = golemFist;
+              closestArm[SPRITE] = spriteRef(golemFist);
               rerenderEntity(world, closestArm);
               patterns.splice(patterns.indexOf(pattern), 1, {
                 name: "golem",
@@ -4557,7 +4564,7 @@ export default function setupAi(world: World) {
                 entity[POSITION],
                 pattern.memory.origin
               )[0];
-              fistEntity[SPRITE] = golemArm;
+              fistEntity[SPRITE] = spriteRef(golemArm);
               moveEntity(world, fistEntity, copy(pattern.memory.origin));
               rerenderEntity(world, fistEntity);
             }
@@ -4870,7 +4877,9 @@ export default function setupAi(world: World) {
             entity[MOVABLE].spring = { duration: 350 };
             syncMovementSpring(world, entity);
             if (!intro) entity[MOVABLE].orientations = ["up"];
-            entity[SPRITE] = { ...wormMouth, name: "" };
+            entity[SPRITE] = spriteRef(
+              customSprite({ ...wormMouth, name: "" })
+            );
             if (entity[FOG]) entity[FOG].type = "float";
             setExposed(true);
             nextPhase("flight");
@@ -4882,12 +4891,12 @@ export default function setupAi(world: World) {
           };
           const warn = (sprite: typeof rage | undefined) => {
             const tooltip = entity[TOOLTIP]!;
-            if (tooltip.idle === sprite) return;
+            if (tooltip.idle?.id === sprite?.id) return;
             tooltip.idle = sprite;
             tooltip.changed = true;
             if (sprite)
               play(world, entity, "danger", {
-                intensity: sprite === rage2 ? 2 : 1,
+                intensity: sprite.id === rage2.id ? 2 : 1,
               });
           };
           const clearArtillery = () => {
@@ -5143,7 +5152,7 @@ export default function setupAi(world: World) {
               }
               if (tail && !entry.evaporating) {
                 entry.evaporating = true;
-                tail[SPRITE] = none;
+                tail[SPRITE] = spriteRef(none);
                 createSequence(world, tail, "evaporate", "creatureEvaporate", {
                   fast: true,
                   sprite: evaporate.default.fire,
@@ -5162,7 +5171,7 @@ export default function setupAi(world: World) {
           if (percentage <= 0.25) memory.enraged = true;
           if (memory.enraged && memory.phase === "artillery") retreat("rage");
           if (memory.enraged && memory.phase === "burrow") {
-            entity[SPRITE] = none;
+            entity[SPRITE] = spriteRef(none);
             entity[ORIENTABLE].facing = undefined;
             memory.hole = copy(entity[POSITION]);
             memory.afterHidden = "rage";
@@ -5183,7 +5192,7 @@ export default function setupAi(world: World) {
               syncMovementSpring(world, entity);
               moveEntity(world, entity, memory.hole);
               setExposed(false);
-              entity[SPRITE] = none;
+              entity[SPRITE] = spriteRef(none);
               memory.activeHole = showHole(memory.hole);
               if (entity[FOG]) entity[FOG].type = "float";
               entity[ORIENTABLE].facing = undefined;
@@ -5193,7 +5202,9 @@ export default function setupAi(world: World) {
               setExposed(true);
               entity[MOVABLE].spring = { duration: 350 };
               syncMovementSpring(world, entity);
-              entity[SPRITE] = { ...wormMouth, name: "" };
+              entity[SPRITE] = spriteRef(
+                customSprite({ ...wormMouth, name: "" })
+              );
               if (entity[FOG]) entity[FOG].type = "float";
               entity[ORIENTABLE].facing = "up";
             }
@@ -5236,7 +5247,7 @@ export default function setupAi(world: World) {
             if (memory.ticks === 3) {
               closeHole(memory.activeHole);
               setExposed(false);
-              entity[SPRITE] = none;
+              entity[SPRITE] = spriteRef(none);
               entity[ORIENTABLE].facing = undefined;
               nextPhase("hidden");
             }
@@ -5327,7 +5338,7 @@ export default function setupAi(world: World) {
                   "visible"
                 ).cell;
                 fire[BURNABLE]!.smokeless = true;
-                fire[SPRITE] = none;
+                fire[SPRITE] = spriteRef(none);
                 registerEntity(world, fire);
                 setIdentifier(world, fire, "worm:fire");
               }
@@ -5538,7 +5549,7 @@ export default function setupAi(world: World) {
 
                 if (isHead) {
                   memory.entryHole = showHole(limbEntity[POSITION]);
-                  limbEntity[SPRITE] = none;
+                  limbEntity[SPRITE] = spriteRef(none);
                   if (entity[EXERTABLE])
                     world.removeComponentFromEntity(
                       world.assertComponents(entity, [EXERTABLE]),
@@ -5562,14 +5573,14 @@ export default function setupAi(world: World) {
               limbEntity[MOVABLE].orientations = [orientation];
 
               if (beforeWaypoint && !isHead && nextWaypoint && !lastWaypoint) {
-                limbEntity[SPRITE] = wormCorner;
+                limbEntity[SPRITE] = spriteRef(wormCorner);
                 limbEntity[ORIENTABLE].facing = rotateOrientation(
                   orientation,
                   rotation - 1
                 );
               } else {
-                if (limbEntity[SPRITE] !== wormSide) {
-                  limbEntity[SPRITE] = isHead ? limbEntity[SPRITE] : wormSide;
+                if (!isHead && limbEntity[SPRITE]?.id !== wormSide.id) {
+                  limbEntity[SPRITE] = spriteRef(wormSide);
                 }
 
                 limbEntity[ORIENTABLE].facing = orientation;
@@ -5619,7 +5630,7 @@ export default function setupAi(world: World) {
                   disc[MOVABLE].pendingOrientation = undefined;
                   disc[CASTABLE].magic = 0;
                   disc[CASTABLE].burn = 0;
-                  disc[SPRITE] = none;
+                  disc[SPRITE] = spriteRef(none);
                 }
               }
               for (const limb of memory.limbs.slice(1)) {
@@ -5674,7 +5685,7 @@ export default function setupAi(world: World) {
               memory.jumps -= 1;
               memory.hole = copy(entity[POSITION]);
               memory.afterHidden = memory.jumps > 0 ? "burrow" : "choose";
-              entity[SPRITE] = none;
+              entity[SPRITE] = spriteRef(none);
               entity[ORIENTABLE].facing = undefined;
               nextPhase("hidden");
             }
@@ -5763,11 +5774,11 @@ export default function setupAi(world: World) {
                       (cycle === 3 ? 1 : 2),
                   },
                   [RENDERABLE]: { generation: 1 },
-                  [SPRITE]: {
+                  [SPRITE]: customSprite({
                     name: "",
                     layers: [{ char: "│", color: colors.red }],
                     facing: { up: [{ char: "║", color: colors.red }] },
-                  },
+                  }),
                 });
                 roomSequence.particles[`artillery${line}`] =
                   world.getEntityId(shot);
@@ -5792,7 +5803,7 @@ export default function setupAi(world: World) {
                     "hidden"
                   ).cell;
                   fire[BURNABLE]!.smokeless = true;
-                  fire[SPRITE] = none;
+                  fire[SPRITE] = spriteRef(none);
                   registerEntity(world, fire);
                   setIdentifier(world, fire, "worm:fire");
                   memory.fires.push({
@@ -5868,7 +5879,7 @@ export default function setupAi(world: World) {
             bossMemory?.phase === "rage" &&
             boss[STATS].hp / boss[STATS].maxHp <= 0.25;
           const setWarning = (sprite: typeof rage | undefined) => {
-            if (entity[TOOLTIP]?.idle === sprite) return;
+            if (entity[TOOLTIP]?.idle?.id === sprite?.id) return;
             entity[TOOLTIP]!.idle = sprite;
             entity[TOOLTIP]!.changed = true;
           };
@@ -5887,7 +5898,7 @@ export default function setupAi(world: World) {
             disc[CASTABLE].heal = 0;
             disc[CASTABLE].magic = 0;
             disc[CASTABLE].burn = 0;
-            disc[SPRITE] = none;
+            disc[SPRITE] = spriteRef(none);
           };
           if (!healing && memory.heal) {
             stopDisc(memory.heal);
@@ -6056,7 +6067,7 @@ export default function setupAi(world: World) {
           const adjustedWavesTicks = (wavesTicks / 2) * (4 - waveTowers.length);
 
           if (pattern.memory.phase === 1) {
-            entity[SPRITE] = chestBoss;
+            entity[SPRITE] = spriteRef(chestBoss);
             entity[BELONGABLE].faction = "wild";
             patterns.splice(patterns.indexOf(pattern), 1);
 
@@ -6118,7 +6129,7 @@ export default function setupAi(world: World) {
             ];
           } else if (pattern.memory.phase === 3) {
             const pendingTowers = waveTowers.filter(
-              (tower) => tower[SPRITE] === waveTower.iron.default
+              (tower) => tower[SPRITE].id === waveTower.iron.default.id
             );
 
             if (!pattern.memory.chase && !pendingPatterns) {
@@ -6154,7 +6165,7 @@ export default function setupAi(world: World) {
             ) {
               const towerEntity =
                 pendingTowers[random(0, pendingTowers.length - 1)];
-              towerEntity[SPRITE] = waveTowerCharged;
+              towerEntity[SPRITE] = spriteRef(waveTowerCharged);
               towerEntity[BEHAVIOUR].patterns = [
                 {
                   name: "dialog",
@@ -6183,7 +6194,7 @@ export default function setupAi(world: World) {
             ) {
               pattern.memory.chase = undefined;
               waveTowers.forEach((tower) => {
-                tower[SPRITE] = waveTower.iron.default;
+                tower[SPRITE] = spriteRef(waveTower.iron.default);
               });
               entity[BEHAVIOUR].patterns = [
                 {
@@ -6362,7 +6373,7 @@ export default function setupAi(world: World) {
                 [ITEM]
               );
               towerItem[ITEM].element = "fire";
-              tower[SPRITE] = waveTower.iron.fire;
+              tower[SPRITE] = spriteRef(waveTower.iron.fire);
 
               // cast fire waves
               tower[BEHAVIOUR].patterns = [
@@ -6561,7 +6572,7 @@ export default function setupAi(world: World) {
               );
               casterItem[ITEM].element = "water";
               if (caster !== entity) {
-                caster[SPRITE] = waveTower.iron.water;
+                caster[SPRITE] = spriteRef(waveTower.iron.water);
               }
 
               // cast water waves

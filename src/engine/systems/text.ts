@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { LEVEL } from "../components/level";
@@ -195,7 +196,7 @@ export default function setupText(world: World) {
 
       const idle = tooltipEntity[TOOLTIP].idle;
       const dialogs = tooltipEntity[TOOLTIP].dialogs;
-      const spriteText = tooltipEntity[SPRITE].name;
+      const spriteText = resolveSprite(tooltipEntity[SPRITE]).name;
       const spriteTooltip = spriteText
         ? createTooltip(world, tooltipEntity)
         : [];

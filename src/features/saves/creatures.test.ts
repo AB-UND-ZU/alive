@@ -85,12 +85,12 @@ describe("saved creatures", () => {
     const eye = getCreature(loaded, "eye");
     const start = { ...eye[POSITION] };
     advanceTicks(loaded, 3);
-    expect([sleep1, sleep2]).toContain(eye[TOOLTIP].idle);
+    expect([sleep1.id, sleep2.id]).toContain(eye[TOOLTIP].idle?.id);
     expect(eye[POSITION]).toEqual(start);
 
     teleport(loaded, assertHero(loaded), { x: start.x - 6, y: start.y });
     advanceTicks(loaded, 3);
-    expect(eye[TOOLTIP].idle).toBe(confused);
+    expect(eye[TOOLTIP].idle?.id).toBe(confused.id);
     expect(eye[ORIENTABLE].facing).toBe("left");
   });
 
@@ -100,7 +100,7 @@ describe("saved creatures", () => {
     advanceTicks(world, 2);
     const eye = getCreature(world, "eye");
     teleport(world, hero, { x: eye[POSITION].x - 4, y: eye[POSITION].y });
-    advanceUntil(world, () => eye[TOOLTIP].idle === rage, 5000);
+    advanceUntil(world, () => eye[TOOLTIP].idle?.id === rage.id, 5000);
 
     const loaded = saveAndLoad(world);
     const loadedHero = getHero(loaded);

@@ -1,3 +1,4 @@
+import { spriteRef } from "../../game/assets/spriteIds";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -209,7 +210,7 @@ export default function setupBallistics(world: World) {
         entity[PROJECTILE].shadow = hasShadow;
         const material = entity[PROJECTILE].material;
         const sprite = (hasShadow ? shotShadow : shot)[material].default;
-        entity[SPRITE] = sprite;
+        entity[SPRITE] = spriteRef(sprite);
         rerenderEntity(world, entity);
       }
 

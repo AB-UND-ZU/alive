@@ -1,4 +1,5 @@
 import { requireComponent, hasComponent, TypedEntity } from "../entities";
+import { resolveSprite, spriteRef } from "../../game/assets/spriteIds";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -113,7 +114,7 @@ export const createBubble = (
     !soil[FARMABLE].watered &&
     !soil[FARMABLE].planted
   ) {
-    soil[SPRITE] = soilWet;
+    soil[SPRITE] = spriteRef(soilWet);
     soil[FARMABLE].watered = true;
     rerenderEntity(world, soil);
   }
@@ -166,7 +167,7 @@ export const applyWaterCell = (world: World, position: Position) => {
   const water = getImmersible(world, position);
   if (water && requireComponent(water, IMMERSIBLE).deep !== deep) {
     requireComponent(water, IMMERSIBLE).deep = deep;
-    water[SPRITE] = deep ? waterDeep : waterShallow;
+    water[SPRITE] = spriteRef(deep ? waterDeep : waterShallow);
     rerenderEntity(world, water);
   }
   return true;
@@ -200,7 +201,7 @@ export const updateShoreline = (world: World, position: Position) => {
       if (paving) {
         if (requireComponent(paving, HARVESTABLE).resource !== ground) {
           requireComponent(paving, HARVESTABLE).resource = ground;
-          paving[SPRITE] = nearbyWater ? beach : sand;
+          paving[SPRITE] = spriteRef(nearbyWater ? beach : sand);
           rerenderEntity(world, paving);
         }
       } else if (!level.initialized[x][y]) {
@@ -239,7 +240,9 @@ export const updateShoreline = (world: World, position: Position) => {
             !hasComponent(cell, MOVABLE) &&
             cell[SPRITE]
           ) {
-            cell[SPRITE] = mergeSprites(shadow, cell[SPRITE]);
+            cell[SPRITE] = spriteRef(
+              mergeSprites(shadow, resolveSprite(cell[SPRITE]))
+            );
             rerenderEntity(world, cell);
           }
         }

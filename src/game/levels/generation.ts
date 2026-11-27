@@ -1,3 +1,4 @@
+import { spriteRef } from "../assets/spriteIds";
 import { createRng } from "../math/rng";
 import createWorld, { createLevel, World } from "../../engine/ecs";
 import {
@@ -167,7 +168,7 @@ function* generateArrival(
   }
 
   if (hairColor || classKey) {
-    entity[SPRITE] = sprite;
+    entity[SPRITE] = spriteRef(sprite);
     entity[SWIMMABLE] = { swimming: false, sprite: swimming };
   }
 

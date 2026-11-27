@@ -1,18 +1,22 @@
+import { resolveSprite } from "../game/assets/spriteIds";
+import { anvil, bench, kettle } from "../game/assets/sprites";
 import { orientationPoints } from "../engine/components/orientable";
 import { createPresetWorld, islandPreviewSeed } from "./presets";
 import { initializeArea } from "../engine/systems/initialize";
 import { getSequence } from "../engine/systems/sequence";
 import { getIdentifierAndComponents } from "../engine/utils";
 import { normalize, signedDistance } from "../game/math/std";
-import { Sprite } from "../engine/components/sprite";
+import { Sprite, SpriteArtwork } from "../engine/components/sprite";
 import { worldRows } from "./WorldDiagram";
 import { getUnitSprite } from "../game/assets/utils";
 import { UnitKey } from "../game/balancing/units";
 
+const workstationIds = new Set([anvil.id, bench.id, kettle.id]);
+
 export function prepareIslandMaps() {
   const world = createPresetWorld("island");
   const level = world.metadata.gameEntity.LEVEL;
-  const sprites: Sprite[] = [];
+  const sprites: SpriteArtwork[] = [];
   const palette = new Map<string, number>();
   const packSprite = (sprite: Sprite) => {
     const key = JSON.stringify(sprite.layers);
@@ -122,22 +126,21 @@ export function prepareIslandMaps() {
       if (
         normalize(entity.POSITION.x - bounds.x, level.size) >= bounds.width ||
         normalize(entity.POSITION.y - bounds.y, level.size) >= bounds.height ||
-        (!entity.NPC &&
-          !["Bench", "Anvil", "Kettle"].includes(entity.SPRITE.name))
+        (!entity.NPC && !workstationIds.has(entity.SPRITE.id))
       )
         continue;
-      const name = entity.SPRITE.name;
-      const key = entity.NPC?.type || name;
+      const key = entity.NPC?.type || entity.SPRITE.id;
       const previous = entries.get(key);
       if (previous) {
         previous.count++;
         continue;
       }
+      const sprite = resolveSprite(entity.SPRITE);
       entries.set(key, {
-        name: name || key,
+        name: sprite.name || key,
         unit: entity.NPC?.type,
         sprite: packSprite(
-          entity.NPC ? getUnitSprite(entity.NPC.type as UnitKey) : entity.SPRITE
+          entity.NPC ? getUnitSprite(entity.NPC.type as UnitKey) : sprite
         ),
         tabs: entity.POPUP?.tabs || [],
         count: 1,

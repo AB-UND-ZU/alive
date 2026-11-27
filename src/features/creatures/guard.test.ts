@@ -129,7 +129,7 @@ describe("gate guard", () => {
     });
     const eye = getCreature(world, "eye");
 
-    advanceUntil(world, () => guard[TOOLTIP].idle === rage, 3000);
+    advanceUntil(world, () => guard[TOOLTIP].idle?.id === rage.id, 3000);
     advanceUntil(world, () => isDead(world, eye), 15000);
   });
 
@@ -150,10 +150,10 @@ describe("gate guard", () => {
       },
     });
     const eye = getCreature(world, "eye");
-    advanceUntil(world, () => guard[TOOLTIP].idle === rage, 3000);
+    advanceUntil(world, () => guard[TOOLTIP].idle?.id === rage.id, 3000);
 
     teleport(world, eye, { x: 20, y: 30 });
-    advanceUntil(world, () => guard[TOOLTIP].idle !== rage, 2000);
+    advanceUntil(world, () => guard[TOOLTIP].idle?.id !== rage.id, 2000);
     advanceUntil(
       world,
       () => guard[POSITION].x === origin.x && guard[POSITION].y === origin.y,
@@ -183,7 +183,7 @@ describe("gate guard", () => {
 
     advanceTicks(world, 4);
 
-    expect(guard[TOOLTIP].idle).not.toBe(rage);
+    expect(guard[TOOLTIP].idle?.id).not.toBe(rage.id);
     expect(
       guard[BEHAVIOUR].patterns.map((pattern: Pattern) => pattern.name)
     ).not.toContain("kill");

@@ -1,8 +1,9 @@
+const { resolveSprite } = require("../../../src/game/assets/spriteIds");
 const { test, expect, playPreview } = require("./fixtures.cjs");
 
 // Project native particle centers independently of the DOM hit areas.
-const nativePoint = (page, sequence, key) =>
-  page.evaluate(
+const nativePoint = async (page, sequence, key) => {
+  const point = await page.evaluate(
     ({ sequence, key }) => {
       const terminal = document.querySelector(".Terminal");
       let fiber =
@@ -44,14 +45,16 @@ const nativePoint = (page, sequence, key) =>
           (distance(camera.POSITION.y, owner.POSITION.y) +
             particle.PARTICLE.offsetY) *
             cellHeight,
-        char: particle.SPRITE.layers.at(-1)?.char,
-        color: particle.SPRITE.layers.at(-1)?.color,
+        sprite: particle.SPRITE,
         cellWidth,
         cellHeight,
       };
     },
     { sequence, key }
   );
+  if (!point) return null;
+  return { ...point, ...resolveSprite(point.sprite).layers.at(-1) };
+};
 
 const popupState = (page) =>
   page.evaluate(() => {

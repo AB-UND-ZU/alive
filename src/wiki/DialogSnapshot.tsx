@@ -1,10 +1,11 @@
+import { customSprite, resolveSprite } from "../game/assets/spriteIds";
 import { useState } from "react";
 import type { TypedEntity } from "../engine/entities";
 import { World } from "../engine";
 import { Popup } from "../engine/components/popup";
 import { slots } from "../engine/components/equippable";
 import { getItemConsumption } from "../engine/systems/consume";
-import { Sprite } from "../engine/components/sprite";
+import { Sprite, SpriteRef } from "../engine/components/sprite";
 import { createPopup, openPopup } from "../engine/systems/popup";
 import { getSequence } from "../engine/systems/sequence";
 import { getFacingLayers } from "../game/assets/ui";
@@ -65,7 +66,7 @@ function particleRows(
       offsetZ: number;
       amount?: number;
     };
-    SPRITE: Sprite;
+    SPRITE: SpriteRef;
     ORIENTABLE?: {
       facing?: import("../engine/components/orientable").Orientation;
     };
@@ -85,14 +86,14 @@ function particleRows(
     const y = Math.round(part.PARTICLE.offsetY - top),
       x = Math.round(part.PARTICLE.offsetX - left);
     const layers = getFacingLayers(
-      part.SPRITE,
+      resolveSprite(part.SPRITE),
       part.ORIENTABLE?.facing,
       part.PARTICLE.amount
     );
-    rows[y][x] = {
-      name: part.SPRITE.name,
+    rows[y][x] = customSprite({
+      name: resolveSprite(part.SPRITE).name,
       layers: [...rows[y][x].layers, ...layers],
-    };
+    });
   }
   return rows;
 }

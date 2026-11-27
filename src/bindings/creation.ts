@@ -1,3 +1,4 @@
+import { customSprite, spriteRef } from "../game/assets/spriteIds";
 import { isTouch } from "../renderers/interface/platform";
 import { gameVersion } from "../game/assets/version";
 import { getUpdates } from "../game/assets/updates";
@@ -1021,7 +1022,7 @@ export const createWormBait = (
     .cell as TypedEntity<
     "STATS" | "SPRITE" | "BEHAVIOUR" | "BELONGABLE" | "POSITION"
   >;
-  wormEntity[SPRITE] = getItemSprite({ stackable: "worm" });
+  wormEntity[SPRITE] = spriteRef(getItemSprite({ stackable: "worm" }));
   wormEntity[STATS].hp = 1;
   wormEntity[STATS].maxHp = 1;
   wormEntity[STATS].armor = 0;
@@ -1636,7 +1637,7 @@ export const createCell = (
         x: normalize(x + offsetX + rottenX, size),
         y,
       });
-      rottenEntity[SPRITE] = { ...sprite, name: "" };
+      rottenEntity[SPRITE] = spriteRef(customSprite({ ...sprite, name: "" }));
       all.push(rottenEntity);
     });
     return { cell: all[0], all };
@@ -2184,10 +2185,10 @@ export const createCell = (
     }
     return { cell: spawnKeyEntity, all };
   } else if (cell === "menu_sign") {
-    const scoutSprite = {
+    const scoutSprite = customSprite({
       ...mergeSprites(scout, parseSprite("\x0a_")),
       terminal: scout.terminal,
-    };
+    });
     const menuSign = createSign(world, { x, y }, [
       [
         repeat(swirl, 17),
@@ -2373,10 +2374,10 @@ export const createCell = (
         [TEMPO]: { amount: -2 },
       })
     );
-    const scoutSprite = {
+    const scoutSprite = customSprite({
       ...mergeSprites(scout, parseSprite("\x0a_")),
       terminal: scout.terminal,
-    };
+    });
     const signEntity = createSign(world, { x, y }, [
       [
         [
@@ -4327,7 +4328,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
       [SHOOTABLE]: { shots: 0 },
-      [SPRITE]: { ...wormMouth, name: "" },
+      [SPRITE]: customSprite({ ...wormMouth, name: "" }),
       [STATS]: bossUnit.stats,
       [STRUCTURABLE]: {},
       [SWIMMABLE]: { swimming: false },

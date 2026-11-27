@@ -2,12 +2,14 @@ import { Sprite } from "../../../engine/components/sprite";
 import { colors } from "../colors";
 
 export const scout: Sprite = {
+  id: "scout",
   name: "Scout",
   terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [{ char: "\u010b", color: colors.silver }],
 };
 
 export const rogue: Sprite = {
+  id: "rogue",
   name: "Rogue",
   terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [
@@ -17,6 +19,7 @@ export const rogue: Sprite = {
 };
 
 export const rogueBackdrop: Sprite = {
+  id: "rogue_backdrop",
   name: "Rogue",
   layers: [
     { char: "┘", color: colors.white },
@@ -26,6 +29,7 @@ export const rogueBackdrop: Sprite = {
 };
 
 export const swimmingRogue: Sprite = {
+  id: "swimming_rogue",
   name: "Rogue",
   terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [
@@ -35,6 +39,7 @@ export const swimmingRogue: Sprite = {
 };
 
 export const swimmingRogueBackdrop: Sprite = {
+  id: "swimming_rogue_backdrop",
   name: "Rogue",
   layers: [
     { char: "┘", color: colors.white },
@@ -44,6 +49,7 @@ export const swimmingRogueBackdrop: Sprite = {
 };
 
 export const mage: Sprite = {
+  id: "mage",
   name: "Mage",
   terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [
@@ -53,6 +59,7 @@ export const mage: Sprite = {
 };
 
 export const knight: Sprite = {
+  id: "knight",
   name: "Knight",
   terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [
@@ -62,6 +69,7 @@ export const knight: Sprite = {
 };
 
 export const bandit: Sprite = {
+  id: "bandit",
   name: "Bandit",
   terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [
@@ -71,12 +79,14 @@ export const bandit: Sprite = {
 };
 
 export const alien: Sprite = {
+  id: "alien",
   name: "???",
   terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [{ char: "\u010b", color: colors.silver }],
 };
 
 export const alienBackdrop: Sprite = {
+  id: "alien_backdrop",
   name: "???",
   layers: [
     { char: "Ä", color: colors.white },
@@ -89,6 +99,7 @@ export const alienBackdrop: Sprite = {
 };
 
 export const swimmingAlienBackdrop: Sprite = {
+  id: "swimming_alien_backdrop",
   name: "???",
   layers: [
     { char: "Ä", color: colors.white },
@@ -102,10 +113,12 @@ export const swimmingAlienBackdrop: Sprite = {
 
 export const chief: Sprite = {
   ...bandit,
+  id: "chief",
   name: "Chief",
 };
 
 export const zombie: Sprite = {
+  id: "zombie",
   name: "Zombie",
   terminal: { layers: [{ char: "\u010b", color: colors.silver }] },
   layers: [
@@ -116,6 +129,7 @@ export const zombie: Sprite = {
 };
 
 export const blade: Sprite = {
+  id: "blade",
   name: "Blade",
   layers: [
     { char: "+", color: colors.grey },
@@ -146,6 +160,7 @@ export const blade: Sprite = {
 };
 
 export const salmon: Sprite = {
+  id: "salmon",
   name: "Salmon",
   layers: [
     { char: "\u011a", color: colors.purple },
@@ -157,6 +172,7 @@ export const salmon: Sprite = {
 };
 
 export const pike: Sprite = {
+  id: "pike",
   name: "Pike",
   layers: [
     { char: "\u011a", color: colors.teal },
@@ -168,6 +184,7 @@ export const pike: Sprite = {
 };
 
 export const tuna: Sprite = {
+  id: "tuna",
   name: "Tuna",
   layers: [
     { char: "\u0106", color: colors.purple },
@@ -177,6 +194,7 @@ export const tuna: Sprite = {
 };
 
 export const cod: Sprite = {
+  id: "cod",
   name: "Cod",
   layers: [
     { char: "\u0106", color: colors.teal },
@@ -186,6 +204,7 @@ export const cod: Sprite = {
 };
 
 export const eel: Sprite = {
+  id: "eel",
   name: "Eel",
   layers: [
     { char: "\u0103", color: colors.green },
@@ -197,6 +216,7 @@ export const eel: Sprite = {
 };
 
 export const swimmingEel: Sprite = {
+  id: "swimming_eel",
   name: "Eel",
   layers: [
     { char: "\u0103", color: colors.green },
@@ -208,6 +228,7 @@ export const swimmingEel: Sprite = {
 };
 
 export const seastar: Sprite = {
+  id: "seastar",
   name: "Seastar",
   layers: [
     { char: "x", color: colors.olive },
@@ -218,6 +239,7 @@ export const seastar: Sprite = {
 };
 
 export const shark: Sprite = {
+  id: "shark",
   name: "Shark",
   layers: [
     { char: "≥", color: colors.grey },
@@ -249,6 +271,7 @@ export const shark: Sprite = {
 };
 
 export const ghost: Sprite = {
+  id: "ghost",
   name: "Soul",
   terminal: { layers: [{ char: "\u010b", color: colors.yellow }] },
   layers: [
@@ -259,11 +282,13 @@ export const ghost: Sprite = {
 };
 
 export const halo: Sprite = {
+  id: "halo",
   name: "Soul",
   layers: [{ char: "°", color: colors.yellow }],
 };
 
 export const waveTowerCharged: Sprite = {
+  id: "wave_tower_charged",
   name: "Tower",
   layers: [
     { char: "Y", color: colors.silver },
@@ -272,6 +297,7 @@ export const waveTowerCharged: Sprite = {
 };
 
 export const spider: Sprite = {
+  id: "spider",
   name: "Spider",
   layers: [
     { char: '"', color: colors.silver },
@@ -285,6 +311,7 @@ export const spider: Sprite = {
 };
 
 export const snake: Sprite = {
+  id: "snake",
   name: "Snake",
   layers: [{ char: "@", color: colors.silver }],
   facing: {
@@ -308,6 +335,7 @@ export const snake: Sprite = {
 };
 
 export const fly: Sprite = {
+  id: "fly",
   name: "Fly",
   layers: [
     { char: '"', color: colors.silver },
@@ -320,11 +348,13 @@ export const fly: Sprite = {
 };
 
 export const fairy: Sprite = {
+  id: "fairy",
   name: "Fairy",
   layers: [{ char: "\u0100", color: colors.grey }],
 };
 
 export const ilex: Sprite = {
+  id: "ilex",
   name: "Ilex",
   layers: [
     { char: "X", color: colors.green },
@@ -359,6 +389,7 @@ export const ilex: Sprite = {
 };
 
 export const oakBossUnit: Sprite = {
+  id: "oak_boss_unit",
   name: "Oak",
   layers: [
     { char: "\u0106", color: colors.green },
@@ -371,6 +402,7 @@ export const oakBossUnit: Sprite = {
 };
 
 export const chestBoss: Sprite = {
+  id: "chest_boss",
   name: "",
   layers: [
     { char: "■", color: colors.grey },
@@ -383,6 +415,7 @@ export const chestBoss: Sprite = {
 };
 
 export const chick: Sprite = {
+  id: "chick",
   name: "Chick",
   terminal: { layers: [{ char: "\u0103", color: colors.yellow }] },
   layers: [
@@ -406,6 +439,7 @@ export const chick: Sprite = {
 };
 
 export const golemUnit: Sprite = {
+  id: "golem_unit",
   name: "Golem",
   terminal: { layers: [{ char: "\u0101", color: colors.silver }] },
   layers: [
@@ -421,6 +455,7 @@ export const golemUnit: Sprite = {
 };
 
 export const golem: Sprite = {
+  id: "golem",
   name: "Golem",
   layers: [
     { char: "█", color: colors.grey },
@@ -470,6 +505,7 @@ export const golem: Sprite = {
 };
 
 export const golemBody: Sprite = {
+  id: "golem_body",
   name: "Golem",
   layers: [{ char: "█", color: colors.grey }],
   facing: {
@@ -484,6 +520,7 @@ export const golemBody: Sprite = {
 };
 
 export const golemArm: Sprite = {
+  id: "golem_arm",
   name: "Golem",
   layers: [
     { char: "╥", color: colors.grey },
@@ -510,6 +547,7 @@ export const golemArm: Sprite = {
 };
 
 export const golemShoulderLeft: Sprite = {
+  id: "golem_shoulder_left",
   name: "Golem",
   layers: [{ char: "╔", color: colors.grey }],
   facing: {
@@ -519,6 +557,7 @@ export const golemShoulderLeft: Sprite = {
 };
 
 export const golemShoulderRight: Sprite = {
+  id: "golem_shoulder_right",
   name: "Golem",
   layers: [{ char: "╗", color: colors.grey }],
   facing: {
@@ -528,6 +567,7 @@ export const golemShoulderRight: Sprite = {
 };
 
 export const golemLimb: Sprite = {
+  id: "golem_limb",
   name: "Golem",
   layers: [{ char: "╬", color: colors.grey }],
   facing: {
@@ -539,6 +579,7 @@ export const golemLimb: Sprite = {
 };
 
 export const golemFist: Sprite = {
+  id: "golem_fist",
   name: "Golem",
   layers: [
     { char: "═", color: colors.grey },
@@ -569,6 +610,7 @@ export const golemFist: Sprite = {
 };
 
 export const golemStrikeUp: Sprite = {
+  id: "golem_strike_up",
   name: "Golem",
   layers: [],
   facing: {
@@ -579,6 +621,7 @@ export const golemStrikeUp: Sprite = {
 };
 
 export const golemStrikeUpRight: Sprite = {
+  id: "golem_strike_up_right",
   name: "Golem",
   layers: [],
   facing: {
@@ -588,6 +631,7 @@ export const golemStrikeUpRight: Sprite = {
 };
 
 export const golemStrikeRight: Sprite = {
+  id: "golem_strike_right",
   name: "Golem",
   layers: [],
   facing: {
@@ -598,6 +642,7 @@ export const golemStrikeRight: Sprite = {
 };
 
 export const golemStrikeRightDown: Sprite = {
+  id: "golem_strike_right_down",
   name: "Golem",
   layers: [],
   facing: {
@@ -607,6 +652,7 @@ export const golemStrikeRightDown: Sprite = {
 };
 
 export const golemStrikeDown: Sprite = {
+  id: "golem_strike_down",
   name: "Golem",
   layers: [],
   facing: {
@@ -617,6 +663,7 @@ export const golemStrikeDown: Sprite = {
 };
 
 export const golemStrikeDownLeft: Sprite = {
+  id: "golem_strike_down_left",
   name: "Golem",
   layers: [],
   facing: {
@@ -626,6 +673,7 @@ export const golemStrikeDownLeft: Sprite = {
 };
 
 export const golemStrikeLeft: Sprite = {
+  id: "golem_strike_left",
   name: "Golem",
   layers: [],
   facing: {
@@ -636,6 +684,7 @@ export const golemStrikeLeft: Sprite = {
 };
 
 export const golemStrikeLeftUp: Sprite = {
+  id: "golem_strike_left_up",
   name: "Golem",
   layers: [],
   facing: {
@@ -645,6 +694,7 @@ export const golemStrikeLeftUp: Sprite = {
 };
 
 export const giantHead: Sprite = {
+  id: "giant_head",
   name: "Giant",
   layers: [{ char: "▀", color: colors.silver }],
   facing: {
@@ -660,6 +710,7 @@ export const giantHead: Sprite = {
 };
 
 export const giantBody: Sprite = {
+  id: "giant_body",
   name: "Giant",
   layers: [{ char: "▄", color: colors.silver }],
   facing: {
@@ -683,6 +734,7 @@ export const giantBody: Sprite = {
 };
 
 export const giantFeet: Sprite = {
+  id: "giant_feet",
   name: "Giant",
   layers: [
     { char: "▀", color: colors.silver },
@@ -710,6 +762,7 @@ export const giantFeet: Sprite = {
 };
 
 export const wormBoss: Sprite = {
+  id: "worm_boss",
   name: "Worm",
   layers: [
     { char: "│", color: colors.silver },
@@ -725,6 +778,7 @@ export const wormBoss: Sprite = {
 };
 
 export const wormSide: Sprite = {
+  id: "worm_side",
   name: "Worm",
   layers: [
     { char: "M", color: colors.grey },
@@ -816,6 +870,7 @@ export const wormSide: Sprite = {
 };
 
 export const wormCorner: Sprite = {
+  id: "worm_corner",
   name: "Worm",
   layers: [
     { char: "M", color: colors.grey },
@@ -909,6 +964,7 @@ export const wormCorner: Sprite = {
 };
 
 export const wormMouth: Sprite = {
+  id: "worm_mouth",
   name: "Worm",
   layers: [],
   facing: {
@@ -936,6 +992,7 @@ export const wormMouth: Sprite = {
 };
 
 export const wormMouthCornerLeft: Sprite = {
+  id: "worm_mouth_corner_left",
   name: "Worm",
   layers: [
     { char: "█", color: colors.grey },
@@ -963,6 +1020,7 @@ export const wormMouthCornerLeft: Sprite = {
 };
 
 export const wormMouthCornerRight: Sprite = {
+  id: "worm_mouth_corner_right",
   name: "Worm",
   layers: [
     { char: "█", color: colors.grey },
@@ -990,6 +1048,7 @@ export const wormMouthCornerRight: Sprite = {
 };
 
 export const wormMouthSideLeft: Sprite = {
+  id: "worm_mouth_side_left",
   name: "Worm",
   layers: [],
   facing: {
@@ -1002,6 +1061,7 @@ export const wormMouthSideLeft: Sprite = {
 };
 
 export const wormMouthCenter: Sprite = {
+  id: "worm_mouth_center",
   name: "Worm",
   layers: [],
   facing: {
@@ -1017,6 +1077,7 @@ export const wormMouthCenter: Sprite = {
 };
 
 export const wormMouthSideRight: Sprite = {
+  id: "worm_mouth_side_right",
   name: "Worm",
   layers: [],
   facing: {
@@ -1029,6 +1090,7 @@ export const wormMouthSideRight: Sprite = {
 };
 
 export const wormSpikeClockwise: Sprite = {
+  id: "worm_spike_clockwise",
   name: "Worm",
   layers: [],
   facing: {
@@ -1040,6 +1102,7 @@ export const wormSpikeClockwise: Sprite = {
 };
 
 export const wormSpikeCounterClockwise: Sprite = {
+  id: "worm_spike_counter_clockwise",
   name: "Worm",
   layers: [],
   facing: {

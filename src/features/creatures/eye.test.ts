@@ -35,7 +35,7 @@ describe("eye", () => {
 
     expect(eye[POSITION]).toEqual(start);
     states.slice(2).forEach(({ idle, facing }) => {
-      expect([sleep1, sleep2]).toContain(idle);
+      expect([sleep1.id, sleep2.id]).toContain(idle?.id);
       expect(facing).toBeUndefined();
     });
   });
@@ -50,7 +50,7 @@ describe("eye", () => {
     teleport(world, hero, { x: start.x - 6, y: start.y });
     advanceTicks(world, 3);
 
-    expect(eye[TOOLTIP].idle).toBe(confused);
+    expect(eye[TOOLTIP].idle?.id).toBe(confused.id);
     expect(eye[ORIENTABLE].facing).toBe("left");
     expect(eye[POSITION]).toEqual(start);
   });
@@ -63,9 +63,9 @@ describe("eye", () => {
     const start = { ...eye[POSITION] };
 
     teleport(world, hero, { x: start.x - 4, y: start.y });
-    const idles = trace(world, 4, () => eye[TOOLTIP].idle);
+    const idles = trace(world, 4, () => eye[TOOLTIP].idle?.id);
 
-    expect(idles).toContain(rage);
+    expect(idles).toContain(rage.id);
     expect(distanceBetween(world, eye[POSITION], hero[POSITION])).toBeLessThan(
       4
     );
@@ -76,9 +76,9 @@ describe("eye", () => {
 |♀   0|
 `);
 
-    const idles = trace(world, 3, () => eye[TOOLTIP].idle);
+    const idles = trace(world, 3, () => eye[TOOLTIP].idle?.id);
 
-    expect(idles).not.toContain(rage);
+    expect(idles).not.toContain(rage.id);
     expect(distanceBetween(world, eye[POSITION], hero[POSITION])).toBeLessThan(
       4
     );
@@ -104,7 +104,7 @@ describe("eye", () => {
     const resting = { ...eye[POSITION] };
     advanceTicks(world, 3);
 
-    expect([sleep1, sleep2]).toContain(eye[TOOLTIP].idle);
+    expect([sleep1.id, sleep2.id]).toContain(eye[TOOLTIP].idle?.id);
     expect(eye[ORIENTABLE].facing).toBeUndefined();
     expect(distanceBetween(world, resting, position)).toBeLessThanOrEqual(1);
     expect(eye[POSITION]).toEqual(resting);

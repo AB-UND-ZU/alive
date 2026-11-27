@@ -23,11 +23,13 @@ it("remembers snow cover as a grey quarter-shade only on explored cells", () => 
   });
   const scene = frame();
   const mask = scene.find(
-    (entry) => entry.entity === snow && entry.sprite === snowFogOfWar
+    (entry) => entry.entity === snow && entry.sprite.id === snowFogOfWar.id
   )!;
   const terrainMask = scene.find(
     (entry) =>
-      entry.x === mask.x && entry.y === mask.y && entry.sprite === fogOfWar
+      entry.x === mask.x &&
+      entry.y === mask.y &&
+      entry.sprite.id === fogOfWar.id
   )!;
   expect(mask.z).toBeGreaterThan(terrainMask.z);
   expect(mask.layers).toEqual([{ char: "░", color: colors.grey }]);
@@ -42,7 +44,9 @@ it("remembers snow cover as a grey quarter-shade only on explored cells", () => 
     cell.forEach((entity) => {
       if (entity.FOG) entity.FOG.visibility = visibility;
     });
-    expect(frame().some((entry) => entry.sprite === snowFogOfWar)).toBe(false);
+    expect(frame().some((entry) => entry.sprite.id === snowFogOfWar.id)).toBe(
+      false
+    );
   }
 });
 
@@ -84,7 +88,7 @@ it("keeps colored upper and lower artwork when fog replaces empty half-cells", (
         y: 0,
         z: 0,
         fog: true,
-        sprite: { name: "text_generic" },
+        sprite: { id: "text_generic", name: "text_generic" },
         layers: [{ char: "▀", color: colors.lime }],
       },
       {
@@ -92,7 +96,7 @@ it("keeps colored upper and lower artwork when fog replaces empty half-cells", (
         y: 0,
         z: 0,
         fog: true,
-        sprite: { name: "text_generic" },
+        sprite: { id: "text_generic", name: "text_generic" },
         layers: [{ char: "▄", color: colors.lime }],
       },
     ],
@@ -121,7 +125,7 @@ it("darkens both colored halves while leaving protected artwork and dialog pixel
     y: 0,
     z: 0,
     fog: true,
-    sprite: { name: "text_generic" },
+    sprite: { id: "text_generic", name: "text_generic" },
     layers: halves,
   };
   expect(createTerminalFrame([ground], 1, 1)[0][0]).toEqual({

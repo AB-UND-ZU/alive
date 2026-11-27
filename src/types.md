@@ -242,12 +242,14 @@
 | [SpellWorldOptions](features/spells/helpers.md#type-spellworldoptions) | `src/features/spells/helpers.ts` |
 | [Spell](engine/components/item.md#type-spell) | `src/engine/components/item.ts` |
 | [Spikable](engine/components/spikable.md#type-spikable) | `src/engine/components/spikable.ts` |
+| [SpriteArtwork](engine/components/sprite.md#type-spriteartwork) | `src/engine/components/sprite.ts` |
 | [SpriteDefinition](game/assets/descriptions.md#type-spritedefinition) | `src/game/assets/descriptions.ts` |
+| [SpriteLayers](engine/components/sprite.md#type-spritelayers) | `src/engine/components/sprite.ts` |
 | [SpriteProps](renderers/three-js/Entity/Sprite.md#type-spriteprops) | `src/renderers/three-js/Entity/Sprite.tsx` |
+| [SpriteRef](engine/components/sprite.md#type-spriteref) | `src/engine/components/sprite.ts` |
 | [SpriteStatDefinition](game/assets/descriptions.md#type-spritestatdefinition) | `src/game/assets/descriptions.ts` |
 | [SpriteTemplateDefinition](game/assets/descriptions.md#type-spritetemplatedefinition) | `src/game/assets/descriptions.ts` |
 | [SpriteTemplate](game/assets/templates/index.md#type-spritetemplate) | `src/game/assets/templates/index.ts` |
-| [SpriteToken](engine/snapshot.md#type-spritetoken) | `src/engine/snapshot.ts` |
 | [Sprite](engine/components/sprite.md#type-sprite) | `src/engine/components/sprite.ts` |
 | [StackableConsumption](engine/systems/consume.md#type-stackableconsumption) | `src/engine/systems/consume.ts` |
 | [Stackable](engine/components/item.md#type-stackable) | `src/engine/components/item.ts` |

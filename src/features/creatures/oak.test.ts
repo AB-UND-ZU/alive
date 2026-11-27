@@ -67,7 +67,7 @@ describe("oak boss", () => {
 
     advanceTicks(world, 6);
 
-    expect([sleep1, sleep2]).toContain(oak[TOOLTIP].idle);
+    expect([sleep1.id, sleep2.id]).toContain(oak[TOOLTIP].idle?.id);
     expect(phases()).toContain(0);
     expect(getCreatures(world, "oakTower")).toHaveLength(0);
   });

@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import {
   advanceUntil,
   countItems,
@@ -68,8 +69,13 @@ describe("unlocking doors", () => {
     expect(lock[LOCKABLE].locked).toBe(true);
     expect(playedSounds).toContain("deny");
     expect(getMessages(world, hero)).toEqual(["Need Key!"]);
-    expect(getMessageIcons(world, hero)).toEqual([
-      [getItemSprite({ consume: "key", material: "iron" }, "display")],
+    expect(getMessageIcons(world, hero)).toMatchObject([
+      [
+        {
+          layers: getItemSprite({ consume: "key", material: "iron" }, "display")
+            .layers,
+        },
+      ],
     ]);
 
     tryWalkRight(world);
@@ -108,8 +114,13 @@ describe("unlocking doors", () => {
 
     expect(lock[LOCKABLE].locked).toBe(true);
     expect(playedSounds).toContain("deny");
-    expect(getMessageIcons(world, hero)).toEqual([
-      [getItemSprite({ consume: "key", material: "gold" }, "display")],
+    expect(getMessageIcons(world, hero)).toMatchObject([
+      [
+        {
+          layers: getItemSprite({ consume: "key", material: "gold" }, "display")
+            .layers,
+        },
+      ],
     ]);
     expect(countItems(world, hero, { consume: "key", material: "iron" })).toBe(
       1
@@ -222,13 +233,13 @@ describe("unlocking doors", () => {
     "closes the original %s when relocked",
     (type) => {
       const { world, hero, lock } = setupDoor(type);
-      const closed = lock.SPRITE;
+      const closed = resolveSprite(lock.SPRITE);
       const start = { ...hero[POSITION] };
       interact(world);
 
       lockDoor(world, lock);
       step(world, 5);
-      expect(lock.SPRITE).toEqual(closed);
+      expect(resolveSprite(lock.SPRITE)).toEqual(closed);
       expect(lock.ENTERABLE?.sprite).toEqual(closed);
 
       expect(lock[LOCKABLE].locked).toBe(true);

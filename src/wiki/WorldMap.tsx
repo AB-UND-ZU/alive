@@ -1,3 +1,4 @@
+import { customSprite } from "../game/assets/spriteIds";
 import snapshot from "./island.json";
 import { WorldDiagram } from "./WorldDiagram";
 import { UnitKey } from "../game/balancing/units";
@@ -30,6 +31,8 @@ import { useContext } from "react";
 import { ReferenceContext, MentionStyle } from "./references";
 import { levelConfig } from "../game/levels";
 import "./WorldMap.css";
+
+const townSprites = snapshot.sprites.map(customSprite);
 
 const terrain: Record<string, Sprite> = {
   "~": waterDeep,
@@ -72,10 +75,10 @@ const label = (x: number, y: number, title: string, sprite?: Sprite) => {
     ...textSprites(title, colors.white),
   ];
   cells.forEach((cell, index) => {
-    rows[y][x + index] = {
+    rows[y][x + index] = customSprite({
       ...cell,
       layers: [{ char: "█", color: colors.black }, ...cell.layers],
-    };
+    });
   });
 };
 
@@ -181,9 +184,7 @@ export function TownMap({ town }: { town: "earth" | "fire" | "glacier" }) {
   return (
     <section className="TownMap" data-town={town}>
       <WorldDiagram
-        rows={sample.rows.map((row) =>
-          row.map((index) => snapshot.sprites[index])
-        )}
+        rows={sample.rows.map((row) => row.map((index) => townSprites[index]))}
         label={`${name}, seed ${snapshot.seed}, all buildings shown from inside`}
       />
       <div
@@ -197,9 +198,7 @@ export function TownMap({ town }: { town: "earth" | "fire" | "glacier" }) {
               {entry.unit ? (
                 <UnitView unit={entry.unit as UnitKey} />
               ) : (
-                <Text
-                  prefix={<Pixels rows={[[snapshot.sprites[entry.sprite]]]} />}
-                >
+                <Text prefix={<Pixels rows={[[townSprites[entry.sprite]]]} />}>
                   {entry.name}
                 </Text>
               )}

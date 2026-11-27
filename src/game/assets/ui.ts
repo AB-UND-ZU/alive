@@ -1,5 +1,11 @@
-import { Layer, Sprite } from "../../engine/components/sprite";
-import { brightColors, colors, orderedColors, recolor } from "./colors";
+import { customSprite, namedSprite, parseSprite } from "./spriteIds";
+import {
+  Layer,
+  Sprite,
+  SpriteArtwork,
+  SpriteLayers,
+} from "../../engine/components/sprite";
+import { brightColors, colors, recolor } from "./colors";
 import {
   dialogStart,
   dialogEnd,
@@ -46,13 +52,14 @@ import { ItemStats } from "../../engine/components/item";
 import { Countable, UnitStats } from "../../engine/components/stats";
 import { Orientation } from "../../engine/components/orientable";
 
-export const createCounter: (amount: number) => Sprite = (amount) => ({
-  name: "counter_generic",
-  layers: [{ char: amount.toString(), color: colors.red }],
-});
+export const createCounter: (amount: number) => Sprite = (amount) =>
+  customSprite({
+    name: "counter_generic",
+    layers: [{ char: amount.toString(), color: colors.red }],
+  });
 
 const terminalLayers = (
-  sprite: Sprite,
+  sprite: SpriteArtwork,
   transform: (layers: Layer[]) => Layer[]
 ): Sprite["terminal"] => {
   const terminal = sprite.terminal || sprite;
@@ -84,49 +91,57 @@ export const addBackground = (
   background: string = colors.white,
   char = "█"
 ) =>
-  sprites.map((sprite) => ({
-    name: sprite.name,
-    layers: [{ char, color: background }, ...sprite.layers],
-    ...(sprite.terminal && {
-      terminal: terminalLayers(sprite, (layers) => [
-        { char, color: background },
-        ...layers,
-      ]),
-    }),
-  }));
+  sprites.map((sprite) =>
+    customSprite({
+      name: sprite.name,
+      layers: [{ char, color: background }, ...sprite.layers],
+      ...(sprite.terminal && {
+        terminal: terminalLayers(sprite, (layers) => [
+          { char, color: background },
+          ...layers,
+        ]),
+      }),
+    })
+  );
 
 export const addForeground = (
   sprites: Sprite[],
   foreground: string,
   char: string
 ) =>
-  sprites.map((sprite) => ({
-    name: sprite.name,
-    layers: [...sprite.layers, { char, color: foreground }],
-    ...(sprite.terminal && {
-      terminal: terminalLayers(sprite, (layers) => [
-        ...layers,
-        { char, color: foreground },
-      ]),
-    }),
-  }));
+  sprites.map((sprite) =>
+    customSprite({
+      name: sprite.name,
+      layers: [...sprite.layers, { char, color: foreground }],
+      ...(sprite.terminal && {
+        terminal: terminalLayers(sprite, (layers) => [
+          ...layers,
+          { char, color: foreground },
+        ]),
+      }),
+    })
+  );
 
 export const strikethrough = (
   sprites: Sprite[],
   color: string = colors.silver
 ) =>
-  sprites.map((sprite) => ({
-    name: sprite.name,
-    layers: [...sprite.layers, { char: "─", color }],
-    terminal: terminalLayers(sprite, (layers) => layers),
-  }));
+  sprites.map((sprite) =>
+    customSprite({
+      name: sprite.name,
+      layers: [...sprite.layers, { char: "─", color }],
+      terminal: terminalLayers(sprite, (layers) => layers),
+    })
+  );
 
 export const underline = (sprites: Sprite[], color: string = colors.silver) =>
-  sprites.map((sprite) => ({
-    name: sprite.name,
-    layers: [{ char: "_", color }, ...sprite.layers],
-    terminal: terminalLayers(sprite, (layers) => layers),
-  }));
+  sprites.map((sprite) =>
+    customSprite({
+      name: sprite.name,
+      layers: [{ char: "_", color }, ...sprite.layers],
+      terminal: terminalLayers(sprite, (layers) => layers),
+    })
+  );
 
 const selectionLayers = (layers: Layer[], color: string): Layer[] => {
   const dark = [
@@ -152,12 +167,13 @@ const selectionLayers = (layers: Layer[], color: string): Layer[] => {
 
 export const dotted = (sprites: Sprite[], color: string = colors.silver) =>
   underline(addBackground(sprites, colors.black, "▓"), color).map(
-    (sprite, index) => ({
-      ...sprite,
-      terminal: terminalLayers(sprites[index], (layers) =>
-        selectionLayers(layers, color)
-      ),
-    })
+    (sprite, index) =>
+      customSprite({
+        ...sprite,
+        terminal: terminalLayers(sprites[index], (layers) =>
+          selectionLayers(layers, color)
+        ),
+      })
   );
 
 export const shaded = (
@@ -166,27 +182,31 @@ export const shaded = (
   char = "░",
   background: string = colors.black
 ) =>
-  sprites.map((sprite) => ({
-    name: sprite.name,
-    layers: [
-      { char, color },
-      { char: "▀", color: background },
-      ...sprite.layers,
-    ],
-    terminal: terminalLayers(sprite, (layers) =>
-      selectionLayers(layers, color)
-    ),
-  }));
+  sprites.map((sprite) =>
+    customSprite({
+      name: sprite.name,
+      layers: [
+        { char, color },
+        { char: "▀", color: background },
+        ...sprite.layers,
+      ],
+      terminal: terminalLayers(sprite, (layers) =>
+        selectionLayers(layers, color)
+      ),
+    })
+  );
 
 export const createText: (
-  text: string,
+  text?: string,
   color?: string,
   background?: string
-) => Sprite[] = (text, color = colors.white, background) => {
-  const sprites = text.split("").map((char) => ({
-    name: "text_generic",
-    layers: [{ char, color }],
-  }));
+) => Sprite[] = (text = "", color = colors.white, background) => {
+  const sprites = text.split("").map((char) =>
+    customSprite({
+      name: "text_generic",
+      layers: [{ char, color }],
+    })
+  );
 
   if (background) return addBackground(sprites, background);
 
@@ -290,7 +310,7 @@ export const getPressedKeyEdge = (
     sprite.layers
       .filter((layer) => layer.char === "█" || layer.char === otherHalf)
       .slice(-1)[0]?.color || colors.black;
-  return {
+  return customSprite({
     name: `${sprite.name}_pressed_${side}`,
     layers: [
       { char: "█", color },
@@ -303,149 +323,161 @@ export const getPressedKeyEdge = (
       ),
       ...(socket ? [{ char: "▄", color: colors.black }] : []),
     ],
-  };
+  });
 };
 
-export const getButton = (palette: Palette): Sprite => ({
-  name: "button_empty",
-  layers: [{ char: "█", color: buttonPalettes[palette].background }],
-});
+export const getButton = (palette: Palette): Sprite =>
+  customSprite({
+    name: "button_empty",
+    layers: [{ char: "█", color: buttonPalettes[palette].background }],
+  });
 
-export const getButtonDisabled = (palette: Palette): Sprite => ({
-  name: "button_disabled",
-  layers: [
-    {
-      char: "█",
-      color: buttonPalettes[palette].contrast || buttonPalettes[palette].shadow,
-    },
-    { char: "░", color: colors.black },
-  ],
-});
+export const getButtonDisabled = (palette: Palette): Sprite =>
+  customSprite({
+    name: "button_disabled",
+    layers: [
+      {
+        char: "█",
+        color:
+          buttonPalettes[palette].contrast || buttonPalettes[palette].shadow,
+      },
+      { char: "░", color: colors.black },
+    ],
+  });
 
-export const getButtonPressed = (palette: Palette): Sprite => ({
-  name: "button_pressed",
-  layers: [{ char: "█", color: buttonPalettes[palette].shadow }],
-});
+export const getButtonPressed = (palette: Palette): Sprite =>
+  customSprite({
+    name: "button_pressed",
+    layers: [{ char: "█", color: buttonPalettes[palette].shadow }],
+  });
 
 export const getButtonLeft = (
   palette: Palette,
   disabled: boolean,
   highlight: boolean,
   pressed: boolean
-): Sprite => ({
-  name: "button_left",
-  layers: [
-    {
-      char: "▐",
-      color: disabled
-        ? buttonPalettes[palette].contrast || buttonPalettes[palette].shadow
-        : pressed
-        ? buttonPalettes[palette].shadow
-        : buttonPalettes[palette].background,
-    },
-    {
-      char: "│",
-      color:
-        highlight && !disabled
-          ? buttonPalettes[palette].contrast ||
-            buttonPalettes[palette].background
+): Sprite =>
+  customSprite({
+    name: "button_left",
+    layers: [
+      {
+        char: "▐",
+        color: disabled
+          ? buttonPalettes[palette].contrast || buttonPalettes[palette].shadow
           : pressed
-          ? buttonPalettes[palette].background
-          : (disabled && buttonPalettes[palette].contrast) ||
-            buttonPalettes[palette].shadow,
-    },
-    ...(disabled ? [{ char: "░", color: colors.black }] : []),
-  ],
-});
+          ? buttonPalettes[palette].shadow
+          : buttonPalettes[palette].background,
+      },
+      {
+        char: "│",
+        color:
+          highlight && !disabled
+            ? buttonPalettes[palette].contrast ||
+              buttonPalettes[palette].background
+            : pressed
+            ? buttonPalettes[palette].background
+            : (disabled && buttonPalettes[palette].contrast) ||
+              buttonPalettes[palette].shadow,
+      },
+      ...(disabled ? [{ char: "░", color: colors.black }] : []),
+    ],
+  });
 
-export const getButtonLeftUp = (palette: Palette): Sprite => ({
-  name: "button_left_up",
-  layers: [
-    { char: "▄", color: buttonPalettes[palette].background },
-    { char: "░", color: colors.black },
-    { char: "▌", color: buttonPalettes[palette].text },
-    { char: "┌", color: buttonPalettes[palette].shadow },
-  ],
-});
+export const getButtonLeftUp = (palette: Palette): Sprite =>
+  customSprite({
+    name: "button_left_up",
+    layers: [
+      { char: "▄", color: buttonPalettes[palette].background },
+      { char: "░", color: colors.black },
+      { char: "▌", color: buttonPalettes[palette].text },
+      { char: "┌", color: buttonPalettes[palette].shadow },
+    ],
+  });
 
-export const getButtonUp = (palette: Palette): Sprite => ({
-  name: "button_up",
-  layers: [
-    { char: "▄", color: buttonPalettes[palette].background },
-    { char: "░", color: colors.black },
-    { char: "─", color: buttonPalettes[palette].shadow },
-  ],
-});
+export const getButtonUp = (palette: Palette): Sprite =>
+  customSprite({
+    name: "button_up",
+    layers: [
+      { char: "▄", color: buttonPalettes[palette].background },
+      { char: "░", color: colors.black },
+      { char: "─", color: buttonPalettes[palette].shadow },
+    ],
+  });
 
-export const getButtonUpRight = (palette: Palette): Sprite => ({
-  name: "button_up_right",
-  layers: [
-    { char: "▄", color: buttonPalettes[palette].background },
-    { char: "░", color: colors.black },
-    { char: "▐", color: buttonPalettes[palette].text },
-    { char: "┐", color: buttonPalettes[palette].shadow },
-  ],
-});
+export const getButtonUpRight = (palette: Palette): Sprite =>
+  customSprite({
+    name: "button_up_right",
+    layers: [
+      { char: "▄", color: buttonPalettes[palette].background },
+      { char: "░", color: colors.black },
+      { char: "▐", color: buttonPalettes[palette].text },
+      { char: "┐", color: buttonPalettes[palette].shadow },
+    ],
+  });
 
 export const getButtonRight = (
   palette: Palette,
   disabled: boolean,
   highlight: boolean,
   pressed: boolean
-): Sprite => ({
-  name: "button_right",
-  layers: [
-    {
-      char: "▌",
-      color: disabled
-        ? buttonPalettes[palette].contrast || buttonPalettes[palette].shadow
-        : pressed
-        ? buttonPalettes[palette].shadow
-        : buttonPalettes[palette].background,
-    },
-    {
-      char: "│",
-      color:
-        highlight && !disabled
-          ? buttonPalettes[palette].contrast ||
-            buttonPalettes[palette].background
+): Sprite =>
+  customSprite({
+    name: "button_right",
+    layers: [
+      {
+        char: "▌",
+        color: disabled
+          ? buttonPalettes[palette].contrast || buttonPalettes[palette].shadow
           : pressed
-          ? buttonPalettes[palette].background
-          : (disabled && buttonPalettes[palette].contrast) ||
-            buttonPalettes[palette].shadow,
-    },
-    ...(disabled ? [{ char: "░", color: colors.black }] : []),
-  ],
-});
+          ? buttonPalettes[palette].shadow
+          : buttonPalettes[palette].background,
+      },
+      {
+        char: "│",
+        color:
+          highlight && !disabled
+            ? buttonPalettes[palette].contrast ||
+              buttonPalettes[palette].background
+            : pressed
+            ? buttonPalettes[palette].background
+            : (disabled && buttonPalettes[palette].contrast) ||
+              buttonPalettes[palette].shadow,
+      },
+      ...(disabled ? [{ char: "░", color: colors.black }] : []),
+    ],
+  });
 
-export const getButtonRightDown = (palette: Palette): Sprite => ({
-  name: "button_right_down",
-  layers: [
-    { char: "▀", color: buttonPalettes[palette].background },
-    { char: "░", color: colors.black },
-    { char: "▐", color: buttonPalettes[palette].text },
-    { char: "┘", color: buttonPalettes[palette].shadow },
-  ],
-});
+export const getButtonRightDown = (palette: Palette): Sprite =>
+  customSprite({
+    name: "button_right_down",
+    layers: [
+      { char: "▀", color: buttonPalettes[palette].background },
+      { char: "░", color: colors.black },
+      { char: "▐", color: buttonPalettes[palette].text },
+      { char: "┘", color: buttonPalettes[palette].shadow },
+    ],
+  });
 
-export const getButtonDown = (palette: Palette): Sprite => ({
-  name: "button_down",
-  layers: [
-    { char: "▀", color: buttonPalettes[palette].background },
-    { char: "░", color: colors.black },
-    { char: "─", color: buttonPalettes[palette].shadow },
-  ],
-});
+export const getButtonDown = (palette: Palette): Sprite =>
+  customSprite({
+    name: "button_down",
+    layers: [
+      { char: "▀", color: buttonPalettes[palette].background },
+      { char: "░", color: colors.black },
+      { char: "─", color: buttonPalettes[palette].shadow },
+    ],
+  });
 
-export const getButtonDownLeft = (palette: Palette): Sprite => ({
-  name: "button_down_left",
-  layers: [
-    { char: "▀", color: buttonPalettes[palette].background },
-    { char: "░", color: colors.black },
-    { char: "▌", color: buttonPalettes[palette].text },
-    { char: "└", color: buttonPalettes[palette].shadow },
-  ],
-});
+export const getButtonDownLeft = (palette: Palette): Sprite =>
+  customSprite({
+    name: "button_down_left",
+    layers: [
+      { char: "▀", color: buttonPalettes[palette].background },
+      { char: "░", color: colors.black },
+      { char: "▌", color: buttonPalettes[palette].text },
+      { char: "└", color: buttonPalettes[palette].shadow },
+    ],
+  });
 
 export const getButtonSeparator = (
   paletteLeft: Palette = "white",
@@ -456,83 +488,84 @@ export const getButtonSeparator = (
   disabledRight: boolean,
   highlightRight: boolean,
   pressedRight: boolean
-): Sprite => ({
-  name: "button_separator",
-  layers:
-    !disabledLeft && !disabledRight
-      ? [
-          {
-            char: "▐",
-            color:
-              buttonPalettes[paletteRight][
-                highlightRight || pressedRight ? "background" : "shadow"
-              ],
-          },
-          {
-            char: "▌",
-            color:
-              buttonPalettes[paletteLeft][
-                highlightLeft || pressedLeft ? "background" : "shadow"
-              ],
-          },
-          { char: "║", color: colors.black },
-          { char: "│", color: colors.black },
-        ]
-      : disabledLeft && !disabledRight
-      ? [
-          {
-            char: "▓",
-            color:
-              buttonPalettes[paletteLeft].contrast ||
-              buttonPalettes[paletteLeft].shadow,
-          },
-          {
-            char: "▐",
-            color:
-              buttonPalettes[paletteRight][
-                highlightRight || pressedRight ? "background" : "shadow"
-              ],
-          },
-          { char: "║", color: colors.black },
-          { char: "│", color: colors.black },
-        ]
-      : !disabledLeft && disabledRight
-      ? [
-          {
-            char: "▐",
-            color:
-              buttonPalettes[paletteRight].contrast ||
-              buttonPalettes[paletteRight].shadow,
-          },
-          { char: "░", color: colors.black },
-          {
-            char: "▌",
-            color:
-              buttonPalettes[paletteLeft][
-                highlightLeft || pressedLeft ? "background" : "shadow"
-              ],
-          },
-          { char: "║", color: colors.black },
-          { char: "│", color: colors.black },
-        ]
-      : [
-          {
-            char: "▐",
-            color:
-              buttonPalettes[paletteRight].contrast ||
-              buttonPalettes[paletteRight].shadow,
-          },
-          {
-            char: "▌",
-            color:
-              buttonPalettes[paletteLeft].contrast ||
-              buttonPalettes[paletteLeft].shadow,
-          },
-          { char: "░", color: colors.black },
-          { char: "║", color: colors.black },
-          { char: "│", color: colors.black },
-        ],
-});
+): Sprite =>
+  customSprite({
+    name: "button_separator",
+    layers:
+      !disabledLeft && !disabledRight
+        ? [
+            {
+              char: "▐",
+              color:
+                buttonPalettes[paletteRight][
+                  highlightRight || pressedRight ? "background" : "shadow"
+                ],
+            },
+            {
+              char: "▌",
+              color:
+                buttonPalettes[paletteLeft][
+                  highlightLeft || pressedLeft ? "background" : "shadow"
+                ],
+            },
+            { char: "║", color: colors.black },
+            { char: "│", color: colors.black },
+          ]
+        : disabledLeft && !disabledRight
+        ? [
+            {
+              char: "▓",
+              color:
+                buttonPalettes[paletteLeft].contrast ||
+                buttonPalettes[paletteLeft].shadow,
+            },
+            {
+              char: "▐",
+              color:
+                buttonPalettes[paletteRight][
+                  highlightRight || pressedRight ? "background" : "shadow"
+                ],
+            },
+            { char: "║", color: colors.black },
+            { char: "│", color: colors.black },
+          ]
+        : !disabledLeft && disabledRight
+        ? [
+            {
+              char: "▐",
+              color:
+                buttonPalettes[paletteRight].contrast ||
+                buttonPalettes[paletteRight].shadow,
+            },
+            { char: "░", color: colors.black },
+            {
+              char: "▌",
+              color:
+                buttonPalettes[paletteLeft][
+                  highlightLeft || pressedLeft ? "background" : "shadow"
+                ],
+            },
+            { char: "║", color: colors.black },
+            { char: "│", color: colors.black },
+          ]
+        : [
+            {
+              char: "▐",
+              color:
+                buttonPalettes[paletteRight].contrast ||
+                buttonPalettes[paletteRight].shadow,
+            },
+            {
+              char: "▌",
+              color:
+                buttonPalettes[paletteLeft].contrast ||
+                buttonPalettes[paletteLeft].shadow,
+            },
+            { char: "░", color: colors.black },
+            { char: "║", color: colors.black },
+            { char: "│", color: colors.black },
+          ],
+  });
 
 export const createButton: (
   text: string,
@@ -588,24 +621,26 @@ export const createSpriteButton: (
   return [
     getButtonLeft(palette, disabled, highlight, pressed),
     ...repeat(button, paddingLeft),
-    ...sprites.map((sprite) => ({
-      name: "button_generic",
-      layers: [...button.layers, ...sprite.layers],
-      ...(sprite.terminal && {
-        terminal: terminalLayers(sprite, (layers) => [
-          ...(disabled ? [{ char: "█", color: colors.grey }] : button.layers),
-          ...layers.map((layer) =>
-            sprite.name === "text_generic" &&
-            sprite.layers[0]?.char === "_" &&
-            sprite.layers[0].color === colors.black &&
-            layer.color === colors.black &&
-            /^[A-Za-z0-9]$/.test(layer.char)
-              ? { ...layer, color: disabled ? colors.olive : colors.grey }
-              : layer
-          ),
-        ]),
-      }),
-    })),
+    ...sprites.map((sprite) =>
+      customSprite({
+        name: "button_generic",
+        layers: [...button.layers, ...sprite.layers],
+        ...(sprite.terminal && {
+          terminal: terminalLayers(sprite, (layers) => [
+            ...(disabled ? [{ char: "█", color: colors.grey }] : button.layers),
+            ...layers.map((layer) =>
+              sprite.name === "text_generic" &&
+              sprite.layers[0]?.char === "_" &&
+              sprite.layers[0].color === colors.black &&
+              layer.color === colors.black &&
+              /^[A-Za-z0-9]$/.test(layer.char)
+                ? { ...layer, color: disabled ? colors.olive : colors.grey }
+                : layer
+            ),
+          ]),
+        }),
+      })
+    ),
     ...repeat(button, paddingRight),
     getButtonRight(palette, disabled, highlight, pressed),
   ];
@@ -621,8 +656,9 @@ export const recolorLayers = (
   }));
 
 export const recolorSprite = (
-  sprite: Sprite,
-  colorOrMap: string | Record<string, string>
+  sprite: SpriteArtwork,
+  colorOrMap: string | Record<string, string>,
+  id?: string
 ): Sprite => {
   const layers = recolorLayers(sprite.layers, colorOrMap);
   const recolored = { ...sprite, layers };
@@ -663,7 +699,7 @@ export const recolorSprite = (
       recolorLayers(layers, colorOrMap)
     );
   }
-  return recolored;
+  return id ? namedSprite(id, recolored) : customSprite(recolored);
 };
 
 export const colorizeSprite = (
@@ -697,7 +733,10 @@ export const colorizeSprite = (
   return constrastSprite;
 };
 
-export const blockedInactive = recolorSprite(blocked, colors.grey);
+export const blockedInactive = namedSprite(
+  "blocked_inactive",
+  recolorSprite(blocked, colors.grey)
+);
 
 export const mergeLayers = (
   layerSets: (Sprite["layers"] | undefined)[]
@@ -707,70 +746,77 @@ export const mergeLayers = (
     undefined
   );
 
-export const mergeSprites = (...sprites: Sprite[]): Sprite => ({
-  ...(sprites.some((sprite) => sprite.terminal) && {
-    terminal: mergeSprites(
-      ...sprites.map((sprite) => ({
-        name: sprite.name,
-        ...(sprite.terminal || sprite),
-        terminal: undefined,
-      }))
-    ),
-  }),
-  name: sprites.filter((sprite) => sprite.name).slice(-1)[0]?.name || "",
+const mergeViews = (sprites: SpriteLayers[]): SpriteLayers => ({
   layers: mergeLayers(sprites.map((sprite) => sprite.layers)) || [],
-  facing: {
-    up: mergeLayers(
-      sprites.map((sprite) => sprite.facing?.up || sprite.layers)
-    ),
-    right: mergeLayers(
-      sprites.map((sprite) => sprite.facing?.right || sprite.layers)
-    ),
-    down: mergeLayers(
-      sprites.map((sprite) => sprite.facing?.down || sprite.layers)
-    ),
-    left: mergeLayers(
-      sprites.map((sprite) => sprite.facing?.left || sprite.layers)
-    ),
-  },
-  amounts: {
-    single: mergeLayers(
-      sprites.map((sprite) => sprite.amounts?.single || sprite.layers)
-    ),
-    double: mergeLayers(
-      sprites.map((sprite) => sprite.amounts?.double || sprite.layers)
-    ),
-    multiple: mergeLayers(
-      sprites.map((sprite) => sprite.amounts?.multiple || sprite.layers)
-    ),
-  },
+  // Merged units receive a starting facing even when all directions use the base layers.
+  facing: sprites.some((sprite) => sprite.facing)
+    ? {
+        up: mergeLayers(
+          sprites.map((sprite) => sprite.facing?.up || sprite.layers)
+        ),
+        right: mergeLayers(
+          sprites.map((sprite) => sprite.facing?.right || sprite.layers)
+        ),
+        down: mergeLayers(
+          sprites.map((sprite) => sprite.facing?.down || sprite.layers)
+        ),
+        left: mergeLayers(
+          sprites.map((sprite) => sprite.facing?.left || sprite.layers)
+        ),
+      }
+    : {},
+  amounts: sprites.some((sprite) => sprite.amounts)
+    ? {
+        single: mergeLayers(
+          sprites.map((sprite) => sprite.amounts?.single || sprite.layers)
+        ),
+        double: mergeLayers(
+          sprites.map((sprite) => sprite.amounts?.double || sprite.layers)
+        ),
+        multiple: mergeLayers(
+          sprites.map((sprite) => sprite.amounts?.multiple || sprite.layers)
+        ),
+      }
+    : {},
 });
 
-export const nonCountable = (sprite: Sprite) => ({
-  name: sprite.name,
-  layers: sprite.layers,
-  ...(sprite.terminal && { terminal: { layers: sprite.terminal.layers } }),
-});
+export const mergeSprites = (...sprites: Sprite[]): Sprite =>
+  customSprite({
+    ...mergeViews(sprites),
+    name: sprites.filter((sprite) => sprite.name).pop()?.name || "",
+    ...(sprites.some((sprite) => sprite.terminal) && {
+      terminal: mergeViews(sprites.map((sprite) => sprite.terminal || sprite)),
+    }),
+  });
 
-export const minCountable = (sprite: Sprite) => ({
-  name: sprite.name,
-  layers: sprite.amounts?.single || sprite.layers,
-  ...(sprite.terminal && {
-    terminal: {
-      layers: sprite.terminal.amounts?.single || sprite.terminal.layers,
-    },
-  }),
-});
+export const nonCountable = (sprite: Sprite) =>
+  customSprite({
+    name: sprite.name,
+    layers: sprite.layers,
+    ...(sprite.terminal && { terminal: { layers: sprite.terminal.layers } }),
+  });
 
-export const maxCountable = (sprite: Sprite) => ({
-  name: sprite.name,
-  layers: sprite.amounts?.multiple || sprite.layers,
-  ...(sprite.terminal && {
-    terminal: {
-      layers: sprite.terminal.amounts?.multiple || sprite.terminal.layers,
-    },
-  }),
-});
+export const minCountable = (sprite: Sprite) =>
+  customSprite({
+    name: sprite.name,
+    layers: sprite.amounts?.single || sprite.layers,
+    ...(sprite.terminal && {
+      terminal: {
+        layers: sprite.terminal.amounts?.single || sprite.terminal.layers,
+      },
+    }),
+  });
+
+export const maxCountable = (sprite: Sprite) =>
+  customSprite({
+    name: sprite.name,
+    layers: sprite.amounts?.multiple || sprite.layers,
+    ...(sprite.terminal && {
+      terminal: {
+        layers: sprite.terminal.amounts?.multiple || sprite.terminal.layers,
+      },
+    }),
+  });
 
 export const createCountable = (
   stats: Partial<Stats>,
@@ -882,58 +928,38 @@ export const createProgress = (
     ...createText("█".repeat(full), statBackground),
     ...(full < width
       ? [
-          {
+          customSprite({
             name: "progress",
             layers: [[], [{ char: "▌", color: statBackground }]][
               full === 0 && partial > 0 && !depletable ? 1 : segment
             ],
-          },
+          }),
         ]
       : []),
     ...repeat(none, width - full - 1),
-  ].map((sprite, index) => ({
-    ...sprite,
-    layers: [
-      { char: "░", color: statBackground },
-      ...sprite.layers,
-      { char: "▀", color: colors.black },
-      ...(sprites[index]?.layers || []),
-    ],
-    terminal: {
+  ].map((sprite, index) =>
+    customSprite({
+      ...sprite,
       layers: [
-        {
-          char: index < Math.ceil(progress) ? "█" : "░",
-          color: statBackground,
-        },
-        ...(sprites[index]?.terminal?.layers || sprites[index]?.layers || []),
+        { char: "░", color: statBackground },
+        ...sprite.layers,
+        { char: "▀", color: colors.black },
+        ...(sprites[index]?.layers || []),
       ],
-    },
-  }));
+      terminal: {
+        layers: [
+          {
+            char: index < Math.ceil(progress) ? "█" : "░",
+            color: statBackground,
+          },
+          ...(sprites[index]?.terminal?.layers || sprites[index]?.layers || []),
+        ],
+      },
+    })
+  );
 };
 
-export const colorToCode = (color: string) =>
-  String.fromCharCode(orderedColors.indexOf(color));
-
-export const parseSprite = (definition: string) => {
-  let colorCode = orderedColors.indexOf(colors.white);
-  return {
-    name: "",
-    layers: definition
-      .split("")
-      .map((layer) => {
-        const charCode = layer.charCodeAt(0);
-        if (charCode < 16) {
-          colorCode = charCode;
-          return null;
-        }
-        return {
-          char: layer,
-          color: orderedColors[colorCode],
-        };
-      })
-      .filter((layer) => !!layer) as Sprite["layers"],
-  };
-};
+export { colorToCode, parseSprite } from "./spriteIds";
 
 export const parseSprites = (line: string) =>
   line.split(" ").map((definition) => parseSprite(definition));
@@ -946,21 +972,27 @@ export const stretch = (left: Sprite[], right: Sprite[], width: number) =>
   ].slice(0, width);
 
 // World shadows must not inherit the gear slot's Terminal background.
-export const slotShadow: Sprite = {
+export const slotShadow: Sprite = namedSprite("slot_shadow", {
   name: emptySlot.name,
   layers: recolorLayers(emptySlot.layers, colors.black),
-};
-export const discovery = createText("°", colors.lime)[0];
-export const quest = createText("?", colors.lime)[0];
-export const ongoing = createText("?", colors.silver)[0];
-export const info = createText("i", colors.lime)[0];
-export const shop = createText("$", colors.lime)[0];
-export const craft = createText("¢", colors.lime)[0];
-export const forge = createText("ƒ", colors.lime)[0];
-export const brew = createText("Σ", colors.lime)[0];
-export const class_ = createText("\u010b")[0];
-export const rage = createAggro("\u0112")[0];
-export const rage2: Sprite = {
+});
+export const discovery = namedSprite(
+  "discovery",
+  createText("°", colors.lime)[0]
+);
+export const quest = namedSprite("quest", createText("?", colors.lime)[0]);
+export const ongoing = namedSprite(
+  "ongoing",
+  createText("?", colors.silver)[0]
+);
+export const info = namedSprite("info", createText("i", colors.lime)[0]);
+export const shop = namedSprite("shop", createText("$", colors.lime)[0]);
+export const craft = namedSprite("craft", createText("¢", colors.lime)[0]);
+export const forge = namedSprite("forge", createText("ƒ", colors.lime)[0]);
+export const brew = namedSprite("brew", createText("Σ", colors.lime)[0]);
+export const class_ = namedSprite("class", createText("\u010b")[0]);
+export const rage = namedSprite("rage", createAggro("\u0112")[0]);
+export const rage2: Sprite = namedSprite("rage2", {
   ...mergeSprites(
     recolorSprite(emptySlot, colors.red),
     parseSprite("\x00\u0112")
@@ -971,12 +1003,21 @@ export const rage2: Sprite = {
       { char: "\u0112", color: colors.black },
     ],
   },
-};
-export const sleep1 = createText("z", colors.white)[0];
-export const sleep2 = createText("Z", colors.white)[0];
-export const whistle1 = createText("\u010c", colors.white)[0];
-export const whistle2 = createText("\u010d", colors.white)[0];
-export const confused = createText("?", colors.white)[0];
+});
+export const sleep1 = namedSprite("sleep1", createText("z", colors.white)[0]);
+export const sleep2 = namedSprite("sleep2", createText("Z", colors.white)[0]);
+export const whistle1 = namedSprite(
+  "whistle1",
+  createText("\u010c", colors.white)[0]
+);
+export const whistle2 = namedSprite(
+  "whistle2",
+  createText("\u010d", colors.white)[0]
+);
+export const confused = namedSprite(
+  "confused",
+  createText("?", colors.white)[0]
+);
 
 export const getBlockedSlot = (shadow: Sprite) =>
   mergeSprites(
@@ -987,30 +1028,45 @@ export const getBlockedSlot = (shadow: Sprite) =>
     createText("/", colors.red)[0]
   );
 
-export const addPower = recolorSprite(power, {
-  [colors.lime]: colors.fuchsia,
-  [colors.green]: colors.purple,
-});
+export const addPower = namedSprite(
+  "add_power",
+  recolorSprite(power, {
+    [colors.lime]: colors.fuchsia,
+    [colors.green]: colors.purple,
+  })
+);
 
-export const addWisdom = recolorSprite(wisdom, {
-  [colors.lime]: colors.fuchsia,
-  [colors.green]: colors.purple,
-});
+export const addWisdom = namedSprite(
+  "add_wisdom",
+  recolorSprite(wisdom, {
+    [colors.lime]: colors.fuchsia,
+    [colors.green]: colors.purple,
+  })
+);
 
-export const addArmor = recolorSprite(armor, {
-  [colors.lime]: colors.fuchsia,
-  [colors.green]: colors.purple,
-});
+export const addArmor = namedSprite(
+  "add_armor",
+  recolorSprite(armor, {
+    [colors.lime]: colors.fuchsia,
+    [colors.green]: colors.purple,
+  })
+);
 
-export const addResist = recolorSprite(resist, {
-  [colors.lime]: colors.fuchsia,
-  [colors.green]: colors.purple,
-});
+export const addResist = namedSprite(
+  "add_resist",
+  recolorSprite(resist, {
+    [colors.lime]: colors.fuchsia,
+    [colors.green]: colors.purple,
+  })
+);
 
-export const addHaste = recolorSprite(haste, {
-  [colors.lime]: colors.fuchsia,
-  [colors.green]: colors.purple,
-});
+export const addHaste = namedSprite(
+  "add_haste",
+  recolorSprite(haste, {
+    [colors.lime]: colors.fuchsia,
+    [colors.green]: colors.purple,
+  })
+);
 
 export const brightenSprites = (sprites: Sprite[]) =>
   sprites.map((sprite) => recolorSprite(sprite, brightColors));
@@ -1194,22 +1250,20 @@ export const statConfig: Record<
   },
 };
 
-export const getOrientedSprite = (
-  sprite: Sprite,
-  orientation: Orientation
-) => ({
-  ...sprite,
-  layers: getFacingLayers(sprite, orientation),
-  ...(sprite.terminal && {
-    terminal: {
-      ...sprite.terminal,
-      layers: getFacingLayers(sprite.terminal, orientation),
-    },
-  }),
-});
+export const getOrientedSprite = (sprite: Sprite, orientation: Orientation) =>
+  customSprite({
+    ...sprite,
+    layers: getFacingLayers(sprite, orientation),
+    ...(sprite.terminal && {
+      terminal: {
+        ...sprite.terminal,
+        layers: getFacingLayers(sprite.terminal, orientation),
+      },
+    }),
+  });
 
 export const getFacingLayers = (
-  sprite: Pick<Sprite, "layers" | "facing" | "amounts">,
+  sprite: SpriteLayers,
   facing?: Orientation,
   amount?: number
 ) => {
@@ -1225,14 +1279,20 @@ export const getFacingLayers = (
   return layers || sprite.layers;
 };
 
-export const plot: Sprite = mergeSprites(slotShadow, {
-  name: "Plot",
-  layers: [
-    { char: "\u0100", color: colors.grey },
-    { char: "X", color: colors.maroon },
-    { char: "\u0117", color: colors.black },
-    { char: "\u0118", color: colors.black },
-    { char: "=", color: colors.black },
-    { char: "\u010e", color: colors.black },
-  ],
-});
+export const plot: Sprite = namedSprite(
+  "plot",
+  mergeSprites(
+    slotShadow,
+    customSprite({
+      name: "Plot",
+      layers: [
+        { char: "\u0100", color: colors.grey },
+        { char: "X", color: colors.maroon },
+        { char: "\u0117", color: colors.black },
+        { char: "\u0118", color: colors.black },
+        { char: "=", color: colors.black },
+        { char: "\u010e", color: colors.black },
+      ],
+    })
+  )
+);

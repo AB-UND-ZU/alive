@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { bumpEntity } from "../motion";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -128,7 +129,7 @@ export const isCooperating = (world: World, entity: TypedEntity, target: TypedEn
     (isNeutral(world, target) || isFriendlyFire(world, entity, target)));
 
 export const createTooltip = (world: World, entity: TypedEntity<"SPRITE">) => {
-  const text = entity[SPRITE].name;
+  const text = resolveSprite(entity[SPRITE]).name;
   const enemy = isEnemy(world, entity) && !isNeutral(world, entity);
   const friendly = isTribe(world, entity);
   return [

@@ -1,3 +1,4 @@
+import { customSprite } from "../game/assets/spriteIds";
 import { createContext, ReactNode, useContext } from "react";
 import { Text, Pixels, LinkStyleContext, TableContext } from "./visuals";
 import { colors } from "../game/assets/colors";
@@ -80,14 +81,14 @@ export const featureSprites: Record<string, Sprite> = {
   minimaps: mapDiscovery,
   stats,
   aura,
-  shop: { ...shop, name: "Shop" },
-  trading: { ...shop, name: "Trading" },
-  forging: { ...forge, name: "Forging" },
-  forge: { ...forge, name: "Forging" },
-  brewing: { ...brew, name: "Brewing" },
-  brew: { ...brew, name: "Brewing" },
-  crafting: { ...craft, name: "Crafting" },
-  craft: { ...craft, name: "Crafting" },
+  shop: customSprite({ ...shop, name: "Shop" }),
+  trading: customSprite({ ...shop, name: "Trading" }),
+  forging: customSprite({ ...forge, name: "Forging" }),
+  forge: customSprite({ ...forge, name: "Forging" }),
+  brewing: customSprite({ ...brew, name: "Brewing" }),
+  brew: customSprite({ ...brew, name: "Brewing" }),
+  crafting: customSprite({ ...craft, name: "Crafting" }),
+  craft: customSprite({ ...craft, name: "Crafting" }),
   fishing,
   mining,
   logging,

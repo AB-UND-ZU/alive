@@ -1,3 +1,4 @@
+import { spriteRef } from "../../game/assets/spriteIds";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -100,7 +101,9 @@ export const freezeTerrain = (world: World, entity: TypedEntity) => {
     return entity;
 
   requireComponent(entity, FREEZABLE).frozen = true;
-  entity[SPRITE] = frozenSprites[(entity[IMMERSIBLE] as Immersible).type];
+  entity[SPRITE] = spriteRef(
+    frozenSprites[(entity[IMMERSIBLE] as Immersible).type]
+  );
 
   // replace water with ice terrain
   if (entity[IMMERSIBLE] && entity[TEMPO]) {
@@ -139,7 +142,7 @@ export const thawTerrain = (world: World, entity: TypedEntity) => {
   if (!isFrozen(world, entity)) return entity;
 
   requireComponent(entity, FREEZABLE).frozen = false;
-  entity[SPRITE] = waterDeep;
+  entity[SPRITE] = spriteRef(waterDeep);
 
   // replace ice with water terrain
   if (entity[TEMPO]) {
@@ -323,7 +326,7 @@ export const applySnow = (world: World, position: Position) => {
   const overlay = getCellEntities(world, position).some(
     (entity) =>
       entity[FREEZABLE]?.frozen ||
-      entity[SPRITE] === jetty ||
+      entity[SPRITE]?.id === jetty.id ||
       entity[HARVESTABLE]?.resource === "rubble"
   );
 

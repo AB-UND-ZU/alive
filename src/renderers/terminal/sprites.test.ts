@@ -388,7 +388,7 @@ describe("terminal sprite projection", () => {
     advance(world, 10000);
     const scene = getSceneFrame(world, 33, 16, undefined, { instant: true });
     const title = collectTerminalSprites(
-      scene.filter((entry) => /^block_(up|down)$/.test(entry.sprite.name))
+      scene.filter((entry) => /^block_(up|down)$/.test(entry.sprite.name || ""))
     );
     const solids = title.filter(
       (entry) =>

@@ -1,3 +1,4 @@
+import { customSprite, resolveSprite } from "../../game/assets/spriteIds";
 import { ORIENTABLE } from "../../engine/components/orientable";
 import { Layer, Sprite, SPRITE } from "../../engine/components/sprite";
 import { World } from "../../engine";
@@ -66,8 +67,8 @@ const snowFog = {
   sprite: snowFogOfWar,
   offsetZ: fogHeight + stackHeight / stack,
 };
-export const getFogOverlay = (sprite?: Sprite) =>
-  sprite === snowCover ? snowFog : defaultFog;
+export const getFogOverlay = (sprite?: Pick<Sprite, "id">) =>
+  sprite?.id === snowCover.id ? snowFog : defaultFog;
 
 export type RenderLayerProps = {
   isTransparent: boolean;
@@ -126,7 +127,7 @@ export const getSegments = <Props extends RenderLayerProps>(
     : isFloat
     ? floatHeight
     : isObject
-    ? entity[SPRITE] === snowCover
+    ? entity[SPRITE]?.id === snowCover.id
       ? objectHeight + 0.05
       : objectHeight
     : terrainHeight;
@@ -144,7 +145,7 @@ export const getSegments = <Props extends RenderLayerProps>(
     !swimming &&
     !isLiquid &&
     !isLootable &&
-    !(entity[NPC]?.type === "wormBoss" && entity[SPRITE] === none)
+    !(entity[NPC]?.type === "wormBoss" && entity[SPRITE]?.id === none.id)
   ) {
     orderedSegments.push({
       id: -2,
@@ -186,7 +187,7 @@ export const getSegments = <Props extends RenderLayerProps>(
   if (offhandEntity && offhandEntity[ITEM].amount > 0) {
     orderedSegments.push({
       id: world.getEntityId(offhandEntity),
-      sprite: offhandEntity[SPRITE],
+      sprite: resolveSprite(offhandEntity[SPRITE]),
       offsetX: 0,
       offsetY: 0,
       offsetZ,
@@ -198,7 +199,8 @@ export const getSegments = <Props extends RenderLayerProps>(
   }
 
   // 4. body
-  const sprite = (inside && entity[ENTERABLE]?.sprite) || requireComponent(entity, SPRITE);
+  const sprite =
+    (inside && entity[ENTERABLE]?.sprite) || resolveSprite(requireComponent(entity, SPRITE));
   orderedSegments.push({
     id: world.getEntityId(entity),
     sprite,
@@ -227,7 +229,7 @@ export const getSegments = <Props extends RenderLayerProps>(
   if (swordEntity && swordEntity[ITEM].amount > 0) {
     orderedSegments.push({
       id: world.getEntityId(swordEntity),
-      sprite: swordEntity[SPRITE],
+      sprite: resolveSprite(swordEntity[SPRITE]),
       facing: swordEntity[ORIENTABLE].facing,
       offsetX: 0,
       offsetY: 0,
@@ -259,10 +261,10 @@ export const createSprite = (world: World, entityId: number) => {
     );
   });
 
-  return {
+  return customSprite({
     name: "sprite_generic",
     layers,
-  };
+  });
 };
 
 // scalar value factor for colors in shadow

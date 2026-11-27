@@ -119,11 +119,18 @@ export function narrativeRows(
       text = text.slice(0, blockedSlot);
       if (!text.trim()) return [];
     }
-    const repeated = row.some((cell) =>
-      shownStats.some(
-        (stat) =>
-          statConfig[stat as keyof DisplayStats]?.sprite.name === cell.name
-      )
+    const repeated = row.some((cell, index) =>
+      shownStats.some((stat) => {
+        const icon = statConfig[stat as keyof DisplayStats]?.sprite;
+        // A tinted or quantity-specific icon can introduce the same printed stat.
+        return (
+          icon &&
+          (icon.id === cell.id ||
+            (cell.name !== "text_generic" &&
+              icon.name &&
+              text.startsWith(icon.name, index + 1)))
+        );
+      })
     );
     if (!/^\s*[+-]?\d/.test(text) || !repeated) return [row];
     const cost = retainCosts
@@ -283,7 +290,7 @@ function ToolTargets({ item }: { item: Partial<Item> }) {
               >
                 {plan.variants[0].cell === "campfire"
                   ? "Fireplace"
-                  : displayName(plan.sprite.name)}
+                  : displayName(plan.sprite.name || "")}
               </Text>
             </ReferenceLink>
           ))
@@ -396,7 +403,7 @@ export function ItemCatalogEntry({
           ) : (
             <ReferenceLink name={"item:" + name} sprite>
               <Text prefix={<Pixels rows={[[sprite]]} label={sprite.name} />}>
-                {title || sprite.name}
+                {title || sprite.name || ""}
               </Text>
             </ReferenceLink>
           ),
@@ -409,7 +416,7 @@ export function ItemCatalogEntry({
                 prefix={<Pixels rows={[[getItemSprite(item, "display")]]} />}
               >
                 {family || isAnimalItem(item)
-                  ? getItemSprite(item, "display").name
+                  ? getItemSprite(item, "display").name || ""
                   : variants.length === 1
                   ? ""
                   : [

@@ -99,7 +99,7 @@ describe("bucket", () => {
     step(world, 10);
 
     expect(soil[FARMABLE].watered).toBe(true);
-    expect(soil[SPRITE]).toBe(soilWet);
+    expect(soil[SPRITE].id).toBe(soilWet.id);
     expect(countItems(world, hero, waterBucket)).toBe(1);
     expect(countItems(world, hero, onlyEmpty)).toBe(1);
   });

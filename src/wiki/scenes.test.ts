@@ -1,4 +1,5 @@
 import { requireComponent } from "../engine/entities";
+import { resolveSprite } from "../game/assets/spriteIds";
 import { movementGoals, createPreviewWorld } from "./scenes";
 import { findPath, relativeOrientations } from "../game/math/path";
 import {
@@ -174,7 +175,7 @@ test("the vision example keeps ground behind its mountain out of sight", () => {
   advance(world, 500);
   const visibilityAt = (x: number, y: number) =>
     getCellEntities(world, { x, y }).find(
-      (entity) => entity.SPRITE?.name === "grass_empty"
+      (entity) => resolveSprite(entity.SPRITE)?.name === "grass_empty"
     )?.FOG?.visibility;
   expect(visibilityAt(6, 5)).toBe("visible");
   expect(visibilityAt(10, 4)).toBe("hidden");

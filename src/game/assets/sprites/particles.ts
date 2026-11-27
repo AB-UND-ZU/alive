@@ -2,6 +2,7 @@ import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
 export const listBullet: Sprite = {
+  id: "list_bullet",
   name: "List bullet",
   layers: [
     { char: "-", color: colors.grey },
@@ -11,31 +12,37 @@ export const listBullet: Sprite = {
 };
 
 export const none: Sprite = {
+  id: "none",
   name: "",
   layers: [],
 };
 
 export const blockDown: Sprite = {
+  id: "block_down",
   name: "block_down",
   layers: [{ char: "▄", color: colors.maroon }],
 };
 
 export const blockDownActive: Sprite = {
+  id: "block_down_active",
   name: "block_down",
   layers: [{ char: "▄", color: colors.red }],
 };
 
 export const blockUp: Sprite = {
+  id: "block_up",
   name: "block_up",
   layers: [{ char: "▀", color: colors.maroon }],
 };
 
 export const blockUpActive: Sprite = {
+  id: "block_up_active",
   name: "block_up",
   layers: [{ char: "▀", color: colors.red }],
 };
 
 export const keyHole: Sprite = {
+  id: "key_hole",
   name: "key_hole",
   layers: [
     { char: "\u0106", color: colors.black },
@@ -44,6 +51,7 @@ export const keyHole: Sprite = {
 };
 
 export const barrierSide: Sprite = {
+  id: "barrier_side",
   name: "barrier_side",
   layers: [{ char: "╬", color: colors.red }],
   facing: {
@@ -55,6 +63,7 @@ export const barrierSide: Sprite = {
 };
 
 export const barrierCorner: Sprite = {
+  id: "barrier_corner",
   name: "barrier_corner",
   layers: [{ char: "╬", color: colors.red }],
   facing: {
@@ -66,11 +75,13 @@ export const barrierCorner: Sprite = {
 };
 
 export const frozen: Sprite = {
+  id: "frozen",
   name: "water_frozen",
   layers: [{ char: "▓", color: colors.aqua }],
 };
 
 export const absorb: Sprite = {
+  id: "absorb",
   name: "Absorb",
   layers: [
     { char: "\u0100", color: colors.yellow },
@@ -80,6 +91,7 @@ export const absorb: Sprite = {
 };
 
 export const meleeHit: Sprite = {
+  id: "melee_hit",
   name: "Melee",
   terminal: {
     layers: [{ char: "o", color: colors.white }],
@@ -102,6 +114,7 @@ export const meleeHit: Sprite = {
 };
 
 export const magicHit: Sprite = {
+  id: "magic_hit",
   name: "Magic",
   terminal: {
     layers: [{ char: "o", color: colors.white }],
@@ -124,6 +137,7 @@ export const magicHit: Sprite = {
 };
 
 export const zapParticle: Sprite = {
+  id: "zap_particle",
   name: "Zap",
   terminal: {
     layers: [],
@@ -136,6 +150,7 @@ export const zapParticle: Sprite = {
 };
 
 export const zapSwordParticle: Sprite = {
+  id: "zap_sword_particle",
   name: "Zap",
   terminal: {
     layers: [],
@@ -148,6 +163,7 @@ export const zapSwordParticle: Sprite = {
 };
 
 export const lightningSide: Sprite = {
+  id: "lightning_side",
   name: "lightning_side",
   layers: [{ char: "┼", color: colors.yellow }],
   facing: {
@@ -159,6 +175,7 @@ export const lightningSide: Sprite = {
 };
 
 export const lightninCorner: Sprite = {
+  id: "lightnin_corner",
   name: "lightning_corner",
   layers: [{ char: "┼", color: colors.yellow }],
   facing: {
@@ -170,11 +187,13 @@ export const lightninCorner: Sprite = {
 };
 
 export const stats: Sprite = {
+  id: "stats",
   name: "Stats",
   layers: [{ char: "₧", color: colors.green }],
 };
 
 export const aura: Sprite = {
+  id: "aura",
   name: "Aura",
   layers: [
     { char: "±", color: colors.fuchsia },
@@ -184,6 +203,7 @@ export const aura: Sprite = {
 };
 
 export const range: Sprite = {
+  id: "range",
   name: "Range",
   terminal: { layers: [{ char: "\u0111", color: colors.yellow }] },
   layers: [
@@ -198,6 +218,7 @@ export const range: Sprite = {
 };
 
 export const delay: Sprite = {
+  id: "delay",
   name: "Delay",
   terminal: { layers: [{ char: "└", color: colors.yellow }] },
   layers: [
@@ -209,6 +230,7 @@ export const delay: Sprite = {
 };
 
 export const time: Sprite = {
+  id: "time",
   name: "Time",
   terminal: { layers: [{ char: "└", color: colors.fuchsia }] },
   layers: [
@@ -220,6 +242,7 @@ export const time: Sprite = {
 };
 
 export const trueHit: Sprite = {
+  id: "true_hit",
   name: "True",
   terminal: {
     layers: [{ char: "o", color: colors.white }],
@@ -242,11 +265,13 @@ export const trueHit: Sprite = {
 };
 
 export const healHit: Sprite = {
+  id: "heal_hit",
   name: "Heal",
   layers: [{ char: "+", color: colors.lime }],
 };
 
 export const repair: Sprite = {
+  id: "repair",
   name: "Repair",
   layers: [
     { char: "\u0103", color: colors.silver },
@@ -256,6 +281,7 @@ export const repair: Sprite = {
 };
 
 export const drain: Sprite = {
+  id: "drain",
   name: "Drain",
   layers: [
     { char: "\u0116", color: colors.purple },
@@ -266,6 +292,7 @@ export const drain: Sprite = {
 };
 
 export const bubble: Sprite = {
+  id: "bubble",
   name: "water_bubble",
   terminal: {
     layers: [{ char: "∙", color: colors.blue }],
@@ -293,6 +320,7 @@ export const bubble: Sprite = {
 };
 
 export const rain: Sprite = {
+  id: "rain",
   name: "rain_drop",
   layers: [{ char: "│", color: colors.blue }],
   amounts: {
@@ -303,6 +331,7 @@ export const rain: Sprite = {
 };
 
 export const fire: Sprite = {
+  id: "fire",
   name: "Burn",
   terminal: {
     layers: [{ char: "\u010e", color: colors.red }],
@@ -334,6 +363,7 @@ export const fire: Sprite = {
 };
 
 export const crackle: Sprite = {
+  id: "crackle",
   name: "fire_crackle",
   layers: [{ char: "·", color: colors.red }],
   amounts: {
@@ -347,6 +377,7 @@ export const crackle: Sprite = {
 };
 
 export const snowflake: Sprite = {
+  id: "snowflake",
   name: "Snowflake",
   layers: [
     { char: "+", color: colors.silver },
@@ -376,6 +407,7 @@ export const snowflake: Sprite = {
 };
 
 export const snow: Sprite = {
+  id: "snow",
   name: "Snow",
   layers: [
     { char: "\u0107", color: colors.grey },
@@ -385,11 +417,13 @@ export const snow: Sprite = {
 };
 
 export const snowCover: Sprite = {
+  id: "snow_cover",
   name: "Snow",
   layers: [{ char: "░", color: colors.white }],
 };
 
 export const freeze: Sprite = {
+  id: "freeze",
   name: "Freeze",
   layers: [{ char: "░", color: colors.aqua }],
   amounts: {
@@ -400,6 +434,7 @@ export const freeze: Sprite = {
 };
 
 export const smokeThick: Sprite = {
+  id: "smoke_thick",
   name: "smoke_thick",
   layers: [{ char: "~", color: colors.silver }],
   amounts: {
@@ -413,6 +448,7 @@ export const smokeThick: Sprite = {
 };
 
 export const smokeLight: Sprite = {
+  id: "smoke_light",
   name: "smoke_light",
   layers: [{ char: "~", color: colors.grey }],
   amounts: {
@@ -426,26 +462,31 @@ export const smokeLight: Sprite = {
 };
 
 export const decay: Sprite = {
+  id: "decay",
   name: "unit_decay",
   layers: [{ char: "▒", color: colors.black }],
 };
 
 export const vanishGrow0: Sprite = {
+  id: "vanish_grow0",
   name: "vanish_grow_0",
   layers: [{ char: "·", color: colors.lime }],
 };
 
 export const vanishGrow1: Sprite = {
+  id: "vanish_grow1",
   name: "vanish_grow_1",
   layers: [{ char: "∙", color: colors.lime }],
 };
 
 export const vanishGrow2: Sprite = {
+  id: "vanish_grow2",
   name: "vanish_grow_2",
   layers: [{ char: "\u0106", color: colors.lime }],
 };
 
 export const vanishGrow3: Sprite = {
+  id: "vanish_grow3",
   name: "vanish_grow_3",
   layers: [
     { char: "\u0106", color: colors.lime },
@@ -454,6 +495,7 @@ export const vanishGrow3: Sprite = {
 };
 
 export const vanishGrow4: Sprite = {
+  id: "vanish_grow4",
   name: "vanish_grow_4",
   layers: [
     { char: "\u0100", color: colors.lime },
@@ -462,41 +504,49 @@ export const vanishGrow4: Sprite = {
 };
 
 export const vanishGrow5: Sprite = {
+  id: "vanish_grow5",
   name: "vanish_grow_5",
   layers: [{ char: "█", color: colors.lime }],
 };
 
 export const vanishShrink0: Sprite = {
+  id: "vanish_shrink0",
   name: "vanish_shrink_0",
   layers: [{ char: "▓", color: colors.lime }],
 };
 
 export const vanishShrink1: Sprite = {
+  id: "vanish_shrink1",
   name: "vanish_shrink_1",
   layers: [{ char: "▒", color: colors.lime }],
 };
 
 export const vanishShrink2: Sprite = {
+  id: "vanish_shrink2",
   name: "vanish_shrink_2",
   layers: [{ char: "░", color: colors.lime }],
 };
 
 export const vanishEvaporate: Sprite = {
+  id: "vanish_evaporate",
   name: "vanish_evaporate",
   layers: [{ char: "║", color: colors.green }],
 };
 
 export const plantEvaporate: Sprite = {
+  id: "plant_evaporate",
   name: "plant_evaporate",
   layers: [{ char: "│", color: colors.green }],
 };
 
 export const stoneEvaporate: Sprite = {
+  id: "stone_evaporate",
   name: "stone_evaporate",
   layers: [{ char: "│", color: colors.grey }],
 };
 
 export const shotHit: Sprite = {
+  id: "shot_hit",
   name: "shot_hit",
   layers: [
     { char: "'", color: colors.grey },
@@ -505,6 +555,7 @@ export const shotHit: Sprite = {
 };
 
 export const woodShot2: Sprite = {
+  id: "wood_shot2",
   name: "shot_wood_2",
   layers: [
     { char: "»", color: colors.grey },
@@ -533,6 +584,7 @@ export const woodShot2: Sprite = {
 };
 
 export const auraEdge: Sprite = {
+  id: "aura_edge",
   name: "spell_aura",
   layers: [],
   amounts: {
@@ -543,6 +595,7 @@ export const auraEdge: Sprite = {
 };
 
 export const menuDot: Sprite = {
+  id: "menu_dot",
   name: "menu_dot",
   layers: [
     { char: ".", color: colors.grey },
@@ -551,11 +604,13 @@ export const menuDot: Sprite = {
 };
 
 export const menuArrow: Sprite = {
+  id: "menu_arrow",
   name: "menu_arrow",
   layers: [{ char: "\u0119", color: colors.white }],
 };
 
 export const tooltipFriendlyStart: Sprite = {
+  id: "tooltip_friendly_start",
   name: "friendly_start",
   layers: [
     { char: "▐", color: colors.black },
@@ -564,6 +619,7 @@ export const tooltipFriendlyStart: Sprite = {
 };
 
 export const tooltipFriendlyEnd: Sprite = {
+  id: "tooltip_friendly_end",
   name: "friendly_end",
   layers: [
     { char: "▌", color: colors.black },
@@ -572,6 +628,7 @@ export const tooltipFriendlyEnd: Sprite = {
 };
 
 export const tooltipNeutralStart: Sprite = {
+  id: "tooltip_neutral_start",
   name: "neutral_start",
   layers: [
     { char: "▐", color: colors.black },
@@ -580,6 +637,7 @@ export const tooltipNeutralStart: Sprite = {
 };
 
 export const tooltipNeutralEnd: Sprite = {
+  id: "tooltip_neutral_end",
   name: "neutral_end",
   layers: [
     { char: "▌", color: colors.black },
@@ -588,6 +646,7 @@ export const tooltipNeutralEnd: Sprite = {
 };
 
 export const tooltipHostileStart: Sprite = {
+  id: "tooltip_hostile_start",
   name: "hostile_start",
   layers: [
     { char: "▐", color: colors.black },
@@ -596,6 +655,7 @@ export const tooltipHostileStart: Sprite = {
 };
 
 export const tooltipHostileEnd: Sprite = {
+  id: "tooltip_hostile_end",
   name: "hostile_end",
   layers: [
     { char: "▌", color: colors.black },
@@ -604,6 +664,7 @@ export const tooltipHostileEnd: Sprite = {
 };
 
 export const dialogStart: Sprite = {
+  id: "dialog_start",
   name: "dialog_start",
   terminal: {
     layers: [
@@ -619,6 +680,7 @@ export const dialogStart: Sprite = {
 };
 
 export const dialogEnd: Sprite = {
+  id: "dialog_end",
   name: "dialog_end",
   terminal: {
     layers: [
@@ -634,6 +696,7 @@ export const dialogEnd: Sprite = {
 };
 
 export const shoutStart: Sprite = {
+  id: "shout_start",
   name: "shout_start",
   terminal: {
     layers: [
@@ -649,6 +712,7 @@ export const shoutStart: Sprite = {
 };
 
 export const shoutEnd: Sprite = {
+  id: "shout_end",
   name: "shout_end",
   terminal: {
     layers: [
@@ -664,6 +728,7 @@ export const shoutEnd: Sprite = {
 };
 
 export const nextStart: Sprite = {
+  id: "next_start",
   name: "next_start",
   layers: [
     { char: "▐", color: colors.lime },
@@ -672,6 +737,7 @@ export const nextStart: Sprite = {
 };
 
 export const nextEnd: Sprite = {
+  id: "next_end",
   name: "next_end",
   layers: [
     { char: "▌", color: colors.lime },
@@ -680,6 +746,7 @@ export const nextEnd: Sprite = {
 };
 
 export const tooltipLine: Sprite = {
+  id: "tooltip_line",
   name: "tooltip_line",
   layers: [{ char: "─", color: colors.silver }],
   facing: {
@@ -689,6 +756,7 @@ export const tooltipLine: Sprite = {
 };
 
 export const enemyLine: Sprite = {
+  id: "enemy_line",
   name: "tooltip_line",
   layers: [{ char: "─", color: colors.maroon }],
   facing: {
@@ -698,6 +766,7 @@ export const enemyLine: Sprite = {
 };
 
 export const allyLine: Sprite = {
+  id: "ally_line",
   name: "tooltip_line",
   layers: [{ char: "─", color: colors.green }],
   facing: {
@@ -707,6 +776,7 @@ export const allyLine: Sprite = {
 };
 
 export const bubbleUp: Sprite = {
+  id: "bubble_up",
   name: "bubble_up",
   terminal: { layers: [{ char: "╙", color: colors.white }] },
   layers: [
@@ -718,6 +788,7 @@ export const bubbleUp: Sprite = {
 };
 
 export const bubbleRight: Sprite = {
+  id: "bubble_right",
   name: "bubble_right",
   terminal: { layers: [{ char: "╜", color: colors.white }] },
   layers: [
@@ -729,6 +800,7 @@ export const bubbleRight: Sprite = {
 };
 
 export const bubbleDown: Sprite = {
+  id: "bubble_down",
   name: "bubble_down",
   terminal: { layers: [{ char: "╖", color: colors.white }] },
   layers: [
@@ -740,6 +812,7 @@ export const bubbleDown: Sprite = {
 };
 
 export const bubbleLeft: Sprite = {
+  id: "bubble_left",
   name: "bubble_left",
   terminal: { layers: [{ char: "╓", color: colors.white }] },
   layers: [
@@ -751,6 +824,7 @@ export const bubbleLeft: Sprite = {
 };
 
 export const shoutUp: Sprite = {
+  id: "shout_up",
   name: "shout_up",
   terminal: { layers: [{ char: "╙", color: colors.red }] },
   layers: [
@@ -762,6 +836,7 @@ export const shoutUp: Sprite = {
 };
 
 export const shoutRight: Sprite = {
+  id: "shout_right",
   name: "shout_right",
   terminal: { layers: [{ char: "╜", color: colors.red }] },
   layers: [
@@ -773,6 +848,7 @@ export const shoutRight: Sprite = {
 };
 
 export const shoutDown: Sprite = {
+  id: "shout_down",
   name: "shout_down",
   terminal: { layers: [{ char: "╖", color: colors.red }] },
   layers: [
@@ -784,6 +860,7 @@ export const shoutDown: Sprite = {
 };
 
 export const shoutLeft: Sprite = {
+  id: "shout_left",
   name: "shout_left",
   terminal: { layers: [{ char: "╓", color: colors.red }] },
   layers: [
@@ -795,11 +872,13 @@ export const shoutLeft: Sprite = {
 };
 
 export const keyboardOverlay: Sprite = {
+  id: "keyboard_overlay",
   name: "keyboard_overlay",
   layers: [{ char: "█", color: colors.black }],
 };
 
 export const keyboardBorder: Sprite = {
+  id: "keyboard_border",
   name: "keyboard_border",
   layers: [
     { char: "▄", color: colors.black },
@@ -808,6 +887,7 @@ export const keyboardBorder: Sprite = {
 };
 
 export const upperKey: Sprite = {
+  id: "upper_key",
   name: "upper_key",
   layers: [
     { char: "█", color: colors.lime },
@@ -817,6 +897,7 @@ export const upperKey: Sprite = {
 };
 
 export const lowerKey: Sprite = {
+  id: "lower_key",
   name: "lower_key",
   layers: [
     { char: "█", color: colors.lime },
@@ -825,6 +906,7 @@ export const lowerKey: Sprite = {
 };
 
 export const deleteKey: Sprite = {
+  id: "delete_key",
   name: "delete_key",
   layers: [
     { char: "█", color: colors.red },
@@ -833,6 +915,7 @@ export const deleteKey: Sprite = {
 };
 
 export const lettersKey: Sprite = {
+  id: "letters_key",
   name: "numbers_key",
   layers: [
     { char: "█", color: colors.lime },
@@ -848,6 +931,7 @@ export const lettersKey: Sprite = {
 };
 
 export const numbersKey: Sprite = {
+  id: "numbers_key",
   name: "numbers_key",
   layers: [
     { char: "█", color: colors.lime },
@@ -856,6 +940,7 @@ export const numbersKey: Sprite = {
 };
 
 export const specialKey: Sprite = {
+  id: "special_key",
   name: "special_key",
   layers: [
     { char: "█", color: colors.lime },
@@ -864,6 +949,7 @@ export const specialKey: Sprite = {
 };
 
 export const keyLeft: Sprite = {
+  id: "key_left",
   name: "key_left",
   layers: [
     { char: "▐", color: colors.white },
@@ -874,6 +960,7 @@ export const keyLeft: Sprite = {
 };
 
 export const keyGap: Sprite = {
+  id: "key_gap",
   name: "key_gap",
   layers: [
     { char: "█", color: colors.white },
@@ -883,6 +970,7 @@ export const keyGap: Sprite = {
 };
 
 export const keyRight: Sprite = {
+  id: "key_right",
   name: "key_right",
   layers: [
     { char: "▌", color: colors.white },
@@ -893,6 +981,7 @@ export const keyRight: Sprite = {
 };
 
 export const keySocketLeft: Sprite = {
+  id: "key_socket_left",
   name: "key_socket_left",
   layers: [
     { char: "▐", color: colors.silver },
@@ -904,6 +993,7 @@ export const keySocketLeft: Sprite = {
 };
 
 export const keySocket: Sprite = {
+  id: "key_socket",
   name: "key_socket",
   layers: [
     { char: "█", color: colors.silver },
@@ -912,6 +1002,7 @@ export const keySocket: Sprite = {
 };
 
 export const keySocketGap: Sprite = {
+  id: "key_socket_gap",
   name: "key_socket_gap",
   layers: [
     { char: "█", color: colors.silver },
@@ -922,6 +1013,7 @@ export const keySocketGap: Sprite = {
 };
 
 export const keySocketRight: Sprite = {
+  id: "key_socket_right",
   name: "key_socket_right",
   layers: [
     { char: "▌", color: colors.silver },
@@ -933,6 +1025,7 @@ export const keySocketRight: Sprite = {
 };
 
 export const modifierLeft: Sprite = {
+  id: "modifier_left",
   name: "modifier_left",
   layers: [
     { char: "▐", color: colors.lime },
@@ -943,6 +1036,7 @@ export const modifierLeft: Sprite = {
 };
 
 export const modifierGapLeft: Sprite = {
+  id: "modifier_gap_left",
   name: "modifier_gap_left",
   layers: [
     { char: "▌", color: colors.lime },
@@ -953,6 +1047,7 @@ export const modifierGapLeft: Sprite = {
 };
 
 export const modifierGapRight: Sprite = {
+  id: "modifier_gap_right",
   name: "modifier_gap_right",
   layers: [
     { char: "▌", color: colors.white },
@@ -963,6 +1058,7 @@ export const modifierGapRight: Sprite = {
 };
 
 export const modifierRight: Sprite = {
+  id: "modifier_right",
   name: "modifier_right",
   layers: [
     { char: "▌", color: colors.lime },
@@ -973,6 +1069,7 @@ export const modifierRight: Sprite = {
 };
 
 export const modifierSocketLeft: Sprite = {
+  id: "modifier_socket_left",
   name: "modifier_socket_left",
   layers: [
     { char: "▐", color: colors.green },
@@ -984,6 +1081,7 @@ export const modifierSocketLeft: Sprite = {
 };
 
 export const modifierSocketGapLeft: Sprite = {
+  id: "modifier_socket_gap_left",
   name: "modifier_socket_gap_left",
   layers: [
     { char: "▌", color: colors.green },
@@ -995,6 +1093,7 @@ export const modifierSocketGapLeft: Sprite = {
 };
 
 export const modifierSocket: Sprite = {
+  id: "modifier_socket",
   name: "modifier_socket",
   layers: [
     { char: "█", color: colors.green },
@@ -1003,6 +1102,7 @@ export const modifierSocket: Sprite = {
 };
 
 export const modifierSocketGapRight: Sprite = {
+  id: "modifier_socket_gap_right",
   name: "modifier_socket_gap_right",
   layers: [
     { char: "▌", color: colors.silver },
@@ -1014,6 +1114,7 @@ export const modifierSocketGapRight: Sprite = {
 };
 
 export const modifierSocketRight: Sprite = {
+  id: "modifier_socket_right",
   name: "modifier_socket_right",
   layers: [
     { char: "▌", color: colors.green },
@@ -1025,6 +1126,7 @@ export const modifierSocketRight: Sprite = {
 };
 
 export const deleteLeft: Sprite = {
+  id: "delete_left",
   name: "delete_left",
   layers: [
     { char: "▐", color: colors.red },
@@ -1035,6 +1137,7 @@ export const deleteLeft: Sprite = {
 };
 
 export const deleteGapLeft: Sprite = {
+  id: "delete_gap_left",
   name: "delete_gap_left",
   layers: [
     { char: "▌", color: colors.red },
@@ -1045,6 +1148,7 @@ export const deleteGapLeft: Sprite = {
 };
 
 export const deleteGapRight: Sprite = {
+  id: "delete_gap_right",
   name: "delete_gap_right",
   layers: [
     { char: "▌", color: colors.white },
@@ -1055,6 +1159,7 @@ export const deleteGapRight: Sprite = {
 };
 
 export const deleteRight: Sprite = {
+  id: "delete_right",
   name: "delete_right",
   layers: [
     { char: "▌", color: colors.red },
@@ -1065,6 +1170,7 @@ export const deleteRight: Sprite = {
 };
 
 export const deleteSocketLeft: Sprite = {
+  id: "delete_socket_left",
   name: "delete_socket_left",
   layers: [
     { char: "▐", color: colors.maroon },
@@ -1076,6 +1182,7 @@ export const deleteSocketLeft: Sprite = {
 };
 
 export const deleteSocketGapLeft: Sprite = {
+  id: "delete_socket_gap_left",
   name: "delete_socket_gap_left",
   layers: [
     { char: "▌", color: colors.maroon },
@@ -1087,6 +1194,7 @@ export const deleteSocketGapLeft: Sprite = {
 };
 
 export const deleteSocket: Sprite = {
+  id: "delete_socket",
   name: "delete_socket",
   layers: [
     { char: "█", color: colors.maroon },
@@ -1095,6 +1203,7 @@ export const deleteSocket: Sprite = {
 };
 
 export const deleteSocketGapRight: Sprite = {
+  id: "delete_socket_gap_right",
   name: "delete_socket_gap_right",
   layers: [
     { char: "▌", color: colors.silver },
@@ -1106,6 +1215,7 @@ export const deleteSocketGapRight: Sprite = {
 };
 
 export const deleteSocketRight: Sprite = {
+  id: "delete_socket_right",
   name: "delete_socket_right",
   layers: [
     { char: "▌", color: colors.maroon },
@@ -1117,6 +1227,7 @@ export const deleteSocketRight: Sprite = {
 };
 
 export const keyPressed: Sprite = {
+  id: "key_pressed",
   name: "key_pressed",
   layers: [
     { char: "█", color: colors.white },
@@ -1125,6 +1236,7 @@ export const keyPressed: Sprite = {
 };
 
 export const keySocketPressed: Sprite = {
+  id: "key_socket_pressed",
   name: "key_socket_pressed",
   layers: [
     { char: "█", color: colors.white },
@@ -1133,6 +1245,7 @@ export const keySocketPressed: Sprite = {
 };
 
 export const modifierPressed: Sprite = {
+  id: "modifier_pressed",
   name: "modifier_pressed",
   layers: [
     { char: "█", color: colors.lime },
@@ -1141,6 +1254,7 @@ export const modifierPressed: Sprite = {
 };
 
 export const modifierSocketPressed: Sprite = {
+  id: "modifier_socket_pressed",
   name: "modifier_socket_pressed",
   layers: [
     { char: "█", color: colors.lime },
@@ -1149,6 +1263,7 @@ export const modifierSocketPressed: Sprite = {
 };
 
 export const deletePressed: Sprite = {
+  id: "delete_pressed",
   name: "delete_pressed",
   layers: [
     { char: "█", color: colors.red },
@@ -1157,6 +1272,7 @@ export const deletePressed: Sprite = {
 };
 
 export const deleteSocketPressed: Sprite = {
+  id: "delete_socket_pressed",
   name: "delete_socket_pressed",
   layers: [
     { char: "█", color: colors.red },
@@ -1165,11 +1281,13 @@ export const deleteSocketPressed: Sprite = {
 };
 
 export const popupBackground: Sprite = {
+  id: "popup_background",
   name: "popup_background",
   layers: [{ char: "█", color: colors.black }],
 };
 
 export const popupSegment: Sprite = {
+  id: "popup_segment",
   name: "popup_segment",
   layers: [
     { char: "│", color: colors.silver },
@@ -1178,6 +1296,7 @@ export const popupSegment: Sprite = {
 };
 
 export const popupActive: Sprite = {
+  id: "popup_active",
   name: "popup_active",
   terminal: {
     layers: [
@@ -1197,11 +1316,13 @@ export const popupActive: Sprite = {
 };
 
 export const popupSelection: Sprite = {
+  id: "popup_selection",
   name: "popup_selection",
   layers: [{ char: ">", color: colors.white }],
 };
 
 export const popupHint: Sprite = {
+  id: "popup_hint",
   name: "popup_hint",
   layers: [],
   amounts: {
@@ -1210,6 +1331,7 @@ export const popupHint: Sprite = {
 };
 
 export const popupOverlay: Sprite = {
+  id: "popup_overlay",
   name: "popup_overlay",
   layers: [],
   facing: {
@@ -1225,6 +1347,7 @@ export const popupOverlay: Sprite = {
 };
 
 export const popupBlocked: Sprite = {
+  id: "popup_blocked",
   name: "popup_blocked",
   layers: [
     { char: ">", color: colors.red },
@@ -1233,6 +1356,7 @@ export const popupBlocked: Sprite = {
 };
 
 export const missing: Sprite = {
+  id: "missing",
   name: "?????",
   layers: [
     { char: "M", color: colors.grey },
@@ -1247,6 +1371,7 @@ export const missing: Sprite = {
 };
 
 export const convert: Sprite = {
+  id: "convert",
   name: "Convert",
   layers: [
     { char: "\u0119", color: colors.white },
@@ -1255,6 +1380,7 @@ export const convert: Sprite = {
 };
 
 export const blocked: Sprite = {
+  id: "blocked",
   name: "Blocked",
   layers: [
     { char: "\u0100", color: colors.red },
@@ -1264,6 +1390,7 @@ export const blocked: Sprite = {
 };
 
 export const quickCorner: Sprite = {
+  id: "quick_corner",
   name: "quick_corner",
   layers: [{ char: "┼", color: colors.olive }],
   facing: {
@@ -1275,6 +1402,7 @@ export const quickCorner: Sprite = {
 };
 
 export const quickSide: Sprite = {
+  id: "quick_side",
   name: "quick_side",
   layers: [{ char: "┼", color: colors.olive }],
   facing: {
@@ -1298,6 +1426,7 @@ export const quickSide: Sprite = {
 };
 
 export const quickSeparatorSelected: Sprite = {
+  id: "quick_separator_selected",
   name: "quick_separator_selected",
   layers: [
     { char: "▌", color: colors.olive },
@@ -1323,6 +1452,7 @@ export const quickSeparatorSelected: Sprite = {
 };
 
 export const quickCenterStart: Sprite = {
+  id: "quick_center_start",
   name: "quick_center_start",
   layers: [
     { char: "▐", color: colors.black },
@@ -1331,6 +1461,7 @@ export const quickCenterStart: Sprite = {
 };
 
 export const quickCenterEnd: Sprite = {
+  id: "quick_center_end",
   name: "quick_center_end",
   layers: [
     { char: "▌", color: colors.black },
@@ -1339,6 +1470,7 @@ export const quickCenterEnd: Sprite = {
 };
 
 export const popupCorner: Sprite = {
+  id: "popup_corner",
   name: "popup_corner",
   layers: [{ char: "╬", color: colors.silver }],
   facing: {
@@ -1362,6 +1494,7 @@ export const popupCorner: Sprite = {
 };
 
 export const popupSide: Sprite = {
+  id: "popup_side",
   name: "popup_side",
   layers: [{ char: "╬", color: colors.silver }],
   facing: {
@@ -1387,6 +1520,7 @@ export const popupSide: Sprite = {
 };
 
 export const popupSeparator: Sprite = {
+  id: "popup_separator",
   name: "popup_separator",
   layers: [
     { char: "█", color: colors.grey },
@@ -1415,6 +1549,7 @@ export const popupSeparator: Sprite = {
 };
 
 export const popupSeparatorSelected: Sprite = {
+  id: "popup_separator_selected",
   name: "popup_separator_selected",
   layers: [
     { char: "▌", color: colors.grey },
@@ -1440,6 +1575,7 @@ export const popupSeparatorSelected: Sprite = {
 };
 
 export const popupSeparatorInverted: Sprite = {
+  id: "popup_separator_inverted",
   name: "popup_separator_inverted",
   layers: [
     { char: "▐", color: colors.grey },
@@ -1450,6 +1586,7 @@ export const popupSeparatorInverted: Sprite = {
 };
 
 export const popupSeparatorDisabled: Sprite = {
+  id: "popup_separator_disabled",
   name: "popup_separator_disabled",
   layers: [
     { char: "█", color: colors.grey },
@@ -1491,6 +1628,7 @@ export const popupSeparatorDisabled: Sprite = {
 };
 
 export const popupSeparatorSelectedDisabled: Sprite = {
+  id: "popup_separator_selected_disabled",
   name: "popup_separator_selected_disabled",
   layers: [
     { char: "▌", color: colors.grey },
@@ -1523,6 +1661,7 @@ export const popupSeparatorSelectedDisabled: Sprite = {
 };
 
 export const popupSeparatorInvertedDisabled: Sprite = {
+  id: "popup_separator_inverted_disabled",
   name: "popup_separator_inverted_disabled",
   layers: [
     { char: "▐", color: colors.grey },
@@ -1534,6 +1673,7 @@ export const popupSeparatorInvertedDisabled: Sprite = {
 };
 
 export const popupCenterStart: Sprite = {
+  id: "popup_center_start",
   name: "popup_center_start",
   layers: [
     { char: "▐", color: colors.black },
@@ -1542,6 +1682,7 @@ export const popupCenterStart: Sprite = {
 };
 
 export const popupCenter: Sprite = {
+  id: "popup_center",
   name: "popup_center",
   layers: [
     { char: "█", color: colors.black },
@@ -1550,6 +1691,7 @@ export const popupCenter: Sprite = {
 };
 
 export const popupCenterCrop: Sprite = {
+  id: "popup_center_crop",
   name: "popup_center_crop",
   terminal: { layers: [] },
   layers: [
@@ -1559,6 +1701,7 @@ export const popupCenterCrop: Sprite = {
 };
 
 export const popupCenterEnd: Sprite = {
+  id: "popup_center_end",
   name: "popup_center_end",
   layers: [
     { char: "▌", color: colors.black },
@@ -1568,6 +1711,7 @@ export const popupCenterEnd: Sprite = {
 };
 
 export const popupDownStart: Sprite = {
+  id: "popup_down_start",
   name: "popup_down_start",
   layers: [
     { char: "▀", color: colors.black },
@@ -1577,6 +1721,7 @@ export const popupDownStart: Sprite = {
 };
 
 export const popupDownEnd: Sprite = {
+  id: "popup_down_end",
   name: "popup_down_end",
   layers: [
     { char: "▀", color: colors.black },
@@ -1586,6 +1731,7 @@ export const popupDownEnd: Sprite = {
 };
 
 export const craftCenterTop: Sprite = {
+  id: "craft_center_top",
   name: "craft_center_top",
   layers: [{ char: "═", color: colors.silver }],
   facing: {
@@ -1606,6 +1752,7 @@ export const craftCenterTop: Sprite = {
 };
 
 export const craftLeft: Sprite = {
+  id: "craft_left",
   name: "craft_left",
   layers: [
     { char: "│", color: colors.grey },
@@ -1615,6 +1762,7 @@ export const craftLeft: Sprite = {
 };
 
 export const craftLeftActive: Sprite = {
+  id: "craft_left_active",
   name: "craft_left_active",
   layers: [
     { char: "│", color: colors.white },
@@ -1623,6 +1771,7 @@ export const craftLeftActive: Sprite = {
 };
 
 export const craftDownLeft: Sprite = {
+  id: "craft_down_left",
   name: "craft_down_left",
   layers: [
     { char: "└", color: colors.grey },
@@ -1632,6 +1781,7 @@ export const craftDownLeft: Sprite = {
 };
 
 export const craftDownLeftActive: Sprite = {
+  id: "craft_down_left_active",
   name: "craft_down_left_active",
   layers: [
     { char: "└", color: colors.white },
@@ -1640,6 +1790,7 @@ export const craftDownLeftActive: Sprite = {
 };
 
 export const craftDown: Sprite = {
+  id: "craft_down",
   name: "craft_down",
   layers: [
     { char: "─", color: colors.grey },
@@ -1648,11 +1799,13 @@ export const craftDown: Sprite = {
 };
 
 export const craftDownActive: Sprite = {
+  id: "craft_down_active",
   name: "craft_down_active",
   layers: [{ char: "─", color: colors.white }],
 };
 
 export const buildCenterTop: Sprite = {
+  id: "build_center_top",
   name: "build_center_top",
   layers: [{ char: "─", color: colors.olive }],
   facing: {
@@ -1673,6 +1826,7 @@ export const buildCenterTop: Sprite = {
 };
 
 export const buildLeft: Sprite = {
+  id: "build_left",
   name: "build_left",
   layers: [
     { char: "│", color: colors.olive },
@@ -1682,6 +1836,7 @@ export const buildLeft: Sprite = {
 };
 
 export const buildLeftActive: Sprite = {
+  id: "build_left_active",
   name: "build_left_active",
   layers: [
     { char: "│", color: colors.yellow },
@@ -1690,6 +1845,7 @@ export const buildLeftActive: Sprite = {
 };
 
 export const buildDownLeft: Sprite = {
+  id: "build_down_left",
   name: "build_down_left",
   layers: [
     { char: "└", color: colors.olive },
@@ -1699,6 +1855,7 @@ export const buildDownLeft: Sprite = {
 };
 
 export const buildDownLeftActive: Sprite = {
+  id: "build_down_left_active",
   name: "build_down_left_active",
   layers: [
     { char: "└", color: colors.yellow },
@@ -1707,6 +1864,7 @@ export const buildDownLeftActive: Sprite = {
 };
 
 export const buildDown: Sprite = {
+  id: "build_down",
   name: "build_down",
   layers: [
     { char: "─", color: colors.olive },
@@ -1715,11 +1873,13 @@ export const buildDown: Sprite = {
 };
 
 export const buildDownActive: Sprite = {
+  id: "build_down_active",
   name: "build_down_active",
   layers: [{ char: "─", color: colors.yellow }],
 };
 
 export const scrollBarTop: Sprite = {
+  id: "scroll_bar_top",
   name: "scroll_top",
   layers: [
     { char: "█", color: colors.silver },
@@ -1728,6 +1888,7 @@ export const scrollBarTop: Sprite = {
 };
 
 export const scrollBar: Sprite = {
+  id: "scroll_bar",
   name: "scroll_bar",
   layers: [
     { char: "█", color: colors.silver },
@@ -1736,6 +1897,7 @@ export const scrollBar: Sprite = {
 };
 
 export const scrollBarBottom: Sprite = {
+  id: "scroll_bar_bottom",
   name: "scroll_bottom",
   layers: [
     { char: "█", color: colors.silver },
@@ -1744,6 +1906,7 @@ export const scrollBarBottom: Sprite = {
 };
 
 export const scrollHandle: Sprite = {
+  id: "scroll_handle",
   name: "scroll_handle",
   layers: [{ char: "█", color: colors.white }],
   facing: {
@@ -1761,6 +1924,7 @@ export const scrollHandle: Sprite = {
 };
 
 export const forgeHammer: Sprite = {
+  id: "forge_hammer",
   name: "forge_hammer",
   terminal: { layers: [{ char: "█", color: colors.grey }] },
   layers: [
@@ -1782,6 +1946,7 @@ export const forgeHammer: Sprite = {
 };
 
 export const forgeHandle: Sprite = {
+  id: "forge_handle",
   name: "forge_handle",
   terminal: { layers: [{ char: "═", color: colors.maroon }] },
   layers: [
@@ -1801,11 +1966,13 @@ export const forgeHandle: Sprite = {
 };
 
 export const forgeHit: Sprite = {
+  id: "forge_hit",
   name: "forge_hit",
   layers: [{ char: "_", color: colors.lime }],
 };
 
 export const forgeMiss: Sprite = {
+  id: "forge_miss",
   name: "forge_miss",
   layers: [
     { char: "_", color: colors.red },
@@ -1814,6 +1981,7 @@ export const forgeMiss: Sprite = {
 };
 
 export const thickLine: Sprite = {
+  id: "thick_line",
   name: "thick_line",
   layers: [
     { char: "∞", color: colors.red },
@@ -1832,6 +2000,7 @@ export const thickLine: Sprite = {
 };
 
 export const emptySlot: Sprite = {
+  id: "empty_slot",
   name: "Slot",
   terminal: { layers: [{ char: "█", color: colors.grey }] },
   layers: [
@@ -1846,6 +2015,7 @@ export const emptySlot: Sprite = {
 };
 
 export const interactLeft: Sprite = {
+  id: "interact_left",
   name: "interact_left",
   terminal: {
     layers: [
@@ -1859,6 +2029,7 @@ export const interactLeft: Sprite = {
   ],
 };
 export const interactRight: Sprite = {
+  id: "interact_right",
   name: "interact_left",
   terminal: {
     layers: [
@@ -1872,6 +2043,7 @@ export const interactRight: Sprite = {
   ],
 };
 export const interactBar: Sprite = {
+  id: "interact_bar",
   name: "interact_bar",
   layers: [{ char: "┼", color: colors.green }],
   facing: {
@@ -1883,6 +2055,7 @@ export const interactBar: Sprite = {
 };
 
 export const brewItem: Sprite = {
+  id: "brew_item",
   name: "brew_item",
   layers: [
     { char: "∙", color: colors.navy },
@@ -1891,6 +2064,7 @@ export const brewItem: Sprite = {
 };
 
 export const questPointer: Sprite = {
+  id: "quest_pointer",
   name: "quest_pointer",
   layers: [],
   facing: {
@@ -1902,6 +2076,7 @@ export const questPointer: Sprite = {
 };
 
 export const tombstonePointer: Sprite = {
+  id: "tombstone_pointer",
   name: "tombstone_pointer",
   layers: [],
   facing: {
@@ -1913,6 +2088,7 @@ export const tombstonePointer: Sprite = {
 };
 
 export const enemyPointer: Sprite = {
+  id: "enemy_pointer",
   name: "enemy_pointer",
   layers: [],
   facing: {
@@ -1924,12 +2100,14 @@ export const enemyPointer: Sprite = {
 };
 
 export const xpDot: Sprite = {
+  id: "xp_dot",
   name: "xp_dot",
   terminal: { layers: [{ char: "·", color: colors.lime }] },
   layers: [{ char: "·", color: colors.lime }],
 };
 
 export const vortexDot: Sprite = {
+  id: "vortex_dot",
   name: "vortex_dot",
   layers: [
     { char: "∙", color: colors.white },
@@ -1952,6 +2130,7 @@ export const vortexDot: Sprite = {
 };
 
 export const fountainDrop: Sprite = {
+  id: "fountain_drop",
   name: "fountain_drop",
   terminal: {
     layers: [{ char: "|", color: colors.blue }],
@@ -1971,6 +2150,7 @@ export const fountainDrop: Sprite = {
 };
 
 export const fountainHeal: Sprite = {
+  id: "fountain_heal",
   name: "fountain_heal",
   terminal: {
     layers: [{ char: "|", color: colors.lime }],
@@ -1990,6 +2170,7 @@ export const fountainHeal: Sprite = {
 };
 
 export const levelProgress: Sprite = {
+  id: "level_progress",
   name: "level_progress",
   layers: [],
   facing: {
@@ -2001,6 +2182,7 @@ export const levelProgress: Sprite = {
 };
 
 export const joystick: Sprite = {
+  id: "joystick",
   name: "joystick",
   layers: [
     { char: "■", color: colors.white },
@@ -2011,6 +2193,7 @@ export const joystick: Sprite = {
 };
 
 export const pause: Sprite = {
+  id: "pause",
   name: "Pause",
   layers: [
     { char: "■", color: colors.red },
@@ -2019,6 +2202,7 @@ export const pause: Sprite = {
 };
 
 export const pauseInvert: Sprite = {
+  id: "pause_invert",
   name: "Pause",
   layers: [
     { char: "█", color: colors.white },
@@ -2028,6 +2212,7 @@ export const pauseInvert: Sprite = {
 };
 
 export const pauseInvertPressed: Sprite = {
+  id: "pause_invert_pressed",
   name: "Pause",
   layers: [
     { char: "█", color: colors.grey },
@@ -2037,11 +2222,13 @@ export const pauseInvertPressed: Sprite = {
 };
 
 export const resume: Sprite = {
+  id: "resume",
   name: "Resume",
   layers: [{ char: "»", color: colors.white }],
 };
 
 export const resumeInvert: Sprite = {
+  id: "resume_invert",
   name: "Resume",
   layers: [
     { char: "█", color: colors.white },
@@ -2050,6 +2237,7 @@ export const resumeInvert: Sprite = {
 };
 
 export const resumeInvertPressed: Sprite = {
+  id: "resume_invert_pressed",
   name: "Resume",
   layers: [
     { char: "█", color: colors.grey },
@@ -2058,11 +2246,13 @@ export const resumeInvertPressed: Sprite = {
 };
 
 export const inspect: Sprite = {
+  id: "inspect",
   name: "Inspect",
   layers: [{ char: "?", color: colors.white }],
 };
 
 export const spawn: Sprite = {
+  id: "spawn",
   name: "Map",
   layers: [
     { char: "\u010b", color: colors.green },
@@ -2071,6 +2261,7 @@ export const spawn: Sprite = {
 };
 
 export const chatDiscovery: Sprite = {
+  id: "chat_discovery",
   name: "Chat",
   layers: [
     { char: "µ", color: colors.lime },
@@ -2081,6 +2272,7 @@ export const chatDiscovery: Sprite = {
 };
 
 export const caret: Sprite = {
+  id: "caret",
   name: "Caret",
   terminal: { layers: [{ char: "▬", color: colors.white }] },
   layers: [
@@ -2093,11 +2285,13 @@ export const caret: Sprite = {
 };
 
 export const soundNotes: Sprite = {
+  id: "sound_notes",
   name: "Sound",
   layers: [{ char: "\u010d", color: colors.green }],
 };
 
 export const mapDiscovery: Sprite = {
+  id: "map_discovery",
   name: "Map",
   terminal: { layers: [{ char: "#", color: colors.lime }] },
   layers: [
@@ -2110,6 +2304,7 @@ export const mapDiscovery: Sprite = {
 };
 
 export const mapHouse: Sprite = {
+  id: "map_house",
   name: "House",
   layers: [
     { char: "█", color: colors.black },
@@ -2122,6 +2317,7 @@ export const mapHouse: Sprite = {
 };
 
 export const mapFortress: Sprite = {
+  id: "map_fortress",
   name: "Fort",
   layers: [
     { char: "█", color: colors.black },
@@ -2134,6 +2330,7 @@ export const mapFortress: Sprite = {
 };
 
 export const mapSpawn: Sprite = {
+  id: "map_spawn",
   name: "House",
   layers: [
     { char: "█", color: colors.black },
@@ -2142,11 +2339,13 @@ export const mapSpawn: Sprite = {
 };
 
 export const mapPlayer: Sprite = {
+  id: "map_player",
   name: "Map",
   layers: [{ char: "\u010b", color: colors.lime }],
 };
 
 export const mapNomad: Sprite = {
+  id: "map_nomad",
   name: "Map",
   layers: [
     { char: "█", color: colors.black },
@@ -2156,11 +2355,13 @@ export const mapNomad: Sprite = {
 };
 
 export const mapZoom1: Sprite = {
+  id: "map_zoom1",
   name: "Map",
   layers: [{ char: "∙", color: colors.grey }],
 };
 
 export const mapZoom2: Sprite = {
+  id: "map_zoom2",
   name: "Map",
   layers: [
     { char: "≡", color: colors.grey },
@@ -2171,6 +2372,7 @@ export const mapZoom2: Sprite = {
 };
 
 export const mapZoom3: Sprite = {
+  id: "map_zoom3",
   name: "Map",
   layers: [
     { char: "*", color: colors.grey },
@@ -2183,6 +2385,7 @@ export const mapZoom3: Sprite = {
 };
 
 export const mapZoom4: Sprite = {
+  id: "map_zoom4",
   name: "Map",
   layers: [
     { char: "\u0107", color: colors.grey },
@@ -2194,6 +2397,7 @@ export const mapZoom4: Sprite = {
 };
 
 export const close: Sprite = {
+  id: "close",
   name: "Close",
   layers: [
     { char: "█", color: colors.red },
@@ -2204,11 +2408,13 @@ export const close: Sprite = {
 };
 
 export const backdrop: Sprite = {
+  id: "backdrop",
   name: "Backdrop",
   layers: [{ char: "▓", color: colors.black }],
 };
 
 export const swirl: Sprite = {
+  id: "swirl",
   name: "Swirl",
   layers: [
     { char: "≈", color: colors.grey },
@@ -2217,6 +2423,7 @@ export const swirl: Sprite = {
 };
 
 export const times: Sprite = {
+  id: "times",
   name: "Times",
   terminal: { layers: [{ char: "*", color: colors.white }] },
   layers: [
@@ -2227,11 +2434,13 @@ export const times: Sprite = {
 };
 
 export const star: Sprite = {
+  id: "star",
   name: "Star",
   layers: [{ char: "*", color: colors.white }],
 };
 
 export const plusBox: Sprite = {
+  id: "plus_box",
   name: "Plus",
   layers: [
     { char: "M", color: colors.white },
@@ -2242,6 +2451,7 @@ export const plusBox: Sprite = {
 };
 
 export const ninePlus: Sprite = {
+  id: "nine_plus",
   name: "9+",
   layers: [
     { char: "9", color: colors.grey },
@@ -2250,6 +2460,7 @@ export const ninePlus: Sprite = {
 };
 
 export const ninePlusAmmo: Sprite = {
+  id: "nine_plus_ammo",
   name: "9+",
   layers: [
     { char: "9", color: colors.silver },
@@ -2258,6 +2469,7 @@ export const ninePlusAmmo: Sprite = {
 };
 
 export const ninePlusMana: Sprite = {
+  id: "nine_plus_mana",
   name: "9+",
   layers: [
     { char: "9", color: colors.blue },
@@ -2266,6 +2478,7 @@ export const ninePlusMana: Sprite = {
 };
 
 export const scroll: Sprite = {
+  id: "scroll",
   name: "scroll",
   layers: [
     { char: "\u0117", color: colors.silver },
@@ -2278,6 +2491,7 @@ export const scroll: Sprite = {
 };
 
 export const double: Sprite = {
+  id: "double",
   name: "Double",
   layers: [
     { char: "<", color: colors.red },
@@ -2291,6 +2505,7 @@ export const double: Sprite = {
 };
 
 export const weaponSlot: Sprite = {
+  id: "weapon_slot",
   name: "Weapon",
   terminal: {
     layers: [
@@ -2307,6 +2522,7 @@ export const weaponSlot: Sprite = {
 };
 
 export const offhandSlot: Sprite = {
+  id: "offhand_slot",
   name: "Offhand",
   terminal: {
     layers: [
@@ -2318,6 +2534,7 @@ export const offhandSlot: Sprite = {
 };
 
 export const bootsSlot: Sprite = {
+  id: "boots_slot",
   name: "Boots",
   terminal: {
     layers: [
@@ -2334,6 +2551,7 @@ export const bootsSlot: Sprite = {
 };
 
 export const spellSlot: Sprite = {
+  id: "spell_slot",
   name: "Spell",
   terminal: {
     layers: [
@@ -2345,6 +2563,7 @@ export const spellSlot: Sprite = {
 };
 
 export const skillSlot: Sprite = {
+  id: "skill_slot",
   name: "Skill",
   terminal: {
     layers: [
@@ -2356,6 +2575,7 @@ export const skillSlot: Sprite = {
 };
 
 export const toolSlot: Sprite = {
+  id: "tool_slot",
   name: "Tool",
   terminal: {
     layers: [
@@ -2370,6 +2590,7 @@ export const toolSlot: Sprite = {
 };
 
 export const ringSlot: Sprite = {
+  id: "ring_slot",
   name: "Ring",
   terminal: {
     layers: [
@@ -2387,6 +2608,7 @@ export const ringSlot: Sprite = {
 };
 
 export const amuletSlot: Sprite = {
+  id: "amulet_slot",
   name: "Amulet",
   terminal: {
     layers: [
@@ -2404,6 +2626,7 @@ export const amuletSlot: Sprite = {
 };
 
 export const compassSlot: Sprite = {
+  id: "compass_slot",
   name: "Compass",
   terminal: {
     layers: [
@@ -2423,6 +2646,7 @@ export const compassSlot: Sprite = {
 };
 
 export const torchSlot: Sprite = {
+  id: "torch_slot",
   name: "Torch",
   terminal: {
     layers: [
@@ -2439,6 +2663,7 @@ export const torchSlot: Sprite = {
 };
 
 export const mapSlot: Sprite = {
+  id: "map_slot",
   name: "Map",
   terminal: {
     layers: [
@@ -2456,21 +2681,25 @@ export const mapSlot: Sprite = {
 };
 
 export const friendlyBar: Sprite = {
+  id: "friendly_bar",
   name: "Friendly",
   layers: [{ char: "_", color: colors.lime }],
 };
 
 export const neutralBar: Sprite = {
+  id: "neutral_bar",
   name: "Friendly",
   layers: [{ char: "_", color: colors.silver }],
 };
 
 export const hostileBar: Sprite = {
+  id: "hostile_bar",
   name: "Hostile",
   layers: [{ char: "_", color: colors.red }],
 };
 
 export const warnOn: Sprite = {
+  id: "warn_on",
   name: "warn_on",
   layers: [
     { char: "\u0101", color: colors.black },
@@ -2482,6 +2711,7 @@ export const warnOn: Sprite = {
 };
 
 export const warnOff: Sprite = {
+  id: "warn_off",
   name: "warn_off",
   layers: [
     { char: "\u0101", color: colors.black },
@@ -2491,6 +2721,7 @@ export const warnOff: Sprite = {
   ],
 };
 export const shadow: Sprite = {
+  id: "shadow",
   name: "",
   layers: [
     { char: "\u0100", color: colors.black },
@@ -2499,6 +2730,7 @@ export const shadow: Sprite = {
 };
 
 export const spawnerPulse: Sprite = {
+  id: "spawner_pulse",
   name: "spawn_pulse",
   layers: [{ char: "∙", color: colors.maroon }],
   terminal: { layers: [] },

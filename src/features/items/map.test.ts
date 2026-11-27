@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { entities } from "../../engine";
 import { POPUP } from "../../engine/components/popup";
 import { POI } from "../../engine/components/poi";
@@ -50,7 +51,9 @@ const setup = () => {
   const sprites = () =>
     Object.entries(getSequence(world, popup, "popup")!.particles)
       .filter(([name]) => name.startsWith("popup-content-"))
-      .map(([, id]) => world.assertByIdAndComponents(id, [SPRITE])[SPRITE]);
+      .map(([, id]) =>
+        resolveSprite(world.assertByIdAndComponents(id, [SPRITE])[SPRITE])
+      );
   const has = (char: string) =>
     sprites().some((sprite) =>
       sprite.layers.some((layer) => layer.char === char)

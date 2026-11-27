@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { Element } from "../../engine/components/item";
 import { orientations, ORIENTABLE } from "../../engine/components/orientable";
 import { SPRITE } from "../../engine/components/sprite";
@@ -78,7 +79,10 @@ describe("spear", () => {
       const trail = () =>
         world
           .getEntities([SPRITE])
-          .find((entity) => entity[SPRITE].name === "spear_line_element");
+          .find(
+            (entity) =>
+              resolveSprite(entity[SPRITE]).name === "spear_line_element"
+          );
       advanceUntil(world, () => !!trail(), 1000);
       const weapon = world.assertByIdAndComponents(hero.EQUIPPABLE.weapon!, [
         SPRITE,
@@ -87,7 +91,10 @@ describe("spear", () => {
       expect(weapon[ORIENTABLE].facing).toBe(orientation);
       expect(
         composeCharacterPixels(
-          getFacingLayers(weapon[SPRITE], weapon[ORIENTABLE].facing)
+          getFacingLayers(
+            resolveSprite(weapon[SPRITE]),
+            weapon[ORIENTABLE].facing
+          )
         )
       ).toEqual(
         composeCharacterPixels(
@@ -99,26 +106,35 @@ describe("spear", () => {
         )
       );
       expect(
-        composeCharacterPixels(getFacingLayers(trail()![SPRITE], orientation))
+        composeCharacterPixels(
+          getFacingLayers(resolveSprite(trail()![SPRITE]), orientation)
+        )
       ).toContain(colors.silver);
       const shaft = world
         .getEntities([SPRITE])
-        .find((entity) => entity[SPRITE].name === "spear_line")!;
+        .find((entity) => resolveSprite(entity[SPRITE]).name === "spear_line")!;
       const tip = world
         .getEntities([SPRITE])
-        .find((entity) => entity[SPRITE].name === "spear_tip")!;
+        .find((entity) => resolveSprite(entity[SPRITE]).name === "spear_tip")!;
       expect(
-        composeCharacterPixels(getFacingLayers(shaft[SPRITE], orientation))
+        composeCharacterPixels(
+          getFacingLayers(resolveSprite(shaft[SPRITE]), orientation)
+        )
       ).not.toContain(colors.silver);
       expect(
-        composeCharacterPixels(getFacingLayers(tip[SPRITE], orientation))
+        composeCharacterPixels(
+          getFacingLayers(resolveSprite(tip[SPRITE]), orientation)
+        )
       ).not.toContain(colors.silver);
       advance(world, 1000);
       expect(trail()).toBeUndefined();
       expect(weapon[ORIENTABLE].facing).toBeUndefined();
       expect(
         composeCharacterPixels(
-          getFacingLayers(weapon[SPRITE], weapon[ORIENTABLE].facing)
+          getFacingLayers(
+            resolveSprite(weapon[SPRITE]),
+            weapon[ORIENTABLE].facing
+          )
         )
       ).toContain(colors.silver);
     }

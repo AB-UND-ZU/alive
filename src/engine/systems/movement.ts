@@ -1,3 +1,4 @@
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { bumpEntity } from "../motion";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
@@ -427,8 +428,11 @@ export default function setupMovement(world: World) {
             intensity: movableReference[REFERENCE].tick,
             variant,
             volume: getCellEntities(world, rootPosition).some(
-              (cell) => cell[RENDERABLE] && cell[SPRITE]?.layers.length
-            ) ? 1 : 0.5,
+              (cell) =>
+                cell[RENDERABLE] && resolveSprite(cell[SPRITE])?.layers.length
+            )
+              ? 1
+              : 0.5,
           });
         } else if (
           entity[MOVABLE].flying &&

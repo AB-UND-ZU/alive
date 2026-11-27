@@ -1,8 +1,10 @@
 import { requireComponent } from "../../engine/entities";
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { SceneSprite, SceneState } from "../interface/frame";
-import { Layer, SPRITE } from "../../engine/components/sprite";
+import { Layer, Sprite, SPRITE } from "../../engine/components/sprite";
 import { colors, darkColors, orderedColors } from "../../game/assets/colors";
 import { projectLayers, projectTerminalLayers, TerminalCell } from "./sprites";
+import { CLICKABLE } from "../../engine/components/clickable";
 import { ENTERABLE } from "../../engine/components/enterable";
 import { World } from "../../engine";
 import { PLAYER } from "../../engine/components/player";
@@ -26,6 +28,11 @@ import { LOCKABLE } from "../../engine/components/lockable";
 import { MOUNTABLE } from "../../engine/components/mountable";
 import { HARVESTABLE } from "../../engine/components/harvestable";
 import {
+  fogOfWar,
+  meleeHit,
+  magicHit,
+  trueHit,
+  healHit,
   tombstone1,
   tombstone2,
   campfire,
@@ -44,7 +51,7 @@ export type TerminalSprite = {
   terminalLayers?: Layer[];
   unit?: boolean;
   floating?: boolean;
-  sprite: { name: string };
+  sprite: Pick<Sprite, "id" | "name">;
   fog?: boolean;
   overlay?: boolean;
   ui?: boolean;
@@ -56,6 +63,8 @@ export type TerminalFrame = TerminalCell[][];
 // Ignore floating-point noise at a cell boundary before snapping mirrored edges.
 const ceilOffset = (offset: number) =>
   Math.sign(offset) * Math.ceil(Math.abs(offset) - 1e-6);
+
+const damageSprites = [meleeHit.id, magicHit.id, trueHit.id];
 
 // Equipment and backdrops are layers of one actor, not replacement characters.
 export const collectTerminalSprites = (
@@ -78,16 +87,23 @@ export const collectTerminalSprites = (
     const bodyEntry = /body\d+$/.test(entry.key);
     if (
       bodyEntry &&
-      ([tombstone1, tombstone2].some((sprite) => sprite === entry.entity[SPRITE]) ||
+      ([tombstone1, tombstone2].some(
+        (sprite) => sprite.id === entry.entity[SPRITE]?.id
+      ) ||
         entry.entity[LOCKABLE]?.locked === false)
     )
       continue;
-    const titleBlock = /^block_(up|down)$/.test(entry.sprite.name);
+    // A click recolors each half independently, but the two halves still share a cell.
+    const titleBlock =
+      entry.entity[CLICKABLE]?.player &&
+      !entry.entity[SEQUENCABLE] &&
+      entry.layers.length === 1 &&
+      (entry.layers[0].char === "▀" || entry.layers[0].char === "▄");
     if (!titleBlock && !bodyEntry) {
       if (
         entry.entity[PLAYER] &&
         entry.z < popupHeight &&
-        ["Melee", "Magic", "True"].includes(entry.sprite.name)
+        damageSprites.includes(entry.sprite.id)
       ) {
         const body = bodies.get(entry.key.replace(/particle\d+$/, "body"));
         if (body?.hero) body.hero.hit = true;
@@ -159,12 +175,12 @@ export const collectTerminalSprites = (
         const tick = Math.floor(fountainState.elapsed / 125);
         const phase = tick % 6;
         const healing =
-          entry.sprite === fountainHealing ||
+          entry.sprite.id === fountainHealing.id ||
           scene.some(
             (particle) =>
               particle.entity === entry.entity &&
               particle.particleSequence === "fountainSplash" &&
-              particle.sprite === fountainHeal
+              particle.sprite.id === fountainHeal.id
           );
         const drop = healing ? fountainHeal : fountainDrop;
         if (healing) sprite.terminalLayers = fountainHealing.terminal!.layers;
@@ -206,8 +222,8 @@ export const collectTerminalSprites = (
       body.z = Math.max(body.z, entry.z);
       body.fog = body.fog || entry.fog;
       if (
-        entry.sprite === entry.entity[SPRITE] ||
-        entry.sprite === entry.entity[ENTERABLE]?.sprite
+        entry.sprite.id === entry.entity[SPRITE]?.id ||
+        entry.sprite.id === entry.entity[ENTERABLE]?.sprite?.id
       ) {
         body.sprite = entry.sprite;
         body.terminalLayers = entry.terminalLayers;
@@ -240,14 +256,14 @@ export const collectTerminalSprites = (
           entry.entity[FOG]?.type === "float" ||
           (entry.entity[LIGHT]?.darkness || 0) > 0,
         terminalLayers:
-          entry.sprite === entry.entity[SPRITE] ||
-          entry.sprite === entry.entity[ENTERABLE]?.sprite
+          entry.sprite.id === entry.entity[SPRITE]?.id ||
+          entry.sprite.id === entry.entity[ENTERABLE]?.sprite?.id
             ? entry.terminalLayers
             : undefined,
         sprite:
-          entry.sprite === entry.entity[ENTERABLE]?.sprite
+          entry.sprite.id === entry.entity[ENTERABLE]?.sprite?.id
             ? entry.sprite
-            : entry.entity[SPRITE] || entry.sprite,
+            : resolveSprite(entry.entity[SPRITE]) || entry.sprite,
       };
       const resource = entry.entity[HARVESTABLE]?.resource;
       if (
@@ -270,13 +286,13 @@ export const collectTerminalSprites = (
       bodies.set(key, sprite);
       result.push(sprite);
     }
-    if (entry.sprite === campfire && entry.entity[BURNABLE]?.burning)
+    if (entry.sprite.id === campfire.id && entry.entity[BURNABLE]?.burning)
       bodies.get(key)!.terminalLayers = [{ char: "█", color: colors.maroon }];
   }
   const hero = result.find((sprite) => sprite.hero);
   const buttons = result.filter(
     (sprite) =>
-      sprite.ui && /^(button_|interact_left$)/.test(sprite.sprite.name)
+      sprite.ui && /^(button_|interact_left$)/.test(sprite.sprite.name || "")
   );
   if (
     hero &&
@@ -295,18 +311,18 @@ export const collectTerminalSprites = (
     if (
       sprite.ui &&
       sprite.z < popupHeight &&
-      !["Melee", "Magic", "True", "Heal"].includes(sprite.sprite.name)
+      ![...damageSprites, healHit.id].includes(sprite.sprite.id)
     )
       sprite.z =
         popupHeight -
         (sprite.dialog
           ? 0.00075
-          : /^(button_|interact_)/.test(sprite.sprite.name)
+          : /^(button_|interact_)/.test(sprite.sprite.name || "")
           ? 0.0007
           : 0.002);
     if (
       sprite.z < popupHeight &&
-      ["Melee", "Magic", "True"].includes(sprite.sprite.name) &&
+      damageSprites.includes(sprite.sprite.id) &&
       (sprite.terminalLayers || sprite.layers).some((layer) =>
         "oxX".includes(layer.char)
       )
@@ -384,7 +400,7 @@ export const createTerminalFrame = (
     const x = Math.ceil(sprite.x),
       y = Math.ceil(sprite.y);
     if (x < 0 || x >= columns || y < 0 || y >= rows) continue;
-    if (sprite.sprite.name === "fog_war") continue;
+    if (sprite.sprite.id === fogOfWar.id) continue;
     if (sprite.fog && !fogApplied) fogCells.add(y * columns + x);
     let projected = sprite.terminalLayers
       ? projectTerminalLayers(sprite.terminalLayers)
@@ -420,7 +436,7 @@ export const createTerminalFrame = (
       };
     }
     if (
-      sprite.sprite.name.startsWith("button_") &&
+      sprite.sprite.name?.startsWith("button_") &&
       sprite.layers.some(
         (layer) => layer.char === "░" && layer.color === colors.black
       )

@@ -1,3 +1,8 @@
+import { TOOLTIP } from "./components/tooltip";
+import { waveTower } from "../game/assets/templates/creatures";
+import { snowCover } from "../game/assets/sprites";
+import { rage2, parseSprite } from "../game/assets/ui";
+import { resolveSprite, spriteRef } from "../game/assets/spriteIds";
 import { deserialize, serialize } from "v8";
 import {
   advance,
@@ -220,17 +225,72 @@ describe("world snapshot", () => {
     expect(assertHero(restored)[STATS]).toEqual(assertHero(world)[STATS]);
   });
 
-  it("keeps sprite identity and map references", () => {
+  it("preserves sprite IDs and map references", () => {
     const world = createTestWorld();
     const restored = storeAndLoad(world);
     const hero = assertHero(restored);
 
     const emptySprites = (target: World) =>
-      target.getEntities([SPRITE]).filter((entity) => entity[SPRITE] === none)
-        .length;
+      target
+        .getEntities([SPRITE])
+        .filter((entity) => entity[SPRITE].id === none.id).length;
     expect(emptySprites(restored)).toBe(emptySprites(world));
     expect(emptySprites(restored)).toBeGreaterThan(0);
     expect(getCellEntities(restored, hero[POSITION])).toContain(hero);
+  });
+
+  it("stores compact sprite references and restores old tokens and inline artwork", () => {
+    const world = createTestWorld();
+    const hero = assertHero(world);
+    world.assertComponents(hero, [SPRITE])[SPRITE] = spriteRef(none);
+    const snapshot = createSnapshot(world);
+    const components = snapshot.entities.find(
+      ([id]) => id === world.getEntityId(hero)
+    )![1];
+    expect(components.SPRITE).toEqual({ id: none.id });
+
+    components.SPRITE = { $sprite: "snowCover" };
+    const { id, ...inline } = rage2;
+    components.TOOLTIP = {
+      idle: {
+        ...inline,
+        facing: { up: inline.layers, right: inline.layers, down: inline.layers, left: inline.layers },
+        amounts: { single: inline.layers, double: inline.layers, multiple: inline.layers },
+      },
+      dialogs: [],
+    };
+    const loaded = restoreSnapshot(snapshot);
+    const restored = loaded.assertByIdAndComponents(world.getEntityId(hero), [
+      SPRITE,
+      TOOLTIP,
+    ]);
+    expect(restored[SPRITE]).toEqual({ id: snowCover.id });
+    expect(restored[TOOLTIP].idle?.id).toBe(id);
+
+    const custom = parseSprite("\x02a\x0fb");
+    restored[SPRITE] = spriteRef(custom);
+    const reloaded = store(loaded).assertByIdAndComponents(
+      world.getEntityId(hero),
+      [SPRITE]
+    );
+    expect(reloaded[SPRITE]).toEqual({ id: custom.id, custom: true });
+    expect(resolveSprite(reloaded[SPRITE]).layers).toEqual(custom.layers);
+  });
+
+  it("restores an uncharged chest tower from pre-ID artwork", () => {
+    const world = createAreaWorld("|♀ |");
+    const tower = world.createEntity();
+    world.addComponentToEntity(tower, SPRITE, waveTower.iron.default);
+    const id = world.getEntityId(tower);
+    const snapshot = createSnapshot(world);
+    const components = snapshot.entities.find(
+      ([entityId]) => entityId === id
+    )![1];
+    const { name, layers } = waveTower.iron.default;
+    components.SPRITE = { name, layers };
+    expect(
+      restoreSnapshot(snapshot).assertByIdAndComponents(id, [SPRITE])[SPRITE]
+    ).toEqual({ id: waveTower.iron.default.id });
   });
 
   it("keeps values that JSON can't store", () => {

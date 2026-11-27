@@ -1,3 +1,4 @@
+import { customSprite } from "./spriteIds";
 import { Sprite } from "../../engine/components/sprite";
 import { colors } from "./colors";
 import {
@@ -22,7 +23,7 @@ it("keeps an item's terminal symbol and color through popup backgrounds and crop
 });
 
 it("recolors terminal facing and amount variants with their source sprite", () => {
-  const sprite: Sprite = {
+  const sprite: Sprite = customSprite({
     name: "example",
     layers: [{ char: "a", color: colors.white }],
     terminal: {
@@ -30,7 +31,7 @@ it("recolors terminal facing and amount variants with their source sprite", () =
       facing: { up: [{ char: "^", color: colors.white }] },
       amounts: { multiple: [{ char: "B", color: colors.white }] },
     },
-  };
+  });
   const recolored = recolorSprite(sprite, colors.yellow);
   expect(recolored.terminal?.layers[0].color).toBe(colors.yellow);
   expect(recolored.terminal?.facing?.up?.[0].color).toBe(colors.yellow);
@@ -41,7 +42,10 @@ it("recolors terminal facing and amount variants with their source sprite", () =
 
 it("shows blocked selection text over red without drawing an underline", () => {
   const normal = [
-    { name: "text_generic", layers: [{ char: "K", color: colors.grey }] },
+    customSprite({
+      name: "text_generic",
+      layers: [{ char: "K", color: colors.grey }],
+    }),
   ];
   const item = addBackground(dotted(normal, colors.red), colors.black)[0];
   expect(projectSprite(item)).toMatchObject({
@@ -52,11 +56,11 @@ it("shows blocked selection text over red without drawing an underline", () => {
 });
 
 it("keeps a hidden terminal particle hidden through UI backgrounds and decoration", () => {
-  const sprite: Sprite = {
+  const sprite: Sprite = customSprite({
     name: "hidden pulse",
     layers: [{ char: "∙", color: colors.white }],
     terminal: { layers: [] },
-  };
+  });
   const background = addBackground([sprite], colors.black)[0];
   expect(background.terminal?.layers).toEqual([]);
   expect(dotted([background], colors.red)[0].terminal?.layers).toEqual([]);

@@ -70,7 +70,7 @@ describe("arrows", () => {
     const drop = getLootable(world, { x: 9, y: 0 });
 
     expect(countLoot(world, { x: 9, y: 0 }, { stackable: "arrow" })).toBe(1);
-    expect(drop?.[SPRITE]).toBe(none);
+    expect(drop?.[SPRITE]?.id).toBe(none.id);
   });
 
   it("hit a limb of a large creature and pass the damage on to its body", () => {
