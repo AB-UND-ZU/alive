@@ -1,4 +1,5 @@
 import {
+  act,
   advanceUntil,
   countItems,
   findEntityAt,
@@ -7,6 +8,8 @@ import {
   step,
   trigger,
 } from "../../testing/harness";
+import { detailsHeight, frameHeight, frameWidth } from "../../game/assets/utils";
+import { popupCenter } from "../../game/assets/sprites";
 import { playedSounds } from "../../testing/env";
 import { World } from "../../engine";
 import { ACTIONABLE } from "../../engine/components/actionable";
@@ -95,6 +98,28 @@ describe("quests", () => {
     press(world, "close");
     expect(giver).not.toHaveProperty(POPUP);
     expect(hero[ACTIONABLE].popup).toBeUndefined();
+  });
+
+  it("draws the whole reward divider when the choices open before the frame finishes", () => {
+    const { world, giver } = setupQuest({
+      choices: [
+        { stackable: "arrow", amount: 3 },
+        { stackable: "charge", amount: 3 },
+      ],
+    });
+    act(world, "interact");
+    act(world, "right");
+    expect(giver.POPUP?.selections[0]).toHaveLength(1);
+
+    const popup = getSequence(world, giver, "popup")!;
+    const row = frameHeight - detailsHeight - 3;
+    for (let column = 0; column < frameWidth - 2; column += 1) {
+      const cell = world.assertByIdAndComponents(
+        popup.particles[`popup-content-${row}-${column}`],
+        ["SPRITE"]
+      );
+      expect(cell.SPRITE.id).toBe(popupCenter.id);
+    }
   });
 
   it("trades delivered items for a chosen reward", () => {

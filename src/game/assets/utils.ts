@@ -408,7 +408,7 @@ export const renderPopup = (
   let renderContent = generationChanged;
   let renderTabs = horizontalIndex !== state.args.horizontalIndex;
   let renderDetails = settled && (generationChanged || !cached.settled);
-  let renderSeparator = details && renderTabs;
+  let renderSeparator = detailsChanged;
   let renderButtons = generationChanged;
   let renderHint =
     generationChanged ||
