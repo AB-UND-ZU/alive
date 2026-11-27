@@ -5,7 +5,7 @@ import { SWIMMABLE } from "../components/swimmable";
 import { World } from "../ecs";
 import { getEntityGeneration, rerenderEntity } from "./renderer";
 import { REFERENCE } from "../components/reference";
-import { STATS } from "../components/stats";
+import { attributes, MAX_STAT_VALUE, Stats, STATS } from "../components/stats";
 import { createSequence, getSequence } from "./sequence";
 import {
   ProgressSequence,
@@ -21,7 +21,7 @@ import { BELONGABLE } from "../components/belongable";
 import { CASTABLE, getEmptyCastable } from "../components/castable";
 import { ORIENTABLE } from "../components/orientable";
 import { SPRITE } from "../components/sprite";
-import { copy, getDistance } from "../../game/math/std";
+import { clamp, copy, getDistance } from "../../game/math/std";
 import { disposeEntity } from "./map";
 import { FOG } from "../components/fog";
 import { PLAYER } from "../components/player";
@@ -96,6 +96,31 @@ export const getLevelStats = (classKey: ClassKey, level: number) => {
   stats.maxXp =
     levelingStats[classKey][Math.min(level - 1, classLevels.length - 1)].xp;
   return stats;
+};
+
+export const getChangedClassStats = (
+  current: Stats,
+  from: ClassKey,
+  to: ClassKey
+): Stats => {
+  const level = Math.max(1, current.level);
+  const previous = getLevelStats(from, level);
+  const next = getLevelStats(to, level);
+  for (const stat of attributes) {
+    const bonus = current[stat] - previous[stat];
+    next[stat] = clamp(next[stat] + bonus, 0, MAX_STAT_VALUE);
+  }
+  next.maxHp = clamp(next.maxHp, 1, next.maxHpCap);
+  next.maxMp = Math.min(next.maxMp, next.maxMpCap);
+  return {
+    ...current,
+    ...next,
+    level: current.level,
+    hp: current.hp > 0
+      ? clamp(next.maxHp - (current.maxHp - current.hp), 1, next.maxHp)
+      : 0,
+    mp: Math.min(current.mp, next.maxMp),
+  };
 };
 
 export const hasLevelUp = (world: World, entity: Entity) =>

@@ -48,6 +48,10 @@ describe("tp command", () => {
     say(world, "/t -2,3");
 
     expect(hero[POSITION]).toEqual({ x: 8, y: 3 });
+
+    say(world, "/tp");
+    expect(getDialog(hero)).toEqual(["8,3"]);
+    expect(hero[POSITION]).toEqual({ x: 8, y: 3 });
   });
 
   it("moves the hero to a named pin", () => {
@@ -81,7 +85,6 @@ describe("tp command", () => {
     ["/tp a,b", 'No loc "a,b"!'],
     ["/tp 1,2,3", 'No id "1,2,3"!'],
     ["/tp nowhere", 'No id "nowhere"!'],
-    ["/tp", "/tp <id|x,y>"],
   ])("rejects %s and stays in place", (command, error) => {
     const { world, hero } = setup();
 

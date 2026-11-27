@@ -68,7 +68,10 @@ import { NpcType, npcTypes } from "../../engine/components/npc";
 import { PLAYER } from "../../engine/components/player";
 import { BELONGABLE } from "../../engine/components/belongable";
 import { SPAWNABLE } from "../../engine/components/spawnable";
-import { getLevelStats } from "../../engine/systems/leveling";
+import { SWIMMABLE } from "../../engine/components/swimmable";
+import { classes, getClassData } from "../balancing/classes";
+import { hairColors } from "./pixels";
+import { getChangedClassStats, getLevelStats } from "../../engine/systems/leveling";
 import { cellNames, CellType, createCell } from "../../bindings/creation";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { ENTERABLE } from "../../engine/components/enterable";
@@ -257,25 +260,54 @@ const executeGive = (
   );
 };
 
-const commandStats = ["view"];
+const commandStats = ["view", "class", "hair"];
+const hairNames = hairColors.map(({ name }) => name.toLowerCase());
 const executeStat = (
   world: World,
   entity: Entity,
   stat: string,
-  amountText?: string
+  input?: string
 ) => {
-  const isReading = amountText === undefined;
-  const amount = isReading ? NaN : parseInt(amountText);
+  if (stat === "class" || stat === "hair") {
+    const appearance = entity[SPAWNABLE];
+    if (stat === "class") {
+      if (input === undefined) return `class = ${appearance.classKey}`;
+      const next = classes.find((key) => key === input);
+      if (!next) return `No class "${input}"!`;
+      if (next === appearance.classKey) return;
+      entity[STATS] = getChangedClassStats(
+        entity[STATS], appearance.classKey, next
+      );
+      appearance.classKey = next;
+    } else {
+      if (input === undefined) {
+        const hair = hairColors.find(({ color }) => color === appearance.hairColor);
+        return `hair = ${hair?.name.toLowerCase() ?? appearance.hairColor}`;
+      }
+      const hair = hairColors.find(({ name }) => name.toLowerCase() === input.toLowerCase());
+      if (!hair) return `No hair "${input}"!`;
+      appearance.hairColor = hair.color;
+    }
+    const { sprite, swimming } = getClassData(
+      appearance.classKey, appearance.hairColor
+    );
+    entity[SPRITE] = sprite;
+    entity[SWIMMABLE].sprite = swimming;
+    rerenderEntity(world, entity);
+    return;
+  }
+
+  const isReading = input === undefined;
+  const amount = isReading ? NaN : parseInt(input);
   const isStat = unitStats.includes(stat as UnitStat);
   const isUnit = npcTypes.includes(stat as NpcType);
-  const isCommand = commandStats.includes(stat);
 
-  if (!isStat && !isUnit && !isCommand) {
+  if (!isStat && !isUnit && stat !== "view") {
     return `No stat "${stat}"!`;
   }
 
   if (!isReading && isNaN(amount)) {
-    return `No amount "${amountText}"!`;
+    return `No amount "${input}"!`;
   }
 
   let value = "";
@@ -345,7 +377,9 @@ const executeCast = (
   }
 };
 
-const executeTp = (world: World, entity: Entity, idOrLoc: string) => {
+const executeTp = (world: World, entity: Entity, idOrLoc?: string) => {
+  if (!idOrLoc) return `${entity[POSITION].x},${entity[POSITION].y}`;
+
   const parts = idOrLoc.split(",");
   let position: Position;
   if (parts.length === 2) {
@@ -486,7 +520,7 @@ const executeList = (world: World, entity: Entity, list: string) => {
         ...repeat(none, 14 - name.length),
       ];
     });
-    lines = [...unitLines, ...npcLines];
+    lines = [...commandStats.map((stat) => createText(stat)), ...unitLines, ...npcLines];
   } else if (list === "cast") {
     const castables: Omit<Item, "amount" | "carrier" | "bound">[] = [
       ...sorted([...spells]).map(
@@ -648,7 +682,7 @@ commandSignatures.stat = {
   executor: executeStat,
   minArgs: 1,
   maxArgs: 2,
-  usage: "/stat <type> [num]",
+  usage: "/stat <type> [value]",
 };
 commandSignatures.cast = {
   short: "c",
@@ -660,9 +694,9 @@ commandSignatures.cast = {
 commandSignatures.tp = {
   short: "t",
   executor: executeTp,
-  minArgs: 1,
+  minArgs: 0,
   maxArgs: 1,
-  usage: "/tp <id|x,y>",
+  usage: "/tp [id|x,y]",
 };
 commandSignatures.mod = {
   short: "m",
@@ -772,7 +806,10 @@ export const completeCommand = (
         materials,
         elements,
       ],
-      stat: [[...unitStats, ...npcTypes, ...commandStats]],
+      stat: [
+        [...unitStats, ...npcTypes, ...commandStats],
+        words[1] === "class" ? classes : words[1] === "hair" ? hairNames : [],
+      ],
       mod: [commandMods],
       list: [commandLists],
       new: [cellNames, ["1"], orientations],

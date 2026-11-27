@@ -6,6 +6,8 @@ import { SPAWNABLE } from "../../engine/components/spawnable";
 import { STATS } from "../../engine/components/stats";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { getLevelStats } from "../../engine/systems/leveling";
+import { getClassData } from "../../game/balancing/classes";
+import { colors } from "../../game/assets/colors";
 import { displayedClasses } from "../../game/assets/pixels";
 import { isClassUnlocked } from "../../game/classUnlocks";
 import { getDialog, say, setupHero } from "./helpers";
@@ -66,6 +68,39 @@ describe("stat command", () => {
     expect(getDialog(hero)).toEqual(["dummy = 3"]);
   });
 
+  it("switches class while keeping earned stats, damage and experience", () => {
+    const { world, hero } = setup();
+    say(world, "/stat class");
+    expect(getDialog(hero)).toEqual(["class = scout"]);
+
+    say(world, "/stat class rogue");
+    say(world, "/stat power 4");
+    say(world, "/stat xp 2");
+    say(world, "/stat hp 20");
+    say(world, "/stat class knight");
+    expect(hero[STATS]).toMatchObject({
+      hp: 25, maxHp: 30, maxMp: 5, power: 3, armor: 1, haste: 0, xp: 2,
+    });
+    say(world, "/stat class");
+    expect(getDialog(hero)).toEqual(["class = knight"]);
+  });
+
+  it("shows the hair color and updates the walking and swimming sprites", () => {
+    const { world, hero } = setup();
+    say(world, "/stat hair");
+    expect(getDialog(hero)).toEqual(["hair = white"]);
+
+    say(world, "/stat hair pink");
+    say(world, "/stat class rogue");
+    say(world, "/s hair blonde");
+    const rogue = getClassData("rogue", colors.olive);
+    expect(hero.SPRITE).toEqual(rogue.sprite);
+    expect(hero.SWIMMABLE?.sprite).toEqual(rogue.swimming);
+
+    say(world, "/stat hair");
+    expect(getDialog(hero)).toEqual(["hair = blonde"]);
+  });
+
   it("sets and shows the view priority", () => {
     const { world, hero } = setup();
 
@@ -79,15 +114,19 @@ describe("stat command", () => {
   it.each([
     ["/stat luck", 'No stat "luck"!'],
     ["/stat hp lots", 'No amount "lots"!'],
-    ["/stat", "/stat <type> [num]"],
+    ["/stat", "/stat <type> [value]"],
+    ["/stat class elf", 'No class "elf"!'],
+    ["/stat hair sky", 'No hair "sky"!'],
   ])("rejects %s", (command, error) => {
     const { world, hero } = setup();
     const stats = { ...hero[STATS] };
+    const appearance = { ...hero[SPAWNABLE] };
 
     say(world, command);
 
     expect(getDialog(hero)).toEqual([error]);
     expect(hero[STATS]).toEqual(stats);
+    expect(hero[SPAWNABLE]).toEqual(appearance);
   });
 });
 

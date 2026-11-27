@@ -39,6 +39,7 @@ import {
   replaceSequence,
 } from "../../engine/systems/sequence";
 import { rerenderEntity } from "../../engine/systems/renderer";
+import { getChangedClassStats } from "../../engine/systems/leveling";
 import { calculateVision } from "../../engine/systems/visibility";
 import { levelConfig } from ".";
 
@@ -159,34 +160,10 @@ function* generateArrival(
   }
 
   if (classKey) {
+    entity[STATS] = TEST_MODE
+      ? getChangedClassStats(entity[STATS], entity[SPAWNABLE].classKey, classKey)
+      : { ...stats, hp: stats.maxHp, mp: 0, xp: 0 };
     entity[SPAWNABLE].classKey = classKey;
-
-    // add collected stats in test mode
-    if (TEST_MODE) {
-      const testStats = [
-        "armor",
-        "power",
-        "power",
-        "resist",
-        "haste",
-        "damp",
-        "thaw",
-        "spike",
-        "vision",
-      ] as const;
-      testStats.forEach((stat) => {
-        stats[stat] += entity[STATS][stat];
-      });
-      stats.maxHp = Math.max(stats.maxHp, entity[STATS].maxHp);
-      stats.maxMp = Math.max(stats.maxMp, entity[STATS].maxMp);
-    }
-
-    entity[STATS] = {
-      hp: stats.maxHp,
-      mp: 0,
-      xp: 0,
-      ...stats,
-    };
   }
 
   if (hairColor || classKey) {

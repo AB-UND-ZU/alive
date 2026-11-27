@@ -11,7 +11,12 @@ import {
 } from "../../testing/harness";
 import { playedSounds } from "../../testing/env";
 import { World } from "../../engine";
-import { assertIdentifierAndComponents } from "../../engine/utils";
+import {
+  assertIdentifierAndComponents,
+  setGenerationTestMode,
+  TEST_MODE,
+} from "../../engine/utils";
+import { collectItem } from "../../engine/systems/collect";
 import { moveEntity } from "../../engine/systems/map";
 import { getMotion, sampleMotion } from "../../engine/motion";
 import { ACTIONABLE } from "../../engine/components/actionable";
@@ -22,10 +27,12 @@ import { PLAYER } from "../../engine/components/player";
 import { POPUP } from "../../engine/components/popup";
 import { POSITION } from "../../engine/components/position";
 import { SPAWNABLE } from "../../engine/components/spawnable";
+import { STATS } from "../../engine/components/stats";
 import { WARPABLE } from "../../engine/components/warpable";
 import { getTab } from "../../engine/systems/popup";
 import { canWarp } from "../../engine/systems/trigger";
 import { getSelectedLevel, levelConfig } from "../../game/levels";
+import { finishCollecting, placeDrop } from "../items/helpers";
 import { getMessages, getPrompt, interact, setup } from "./helpers";
 
 // ♀ hero, ∩ portal
@@ -109,6 +116,49 @@ describe("portals", () => {
 
     selectLevel(world, portal, "LEVEL_ISLAND");
     expect(canWarp(world, hero, portal)).toBe(false);
+  });
+
+  it("adds test menu pickups once to the selected class when entering a level", () => {
+    jest.useFakeTimers();
+    const previousMode = TEST_MODE;
+    setGenerationTestMode(true);
+    try {
+      const { world, hero } = setup(area, { level: "LEVEL_MENU" });
+      const arrival = receiveGeneratedWorld(world);
+      const pickups = ["power", "wisdom", "level", "maxHp", "maxMp", "mp"] as const;
+      for (const stat of pickups) {
+        const drop = placeDrop(world, hero[POSITION], [{ stat, amount: 1 }]);
+        expect(collectItem(world, hero, drop)).toBe(true);
+        finishCollecting(world, hero);
+      }
+
+      const portal = getPortal(world);
+      interact(world, 30);
+      press(world, "right", 2);
+      selectLevel(world, portal, "LEVEL_TUTORIAL");
+      press(world, "right");
+      advance(world, 3100);
+
+      const generated = arrival();
+      const player = generated.assertComponents(assertHero(generated), [
+        STATS,
+        SPAWNABLE,
+      ]);
+      expect(player[SPAWNABLE].classKey).toBe("rogue");
+      expect(player[STATS]).toMatchObject({
+        level: 2,
+        power: 2,
+        wisdom: 1,
+        haste: 1,
+        maxHp: 27,
+        maxMp: 11,
+        mp: 1,
+        maxXp: 15,
+      });
+    } finally {
+      setGenerationTestMode(previousMode);
+      jest.useRealTimers();
+    }
   });
 
   it.each(["rogue", "knight"] as const)("warps the chosen %s and their items into the next level", (key) => {

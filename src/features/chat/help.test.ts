@@ -96,7 +96,7 @@ describe("list command", () => {
     ["/list id", ["hero"]],
     [
       "/list stat",
-      [expect.stringMatching(/^hp│/), expect.stringMatching(/^dummy│/)],
+      ["class", "hair", expect.stringMatching(/^hp│/), expect.stringMatching(/^dummy│/)],
     ],
     [
       "/list cast",

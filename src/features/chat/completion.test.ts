@@ -29,6 +29,8 @@ it.each([
   ["/g sword 1 i", "ron "],
   ["/give sword 1 iron f", "ire "],
   ["/mod re", "set "],
+  ["/s class kn", "ight "],
+  ["/stat hair bl", "onde "],
   ["/new water_d", "eep "],
   ["hello", ""],
   ["/unknown x", ""],
