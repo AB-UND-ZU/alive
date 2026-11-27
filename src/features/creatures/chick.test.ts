@@ -10,7 +10,10 @@ import { collectItem } from "../../engine/systems/collect";
 import { plantSeed } from "../../engine/systems/harvest";
 import { createItemAsDrop } from "../../engine/systems/drop";
 import { getItemSprite } from "../../game/assets/utils";
-import { heart } from "../../game/assets/sprites";
+import { resolveSprite } from "../../game/assets/spriteIds";
+import { eggCrack, heart } from "../../game/assets/sprites";
+import { getFacingLayers } from "../../game/assets/ui";
+import { saveAndLoad } from "../../testing/saves";
 import { advanceUntil, findEntityAt, giveItems } from "../../testing/harness";
 import {
   advanceTicks,
@@ -18,7 +21,6 @@ import {
   createCreatureWorld,
   distanceBetween,
   getCreature,
-  getDrops,
   teleport,
   trace,
 } from "./helpers";
@@ -112,24 +114,24 @@ describe("chick", () => {
     expect(countDrops(world, { stackable: "grain" })).toBe(1);
   });
 
-  it.each([",", "τ", "☼"])("pecks down only on its own tile (%s)", (tile) => {
+  it.each([",", "τ", "☼"])("pecks right only when the next tile is suitable (%s)", (tile) => {
     const { world, hero, chick } = setup(`|♀c${tile} |`);
     advanceTicks(world, 2);
     teleport(world, hero, { x: 20, y: 20 });
     const bump = world.assertComponents(chick, [BUMPABLE])[BUMPABLE];
 
-    teleport(world, chick, { x: 1, y: 0 });
-    decide(world, 0.19);
+    teleport(world, chick, { x: 2, y: 0 });
+    decide(world, 0.9, 0.19);
     expect(bump.orientation).toBeUndefined();
 
-    teleport(world, chick, { x: 2, y: 0 });
-    decide(world, 0.2);
+    teleport(world, chick, { x: 1, y: 0 });
+    decide(world, 0.9, 0.2);
     expect(bump.orientation).toBeUndefined();
-    decide(world, 0.19);
-    expect(bump.orientation).toBe("down");
+    decide(world, 0.9, 0.19);
+    expect(bump.orientation).toBe("right");
   });
 
-  it("returns the planted seed on one in five pecks", () => {
+  it("returns the planted seed on one in four pecks", () => {
     const { world, hero, chick } = setup("|♀c☼ |");
     const plot = { x: 2, y: 0 };
     const soil = findEntityAt(world, plot, [FARMABLE])!;
@@ -138,14 +140,14 @@ describe("chick", () => {
     plantSeed(world, hero, berry);
     advanceTicks(world, 2);
     teleport(world, hero, { x: 20, y: 20 });
-    teleport(world, chick, plot);
+    teleport(world, chick, { x: plot.x - 1, y: plot.y });
     const sapling = soil[FARMABLE].sapling!;
 
-    decide(world, 0.19, 0.2);
+    decide(world, 0.9, 0.19, 0.25);
     expect(soil[FARMABLE].planted).toBe("berry");
     expect(countDrops(world, { stackable: "berry" })).toBe(0);
 
-    decide(world, 0.19, 0.19);
+    decide(world, 0.9, 0.19, 0.249);
     expect(soil[FARMABLE].planted).toBeUndefined();
     advanceUntil(
       world,
@@ -155,20 +157,87 @@ describe("chick", () => {
     expect(world.getEntityById(sapling)).toBeUndefined();
   });
 
-  it("lays another egg only after the previous one is picked up", () => {
-    const { world, hero } = setup("|♀c |");
+  it.each(["grain", "worm"] as const)("lays an egg after eating %s and uses the whole meal", (food) => {
+    const { world, hero, chick } = setup("|♀c |");
     advanceTicks(world, 2);
     teleport(world, hero, { x: 20, y: 20 });
-    const lay = () => decide(world, 0.9, 0.9, 0);
-    lay();
-    lay();
+    decide(world, 0);
+    expect(countDrops(world, { stackable: "egg" })).toBe(0);
+
+    const carrier = world.assertComponents(chick, [INVENTORY, POSITION]);
+    const originalItems = [...carrier.INVENTORY.items];
+    giveItems(world, carrier, [{ stackable: food, amount: 2 }, { stackable: "apple", amount: 1 }]);
+    const retained = [...originalItems, carrier.INVENTORY.items.at(-1)!];
+    decide(world, 0.005);
+    expect(countDrops(world, { stackable: "egg" })).toBe(0);
+    decide(world, 0.0049);
+    expect(countDrops(world, { stackable: "egg" })).toBe(1);
+    expect(carrier.INVENTORY.items).toEqual(retained);
+    decide(world, 0);
     expect(countDrops(world, { stackable: "egg" })).toBe(1);
 
-    const egg = getDrops(world).find((item) => item.stackable === "egg")!;
-    const drop = world.assertByIdAndComponents(egg.carrier, [INVENTORY]);
-    expect(collectItem(world, hero, drop)).toBe(true);
-    expect(countDrops(world, { stackable: "egg" })).toBe(0);
-    lay();
-    expect(countDrops(world, { stackable: "egg" })).toBe(1);
+    giveItems(world, carrier, [{ stackable: "grain", amount: 3 }, { stackable: "worm", amount: 4 }]);
+    decide(world, 0);
+    expect(countDrops(world, { stackable: "egg" })).toBe(2);
+    expect(carrier.INVENTORY.items).toEqual(retained);
+  });
+});
+
+describe("ground eggs", () => {
+  const setupEgg = (amount = 1, atHero = false) => {
+    const { world, hero } = createCreatureWorld("|♀   |");
+    advanceTicks(world, 2);
+    const position = atHero ? hero.POSITION : { x: 3, y: 0 };
+    const data = { stackable: "egg", amount, bound: false } as const;
+    const egg = createItemAsDrop(world, position, entities.createItem, {
+      [ITEM]: data,
+      [SPRITE]: getItemSprite(data),
+    });
+    const carrier = world.assertByIdAndComponents(egg.ITEM.carrier, [INVENTORY]);
+    return { world, hero, egg, carrier, position };
+  };
+
+  it("shows three crack frames one world tick apart and hatches at the egg's position after a reload", () => {
+    const { world, egg, position } = setupEgg();
+    decide(world, 0.001);
+    expect(egg.SPRITE.id).toBe(getItemSprite(egg.ITEM).id);
+    decide(world, 0.0009);
+    expect(resolveSprite(egg.SPRITE).layers).toEqual(getFacingLayers(eggCrack, undefined, 1));
+    const id = world.getEntityId(egg);
+    const loaded = saveAndLoad(world);
+    const savedEgg = loaded.assertByIdAndComponents(id, [SPRITE]);
+    for (const stage of [2, 3]) {
+      decide(loaded);
+      expect(resolveSprite(savedEgg.SPRITE).layers).toEqual(getFacingLayers(eggCrack, undefined, stage));
+    }
+    decide(loaded);
+    expect(countDrops(loaded, { stackable: "egg" })).toBe(0);
+    expect(getCreature(loaded, "chick").POSITION).toEqual(position);
+  });
+
+  it("keeps an egg at its placement cell when the unit that placed it moves", () => {
+    const { world, hero, carrier } = setupEgg(1, true);
+    const position = { ...hero.POSITION };
+    teleport(world, hero, { x: 7, y: 0 });
+    expect(carrier.POSITION).toEqual(position);
+  });
+
+  it("leaves the rest of a ground stack intact when one egg hatches", () => {
+    const { world, egg } = setupEgg(2);
+    decide(world, 0);
+    for (let tick = 0; tick < 3; tick++) decide(world);
+    expect(getCreature(world, "chick")).toBeDefined();
+    expect(egg.ITEM.amount).toBe(1);
+    expect(egg.SPRITE.id).toBe(getItemSprite(egg.ITEM).id);
+  });
+
+  it.each([0, 1, 2, 3])("collecting at crack stage %i prevents hatching", (stage) => {
+    const { world, hero, carrier, egg } = setupEgg();
+    for (let n = 1; n <= stage; n++) decide(world, 0);
+    expect(resolveSprite(egg.SPRITE).layers).toEqual(getFacingLayers(eggCrack, undefined, stage));
+    expect(collectItem(world, hero, carrier)).toBe(true);
+    advanceTicks(world, 8);
+    expect(world.getEntities(["NPC"]).filter((e) => e.NPC.type === "chick")).toHaveLength(0);
+    expect(hero.INVENTORY.items.some((id) => world.assertByIdAndComponents(id, [ITEM]).ITEM.stackable === "egg")).toBe(true);
   });
 });

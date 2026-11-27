@@ -12,11 +12,13 @@ import { FOG } from "../components/fog";
 import { INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
 import { Sprite, SPRITE } from "../components/sprite";
-import { none, arrow, shadow, charge } from "../../game/assets/sprites";
+import { none, arrow, shadow, charge, egg, eggCrack } from "../../game/assets/sprites";
 import { Item, ITEM } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
 import { rerenderEntity } from "./renderer";
-import { removeFromInventory } from "./trigger";
+import { customSprite, spriteRef } from "../../game/assets/spriteIds";
+import { getFacingLayers } from "../../game/assets/ui";
+import { removeFromInventory, spendItem } from "./trigger";
 import { Level, LEVEL } from "../components/level";
 import { combine, copy, shuffle } from "../../game/math/std";
 import {
@@ -187,7 +189,7 @@ function createGroundDrop(
     [INVENTORY]: { items },
     [LAYER]: {},
     [LOOTABLE]: { disposable },
-    [POSITION]: position,
+    [POSITION]: copy(position),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: sprite,
@@ -455,7 +457,29 @@ export const dropEntity = (
   });
 };
 
+function hatchEgg(world: World, drop: TypedEntity<"LOOTABLE" | "POSITION">) {
+  const item = world.getEntityByIdAndComponents(drop[INVENTORY]?.items[0], [ITEM, SPRITE]);
+  if (item?.[ITEM].stackable !== "egg") return;
+
+  const stage = drop[LOOTABLE].crack || 0;
+  if (!stage && Math.random() >= 0.001) return;
+  if (stage < 3) {
+    drop[LOOTABLE].crack = stage + 1;
+    item[SPRITE] = spriteRef(customSprite({
+      name: egg.name,
+      layers: getFacingLayers(eggCrack, undefined, stage + 1),
+    }));
+  } else {
+    delete drop[LOOTABLE].crack;
+    item[SPRITE] = spriteRef(egg);
+    spendItem(world, drop, { ...item[ITEM], amount: 1 }, item);
+    createCell(world, drop[POSITION], "chick", drop[FOG]?.visibility || "fog", false);
+  }
+  rerenderEntity(world, drop);
+}
+
 export default function setupDrop(world: World) {
+  let worldGeneration = world.metadata.gameEntity[RENDERABLE]?.generation;
   let referencesGeneration = -1;
 
   const onUpdate = (delta: number) => {
@@ -669,10 +693,17 @@ export default function setupDrop(world: World) {
       }
     }
 
-    // schedule entity removal when fully looted
+    const tick = world.metadata.gameEntity[RENDERABLE].generation;
+    const worldTick = worldGeneration !== undefined && tick !== worldGeneration;
+    worldGeneration = tick;
+
+    // Loose eggs hatch on world ticks. Empty drops use the normal loot cleanup.
     for (const entity of world.getEntities([LOOTABLE, RENDERABLE])) {
+      if (!entity[LOOTABLE].disposable) continue;
+      if (worldTick && entity[HOOKABLE] && hasComponent(entity, POSITION)) {
+        hatchEgg(world, entity);
+      }
       if (
-        entity[LOOTABLE].disposable &&
         isEmpty(world, entity) &&
         !getSequence(world, entity, "dispose")
       ) {

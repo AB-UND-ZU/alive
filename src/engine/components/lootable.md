@@ -7,6 +7,7 @@ Marks an inventory that nearby units can loot.
 | Field        | Meaning                                                    |
 | ------------ | ---------------------------------------------------------- |
 | `disposable` | Remove this loot entity after its inventory becomes empty. |
+| `crack` | Current hatch frame of a loose egg. |
 <!-- source-types -->
 
 ## Lootable
@@ -14,5 +15,6 @@ Marks an inventory that nearby units can loot.
 ```ts src/engine/components/lootable.ts
 export type Lootable = {
   disposable: boolean;
+  crack?: number;
 };
 ```

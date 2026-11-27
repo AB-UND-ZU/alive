@@ -719,6 +719,17 @@ export const egg: Sprite = {
   ],
 };
 
+export const eggCrack: Sprite = {
+  id: "egg_crack",
+  name: "Egg",
+  layers: egg.layers,
+  amounts: {
+    single: [...egg.layers, { char: "·", color: colors.black }],
+    double: [...egg.layers, { char: "+", color: colors.black }, { char: "÷", color: colors.white }],
+    multiple: [...egg.layers, { char: "÷", color: colors.black }, { char: "·", color: colors.white }],
+  },
+};
+
 export const spikes: Sprite = {
   id: "spikes",
   name: "Spikes",

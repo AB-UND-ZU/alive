@@ -63,7 +63,7 @@ import { TOOLTIP } from "../components/tooltip";
 import { ACTIONABLE } from "../components/actionable";
 import { castableSpell, getLockable, isLocked, isUnlocked } from "./action";
 import { ITEM } from "../components/item";
-import { castSpell, lockDoor } from "./trigger";
+import { castSpell, lockDoor, spendItem } from "./trigger";
 import { createItemAsDrop, dropEntity, findAdjacentDroppable } from "./drop";
 import {
   chestBoss,
@@ -918,16 +918,33 @@ export default function setupAi(world: World) {
             }
           }
 
-          // Wander, peck the ground, or lay an egg while idle.
+          if (entity[INVENTORY]?.items.length && Math.random() < 0.005) {
+            const food = entity[INVENTORY].items
+              .map((id) => world.assertByIdAndComponents(id, [ITEM]))
+              .filter((item) => lootStackables.includes(item[ITEM].stackable!));
+            if (food.length) {
+              for (const item of food) spendItem(world, entity, item[ITEM], item);
+              const egg = { stackable: "egg", amount: 1, bound: false } as const;
+              createItemAsDrop(
+                world,
+                findAdjacentDroppable(world, entity[POSITION]),
+                entities.createItem,
+                { [ITEM]: egg, [SPRITE]: getItemSprite(egg) }
+              );
+            }
+          }
+
+          // Wander or peck the cell in front of the chick's beak.
           if (!movement && !pattern.memory.wander) {
             if (entity[BUMPABLE] && Math.random() < 0.2) {
-              const soil = getFarmable(world, entity[POSITION]);
-              const resource = getHarvestable(world, entity[POSITION])?.[
+              const target = combine(size, entity[POSITION], orientationPoints.right);
+              const soil = getFarmable(world, target);
+              const resource = getHarvestable(world, target)?.[
                 HARVESTABLE
               ].resource;
               if (soil || resource === "grass" || resource === "bush") {
-                bumpEntity(world, entity, "down", generation);
-                if (soil?.[FARMABLE].planted && Math.random() < 0.2) {
+                bumpEntity(world, entity, "right", generation);
+                if (soil?.[FARMABLE].planted && Math.random() < 0.25) {
                   const sapling = world.getEntityByIdAndComponents(
                     soil[FARMABLE].sapling,
                     [HARVESTABLE]
@@ -938,27 +955,6 @@ export default function setupAi(world: World) {
             } else if (Math.random() < 0.15) {
               movement = choice(...orientations);
               pattern.memory.wander = movement;
-            } else if (
-              Math.random() < 0.001 &&
-              !world.getEntityByIdAndComponents(pattern.memory.egg, [
-                INVENTORY,
-              ])?.[INVENTORY].items.length
-            ) {
-              const eggData = {
-                stackable: "egg",
-                amount: 1,
-                bound: false,
-              } as const;
-              const eggItem = createItemAsDrop(
-                world,
-                findAdjacentDroppable(world, entity[POSITION]),
-                entities.createItem,
-                {
-                  [ITEM]: eggData,
-                  [SPRITE]: getItemSprite(eggData),
-                }
-              );
-              pattern.memory.egg = eggItem[ITEM].carrier;
             }
           } else if (!movement && pattern.memory.wander) {
             if (Math.random() < 0.5) {
