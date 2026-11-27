@@ -14,7 +14,8 @@ import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
 import { TypedEntity } from "../../engine/entities";
 import { playedSounds, resetPlayedSounds } from "../../testing/env";
-import { createSave, restoreSavedWorld } from "../../game/saves";
+import { createSave } from "../../game/saves";
+import { restoreUpgradedSave } from "../../testing/saves";
 import { isMounting } from "../../engine/systems/vessel";
 import { addCell, assertUnit, hold } from "./helpers";
 
@@ -103,7 +104,7 @@ describe("boats", () => {
     Object.assign(clock, { tick: 247, delta: 123.5 });
     for (const unit of [boat, hero]) unit[MOVABLE].spring = { duration: 247 };
 
-    const restored = restoreSavedWorld({ ...createSave(world), version: "0.8.0" });
+    const restored = restoreUpgradedSave({ ...createSave(world), version: "0.8.0" });
     expect(
       restored.assertByIdAndComponents(clockId, ["REFERENCE"]).REFERENCE
     ).toMatchObject({ tick: 200, delta: 100 });
