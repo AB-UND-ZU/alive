@@ -33,6 +33,7 @@ it("lists independent sprites and edits the selected sprite in the native popup"
   const { world, popup, editor } = setup();
   expect(popup[POPUP].tabs).toEqual(["pack", "sprite", "layer"]);
   expect(getTab(world, popup)).toBe("pack");
+  expect(editor.sprites.map((sprite) => sprite.id)).toEqual(["sprite_1", "sprite_2"]);
   expect(editor.sprites.map((sprite) => sprite.name)).toEqual([
     "Sprite #1",
     "Sprite #2",
@@ -104,6 +105,8 @@ it("erases a sprite without changing the other sprite and can start another", ()
   act(world, "right");
   expect(editor.sprites).toHaveLength(2);
   expect(editor.sprites[1].layers).toEqual([]);
+  expect(editor.sprites.map(({ id }) => id)).toEqual(["sprite_2", "sprite_3"]);
+  expect(setup().editor.sprites.map(({ id }) => id)).toEqual(["sprite_2", "sprite_3"]);
 });
 
 it("keeps the enlarged preview fixed while a long layer list scrolls", () => {

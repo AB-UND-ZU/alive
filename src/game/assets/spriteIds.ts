@@ -55,10 +55,20 @@ export function spriteDefinition({
   return text;
 }
 
-export const customSprite = (artwork: SpriteArtwork): Sprite => ({
-  ...artwork,
-  id: spriteDefinition(artwork),
-});
+// Generated variants can share a label but differ in any layer or view.
+// Fingerprint the full definition in both directions for a stable, short ID.
+export function customSprite(artwork: SpriteArtwork): Sprite {
+  const definition = spriteDefinition(artwork);
+  let forward = 0x811c9dc5;
+  let reverse = 0x811c9dc5;
+  for (let i = 0; i < definition.length; i++) {
+    forward = Math.imul(forward ^ definition.charCodeAt(i), 16777619);
+    const last = definition.length - 1 - i;
+    reverse = Math.imul(reverse ^ definition.charCodeAt(last), 16777619);
+  }
+  const id = `custom_${(forward >>> 0).toString(36)}_${(reverse >>> 0).toString(36)}`;
+  return { ...artwork, id };
+}
 
 function readDefinition(definition: string): SpriteArtwork {
   const separator = definition.indexOf(suffix);
@@ -80,8 +90,12 @@ export function parseSprite(definition: string): Sprite {
   return customSprite(readDefinition(definition));
 }
 
-export function spriteRef({ id }: SpriteRef): SpriteRef {
-  return id.charCodeAt(0) < 16 ? { id, custom: true } : { id };
+export function spriteRef(sprite: Sprite | SpriteRef): SpriteRef {
+  if ("custom" in sprite && sprite.custom) return sprite;
+  const { id } = sprite;
+  if ("layers" in sprite && !namedSprites.has(id))
+    return { id, custom: true, definition: spriteDefinition(sprite) };
+  return { id };
 }
 
 const parsed = new WeakMap<SpriteRef, Sprite>();
@@ -96,7 +110,7 @@ export function resolveSprite(ref?: SpriteRef) {
   }
   let sprite = parsed.get(ref);
   if (sprite?.id !== ref.id) {
-    sprite = { ...readDefinition(ref.id), id: ref.id };
+    sprite = { ...readDefinition(ref.definition), id: ref.id };
     parsed.set(ref, sprite);
   }
   return sprite;

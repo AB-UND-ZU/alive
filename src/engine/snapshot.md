@@ -12,7 +12,7 @@ Only one level exists at a time, because warping removes the old level. The leve
 
 Components keep shared objects and references to other entities. The copy keeps both:
 
-- The sprite component stores its asset ID, or its definition and a custom flag. Other components can contain ordinary sprite data with IDs.
+- The sprite component stores its asset ID. Generated artwork also carries its definition and a custom flag. Other components can contain ordinary sprite data with IDs.
 - Objects that are entities, such as NPC memories or the level's position map, are stored as `{ $entity: id }` and point to the restored entity.
 - Other objects shared within the world stay shared within the snapshot.
 

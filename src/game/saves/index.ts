@@ -10,6 +10,7 @@ import { SPAWNABLE } from "../../engine/components/spawnable";
 import { STATS } from "../../engine/components/stats";
 import { createSnapshot, restoreSnapshot, WorldSnapshot } from "../../engine/snapshot";
 import { ClassKey } from "../balancing/classes";
+import { restoreLegacySpriteWorld } from "./upgradeSprites";
 import packageJson from "../../../package.json";
 
 export const saveVersion = packageJson.version;
@@ -115,7 +116,9 @@ export const createSave = (
 
 export const restoreSavedWorld = (save: SaveGame) => {
   if (!isLoadable(save)) throw new Error(`Save ${save.name} is from newer version ${save.version}!`);
-  const world = restoreSnapshot(save.snapshot);
+  const world = compareVersions(save.version, "0.9.0") <= 0
+    ? restoreLegacySpriteWorld(save.snapshot)
+    : restoreSnapshot(save.snapshot);
   world.metadata.saveId = save.id;
   return world;
 };

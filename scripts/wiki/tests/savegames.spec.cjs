@@ -213,7 +213,7 @@ test("loading the save list upgrades a genuine 0.4 world before opening its nati
     name: fixture.name,
     classKey: "scout",
     oldSprite: { name: "Scout", layers: expect.any(Array) },
-    sprite: { id: expect.any(String), custom: true },
+    sprite: { id: expect.stringMatching(/^custom_[a-z0-9_]+$/), custom: true, definition: expect.any(String) },
     sameEntityIds: true,
     infinity: true,
     originalAlias: true,

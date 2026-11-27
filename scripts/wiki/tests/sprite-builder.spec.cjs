@@ -12,6 +12,7 @@ for (const width of [1214, 390]) {
     const code = preview.locator(".CodeSemantic");
     const iframe = preview.locator("iframe");
     await expect(iframe).toHaveAttribute("data-dialog", "pack");
+    await expect(code).toContainText('id: "sprite_1"');
     await expect(code).toContainText('name: "Sprite #1"');
     await expect(code).toContainText("colors.maroon");
     const frame = await (await iframe.elementHandle()).contentFrame();

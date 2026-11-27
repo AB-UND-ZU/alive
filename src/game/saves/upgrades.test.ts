@@ -1,3 +1,4 @@
+import { saveUpgrades, upgradeSave } from "./upgrades";
 import { restoreUpgradedSave } from "../../testing/saves";
 import { createSave, restoreSavedWorld } from ".";
 import { TOOLTIP } from "../../engine/components/tooltip";
@@ -63,6 +64,39 @@ const storeAndLoad = (world: World) => {
 };
 
 describe("legacy save upgrades", () => {
+  it("upgrades released 0.9 custom references and nested artwork with the same label", () => {
+    const world = createAreaWorld("|♀|");
+    const hero = assertHero(world);
+    const save = createSave(world);
+    const id = world.getEntityId(hero);
+    const parts = save.snapshot.entities.find(([entityId]) => entityId === id)![1];
+    // 0.9 wrote its color-prefixed definition as the ID in both forms.
+    const suffix = '\x1f{"name":"Sprite #1"}';
+    const red = "\x09/" + suffix;
+    const green = "\x02/" + suffix;
+    parts.SPRITE = { id: red, custom: true };
+    parts.TOOLTIP = {
+      dialogs: [[{ id: green, name: "Sprite #1", layers: [{ char: "/", color: "#008000" }] }]],
+    };
+    const released = { ...save, version: "0.9.0" };
+    const next = saveUpgrades.find(({ version }) => version === "0.10.0")!;
+    const upgraded = upgradeSave(released, next, new Set());
+    for (const loaded of [
+      restoreSavedWorld(released),
+      restoreSnapshot(deserialize(serialize(upgraded.snapshot))),
+    ]) {
+      const entity = loaded.assertByIdAndComponents(id, [SPRITE, TOOLTIP]);
+      const body = resolveSprite(entity.SPRITE);
+      const text = entity.TOOLTIP.dialogs[0][0];
+      expect(body.id).toMatch(/^custom_[a-z0-9_]+$/);
+      expect(text.id).toMatch(/^custom_[a-z0-9_]+$/);
+      expect(body.id).not.toBe(text.id);
+      expect(body.layers).toEqual([{ char: "/", color: "#ff0000" }]);
+      expect(text.layers).toEqual([{ char: "/", color: "#008000" }]);
+      expect(body.name).toBe(text.name);
+    }
+  });
+
   it("only converts the old movement modifier when upgrading a save", () => {
     const world = createAreaWorld("|♀|");
     const terrain = world.createEntity();
@@ -289,7 +323,7 @@ describe("legacy save upgrades", () => {
     const reloaded = restoreSavedWorld(
       createSave(loaded)
     ).assertByIdAndComponents(world.getEntityId(hero), [SPRITE]);
-    expect(reloaded[SPRITE]).toEqual({ id: custom.id, custom: true });
+    expect(reloaded[SPRITE]).toEqual(spriteRef(custom));
     expect(resolveSprite(reloaded[SPRITE]).layers).toEqual(custom.layers);
   });
 

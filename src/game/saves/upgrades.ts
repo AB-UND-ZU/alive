@@ -23,6 +23,7 @@ import * as sprites from "../assets/sprites";
 import { unitDefinitions } from "../balancing/units";
 import { upgradeEntities } from "./upgradeEntities";
 import { upgradeIsland } from "./upgradeIsland";
+import { readLegacyCustomSprite, restoreLegacySpriteWorld } from "./upgradeSprites";
 import { upgradePopups } from "./upgradePopups";
 
 // Older saves inlined generated sprites without an ID. Recover the named
@@ -78,6 +79,7 @@ function upgradeWorld(save: SaveGame, earned: Set<Unlock>): SaveGame {
     }
     if ("layers" in value && !("id" in value) && "name" in value)
       return readLegacySprite(value as SpriteArtwork);
+    return readLegacyCustomSprite(value);
   });
 
   for (const entity of world.metadata.ecs.entities) {
@@ -188,6 +190,13 @@ const versionKey = "alive.lastGameVersion";
 
 export const saveUpgrades = [
   { version: "0.9.0", upgrade: upgradeWorld },
+  {
+    version: "0.10.0",
+    upgrade: (save: SaveGame) => ({
+      ...save,
+      snapshot: createSnapshot(restoreLegacySpriteWorld(save.snapshot)),
+    }),
+  },
 ];
 
 export const pendingUpgrades = () => {

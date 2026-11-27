@@ -2,7 +2,7 @@
 
 The ECS component stores `{ id }` for named game artwork. Compare the IDs to identify sprites. The optional name labels artwork. Sprites in the same family can share a name, which the terminal can also use when choosing a glyph.
 
-Generated artwork uses `{ id, custom: true }`. Its ID is the sprite definition, starting with an explicit DOS color. `spriteDefinition` writes it and `parseSprite` reads it. Simple stacks use color switches and characters. A suffix preserves labels, alternate views and non-palette layers when needed. Renderers resolve the reference before selecting layers.
+Generated artwork has a stable snake_case ID based on its layers, label and alternate views. A custom component stores the drawing instructions in a separate `definition` field. `spriteDefinition` writes the explicit DOS colors and characters, and `parseSprite` reads them back. The same artwork keeps its ID across save loads and worker handoffs.
 
 [World rendering](../../renderers/three-js/Systems/index.md) and the [HTML compositor](../../components/Row/index.md) draw the same ordered layers.
 
@@ -60,5 +60,7 @@ export type Sprite = SpriteArtwork & {
 ## SpriteRef
 
 ```ts src/engine/components/sprite.ts
-export type SpriteRef = { id: string; custom?: boolean };
+export type SpriteRef =
+  | { id: string; custom?: false }
+  | { id: string; custom: true; definition: string };
 ```

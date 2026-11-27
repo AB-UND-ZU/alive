@@ -12,14 +12,13 @@ beforeAll(() => {
 });
 
 test("sprite code preserves character escapes and updates to the selected sprite", () => {
-  const first = customSprite({
+  const first = {
+    id: "sprite_1",
     name: 'Sprite "one"',
     layers: [{ char: "\\", color: colors.maroon }],
-  });
+  };
   const { rerender } = render(<SpriteCode sprite={first} />);
-  const text = `export const sprite: Sprite = {\n  id: ${JSON.stringify(
-    first.id
-  )},\n  name: ${JSON.stringify(
+  const text = `export const sprite: Sprite = {\n  id: "sprite_1",\n  name: ${JSON.stringify(
     first.name
   )},\n  layers: [\n    { char: ${JSON.stringify(
     "\\"

@@ -37,6 +37,7 @@ test("every named sprite and template variant has a unique snake_case ID", () =>
   expect(seen.has("wood_chest")).toBe(true);
   expect(seen.has("spear_gold_air")).toBe(true);
   expect(duplicates).toEqual([]);
+  expect(ids.filter((id) => id.startsWith("custom_"))).toEqual([]);
   expect(
     [...seen].filter((id) => !/^[a-z][a-z0-9]*(_[a-z0-9]+)*$/.test(id))
   ).toEqual([]);
@@ -45,7 +46,8 @@ test("every named sprite and template variant has a unique snake_case ID", () =>
 test("custom stacks start with a color and survive a component round trip", () => {
   const glyph = parseSprite("AB\x02C");
   expect(spriteDefinition(glyph)).toBe("\x0fAB\x02C");
-  expect(spriteRef(glyph)).toEqual({ id: "\x0fAB\x02C", custom: true });
+  expect(glyph.id).toMatch(/^custom_[a-z0-9]+_[a-z0-9]+$/);
+  expect(spriteRef(glyph)).toEqual({ id: glyph.id, custom: true, definition: "\x0fAB\x02C" });
   expect(resolveSprite({ ...spriteRef(glyph) })).toEqual(glyph);
   expect(parseSprite("\x0fA\x0fB").id).toBe(parseSprite("AB").id);
   expect(resolveSprite(spriteRef(customSprite({ layers: [] })))).toEqual(
@@ -53,7 +55,7 @@ test("custom stacks start with a color and survive a component round trip", () =
   );
   const reference = spriteRef(glyph);
   resolveSprite(reference);
-  reference.id = parseSprite("D").id;
+  Object.assign(reference, spriteRef(parseSprite("D")));
   expect(resolveSprite(reference).layers[0].char).toBe("D");
   const rich = customSprite({
     name: "Preview",

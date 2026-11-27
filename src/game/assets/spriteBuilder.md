@@ -1,5 +1,7 @@
 # Sprite Builder
 
+Pack slots own the snake_case IDs used by the wiki export, starting with `sprite_1`. Editing a layer or removing a different sprite preserves its ID.
+
 `openSpriteBuilder` opens a native popup on a separate dialog entity. Its three tabs use the standard tab, selection, scroll and action controls. Edits are saved by [Sprite Pack](../spritePack.md) in localStorage and loaded when the editor opens. Imported assets and game savegames are unchanged. The popup types are `pack`, `sprite` and `layer`, with LIST, VIEW and LAYER tabs. `(New Sprite)` starts a new sprite.
 
 Every tab uses the normal 11-row dialog. The framed image shifts its pixel pairs down half a cell beneath the frame, filling its nine rows without an inner gap. Adjacent half blocks masked by black ║ form two-pixel sides; half-block and line masks close the corners. The wiki preview keeps its fixed scene height.

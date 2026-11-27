@@ -1,5 +1,5 @@
-import { customSprite, spriteDefinition } from "./spriteIds";
-import { loadSpritePack, saveSpritePack } from "../spritePack";
+import { customSprite } from "./spriteIds";
+import { identifyPack, loadSpritePack, saveSpritePack } from "../spritePack";
 import { requireComponent, TypedEntity, createDialog } from "../../engine/entities";
 import { registerEntity } from "../../engine/systems/map";
 import { World } from "../../engine/ecs";
@@ -54,12 +54,10 @@ export const openSpriteBuilder = (world: World, hero: TypedEntity<"CONDITIONABLE
         [
           getItemSprite({ weapon: "sword", material: "wood" }),
           getItemSprite({ stackable: "apple" }),
-        ].map((sprite, index) =>
-          customSprite({
-            name: `Sprite #${index + 1}`,
-            layers: sprite.layers.map((layer) => ({ ...layer })),
-          })
-        )
+        ].map((sprite, index) => ({
+          name: `Sprite #${index + 1}`,
+          layers: sprite.layers.map((layer) => ({ ...layer })),
+        }))
       ),
       selected: 0,
       color: orderedColors.indexOf(colors.white),
@@ -153,12 +151,9 @@ export const updateSpriteBuilder = (
   const ensureSprite = () => {
     if (!editor.sprites[editor.selected]) {
       changed = true;
-      editor.sprites.push(
-        customSprite({
-          name: `Sprite #${editor.selected + 1}`,
-          layers: [],
-        })
-      );
+      editor.sprites = identifyPack([...editor.sprites, { layers: [] }]);
+      const added = editor.sprites[editor.selected];
+      added.name = `Sprite #${added.id.slice("sprite_".length)}`;
     }
     return editor.sprites[editor.selected];
   };
@@ -291,11 +286,7 @@ export const updateSpriteBuilder = (
     }
     play(world, undefined, "back");
   }
-  if (changed) {
-    const edited = editor.sprites[editor.selected];
-    if (edited) edited.id = spriteDefinition(edited);
-    saveSpritePack(editor.sprites);
-  }
+  if (changed) saveSpritePack(editor.sprites);
 };
 
 const spriteBuilderView = displayPopupView((world, entity, state) => {
@@ -311,11 +302,11 @@ const spriteBuilderView = displayPopupView((world, entity, state) => {
       const line = createText(
         (index === editor.sprites.length
           ? "(New Sprite)"
-          : `Sprite #${index + 1}`
+          : sprite.name || `Sprite #${index + 1}`
         ).padEnd(15),
         index === row ? colors.white : colors.grey
       );
-      const cells = [sprite, ...line];
+      const cells = [index < editor.sprites.length ? customSprite(sprite) : none, ...line];
       return [none, ...(index === row ? shaded(cells, colors.grey) : cells)];
     });
   } else if (tab === "sprite") {

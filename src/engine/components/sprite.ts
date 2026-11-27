@@ -21,7 +21,9 @@ export type Sprite = SpriteArtwork & {
   id: string;
 };
 
-export type SpriteRef = { id: string; custom?: boolean };
+export type SpriteRef =
+  | { id: string; custom?: false }
+  | { id: string; custom: true; definition: string };
 
 export const SPRITE = "SPRITE";
 
