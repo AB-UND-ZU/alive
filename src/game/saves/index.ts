@@ -8,18 +8,13 @@ import { PLAYER } from "../../engine/components/player";
 import { SOUL } from "../../engine/components/soul";
 import { SPAWNABLE } from "../../engine/components/spawnable";
 import { STATS } from "../../engine/components/stats";
-import { POPUP } from "../../engine/components/popup";
-import { NPC } from "../../engine/components/npc";
-import { SPRITE } from "../../engine/components/sprite";
-import { bench } from "../assets/sprites";
-import { craftingIngredients } from "../balancing/crafting";
-import { getTraderDeals } from "../balancing/trading";
 import { createSnapshot, restoreSnapshot, WorldSnapshot } from "../../engine/snapshot";
 import { ClassKey } from "../balancing/classes";
-import packageJson from "../../../package.json";
+import { saveUpgrades, saveVersion } from "./upgrades";
+
+export { saveUpgrades, saveVersion };
 
 export const pauseSaveDelay = 150;
-export const saveVersion = packageJson.version;
 
 export type SaveItem = Omit<Item, "carrier" | "amount" | "bound">;
 
@@ -40,23 +35,6 @@ export type SaveSummary = {
 };
 
 export type SaveGame = SaveSummary & { snapshot: WorldSnapshot };
-
-/**
- * Chain of save upgrades for releases that change data or its stored version.
- * A save is passed through all upgrades newer than its version in order, e.g.
- *
- *   { version: "0.5.0", upgrade: (save) => ({ ...save, ... }) },
- */
-export const saveUpgrades: {
-  version: string;
-  upgrade: (save: SaveGame) => SaveGame;
-}[] = [
-  // World data is unchanged; refresh the stored release and its summary.
-  { version: "0.5.0", upgrade: (save) => save },
-  { version: "0.6.0", upgrade: (save) => save },
-  { version: "0.7.0", upgrade: (save) => save },
-  { version: "0.8.0", upgrade: (save) => save },
-];
 
 export const compareVersions = (left: string, right: string) => {
   const leftParts = left.split(".").map((part) => parseInt(part, 10) || 0);
@@ -163,20 +141,6 @@ export const createSave = (
 export const restoreSavedWorld = (save: SaveGame) => {
   const world = restoreSnapshot(upgradeSave(save).snapshot);
   world.metadata.saveId = save.id;
-
-  // A save captures the recipes and stock that existed when the island was built.
-  for (const entity of world.getEntities([POPUP])) {
-    const popup = entity[POPUP];
-    if (entity[SPRITE]?.id === bench.id && popup.tabs.includes("craft")) {
-      popup.ingredients = craftingIngredients;
-    } else if (
-      entity[NPC]?.type.endsWith("Trader") &&
-      popup.tabs.includes("buy") &&
-      popup.deals.every((deal) => deal.stock === Infinity)
-    ) {
-      popup.deals = getTraderDeals();
-    }
-  }
   return world;
 };
 

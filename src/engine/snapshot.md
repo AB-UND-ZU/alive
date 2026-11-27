@@ -22,11 +22,7 @@ The result must be stored with structured cloning, as IndexedDB does, to keep sh
 
 `restoreSnapshot` creates a world and recreates the entities in their original order with `restoreEntity`, so IDs and query order stay the same. Afterwards, install systems with `createSystems` and call `preloadLevel`, as for a generated level. Systems start with fresh internal state and lazily initialize cells around the hero again.
 
-Older saves can contain inventory IDs for loot that was already removed by arena cleanup. Restoration removes these missing item references while keeping all remaining items and IDs.
-
-Traps saved during their warning or burst resume with the time remaining. Restoration moves the old trigger timer onto the spell’s own clock and keeps its targets and area.
-
-Keep named sprite IDs stable across releases. The loader accepts earlier export-name tokens and inline sprite artwork.
+Saved games pass through [save upgrades](../game/saves/index.md) before restoration. Generated worlds already use the current snapshot format.
 <!-- source-types -->
 
 ## WorldSnapshot

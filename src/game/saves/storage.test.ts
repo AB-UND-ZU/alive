@@ -98,6 +98,7 @@ describe("save storage", () => {
     });
 
     const saved = await storeGame(world);
+    fake.write("alive", "saves", { ...saved, version: "0.8.0" });
     const loaded = await restoreGame(saved.id);
     expect(loaded.assertByIdAndComponents(benchId, [POPUP])[POPUP].ingredients)
       .toEqual(craftingIngredients);

@@ -40,7 +40,7 @@ import { FARMABLE } from "../components/farmable";
 import { extinguishEntity, getBurnables } from "./burn";
 import { BURNABLE } from "../components/burnable";
 import { getAffectables } from "./magic";
-import { createSequence, getSequence } from "./sequence";
+import { createSequence } from "./sequence";
 import { AFFECTABLE } from "../components/affectable";
 
 export type Weather = "rain" | "snow";
@@ -253,20 +253,5 @@ export const updateShoreline = (world: World, position: Position) => {
       }
       level.cells[x][y] = ground;
     }
-  }
-};
-
-// Upgrade the transient liquid effects of older saves to sequence-owned lifetimes.
-export const resumeLiquidEffects = (world: World) => {
-  for (const entity of world.getEntities([LIQUID, SEQUENCABLE, RENDERABLE])) {
-    if (getSequence(world, entity, "splash")) continue;
-    createSequence<"splash", Record<string, never>>(
-      world,
-      entity,
-      "splash",
-      "bubbleSplash",
-      {}
-    );
-    entity[SEQUENCABLE].states.splash!.elapsed = entity[LIQUID].amount * 250;
   }
 };

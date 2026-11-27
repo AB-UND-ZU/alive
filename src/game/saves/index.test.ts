@@ -147,9 +147,9 @@ describe("save upgrades", () => {
         ...createSave(createAreaWorld(area), savedAt),
         version,
       };
-      const upgraded = upgradeSave(previous);
+      const upgraded = upgradeSave(previous, "0.8.0");
 
-      expect(upgraded).toEqual({ ...previous, version: saveVersion });
+      expect(upgraded).toEqual({ ...previous, version: "0.8.0" });
       expect(upgraded.snapshot).toBe(previous.snapshot);
     }
   );

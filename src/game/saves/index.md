@@ -6,7 +6,7 @@
 
 The World component saves when the game pauses, on the pause screen's **SAVE** button and before **MENU** returns to the main menu. The pause screen keeps an odd number of rows so it stays centered on the cell grid. Switching browser tabs pauses and therefore saves too. `canSave` refuses the main menu, the loading screen and worlds where the player can't move, such as while stepping through a portal.
 
-A save is a summary plus a [world snapshot](../../engine/snapshot.md). The summary holds the package version, level, class, hair color, hero level, equipped items, playtime, kills and deaths for the saves dialog. Its name is the local time in `YYYYMMDD-HHMMSS` format, 15 characters that fill a popup row next to the hero sprite.
+A save is a summary plus a [world snapshot](../../engine/snapshot.md). The summary holds the save format version, level, class, hair color, hero level, equipped items, playtime, kills and deaths for the saves dialog. Its name is the local time in `YYYYMMDD-HHMMSS` format, 15 characters that fill a popup row next to the hero sprite.
 
 World metadata keeps the ID of the loaded or last saved game, so saving again replaces that save instead of adding one. A new game from the menu starts without an ID and therefore adds a save.
 
@@ -26,7 +26,9 @@ Some systems keep values from previous updates to react to changes. Systems are 
 
 ## Upgrading saves
 
-Each save stores the package version. When a release changes world data, such as component fields or sprite names, add an entry to `saveUpgrades` with that release's version. `upgradeSave` passes a save through every upgrade newer than its version, in version order, and sets the version after each step. An entry can also advance the stored release without changing world data. The [[data:0.5.0]], [[data:0.6.0]], [[data:0.7.0]] and [[data:0.8.0]] entries preserve the snapshot. Existing islands keep their saved glacier terrain and inhabitants.
+The last entry in `saveUpgrades` defines the current save format. Add an entry when saved data changes. `upgradeSave` applies newer entries in version order. Format [[data:0.8.1]] converts released [[data:0.8.0]] saves and earlier versions before restoring or storing the world.
+
+The upgrade converts old sprite tokens and inline artwork to stable IDs. It also updates movement modifiers, boat clocks, NPCs, trader stock, crafting recipes and dangling inventory references. Traps keep their remaining warning time and bubbles resume at their saved visual stage. These conversions preserve the saved island layout. Current saves and snapshots sent by the level worker skip the upgrade.
 
 Loading the save list upgrades older records automatically in one transaction across the summary and snapshot stores. No confirmation or load action is needed. The cache changes only after that transaction commits. Missing worlds or snapshots stay unchanged. A newer actual save is never downgraded; its cached summary carries the actual version even if its stored summary is stale.
 

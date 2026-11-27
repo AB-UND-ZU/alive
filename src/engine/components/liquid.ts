@@ -1,7 +1,7 @@
 import type { TypedEntity } from "../entities";
 import { World } from "../ecs";
 
-export type Liquid = { type: "splash" | "drop" | "bubble", timestamp?: number, amount: number };
+export type Liquid = { type: "splash" | "drop" | "bubble", amount: number };
 
 export const LIQUID = "LIQUID";
 

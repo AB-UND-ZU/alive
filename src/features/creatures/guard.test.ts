@@ -417,7 +417,7 @@ describe("village defenders", () => {
     chief[BEHAVIOUR].patterns = [];
     chief[STATS].hp -= 1;
     world.assertComponents(hero, [BELONGABLE])[BELONGABLE].faction = "hostile";
-    const loaded = saveAndLoad(world);
+    const loaded = saveAndLoad(world, "0.8.0");
     const restored = getCreature(loaded, "fireChief");
     advanceTicks(loaded, 3);
     expect(restored[POSITION]).toEqual(origin);

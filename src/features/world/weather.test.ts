@@ -189,8 +189,8 @@ describe("weather", () => {
     const effect = saved.getEntities([LIQUID, SEQUENCABLE])[0];
     disposeSequence(saved, effect, "splash");
     effect[LIQUID].amount = 2;
-    effect[LIQUID].timestamp = 12345;
-    const loaded = saveAndLoad(saved);
+    Object.assign(effect[LIQUID], { timestamp: 12345 });
+    const loaded = saveAndLoad(saved, "0.8.0");
     loaded.update(499);
     expect(loaded.getEntities([LIQUID])).toHaveLength(1);
     loaded.update(1);

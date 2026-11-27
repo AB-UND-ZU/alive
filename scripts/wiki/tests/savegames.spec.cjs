@@ -4,8 +4,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { deserialize } = require("node:v8");
 const { gunzipSync } = require("node:zlib");
-const currentVersion = require("../../../package.json").version;
-const futureVersion = `${Number(currentVersion.split(".")[0]) + 1}.0.0`;
+let currentVersion;
+const futureVersion = "99.0.0";
 
 let bundle;
 const fixture = deserialize(
@@ -52,6 +52,7 @@ test.beforeEach(async ({ page }) => {
   );
   await page.goto("/save-migration-test.html");
   await page.addScriptTag({ content: bundle });
+  currentVersion = await page.evaluate(() => SaveMigration.saveVersion);
   // Playwright passes the native decoded object, including Infinity and aliases.
   await page.evaluate(async (save) => {
     window.originalSave = save;
@@ -180,10 +181,11 @@ test("loading the save list upgrades a genuine 0.4 world before opening its nati
       id: record.save.id,
       name: record.save.name,
       classKey: record.save.classKey,
-      // Content comparison only; Infinity and actual aliases are checked separately.
-      sameSnapshot:
-        JSON.stringify(record.save.snapshot) ===
-        JSON.stringify(original.snapshot),
+      oldSprite: originalHero.SPRITE,
+      sprite: hero.SPRITE,
+      sameEntityIds: original.snapshot.entities.every(
+        ([id], index) => record.save.snapshot.entities[index]?.[0] === id
+      ),
       infinity:
         originalHero.STATS.maxXp === Infinity && hero.STATS.maxXp === Infinity,
       originalAlias: originalHero.SPAWNABLE.viewable === originalHero.VIEWABLE,
@@ -201,7 +203,9 @@ test("loading the save list upgrades a genuine 0.4 world before opening its nati
     id: fixture.id,
     name: fixture.name,
     classKey: "scout",
-    sameSnapshot: true,
+    oldSprite: { name: "Scout", layers: expect.any(Array) },
+    sprite: { id: expect.any(String), custom: true },
+    sameEntityIds: true,
     infinity: true,
     originalAlias: true,
     alias: true,

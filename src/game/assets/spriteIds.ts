@@ -2,19 +2,18 @@ import type {
   Layer,
   Sprite,
   SpriteArtwork,
-  SpriteLayers,
   SpriteRef,
 } from "../../engine/components/sprite";
 import * as sprites from "./sprites";
 import { orderedColors } from "./colors";
 
-const named = new Map(
+export const namedSprites = new Map(
   Object.values(sprites).map((sprite) => [sprite.id, sprite])
 );
 
 export function namedSprite(id: string, artwork: SpriteArtwork): Sprite {
   const sprite = { ...artwork, id };
-  named.set(id, sprite);
+  namedSprites.set(id, sprite);
   return sprite;
 }
 
@@ -61,49 +60,6 @@ export const customSprite = (artwork: SpriteArtwork): Sprite => ({
   id: spriteDefinition(artwork),
 });
 
-// Older saves inlined generated sprites without an ID. Recover the named
-// variant when its saved artwork matches, including equipment and idle icons.
-const legacyKey = (sprite: SpriteArtwork) => {
-  // Old merges explicitly repeated the base layers for every missing view.
-  const views = ({ layers, facing, amounts }: SpriteLayers) => {
-    const base = JSON.stringify(layers);
-    return [
-      base,
-      ...[
-        facing?.up,
-        facing?.right,
-        facing?.down,
-        facing?.left,
-        amounts?.single,
-        amounts?.double,
-        amounts?.multiple,
-      ].map((view) => {
-        if (!view) return null;
-        const value = JSON.stringify(view);
-        return value === base ? null : value;
-      }),
-    ];
-  };
-  return JSON.stringify([
-    sprite.name || "",
-    views(sprite),
-    sprite.terminal && views(sprite.terminal),
-  ]);
-};
-let legacySprites: Map<string, Sprite> | undefined;
-export function readLegacySprite(artwork: SpriteArtwork): Sprite {
-  if (!legacySprites) {
-    legacySprites = new Map();
-    for (const sprite of named.values()) {
-      const key = legacyKey(sprite);
-      // Some elemental variants look identical to the unmodified material.
-      if (!legacySprites.get(key)?.id.endsWith("_default"))
-        legacySprites.set(key, sprite);
-    }
-  }
-  return legacySprites.get(legacyKey(artwork)) || customSprite(artwork);
-}
-
 function readDefinition(definition: string): SpriteArtwork {
   const separator = definition.indexOf(suffix);
   const text = separator < 0 ? definition : definition.slice(0, separator);
@@ -134,7 +90,7 @@ export function resolveSprite(ref: SpriteRef | undefined): Sprite | undefined;
 export function resolveSprite(ref?: SpriteRef) {
   if (!ref) return;
   if (!ref.custom) {
-    const sprite = named.get(ref.id);
+    const sprite = namedSprites.get(ref.id);
     if (!sprite) throw new Error(`Unknown sprite ID: ${ref.id}`);
     return sprite;
   }

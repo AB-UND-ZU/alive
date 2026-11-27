@@ -1,22 +1,5 @@
-import { readLegacySprite } from "../game/assets/spriteIds";
 import createWorld, { World } from "./ecs";
-import * as sprites from "../game/assets/sprites";
-import { SpriteArtwork } from "./components/sprite";
-import { BEHAVIOUR } from "./components/behaviour";
-import { NPC } from "./components/npc";
-import { STATS } from "./components/stats";
-import { getTraderDeal } from "../game/balancing/trading";
-import { POPUP } from "./components/popup";
-import { unitDefinitions } from "../game/balancing/units";
-import { INVENTORY } from "./components/inventory";
-import { ITEM } from "./components/item";
 import type { Entity } from "./entities";
-import { CASTABLE } from "./components/castable";
-import { REFERENCE } from "./components/reference";
-import { RENDERABLE } from "./components/renderable";
-import { SEQUENCABLE } from "./components/sequencable";
-import { disposeFrame } from "./systems/map";
-import { boatHaste, getHasteInterval } from "./systems/movement";
 
 /**
  * Plain copy of all entities of a world. Shared objects stay shared within a
@@ -100,26 +83,21 @@ export const createSnapshot = (world: World): WorldSnapshot => {
 };
 
 /** Create a world with identical entities and IDs, but without systems. */
-export const restoreSnapshot = (snapshot: WorldSnapshot) => {
+export const restoreSnapshot = (
+  snapshot: WorldSnapshot,
+  readValue?: (value: object) => unknown
+) => {
   const world = createWorld();
   const copies = new Map<unknown, unknown>();
   const restored = snapshot.entities.map(([entityId]) =>
     world.restoreEntity(entityId)
   );
   const replace = (value: object) => {
-    // Pre-ID saves stored exported sprites by their JavaScript export name.
-    if ("$sprite" in value) {
-      const sprite = sprites[value.$sprite as keyof typeof sprites];
-      if (!sprite) throw new Error(`Unknown legacy sprite: ${value.$sprite}`);
-      return sprite;
-    }
-    if ("layers" in value && !("id" in value) && "name" in value)
-      return readLegacySprite(value as SpriteArtwork);
-
     if ("$entity" in value) {
       // keep detached entities as placeholders, same as removed entities
       return world.getEntityById((value as EntityToken).$entity) || {};
     }
+    return readValue?.(value);
   };
 
   snapshot.entities.forEach(([, components], index) => {
@@ -132,74 +110,6 @@ export const restoreSnapshot = (snapshot: WorldSnapshot) => {
     }
   });
 
-  for (const entity of restored) {
-    // Older terrain and tornadoes stored the previous movement modifiers.
-    const tempo = entity.TEMPO;
-    if (tempo?.amount === 2) tempo.amount = 3;
-    else if (tempo?.amount === -1) tempo.amount = -2;
-    else if (
-      tempo?.amount === -6 ||
-      (tempo?.amount === -2 && !entity.HARVESTABLE)
-    )
-      tempo.amount = -4;
-
-    if (entity.MOUNTABLE?.medium === "water" && entity.MOVABLE) {
-      // Boats saved at haste 5 on the new curve keep their own 247 ms clock.
-      const clock = world.getEntityByIdAndComponents(entity.MOVABLE.reference, [
-        REFERENCE,
-      ])?.REFERENCE;
-      if (clock?.tick === 247) {
-        const tick = getHasteInterval(world, boatHaste);
-        clock.delta *= tick / clock.tick;
-        clock.tick = tick;
-        entity.MOVABLE.spring = { duration: tick };
-        const rider = world.getEntityByIdAndComponents(entity.MOUNTABLE.passenger, [
-          "MOVABLE",
-        ]);
-        if (rider) rider.MOVABLE.spring = { duration: tick };
-      }
-    }
-    const npc = entity[NPC];
-    if (npc && String(npc.type) === "banditArcher") npc.type = "banditRogue";
-    const popup = entity[POPUP];
-    if (npc?.type.endsWith("Trader") && popup?.tabs.includes("buy")) {
-      const { deals } = popup;
-      if (
-        deals[deals.length - 2]?.item.stackable !== "sand" ||
-        deals[deals.length - 1]?.item.stackable !== "gravel"
-      ) {
-        const buyTab = popup.tabs.indexOf("buy");
-        const selected = deals[popup.verticalIndezes[buyTab]];
-        const grounds = (["sand", "gravel"] as const).map((stackable) =>
-          deals.find((deal) => deal.item.stackable === stackable) ||
-          getTraderDeal({ stackable })
-        );
-        popup.deals = [
-          ...deals.filter((deal) => !grounds.includes(deal)),
-          ...grounds,
-        ];
-        if (selected) popup.verticalIndezes[buyTab] = popup.deals.indexOf(selected);
-      }
-    }
-    const patterns = entity[BEHAVIOUR]?.patterns;
-    if (
-      npc &&
-      patterns &&
-      unitDefinitions[npc.type].patternNames.includes("defend") &&
-      !patterns.some((pattern) => pattern.name === "defend")
-    ) {
-      patterns.unshift({ name: "defend", memory: { hp: entity[STATS]?.hp } });
-    }
-
-    // Older arena cleanup could remove loot items while their containers survived.
-    const inventory = entity[INVENTORY];
-    if (!inventory) continue;
-    const items = inventory.items.filter((id) =>
-      world.getEntityByIdAndComponents(id, [ITEM])
-    );
-    if (items.length !== inventory.items.length) inventory.items = items;
-  }
-
   world.metadata.ecs.nextId = snapshot.nextId;
   world.metadata.playtime = snapshot.playtime;
   world.metadata.gameEntity = world.assertById(
@@ -211,36 +121,6 @@ export const restoreSnapshot = (snapshot: WorldSnapshot) => {
   world.metadata.renderEntity = world.assertById(
     snapshot.render
   ) as World["metadata"]["renderEntity"];
-
-  // Older traps counted their warning time on a separate reference frame.
-  for (const entity of world.getEntities([CASTABLE, SEQUENCABLE])) {
-    const aura = entity[SEQUENCABLE].states.aura;
-    if (aura?.name !== "trapAura") continue;
-
-    const castable = entity[CASTABLE] as {
-      trigger?: { delay: number; frame?: number };
-    };
-    const timer = castable.trigger;
-    if (!timer && aura.args.range && aura.args.delay !== undefined) continue;
-    aura.args.range ||= 1;
-    aura.args.delay ??= (timer?.delay ?? 500) / 100;
-    if (timer?.frame !== undefined) {
-      const frame = world.assertByIdAndComponents(timer.frame, [
-        REFERENCE,
-        RENDERABLE,
-      ]);
-      aura.elapsed =
-        (frame[RENDERABLE].generation - 1) * frame[REFERENCE].tick +
-        frame[REFERENCE].delta;
-      aura.args.memory = { triggered: true };
-      Object.assign(
-        world.assertByIdAndComponents(aura.reference, [REFERENCE])[REFERENCE],
-        frame[REFERENCE]
-      );
-      disposeFrame(world, frame);
-    }
-    delete castable.trigger;
-  }
 
   return world;
 };

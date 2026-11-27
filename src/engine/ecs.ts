@@ -15,7 +15,6 @@ import { RENDERABLE } from "./components/renderable";
 import { REFERENCE } from "./components/reference";
 import { Entity, EntityId, ReferencedEntity, TypedEntity } from "./entities";
 import { LEVEL, LevelName } from "./components/level";
-import { resumeLiquidEffects } from "./systems/water";
 import { getHasteInterval } from "./systems/movement";
 import { initialDimensions } from "../renderers/interface/dimensions";
 import { ECS_DEBUG, setIdentifier } from "./utils";
@@ -309,7 +308,6 @@ export const createLevel = (world: World, name: LevelName, size: number) => {
 };
 
 export const createSystems = (world: World) => {
-  resumeLiquidEffects(world);
   // start ordered systems
   world.addSystem(systems.setupInitialize);
   world.addSystem(systems.setupTick);

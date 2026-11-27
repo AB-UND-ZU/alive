@@ -9,7 +9,7 @@ Creates splash, drop and bubble effects and updates neighboring water or sand te
 | Sand cells     | Update the shoreline after terrain changes                     |
 | Weather        | Calculate rain/snow intensity |
 
-Liquid effects advance through their own `bubbleSplash` sequences. There is no separate water clock or per-frame liquid cleanup. When restoring older saves, setup attaches a sequence at the existing liquid stage. See [saved games](../../game/saves/index.md). Water terrain uses [Immersible](../components/immersible.md); its animated effects use [Liquid](../components/liquid.md).
+Liquid effects advance through their own `bubbleSplash` sequences. There is no separate water clock or per-frame liquid cleanup. The save upgrade adds a sequence at the saved stage for older liquid effects. See [saved games](../../game/saves/index.md). Water terrain uses [Immersible](../components/immersible.md); its animated effects use [Liquid](../components/liquid.md).
 <!-- source-types -->
 
 ## Weather
