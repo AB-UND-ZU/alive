@@ -1502,7 +1502,7 @@ export default function setupPopup(world: World) {
           }
           rerenderEntity(world, base);
           rerenderEntity(world, heroEntity);
-          play(world, undefined, "pickup");
+          play(world, undefined, "equip", { notes: 4, spacing: 45 });
         } else if (
           ((addEntity && selections.length === 2) ||
             (useEntity && forgingFailed(useEntity))) &&

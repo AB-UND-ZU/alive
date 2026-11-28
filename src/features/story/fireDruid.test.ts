@@ -20,7 +20,7 @@ const wishes = [
   { consume: "potion", material: "iron", stat: "mp", amount: 5 },
 ] as const;
 
-const setupDruid = () => {
+const setupDruid = (wish?: number) => {
   const { world, hero } = setup(area);
   const druid = addNpc(
     world,
@@ -28,7 +28,8 @@ const setupDruid = () => {
     findInArea(area, "E"),
     "fireDruidNpc"
   );
-  step(world, 5);
+  const random = wish === undefined ? undefined : jest.spyOn(Math, "random").mockReturnValue((wish + 0.5) / wishes.length);
+  try { step(world, 5); } finally { random?.mockRestore(); }
   return { world, hero, druid };
 };
 
@@ -49,6 +50,15 @@ describe("fire druid", () => {
 
     expect(getMessages(world, hero)).toEqual(["Not completed!"]);
   });
+
+  it.each([[2, "crystal", "rock2"], [3, "mineral", "rock1"]] as const)(
+    "shows the source rock for wish %i (%s)", (index, item, rock) => {
+      const { druid } = setupDruid(index);
+      expect(druid.POPUP.deals[0].prices[0].stackable).toBe(item);
+      expect(druid.POPUP.lines[0].flat().filter((sprite) => /^rock[12]$/.test(sprite.id))
+        .map((sprite) => sprite.id)).toEqual([rock]);
+    }
+  );
 
   it("trades the wished item for gold", () => {
     const { world, hero, druid } = setupDruid();

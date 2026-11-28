@@ -145,7 +145,9 @@ describe("forging at an anvil", () => {
       world,
       () => hero[ACTIONABLE].trade === world.getEntityId(anvil)
     );
+    const sounds = playedSounds.length;
     act(world, "right");
+    expect(playedSounds.slice(sounds)).toContain("equip");
     expect(hero[EQUIPPABLE]).toMatchObject({ weapon: id, skill: id });
     expect(hero[PLAYER].quickItems[0]).toMatchObject({
       weapon: "spear",
@@ -208,6 +210,10 @@ describe("forging at an anvil", () => {
       char: "x",
       foreground: colors.red,
     });
+    const firstHit = world.assertByIdAndComponents(particles["popup-content-0-9"], [SPRITE]);
+    expect(projectSprite(resolveSprite(firstHit[SPRITE])).char).toBe(
+      projectSprite(getItemSprite(forge.steps[0].item)).char
+    );
     for (const [stepIndex, color] of [
       colors.lime,
       colors.lime,
@@ -217,11 +223,12 @@ describe("forging at an anvil", () => {
         particles[`popup-content-0-${9 + stepIndex}`],
         [SPRITE]
       );
-      const expected = [
-        { char: "_", color },
-        ...getItemSprite(forge.steps[stepIndex].item).layers,
-      ];
+      const item = getItemSprite(forge.steps[stepIndex].item);
+      const expected = [...item.layers];
       if (stepIndex === 1) expected.push({ char: "^", color: colors.lime });
+      const line = { char: "_", color };
+      if (color === colors.lime) expected.push(line);
+      else expected.unshift(line);
       expect(
         resolveSprite(cell[SPRITE]).layers.slice(-expected.length)
       ).toEqual(expected);

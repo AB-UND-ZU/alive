@@ -57,36 +57,14 @@ export const collectScene = (
   const fractionY = Math.sign(fraction.y);
 
   const renderableEntities: SceneEntity[] = [];
-  for (
-    let offsetX = 0;
-    offsetX <
-    columns + Math.abs(overscan.x) + Math.abs(fractionX) + flyingPadding;
-    offsetX += 1
-  ) {
-    for (
-      let offsetY = 0;
-      offsetY <
-      rows + Math.abs(overscan.y) + Math.abs(fractionY) + flyingPadding + 1;
-      offsetY += 1
-    ) {
-      const oddX = columns % 2;
-      const renderedX =
-        offsetX -
-        (columns - oddX) / 2 +
-        position.x -
-        Math.max(0, overscan.x) -
-        Math.max(0, fractionX) -
-        flyingPadding / 2;
-
-      const oddY = rows % 2;
-      const renderedY =
-        offsetY -
-        (rows - oddY) / 2 +
-        position.y -
-        Math.max(0, overscan.y) -
-        Math.max(0, fractionY) -
-        flyingPadding / 2;
-
+  const left = position.x - Math.floor(columns / 2) - Math.max(0, overscan.x) -
+    Math.max(0, fractionX) - flyingPadding / 2;
+  const top = position.y - Math.floor(rows / 2) - Math.max(0, overscan.y) -
+    Math.max(0, fractionY) - flyingPadding / 2;
+  const right = left + columns + Math.abs(overscan.x) + Math.abs(fractionX) + flyingPadding;
+  const bottom = top + rows + Math.abs(overscan.y) + Math.abs(fractionY) + flyingPadding + 1;
+  for (let renderedX = left; renderedX < right; renderedX++) {
+    for (let renderedY = top; renderedY < bottom; renderedY++) {
       const renderedPosition = { x: renderedX, y: renderedY };
       const cell = getCell(world, renderedPosition);
       const inside =
@@ -122,6 +100,25 @@ export const collectScene = (
   for (const entity of castableEntities) {
     const entityId = world.getEntityId(entity);
 
+    const tornado = entity.SEQUENCABLE?.states.tornado;
+    if (tornado) {
+      // Gusts keep their original radius while the eye shrinks or moves.
+      const reach = 1 + tornado.args.gusts.reduce(
+        (radius, gust) => Math.max(radius, gust.radius), tornado.args.radius
+      );
+      const eye = entity[POSITION];
+      const firstX = left - reach + normalize(eye.x - left + reach, size);
+      const firstY = top - reach + normalize(eye.y - top + reach, size);
+      for (let x = firstX; x < right + reach; x += size) {
+        for (let y = firstY; y < bottom + reach; y += size) {
+          if (x >= left && x < right && y >= top && y < bottom) continue;
+          const inside = !!structure &&
+            getEnterable(world, eye)?.[FRAGMENT]?.structure === structure;
+          renderableEntities.push([x, y, inside, String(entityId), entity]);
+        }
+      }
+      continue;
+    }
     if (!isAnchoredSpell(entity, entityId)) continue;
 
     let castableQuadrant = castableQuadrants[entityId];

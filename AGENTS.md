@@ -47,7 +47,9 @@ Prose-only merges use the text and link checks above. CI runs the full game, gen
 ## Saved data
 
 - When a change affects existing games, compare the last released save with the current factory. Check what the snapshot stores, including popup deals and text, quest targets, equipment, AI and timers.
-- Add conversions to the next release entry in `src/game/saves/upgrades.ts`. Preserve player progress, stock and entity references. Test a released save shape through upgrade and reload. See [Saved games](src/game/saves/index.md#upgrading-saves).
+- Put each conversion in the prepared next release file, `src/game/saves/upgrades/<version>.ts`. Register the file in `src/game/saves/upgrades.ts` and run it only during that upgrade. Preserve player progress, stock and entity references. Test a released save shape through upgrade and reload. See [Saved games](src/game/saves/index.md#upgrading-saves).
+- When adding an upgrade, tell the user in chat which saved data will change and in which version. Keep the current package version unless a release is requested.
+- Before pushing, check the outgoing changes for features with save upgrades. If the package version is still below an upgrade’s target, tell the user the upgrade will not run yet and ask whether to push anyway. Wait for explicit confirmation before pushing.
 
 ## Version bumps
 

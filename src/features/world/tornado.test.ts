@@ -12,7 +12,8 @@ import {
 } from "../../engine/components/sequencable";
 import { SPRITE } from "../../engine/components/sprite";
 import { STATS } from "../../engine/components/stats";
-import { getMotion } from "../../engine/motion";
+import { collectScene } from "../../renderers/interface/scene";
+import { getMotion, sampleMotion } from "../../engine/motion";
 import { getLootable } from "../../engine/systems/collect";
 import { knockEntity } from "../../engine/systems/damage";
 import { getTempo } from "../../engine/systems/movement";
@@ -103,6 +104,52 @@ describe("tornado", () => {
     advance(world, 3000);
 
     expect(hero[POSITION]).toEqual(start);
+  });
+
+  it("renders gusts across both viewport edges and the world seam", () => {
+    const world = createAreaWorld(area, { size: 32 });
+    const storm = addTornado(world, { x: 29, y: 3 }, 2);
+    const viewport = {
+      position: { x: 0, y: 3 }, fraction: { x: 0, y: 0 },
+      overscan: { x: 0, y: 0 }, columns: 5, rows: 5,
+    };
+    const copies = () => collectScene(world, viewport, {})
+      .filter((entry) => entry[4] === storm).map(([x]) => x);
+    expect(copies()).toEqual([-3]);
+    moveEntity(world, storm, { x: 2, y: 3 });
+    expect(copies()).toEqual([2]);
+    moveEntity(world, storm, { x: 4, y: 3 });
+    expect(copies()).toEqual([4]);
+    moveEntity(world, storm, { x: 14, y: 3 });
+    expect(copies()).toEqual([]);
+  });
+
+  it("moves a knocked drop at the same speed as an ordinary mob", () => {
+    const world = createAreaWorld("| ♀ c     p     |", {
+      legend: { c: "coin_one", p: "prism" },
+    });
+    const drop = getLootable(world, { x: 3, y: 0 })!;
+    const mob = world.getEntities(["NPC", POSITION]).find((e) => e.NPC.type === "prism")!;
+    for (const entity of [drop, mob]) knockEntity(world, entity, "right", 2);
+    for (const elapsed of [0, 100, 200]) {
+      const distance = (entity: typeof drop | typeof mob) => {
+        const motion = getMotion(entity)!;
+        return sampleMotion(motion, world.metadata.elapsed + elapsed).x - motion.fromX;
+      };
+      expect(distance(drop)).toBeCloseTo(distance(mob));
+    }
+  });
+
+  it.each(["coin_one", "fish"] as const)("leaves %s on a water cell during knock", (kind) => {
+    const world = createAreaWorld("| ♀ d ~     |", {
+      legend: { d: kind, "~": "water_shallow" },
+    });
+    const position = { x: 5, y: 0 };
+    const drop = getLootable(world, { x: 3, y: 0 })!;
+    moveEntity(world, drop, position, false);
+    knockEntity(world, drop, "right", 2);
+    expect(drop.POSITION).toEqual(position);
+    expect(getMotion(drop)).toBeUndefined();
   });
 
   it("moves its slow interior with the eye and leaves the knock ring at normal speed", () => {

@@ -82,7 +82,7 @@ import {
   kettle,
   bench,
   boat,
-  rock1,
+  rock1, rock2,
   cactus1,
   mining,
   repair,
@@ -2563,7 +2563,7 @@ export const fireDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
           [
             [
               ...createText("Break some "),
-              rock1,
+              rock2,
               ...createText("Stone", colors.grey),
             ],
             [

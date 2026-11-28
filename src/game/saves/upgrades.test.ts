@@ -3,7 +3,7 @@ import { restoreUpgradedSave } from "../../testing/saves";
 import { createSave, restoreSavedWorld } from ".";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { waveTower } from "../assets/templates/creatures";
-import { snowCover } from "../assets/sprites";
+import { rock1, rock2, snowCover } from "../assets/sprites";
 import { rage2, parseSprite } from "../assets/ui";
 import { resolveSprite, spriteRef } from "../assets/spriteIds";
 import { deserialize, serialize } from "v8";
@@ -95,6 +95,28 @@ describe("legacy save upgrades", () => {
       expect(text.layers).toEqual([{ char: "/", color: "#008000" }]);
       expect(body.name).toBe(text.name);
     }
+  });
+
+  it.each(["crystal", "mineral"] as const)("only updates the saved Fire Druid %s request during the 0.10.0 upgrade", (stackable) => {
+    const world = createAreaWorld("|♀   |");
+    const druid = createNpc(world, "fireDruid", { x: 2, y: 0 });
+    const deal = {
+      prices: [{ stackable, amount: 2 }],
+      item: { stackable: "resource", material: "gold", amount: 1 }, stock: 1,
+    } as const;
+    const owner = createPopup(world, druid, {
+      tabs: ["quest"], lines: [[[rock1]]], deals: [{ ...deal, prices: [...deal.prices] }],
+    });
+    const released = { ...createSave(world), version: "0.9.0" };
+    const id = world.getEntityId(owner);
+    expect(restoreSavedWorld(released).assertById(id).POPUP.lines[0][0][0].id).toBe(rock1.id);
+
+    const next = saveUpgrades.find(({ version }) => version === "0.10.0")!;
+    const upgraded = upgradeSave(released, next, new Set());
+    const loaded = restoreSnapshot(deserialize(serialize(upgraded.snapshot)));
+    const popup = loaded.assertById(id).POPUP;
+    expect(popup.lines[0][0][0].id).toBe(stackable === "crystal" ? rock2.id : rock1.id);
+    expect(popup.deals).toEqual([deal]);
   });
 
   it("only converts the old movement modifier when upgrading a save", () => {

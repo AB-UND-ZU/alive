@@ -6418,7 +6418,7 @@ export const displayForge: Sequence<PopupSequence, "FORGABLE" | "POPUP"> = (worl
             recipeStep.result === "ace"
               ? mergeSprites(item, createText("^", colors.lime)[0])
               : item;
-          stepBar.push(...underline([marked], colors.lime));
+          stepBar.push(...underline([marked], colors.lime, true));
         } else {
           stepBar.push(
             index === progress ? underline([item], colors.grey)[0] : item

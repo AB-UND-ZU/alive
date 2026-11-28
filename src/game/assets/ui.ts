@@ -134,11 +134,17 @@ export const strikethrough = (
     })
   );
 
-export const underline = (sprites: Sprite[], color: string = colors.silver) =>
+export const underline = (
+  sprites: Sprite[],
+  color: string = colors.silver,
+  onTop = false
+) =>
   sprites.map((sprite) =>
     customSprite({
       name: sprite.name,
-      layers: [{ char: "_", color }, ...sprite.layers],
+      layers: onTop
+        ? [...sprite.layers, { char: "_", color }]
+        : [{ char: "_", color }, ...sprite.layers],
       terminal: terminalLayers(sprite, (layers) => layers),
     })
   );

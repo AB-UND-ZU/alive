@@ -92,6 +92,7 @@ import {
 } from "./magic";
 import { LEVEL } from "../components/level";
 import { getTempo, isPassable, isWalkable } from "./movement";
+import { hasWater } from "./immersion";
 import { BUMPABLE } from "../components/bumpable";
 import { EXERTABLE } from "../components/exertable";
 import { getSpikable, stingEntity } from "./spike";
@@ -705,8 +706,10 @@ export const knockEntity = (
   const delta = orientationPoints[orientation];
 
   if (amount > 0 && !entity[FRAGMENT] && (entity[MOVABLE] || entity[LOOTABLE]?.disposable)) {
+    const position = requireComponent(entity, POSITION);
+    if (entity[LOOTABLE]?.disposable && hasWater(world, position)) return;
     interruptPopup(world, entity);
-    let target = copy(requireComponent(entity, POSITION));
+    let target = copy(position);
     let slide = amount;
     let sting;
 

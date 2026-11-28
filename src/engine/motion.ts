@@ -5,6 +5,7 @@ import { MOVABLE } from "./components/movable";
 import { PARTICLE } from "./components/particle";
 import { POSITION } from "./components/position";
 import { RENDERABLE } from "./components/renderable";
+import { LOOTABLE } from "./components/lootable";
 import { BUMPABLE } from "./components/bumpable";
 import { Orientation, orientationPoints } from "./components/orientable";
 import { signedDistance } from "../game/math/std";
@@ -235,7 +236,8 @@ export const moveMotion = (
     motions.delete(entity);
     return;
   }
-  const config = entity[MOVABLE]?.spring || (entity[BUMPABLE] ? {} : undefined);
+  const config = entity[MOVABLE]?.spring ||
+    (entity[BUMPABLE] && (entity[LOOTABLE]?.disposable ? { duration: 200 } : {}));
   if (!config) return;
   let motion = motions.get(entity);
   if (!motion) {
