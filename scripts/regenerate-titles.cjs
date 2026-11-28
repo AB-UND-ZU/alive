@@ -31,7 +31,7 @@ const color = (name) =>
 const [major = 0, minor = 0, patch = 0] = version
   .split(".")
   .map((part) => parseInt(part, 10) || 0);
-const label = `V${major}x${String(minor).padStart(2, "0")}${
+const label = `V${major}x${minor.toString(16).toUpperCase().padStart(2, "0")}${
   patch ? `.${patch}` : ""
 }`;
 if (label.length > 17) throw new Error("Version exceeds the menu's 17 columns");

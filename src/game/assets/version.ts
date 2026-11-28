@@ -5,7 +5,7 @@ export const formatGameVersion = (version: string) => {
   const [major = 0, minor = 0, patch = 0] = version
     .split(".")
     .map((part) => parseInt(part, 10) || 0);
-  return `V${major}x${minor.toString().padStart(2, "0")}${patch ? `.${patch}` : ""}`;
+  return `V${major}x${minor.toString(16).toUpperCase().padStart(2, "0")}${patch ? `.${patch}` : ""}`;
 };
 
 export const gameVersion = formatGameVersion(packageJson.version);

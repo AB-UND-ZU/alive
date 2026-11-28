@@ -1,3 +1,4 @@
+import { gameVersion } from "../game/assets/version";
 import { SpriteGallery } from "./SpriteGallery";
 import { customSprite, spriteDefinition } from "../game/assets/spriteIds";
 import { getWikiUnitSprite, getWikiUnitName, displayName } from "./catalog";
@@ -109,13 +110,8 @@ const sourceIndex = require("./sourceReferences.json") as {
   references: WikiManifest["references"];
   pages: Record<string, WikiManifest["references"]>;
 };
-const [major, minor, patch] = (
-  require("../../package.json").version as string
-).split(".");
 const manifest: WikiManifest = {
-  version: `V${major}x${minor.padStart(2, "0")}${
-    Number(patch) ? "." + patch : ""
-  }`,
+  version: gameVersion,
   title: [],
   references: sourceIndex.references,
   pages: registry.map((page) => ({

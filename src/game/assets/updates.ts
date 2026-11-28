@@ -93,6 +93,13 @@ let history: Dialog[] | undefined;
 // Build once after game modules initialize; the history uses the normal popup labels.
 export const getUpdates = (): Dialog[] =>
   (history ||= [
+    update("0x0A", "20261128", [
+      ...change(["Add ", label(sprites.pet, "Pet"), " with"], [accent("4,396"), " variants"]),
+      ...change(
+        ["More ", sprites.chick, sprites.chickFemale, sprites.hen, label(sprites.rooster, "Chicken")],
+        ["and ", label(sprites.heart, "Mating")]
+      ),
+    ]),
     update("0x09", "20261127", [
       ...change([label(spirit.wood.water, "Water"), " village"], ["with igloos:"]),
       [],

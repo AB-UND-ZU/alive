@@ -4,7 +4,7 @@ import { colors } from "./colors";
 import { formatGameVersion } from "./version";
 
 export const updateLoading = (version: string) =>
-  createDialog(`Updating ${formatGameVersion(version).toLowerCase()}...`);
+  createDialog(`Updating v${formatGameVersion(version).slice(1)}...`);
 
 export const mapLoading = createDialog("Loading map...");
 

@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { deserialize } = require("node:v8");
 const { gunzipSync } = require("node:zlib");
-const currentVersion = "0.9.0";
+const currentVersion = require("../../../package.json").version;
 const futureVersion = `${Number(currentVersion.split(".")[0]) + 1}.0.0`;
 
 let bundle;
@@ -27,15 +27,6 @@ export {getSequence} from "./src/engine/systems/sequence";
 test.beforeAll(async () => {
   const result = await build({
     stdin: { contents: entry, resolveDir: process.cwd(), loader: "ts" },
-    plugins: [{
-      name: "release-under-test",
-      setup(builder) {
-        builder.onLoad({ filter: /package\.json$/ }, ({ path: file }) => {
-          if (file === path.join(process.cwd(), "package.json"))
-            return { contents: JSON.stringify({ version: currentVersion }), loader: "json" };
-        });
-      },
-    }],
     bundle: true,
     write: false,
     platform: "browser",

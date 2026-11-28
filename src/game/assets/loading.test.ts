@@ -28,5 +28,6 @@ it("shows the destination at its natural length with the warp sprite", () => {
 });
 
 it("shows the version of the running save upgrade", () => {
+  expect(text(updateLoading("0.10.0"))).toBe("Updating v0x0A...");
   expect(text(updateLoading("0.9.0"))).toBe("Updating v0x09...");
 });
