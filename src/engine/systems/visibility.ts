@@ -36,6 +36,10 @@ type Sight = {
   obstructions: ReturnType<typeof getObstruction>[];
 };
 
+const sights = new WeakMap<TypedEntity, Sight>();
+export const getSightCells = (entity: TypedEntity): Position[] =>
+  entity[LIGHT]?.visibility ? sights.get(entity)?.cells || [] : [];
+
 export const isHidden = (world: World, position: Position) =>
   getCellEntities(world, position).some(
     (entity) => entity[FOG]?.visibility === "hidden"
@@ -160,9 +164,8 @@ export const getEntityVision = (world: World, entity: TypedEntity): Light => {
   return calculateVision(vision);
 };
 
-const baseLight = 3.55;
-
-export const calculateVision = (vision: number) => {
+export function calculateVision(vision: number) {
+  const baseLight = 3.55;
   const extra = (vision * 43) / 64;
 
   return {
@@ -170,11 +173,10 @@ export const calculateVision = (vision: number) => {
     brightness: baseLight + extra,
     visibility: baseLight + extra,
   };
-};
+}
 
 export default function setupVisibility(world: World) {
   let referencesGeneration = -1;
-  const sights = new WeakMap<TypedEntity, Sight>();
   // increasing marks per cell, so they never need to be cleared
   let marks = new Uint32Array(0);
   let mark = 0;

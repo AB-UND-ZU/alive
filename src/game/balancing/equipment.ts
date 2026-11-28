@@ -259,6 +259,7 @@ export const gearStats: Partial<
     },
   },
 
+  pet: { sword: { iron: { default: { melee: 1, heal: 1 } } } },
   prism: {
     sword: {
       iron: { default: { melee: 1 } },

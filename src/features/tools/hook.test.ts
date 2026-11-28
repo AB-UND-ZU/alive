@@ -1,3 +1,5 @@
+import { TAMEABLE } from "../../engine/components/tameable";
+import { BELONGABLE } from "../../engine/components/belongable";
 import {
   act,
   advanceUntil,
@@ -144,9 +146,18 @@ describe("hook", () => {
     expect(fish[HOOKABLE].catching).toBeUndefined();
   });
 
-  it("reels in a fish from a habitat near the bait", () => {
+  it.each([false, true])("reels in a fish from a habitat near the bait (collecting pet nearby: %s)", (withPet) => {
     const { world, hero } = setupTools(lake, [woodHook, worms]);
     addHabitat(world, { x: 7, y: 5 });
+    if (withPet) {
+      const created = createCell(world, { x: 3, y: 4 }, "pet", "visible", false);
+      const pet = world.assertComponents(created.cell, [TAMEABLE, BELONGABLE]);
+      pet[TAMEABLE].owner = world.getEntityId(hero);
+      pet[TAMEABLE].skills = ["collect"];
+      pet[TAMEABLE].attributes = {};
+      pet[BELONGABLE].faction = "settler";
+      created.all.forEach(entity => registerEntity(world, entity));
+    }
 
     cast(world);
     holdMove(world, []);

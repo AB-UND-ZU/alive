@@ -1,20 +1,23 @@
+import { BEHAVIOUR } from "../../engine/components/behaviour";
 import { createChest } from "../../bindings/creation";
 import { applyEffects } from "../../engine/systems/damage";
-import { registerEntity } from "../../engine/systems/map";
+import { moveEntity, registerEntity } from "../../engine/systems/map";
 import { BURNABLE } from "../../engine/components/burnable";
 import { INVENTORY } from "../../engine/components/inventory";
 import { ATTACKABLE } from "../../engine/components/attackable";
+import { TAMEABLE } from "../../engine/components/tameable";
 import { BELONGABLE } from "../../engine/components/belongable";
 import { NpcType } from "../../engine/components/npc";
 import { POSITION } from "../../engine/components/position";
 import { STATS } from "../../engine/components/stats";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { rage } from "../../game/assets/ui";
-import { advanceUntil, holdMove } from "../../testing/harness";
+import { advanceUntil, giveItems, holdMove } from "../../testing/harness";
 import {
   advanceTicks,
   createCreatureWorld,
   distanceBetween,
+  giveSword,
   getCreature,
   toughen,
   trace,
@@ -95,6 +98,33 @@ describe("dormant plants", () => {
     expect(ATTACKABLE in plant).toBe(false);
 
     advanceUntil(world, () => ATTACKABLE in plant, 5000);
+  });
+
+  it("lets a pet with Attack scratch an awakened rose and take its thorns", () => {
+    const { world, hero } = createCreatureWorld(
+      "|██████|\n|█ ♀R██|\n|█ P ██|\n|██████|", { R: "rose", P: "pet" }
+    );
+    const pet = getCreature(world, "pet");
+    const rose = getCreature(world, "rose");
+    Object.assign(pet[TAMEABLE]!, { owner: world.getEntityId(hero), skills: ["attack"], attributes: {} });
+    pet[BELONGABLE].faction = "settler";
+    if (!pet.EQUIPPABLE?.weapon) giveItems(world, pet, [{ weapon: "sword", material: "iron", amount: 0, bound: true }]);
+    pet[STATS].power = 0;
+    toughen(hero);
+    awaken(world, rose);
+    rose[BEHAVIOUR].patterns = [];
+    moveEntity(world, rose, { x: 3, y: 1 });
+    moveEntity(world, hero, { x: 2, y: 1 });
+    moveEntity(world, pet, { x: 3, y: 2 });
+    giveSword(world, hero);
+    holdMove(world, ["right"]);
+    advanceUntil(world, () => rose[STATS].hp < rose[STATS].maxHp, 5000);
+    holdMove(world, []);
+    const remaining = rose[STATS].hp;
+    const petHp = pet[STATS].hp;
+    advanceUntil(world, () => rose[STATS].hp < remaining, 5000);
+    expect(remaining - rose[STATS].hp).toBe(1 - rose[STATS].armor);
+    expect(pet[STATS].hp).toBeLessThan(petHp);
   });
 
   it("lets a rose run away from the hero until it is out of reach", () => {

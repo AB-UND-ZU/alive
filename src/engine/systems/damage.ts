@@ -105,6 +105,8 @@ import { LAYER } from "../components/layer";
 import { LOOTABLE } from "../components/lootable";
 import { FOG } from "../components/fog";
 import { Inventory, INVENTORY } from "../components/inventory";
+import { TAMEABLE } from "../components/tameable";
+import { canPetStrike, petTerrainBonus, recordPetOpponent } from "./petSkills";
 import { createText } from "../../game/assets/ui";
 
 export const isDead = (world: World, entity: TypedEntity) =>
@@ -413,7 +415,7 @@ export const calculateDamage = (
     : 0;
 
   const attack = itemStats.melee || itemStats.magic || itemStats.true || 0;
-  const delta = offensive - defensive;
+  const delta = offensive + petTerrainBonus(world, attackerEntity) - defensive;
   const damage = attack <= 0 ? 0 : delta > 0 ? delta : 1 / (2 - delta);
   const newHp = Math.max(0, defenderStats.hp - damage);
 
@@ -490,6 +492,7 @@ export const triggerZap = (
 
   for (const zapTarget of zapped) {
     const zapRoot = getRoot(world, zapTarget);
+    recordPetOpponent(world, attackerEntity, zapRoot);
     if (attemptBubbleAbsorb(world, zapRoot)) continue;
 
     const { damage, hp } = calculateDamage(
@@ -879,6 +882,7 @@ export default function setupDamage(world: World) {
 
         // skip if there's no target
         if (!targetEntity) continue;
+        if (hasComponent(entity, TAMEABLE) && !canPetStrike(world, entity, getRoot(world, targetEntity))) continue;
 
         // skip if not damaging enemy or healing ally
         const friendly = isFriendlyFire(world, entity, targetEntity);
@@ -893,6 +897,7 @@ export default function setupDamage(world: World) {
         if (isDead(world, targetEntity)) continue;
 
         attacked = true;
+        if (!healing) recordPetOpponent(world, entity, getRoot(world, targetEntity));
 
         // trigger ranged weapons if necessary
         if (ranged.includes(weaponEntity[ITEM].weapon as Ranged)) {
@@ -923,9 +928,10 @@ export default function setupDamage(world: World) {
             const stats = requireComponent(targetEntity, STATS);
             const { healing, hp } = calculateHealing(
               stats,
-              weaponStats.heal
+              weaponStats.heal + petTerrainBonus(world, entity)
             );
             stats.hp = hp;
+            if (entity[TAMEABLE]?.healingHits) entity[TAMEABLE].healingHits--;
 
             displayedDamage = -healing;
           } else {
@@ -980,7 +986,7 @@ export default function setupDamage(world: World) {
         }
 
         // close popup on target hits
-        interruptPopup(world, targetEntity);
+        if (!healing || !entity[TAMEABLE]) interruptPopup(world, targetEntity);
 
         // create hit marker
         if (!absorbed && !(healing && displayedDamage === 0)) {

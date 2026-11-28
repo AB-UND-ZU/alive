@@ -391,7 +391,10 @@ export type DialogSequence = {
 ## XpSequence
 
 ```ts src/engine/components/sequencable.ts
-export type XpSequence = { generation: number };
+export type XpSequence = {
+  generation: number;
+  offering?: { pet: number; owner: number; xp: number };
+};
 ```
 
 ## VortexSequence

@@ -1,9 +1,12 @@
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
+import { rewardPetKill } from "./petSkills";
 import { checkUnlocks } from "../../game/unlocks";
 import { REFERENCE } from "../components/reference";
 import { attemptEquipItem, isEmpty } from "./collect";
 import { LOOTABLE } from "../components/lootable";
+import { TAMEABLE } from "../components/tameable";
+import { petKnockout } from "./petCare";
 import { getLimbs, getRoot, getStructure, isDead } from "./damage";
 import { entities } from "..";
 import { disposeEntity, registerEntity } from "./map";
@@ -267,27 +270,45 @@ export const createItemInInventory = <
   return itemEntity;
 };
 
+function animateDrop(
+  world: World, drop: TypedEntity, item: TypedEntity<"ITEM">, origin: Position, delay?: number
+) {
+  createSequence<"collect", CollectSequence>(world, drop, "collect", "itemCollect", {
+    origin: copy(origin), itemId: world.getEntityId(item), drop: true, amount: item[ITEM].amount, delay,
+  });
+}
+
 export function dropBagItem(
   world: World,
   carrier: TypedEntity<"INVENTORY" | "POSITION">,
-  selected: TypedEntity<"ITEM" | "SPRITE">
+  selected: TypedEntity<"ITEM" | "SPRITE">,
+  destination?: Position,
+  amount = 1
 ) {
-  const item = { ...selected[ITEM], amount: 1, bound: false };
-  const position = findAdjacentDroppable(world, carrier[POSITION], MAX_DROP_RADIUS, false);
-  const drop = createGroundDrop(world, position, item, shadow);
-  if (selected[ITEM].amount === 1) {
+  const item = { ...selected[ITEM], amount, bound: false };
+  const position = destination || findAdjacentDroppable(world, carrier[POSITION], MAX_DROP_RADIUS, false);
+  const drop = createGroundDrop(world, position, item, destination ? none : shadow, [], !destination);
+  drop[LOOTABLE].droppedBy = world.getEntityId(carrier);
+  let dropped = selected;
+  if (selected[ITEM].amount === amount) {
     removeFromInventory(world, carrier, selected);
     selected[ITEM].bound = false;
     selected[ITEM].carrier = world.getEntityId(drop);
     drop[INVENTORY].items.push(world.getEntityId(selected));
   } else {
-    selected[ITEM].amount -= 1;
-    createItemInInventory(world, drop, entities.createItem, {
+    selected[ITEM].amount -= amount;
+    dropped = createItemInInventory(world, drop, entities.createItem, {
       [ITEM]: item,
       [SPRITE]: getItemSprite(item),
     });
     rerenderEntity(world, carrier);
   }
+  if (destination) {
+    drop[INVENTORY].items.length = 0;
+    animateDrop(world, drop, dropped, carrier[POSITION]);
+    registerEntity(world, drop);
+  }
+  return drop;
 }
 
 export const dropEntity = (
@@ -429,19 +450,7 @@ export const dropEntity = (
 
     // animate drop if not on center position
     if (!isCentered) {
-      createSequence<"collect", CollectSequence>(
-        world,
-        containerEntity,
-        "collect",
-        "itemCollect",
-        {
-          origin: copy(carrierEntity?.[POSITION] || position),
-          itemId,
-          drop: true,
-          delay,
-          amount: itemEntity[ITEM].amount,
-        }
-      );
+      animateDrop(world, containerEntity, itemEntity, carrierEntity?.[POSITION] || position, delay);
     }
 
     if (carrierEntity) {
@@ -459,7 +468,7 @@ export const dropEntity = (
 
 function hatchEgg(world: World, drop: TypedEntity<"LOOTABLE" | "POSITION">) {
   const item = world.getEntityByIdAndComponents(drop[INVENTORY]?.items[0], [ITEM, SPRITE]);
-  if (item?.[ITEM].stackable !== "egg") return;
+  if (item?.[ITEM].stackable !== "egg" || !Number.isFinite(item[ITEM].amount)) return;
 
   const stage = drop[LOOTABLE].crack || 0;
   if (!stage && Math.random() >= 0.001) return;
@@ -501,6 +510,10 @@ export default function setupDrop(world: World) {
     ])) {
       if (entity[BURNABLE]?.burning || entity[BURNABLE]?.combusted) continue;
       if (isDecaying(world, entity)) {
+        if (entity[TAMEABLE]?.owner !== undefined) {
+          petKnockout(world, entity);
+          continue;
+        }
         play(world, entity, "die", {
           variant: entity[NPC] ? 1 : 2,
           intensity: entity[STATS]?.maxHp,
@@ -559,6 +572,7 @@ export default function setupDrop(world: World) {
           heroEntity[PLAYER].defeatedUnits[unitKey] =
             (heroEntity[PLAYER].defeatedUnits[unitKey] || 0) + 1;
           heroEntity[PLAYER].kills += 1;
+          rewardPetKill(world, heroEntity, entity);
         }
 
         // create spawns and remains for vanished units
@@ -688,6 +702,7 @@ export default function setupDrop(world: World) {
           heroEntity[PLAYER].defeatedUnits[unitKey] =
             (heroEntity[PLAYER].defeatedUnits[unitKey] || 0) + 1;
           heroEntity[PLAYER].kills += 1;
+          rewardPetKill(world, heroEntity, entity);
           if (unitKey === "tutorialBoss") checkUnlocks(world);
         }
       }

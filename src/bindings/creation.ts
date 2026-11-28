@@ -34,6 +34,7 @@ import { LOOTABLE } from "../engine/components/lootable";
 import { MELEE } from "../engine/components/melee";
 import { MOVABLE } from "../engine/components/movable";
 import { IDENTIFIABLE } from "../engine/components/identifiable";
+import { initializePet } from "../engine/systems/petCare";
 import { NPC, NpcType, npcTypes } from "../engine/components/npc";
 import {
   ORIENTABLE,
@@ -3508,12 +3509,13 @@ export const createCell = (
       addHarvestable(world, mobEntity, mobUnit.harvestable);
     }
 
-    if (mobUnit.faction === "unit") {
+    if (mobUnit.faction === "unit" || cell === "pet") {
       mobEntity[FOG].type = "object";
     }
     if (cell === "banditPriest") {
       world.addComponentToEntity(mobEntity, CONDITIONABLE, {});
     }
+    if (cell === "pet") initializePet(world, mobEntity);
     if (cell === "dummy" || cell === "ilexTulip") {
       setIdentifier(world, mobEntity, cell);
     } else if (type === "chick" || type === "hen" || type === "rooster") {

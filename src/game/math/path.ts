@@ -128,11 +128,12 @@ export const findPath = (
   target: Position,
   targetWalkable: boolean = false,
   mustReach = false,
-  quadrant?: Position
+  quadrant?: Position,
+  cost?: (x: number, y: number) => number
 ) => {
   const width = matrix.length / 2;
   const height = matrix[0].length / 2;
-  const graph = new SparseGraph(matrix);
+  const graph = new SparseGraph(matrix, cost);
   const normalizedOrigin = {
     x: normalize(origin.x, width),
     y: normalize(origin.y, height),

@@ -8,6 +8,7 @@ import { PLAYER } from "../components/player";
 import { REFERENCE } from "../components/reference";
 import { getCellEntities } from "./map";
 import { rerenderEntity } from "./renderer";
+import { TAMEABLE } from "../components/tameable";
 import { TOOLTIP } from "../components/tooltip";
 import { SPRITE } from "../components/sprite";
 import { isDead, isFriendlyFire, isNeutral } from "./damage";
@@ -176,7 +177,7 @@ export default function setupText(world: World) {
               ? persistentCooldown
               : tooltipCooldown) >
             worldGeneration) ||
-        isDead(world, tooltipEntity) ||
+        (isDead(world, tooltipEntity) && !tooltipEntity[TAMEABLE]?.ghost) ||
         (hero && isInPopup(world, hero)) ||
         isUnlocked(world, tooltipEntity) ||
         showingPopup;

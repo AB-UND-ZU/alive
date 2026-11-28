@@ -63,7 +63,7 @@ import { TOOLTIP } from "../components/tooltip";
 import { ACTIONABLE } from "../components/actionable";
 import { castableSpell, getLockable, isLocked, isUnlocked } from "./action";
 import { ITEM } from "../components/item";
-import { castSpell, lockDoor, spendItem } from "./trigger";
+import { castSpell, lockDoor, openDoor, spendItem } from "./trigger";
 import { createItemAsDrop, dropEntity } from "./drop";
 import {
   chestBoss,
@@ -107,7 +107,7 @@ import {
   moveEntity,
   registerEntity,
 } from "./map";
-import { getFragment, getFragments, getOpaque } from "./enter";
+import { getEnterable, getFragment, getFragments, getOpaque } from "./enter";
 import { requireComponent, TypedEntity } from "../entities";
 import { STATS } from "../components/stats";
 import { EXERTABLE } from "../components/exertable";
@@ -189,6 +189,29 @@ import { evaporate } from "../../game/assets/templates/particles";
 import { FARMABLE } from "../components/farmable";
 import { CONDITIONABLE } from "../components/conditionable";
 
+import { TAMEABLE } from "../components/tameable";
+import { updatePet } from "./petAI";
+
+function gateVisitor(
+  world: World,
+  entrance: TypedEntity<"POSITION">,
+  radius: number,
+  inside: (pos: Position) => boolean
+) {
+  const hero = getIdentifierAndComponents(world, "hero", [POSITION]);
+  if (!hero) return;
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const owner = world.getEntityId(hero);
+  const pet = world.getEntities([TAMEABLE, POSITION]).find(pet =>
+    pet[TAMEABLE].owner === owner && !pet[TAMEABLE].ghost &&
+    getDistance(entrance[POSITION], pet[POSITION], size, 1) <= radius &&
+    (isUnlocked(world, entrance) || inside(pet[POSITION]) || inside(hero[POSITION]))
+  );
+  if (!pet) return hero;
+  if (isLocked(world, entrance)) openDoor(world, entrance);
+  return pet;
+}
+
 const approachCamp = (world: World, position: Position, target: Position) => {
   const directions = relativeOrientations(world, position, target, 1);
   if (
@@ -251,33 +274,60 @@ const chickenHeart = (bird: TypedEntity, memory: Pattern["memory"], until: numbe
   tooltip.changed = true;
 };
 
+function regenerate(world: World, entity: TypedEntity<"STATS">, memory: { heal?: number }, generation: number) {
+  const stats = entity[STATS];
+  if (stats.hp >= stats.maxHp || stats.hp <= 0) {
+    delete memory.heal;
+    return;
+  }
+  memory.heal ??= generation + 15;
+  if (generation < memory.heal + 2) return;
+  memory.heal = generation;
+  const { hp, healing } = calculateHealing(stats, Math.floor(stats.maxHp / 5));
+  stats.hp = hp;
+  if (healing > 0) {
+    createAmountMarker(world, entity, healing, "up", "heal");
+    play(world, entity, "pickup", { ...pickupOptions.hp });
+  }
+}
+
 export default function setupAi(world: World) {
   let lastGeneration = -1;
 
   const onUpdate = (delta: number) => {
     const generation = world.metadata.gameEntity[RENDERABLE].generation;
-    if (lastGeneration === generation) return;
-
+    const worldTick = lastGeneration !== generation;
     lastGeneration = generation;
-    const rageHero = world.getEntity([PLAYER, POSITION]);
+    const rageHero = worldTick ? world.getEntity([PLAYER, POSITION]) : undefined;
     let bandits: TypedEntity<"POSITION" | "STATS" | "BELONGABLE">[] | undefined;
 
-    for (const entity of world.getEntities([POSITION, MOVABLE, BEHAVIOUR])) {
+    const actors = worldTick ? world.getEntities([POSITION, MOVABLE, BEHAVIOUR]) :
+      world.getEntities([POSITION, MOVABLE, BEHAVIOUR, TAMEABLE]);
+    for (const entity of actors) {
       const patterns = (entity[BEHAVIOUR] as Behaviour).patterns;
       const entityId = world.getEntityId(entity);
       const size = world.metadata.gameEntity[LEVEL].size;
+
+      if (entity[TAMEABLE]) {
+        const memory = patterns.find(pattern => pattern.name === "pet")?.memory;
+        const frame = world.getEntityByIdAndComponents(entity[MOVABLE].reference, [RENDERABLE]);
+        if (!frame || !memory || (memory.tick === frame[RENDERABLE].generation &&
+          !(worldTick && memory.sleeping !== undefined))) continue;
+        memory.tick = frame[RENDERABLE].generation;
+      }
 
       // always reset movement first to cover cases of changed patterns
       if (entity[MOVABLE]) {
         entity[MOVABLE].orientations = [];
       }
 
+      const wildPet = entity[TAMEABLE] && entity[TAMEABLE].owner === undefined;
+
       // skip if dead, no patterns or frozen
       if (
-        isDead(world, entity) ||
         patterns.length === 0 ||
-        !isControllable(world, entity) ||
-        world.metadata.interact.active === entityId
+        (!entity[TAMEABLE]?.ghost && !isControllable(world, entity)) ||
+        (world.metadata.interact.active === entityId && !wildPet)
       ) {
         if (entity[NPC]?.type === "wormBoss") {
           for (const limb of getLimbs(world, entity)) {
@@ -291,7 +341,12 @@ export default function setupAi(world: World) {
 
       for (const pattern of [...patterns]) {
         let movement = pattern.name;
-        if (pattern.name === "defend") {
+        if (pattern.name === "pet") {
+          const pet = world.assertComponents(entity, [TAMEABLE, STATS, TOOLTIP, INVENTORY]);
+          if (wildPet) regenerate(world, pet, pattern.memory, generation);
+          if (updatePet(world, pet, pattern.memory, generation)) continue;
+          break;
+        } else if (pattern.name === "defend") {
           const hp = entity[STATS]!.hp;
           const damaged = hp < (pattern.memory.hp ?? entity[STATS]!.maxHp);
           pattern.memory.hp = hp;
@@ -1902,22 +1957,23 @@ export default function setupAi(world: World) {
             continue;
           }
 
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
-            POSITION,
-          ]);
-          const distance = heroEntity
+          const visitor = gateVisitor(world, memory.entrance, 2.5, pos =>
+            Math.sign(signedDistance(memory.entrance[POSITION].y, pos.y, size)) ===
+            Math.sign(signedDistance(memory.entrance[POSITION].y, entity[POSITION].y, size))
+          );
+          const distance = visitor
             ? getDistance(
                 memory.entrance[POSITION],
-                heroEntity[POSITION],
+                visitor[POSITION],
                 size,
                 1
               )
             : Infinity;
           const unlocked = isUnlocked(world, memory.entrance);
           const fromInside =
-            heroEntity && entity[POSITION].y === heroEntity[POSITION].y;
+            visitor && entity[POSITION].y === visitor[POSITION].y;
           const shouldOpen =
-            heroEntity && (unlocked || fromInside) && distance <= 2.5;
+            visitor && (unlocked || fromInside) && distance <= 2.5;
           const shouldClose = !(unlocked || fromInside) || distance >= 3;
           const delta = {
             x: memory.entrance[POSITION].x - entity[POSITION].x,
@@ -1932,10 +1988,10 @@ export default function setupAi(world: World) {
             shouldOpen &&
             (!sidesteppedOrientation || Math.abs(delta.x) < 2)
           ) {
-            const awayFromHero = relativeOrientations(
+            const awayFromVisitor = relativeOrientations(
               world,
-              heroEntity[POSITION],
-              { x: entity[POSITION].x, y: heroEntity[POSITION].y }
+              visitor[POSITION],
+              { x: entity[POSITION].x, y: visitor[POSITION].y }
             )[0];
             const leftPath =
               getTempo(world, add(entity[POSITION], orientationPoints.left)) !==
@@ -1947,7 +2003,7 @@ export default function setupAi(world: World) {
               ) !== 0;
             entity[MOVABLE].orientations = [
               sidesteppedOrientation ||
-                awayFromHero ||
+                awayFromVisitor ||
                 (leftPath && !rightPath && "right") ||
                 (rightPath && !leftPath && "left") ||
                 choice("left", "right"),
@@ -1982,23 +2038,21 @@ export default function setupAi(world: World) {
             continue;
           }
 
-          const heroEntity = getIdentifierAndComponents(world, "hero", [
-            POSITION,
-          ]);
-          const distance = heroEntity
+          const inside = (pos: Position) => getDistance(memory.inn, pos, size) < memory.radius;
+          const visitor = gateVisitor(world, memory.entrance, 3.5, inside);
+          const distance = visitor
             ? getDistance(
                 memory.entrance[POSITION],
-                heroEntity[POSITION],
+                visitor[POSITION],
                 size,
                 1
               )
             : Infinity;
           const unlocked = isUnlocked(world, memory.entrance);
           const fromInside =
-            heroEntity &&
-            getDistance(memory.inn, heroEntity[POSITION], size) < memory.radius;
+            visitor && inside(visitor[POSITION]);
           const shouldOpen =
-            heroEntity && (unlocked || fromInside) && distance <= 3.5;
+            visitor && (unlocked || fromInside) && distance <= 3.5;
           const shouldClose = !(unlocked || fromInside) || distance >= 4;
           const originDistance = getDistance(
             memory.origin,
@@ -2063,7 +2117,12 @@ export default function setupAi(world: World) {
             const path = findPath(
               world.metadata.gameEntity[LEVEL].walkable,
               memory.originPosition,
-              memory.targetPosition
+              memory.targetPosition,
+              false, false, undefined,
+              entity[TAMEABLE] ? (x, y) => Number(
+                !getEnterable(world, { x, y }) &&
+                !(entity[TAMEABLE]!.attributes.water === false && isImmersible(world, { x, y }))
+              ) : undefined
             );
             if (path.length > 0) {
               memory.path = path;
@@ -2510,27 +2569,7 @@ export default function setupAi(world: World) {
             continue;
           }
 
-          if (entity[STATS].hp < entity[STATS].maxHp) {
-            if (!pattern.memory.heal) {
-              pattern.memory.heal = generation + 15;
-              continue;
-            }
-            if (pattern.memory.heal + 2 > generation) continue;
-
-            pattern.memory.heal = generation;
-
-            const { hp, healing } = calculateHealing(
-              entity[STATS],
-              Math.floor(entity[STATS].maxHp / 5)
-            );
-            entity[STATS].hp = hp;
-            if (healing > 0) {
-              createAmountMarker(world, entity, healing, "up", "heal");
-              play(world, entity, "pickup", { ...pickupOptions.hp });
-            }
-          } else if (pattern.memory.heal) {
-            delete pattern.memory.heal;
-          }
+          regenerate(world, world.assertComponents(entity, [STATS]), pattern.memory, generation);
         } else if (pattern.name === "habitat") {
           const immersible = getImmersible(world, entity[POSITION]);
           if (!entity[FISHABLE] || !immersible) {
@@ -2708,7 +2747,7 @@ export default function setupAi(world: World) {
                 fishEntity[MOVABLE].orientations = [];
               }
             }
-          } else if (baitEntity && fishEntity) {
+          } else if (baitEntity && fishEntity && fishEntity[INVENTORY].items.length) {
             // let fish swim towards bait or attempt escaping
             const movements = relativeOrientations(
               world,

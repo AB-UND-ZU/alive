@@ -38,6 +38,7 @@ export const npcTypes = [
   "chick",
   "hen",
   "rooster",
+  "pet",
   "fairy",
   "rose",
   "violet",

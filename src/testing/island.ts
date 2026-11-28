@@ -127,6 +127,14 @@ export const describeIslandSeeds = (seeds: number[]) =>
       world = undefined as unknown as World;
     });
 
+    it("places a wild pet on an Earth Town street", () => {
+      const [pet] = world.getEntities(["TAMEABLE", POSITION]);
+      const town = assertIdentifierAndComponents(world, "earth_town", [POSITION]);
+      expect(pet.TAMEABLE.owner).toBeUndefined();
+      expect(getDistance(pet[POSITION], town[POSITION]!, world.metadata.gameEntity[LEVEL].size, 1, false)).toBeLessThan(13);
+      expect(world.metadata.gameEntity[LEVEL].cells[pet[POSITION].x][pet[POSITION].y]).toBe("path");
+    });
+
     it("generates within the allowed attempts", () => {
       expect(failedAttempts).toBeLessThan(islandTries);
     });

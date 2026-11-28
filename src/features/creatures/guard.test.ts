@@ -1,3 +1,4 @@
+import { TAMEABLE } from "../../engine/components/tameable";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { saveAndLoad } from "../../testing/saves";
 import { BELONGABLE } from "../../engine/components/belongable";
@@ -95,6 +96,37 @@ describe("gate guard", () => {
 
     expect(guard[POSITION].y).toBe(2);
     expect(guard[POSITION].x).toBeGreaterThan(3);
+  });
+
+  it.each(["guard", "gate"] as const)("lets an owned pet out through a locked %s", name => {
+    const area = `
+|           |
+|     ♀     |
+|█████ █████|
+|█████ █████|
+|█████=█████|
+|███  G  ███|
+|█████P█████|
+|███████████|`;
+    const { world, hero } = createCreatureWorld(area, {
+      G: name === "guard" ? "earthGuard" : "fireGateGuard", P: "pet"
+    });
+    const guard = getCreature(world, name === "guard" ? "earthGuard" : "fireGateGuard");
+    const [pet] = world.getEntities([TAMEABLE, POSITION]);
+    pet[TAMEABLE].owner = world.getEntityId(hero);
+    pet[TAMEABLE].attributes = { distance: true };
+    pet[TAMEABLE].skills = [];
+    pet[BELONGABLE]!.faction = "settler";
+    const gate = { x: 5, y: 4 };
+    const entrance = findEntityAt(world, gate, [LOCKABLE])!;
+    if (name === "gate") guard[BEHAVIOUR].patterns = [{ name, memory: {
+      gate, origin: { ...guard[POSITION] }, target: { x: 7, y: 5 },
+      inn: { x: 5, y: 7 }, radius: 3
+    } }];
+    expect(entrance[LOCKABLE].locked).toBe(true);
+    advanceUntil(world, () => !entrance[LOCKABLE].locked);
+    advanceUntil(world, () => pet[POSITION].y < gate.y);
+    expect(guard[POSITION].x).not.toBe(gate.x);
   });
 
   it("stops guarding without a gate next to it", () => {

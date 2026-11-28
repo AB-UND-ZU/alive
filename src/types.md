@@ -146,6 +146,7 @@
 | [Matrix](game/math/matrix.md#type-matrix) | `src/game/math/matrix.ts` |
 | [MeleeSequence](engine/components/sequencable.md#type-meleesequence) | `src/engine/components/sequencable.ts` |
 | [Melee](engine/components/melee.md#type-melee) | `src/engine/components/melee.ts` |
+| [Memory](engine/systems/petAI.md#type-memory) | `src/engine/systems/petAI.ts` |
 | [MessageSequence](engine/components/sequencable.md#type-messagesequence) | `src/engine/components/sequencable.ts` |
 | [Message](engine/components/sequencable.md#type-message) | `src/engine/components/sequencable.ts` |
 | [Motion](engine/motion.md#type-motion) | `src/engine/motion.ts` |
@@ -168,6 +169,11 @@
 | [PatchedWorld](engine/ecs.md#type-patchedworld) | `src/engine/ecs.ts` |
 | [Pattern](engine/components/behaviour.md#type-pattern) | `src/engine/components/behaviour.ts` |
 | [PerishSequence](engine/components/sequencable.md#type-perishsequence) | `src/engine/components/sequencable.ts` |
+| [PetFood](engine/components/tameable.md#type-petfood) | `src/engine/components/tameable.ts` |
+| [PetSkill](engine/components/tameable.md#type-petskill) | `src/engine/components/tameable.ts` |
+| [PetTrait](engine/components/tameable.md#type-pettrait) | `src/engine/components/tameable.ts` |
+| [Pet](engine/systems/petAI.md#type-pet) | `src/engine/systems/petAI.ts` |
+| [Pet](engine/systems/petSkills.md#type-pet) | `src/engine/systems/petSkills.ts` |
 | [Player](engine/components/player.md#type-player) | `src/engine/components/player.ts` |
 | [Poi](engine/components/poi.md#type-poi) | `src/engine/components/poi.ts` |
 | [Point](game/math/std.md#type-point) | `src/game/math/std.ts` |
@@ -261,6 +267,7 @@
 | [Structurable](engine/components/structurable.md#type-structurable) | `src/engine/components/structurable.ts` |
 | [Swimmable](engine/components/swimmable.md#type-swimmable) | `src/engine/components/swimmable.ts` |
 | [Tag](engine/wfc/wfc.md#type-tag) | `src/engine/wfc/wfc.ts` |
+| [Tameable](engine/components/tameable.md#type-tameable) | `src/engine/components/tameable.ts` |
 | [Target](engine/components/popup.md#type-target) | `src/engine/components/popup.ts` |
 | [Tempo](engine/components/tempo.md#type-tempo) | `src/engine/components/tempo.ts` |
 | [TerminalCell](renderers/terminal/sprites.md#type-terminalcell) | `src/renderers/terminal/sprites.ts` |

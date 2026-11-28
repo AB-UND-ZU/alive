@@ -1,3 +1,4 @@
+import { recordPetOpponent } from "./petSkills";
 import { World } from "../ecs";
 import { entities } from "..";
 import { Position, POSITION } from "../components/position";
@@ -538,6 +539,8 @@ export default function setupMagic(world: World) {
           (spear ? hit : castableEntity[CASTABLE].melee
             ? getAttackable(world, entity[POSITION], true)
             : getAffectable(world, entity[POSITION], true)) || targetEntity;
+
+        if (hasDamage || hasProcs) recordPetOpponent(world, casterEntity, rootEntity);
 
         // prevent spell if bubble is active
         if (

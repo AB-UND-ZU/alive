@@ -1,3 +1,4 @@
+import { TAMEABLE } from "../components/tameable";
 import { bumpEntity } from "../motion";
 import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { World } from "../ecs";
@@ -21,6 +22,7 @@ import { getEntityGeneration, rerenderEntity } from "./renderer";
 import { resetConditionables, removeFromInventory, spendItem } from "./trigger";
 import { COLLECTABLE } from "../components/collectable";
 import { times } from "../../game/assets/sprites";
+import { spriteRef } from "../../game/assets/spriteIds";
 import { colors } from "../../game/assets/colors";
 import { createSequence, getSequence } from "./sequence";
 import { CollectSequence, SEQUENCABLE } from "../components/sequencable";
@@ -76,6 +78,7 @@ export const getStackable = (world: World, entity: TypedEntity, item: Item) => {
   const stackId = requireComponent(entity, INVENTORY).items.find((itemId: number) => {
     const inventoryItem = world.assertByIdAndComponents(itemId, [ITEM]);
     return (
+      (!entity[TAMEABLE] || !inventoryItem[ITEM].bound) &&
       inventoryItem[ITEM].stackable === item.stackable &&
       inventoryItem[ITEM].stat === item.stat &&
       inventoryItem[ITEM].consume === item.consume &&
@@ -98,6 +101,14 @@ export const consumeChickenFeed = (world: World, bird: TypedEntity) => {
   return feed.length > 0;
 };
 
+const mergeStack = (world: World, entity: TypedEntity, item: TypedEntity<"ITEM">, amount: number) => {
+  const stack = getStackable(world, entity, item[ITEM]);
+  if (!stack) return;
+  stack[ITEM].amount += amount;
+  if (item[IDENTIFIABLE]) setIdentifier(world, stack, item[IDENTIFIABLE].name);
+  return stack;
+};
+
 export const isEmpty = (world: World, entity: TypedEntity) =>
   hasComponent(entity, INVENTORY) &&
   hasComponent(entity, LOOTABLE) &&
@@ -108,8 +119,10 @@ export const collectItem = (
   world: World,
   entity: TypedEntity,
   target: TypedEntity,
-  orientation?: Orientation
+  orientation?: Orientation,
+  selected?: number
 ) => {
+  if (entity[TAMEABLE] && getSequence(world, entity, "collect")) return false;
   // handle pick up
   for (
     let itemIndex = requireComponent(target, INVENTORY).items.length - 1;
@@ -117,6 +130,7 @@ export const collectItem = (
     itemIndex -= 1
   ) {
     const itemId = requireComponent(target, INVENTORY).items[itemIndex];
+    if (selected !== undefined && itemId !== selected) continue;
     const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
 
     // skip bound items and XP
@@ -132,14 +146,24 @@ export const collectItem = (
     const consume = itemEntity[ITEM].consume;
     const stackable = itemEntity[ITEM].stackable;
     const isEquipment = slots.some((slot) => itemEntity[ITEM][slot]);
-    let collectAmount = isFinite(itemEntity[ITEM].amount)
+    let collectedId = itemId;
+    const collectAmount = isFinite(itemEntity[ITEM].amount)
       ? itemEntity[ITEM].amount
       : 1;
 
-    if (isEquipment) {
-      // transfer inventory on discrete items
+    if (entity[TAMEABLE] || isEquipment) {
       removeFromInventory(world, target, itemEntity);
       itemEntity[ITEM].carrier = world.getEntityId(entity);
+      if (entity[TAMEABLE]) {
+        const stack = !isEquipment && mergeStack(world, entity, itemEntity, collectAmount);
+        if (stack) {
+          collectedId = world.getEntityId(stack);
+          disposeEntity(world, itemEntity);
+        } else {
+          if (stackable && itemEntity[SPRITE]) itemEntity[SPRITE] = spriteRef(getItemSprite(itemEntity[ITEM]));
+          requireComponent(entity, INVENTORY).items.push(itemId);
+        }
+      }
     } else if (isFinite(itemEntity[ITEM].amount)) {
       // mark stacks as empty
       itemEntity[ITEM].amount = 0;
@@ -153,7 +177,7 @@ export const collectItem = (
       entity,
       "collect",
       "itemCollect",
-      { origin: position, itemId, drop: false, amount: collectAmount }
+      { origin: position, itemId: collectedId, drop: false, amount: collectAmount }
     );
 
     // initiate collecting animation on player
@@ -373,7 +397,7 @@ export const addToInventory = (
 
   // if no sword is equipped, use wood as stick
   if (
-    entity[MELEE] &&
+    entity[MELEE] && !entity[TAMEABLE] &&
     !requireComponent(entity, EQUIPPABLE).weapon &&
     targetStackable === "stick"
   ) {
@@ -403,7 +427,7 @@ export const addToInventory = (
   } else if (isEquipment) {
     attemptEquipItem(world, entity, itemEntity, 400);
     requireComponent(entity, INVENTORY).items.push(targetId);
-  } else if (targetStat && !targetMaterial) {
+  } else if (targetStat && !targetMaterial && !entity[TAMEABLE]) {
     const maxStat = getMaxCounter(targetStat);
     const maximum =
       maxStat !== targetStat && maxStat
@@ -451,26 +475,15 @@ export const addToInventory = (
     entity[STATS].hp = entity[STATS].maxHp;
     if (entity.BELONGABLE) entity.BELONGABLE.faction = "animal";
     rerenderEntity(world, entity);
-  } else if (targetStackable || targetConsume) {
-    // add to existing stack if available
-    let targetStack = getStackable(world, entity, itemEntity[ITEM]);
-
-    if (targetStack) {
-      targetStack[ITEM].amount += amount;
-    } else {
-      // create new stack
-      targetStack = entities.createItem(world, {
-        [ITEM]: { ...itemEntity[ITEM], carrier: entityId },
+  } else if (targetStackable || targetConsume || (targetStat && entity[TAMEABLE])) {
+    if (!mergeStack(world, entity, itemEntity, amount)) {
+      const stack = entities.createItem(world, {
+        [ITEM]: { ...itemEntity[ITEM], amount, carrier: entityId },
         [SPRITE]: getItemSprite(itemEntity[ITEM]),
         [RENDERABLE]: { generation: 0 },
       });
-      const stackId = world.getEntityId(targetStack);
-      targetStack[ITEM].amount = amount;
-      requireComponent(entity, INVENTORY).items.push(stackId);
-    }
-
-    if (itemEntity[IDENTIFIABLE]) {
-      setIdentifier(world, targetStack, itemEntity[IDENTIFIABLE].name);
+      requireComponent(entity, INVENTORY).items.push(world.getEntityId(stack));
+      if (itemEntity[IDENTIFIABLE]) setIdentifier(world, stack, itemEntity[IDENTIFIABLE].name);
     }
     if (targetStackable === "gem" && entity[PLAYER]) checkUnlocks(world);
   }

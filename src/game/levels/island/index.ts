@@ -65,6 +65,7 @@ import {
   normalize,
   random,
   range,
+  shuffle,
   sigmoid,
   signedDistance,
 } from "../../math/std";
@@ -1034,11 +1035,13 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         inn: relativeInn,
         guards: relativeGuards,
       } = generateTown(townSize.x, townSize.y);
+      const streets: Position[] = [];
       iterateMatrix(townMatrix, (offsetX, offsetY, value) => {
         const x = normalize(townPoint.x + offsetX - townSize.x / 2, size);
         const y = normalize(townPoint.y + offsetY - townSize.y / 2, size);
 
         worldMap[x][y] = value ? (value as CellType) : "air";
+        if (value === "path") streets.push({ x, y });
         setPath(pathMatrix, x, y, 0);
       });
 
@@ -1947,6 +1950,11 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         bottomRight: townEnd,
         spawn: combine(size, inn, { x: 0, y: 2 }),
       });
+
+      const walkSpots = shuffle(streets.filter(p => getDistance(p, inn, size, 1, false) > 2)).slice(0, 6);
+      const townPet = createCell(world, walkSpots[0], "pet", "hidden", false).cell;
+      const petPattern = townPet[BEHAVIOUR]!.patterns.find(pattern => pattern.name === "pet")!;
+      petPattern.memory.walkSpots = walkSpots;
 
       // Place two chicks of each sex around the fountain.
       for (const offset of Object.values(orientationPoints)) {

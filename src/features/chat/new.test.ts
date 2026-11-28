@@ -6,6 +6,7 @@ import {
   holdMove,
   step,
 } from "../../testing/harness";
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { LEVEL } from "../../engine/components/level";
 import { chickFemale } from "../../game/assets/sprites";
 import { unitDefinitions } from "../../game/balancing/units";
@@ -50,6 +51,21 @@ describe("new command", () => {
     holdMove(world, ["right"]);
     step(world, 30);
     expect(hero[POSITION]).toEqual({ x: 1, y: 1 });
+  });
+
+  it("generates a separate pet sprite for each requested cell", () => {
+    const { world } = setup();
+    say(world, "/new pet 4 right");
+
+    const sprites = [2, 3, 4, 5].map((x) => {
+      const pet = getEntitiesAt(world, { x, y: 1 }).find(
+        (entity) => entity.NPC?.type === "pet"
+      );
+      const sprite = resolveSprite(pet?.SPRITE);
+      expect(sprite?.name).toBe("Pet");
+      return sprite?.id;
+    });
+    expect(new Set(sprites).size).toBeGreaterThan(1);
   });
 
   it("spawns a unit in the facing direction", () => {

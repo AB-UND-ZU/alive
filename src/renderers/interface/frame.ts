@@ -24,6 +24,7 @@ import { BUMPABLE } from "../../engine/components/bumpable";
 import { STATS } from "../../engine/components/stats";
 import { ATTACKABLE } from "../../engine/components/attackable";
 import { BUILDABLE } from "../../engine/components/buildable";
+import { TAMEABLE } from "../../engine/components/tameable";
 import { BREWABLE } from "../../engine/components/brewable";
 import { isOutside } from "../../engine/systems/enter";
 import {
@@ -443,7 +444,7 @@ export const getSceneFrame = (
       if (
         stats.scale !== 0 &&
         stats.maxHp > 0 &&
-        !(neutral && stats.hp >= stats.maxHp)
+        (!neutral || entity[TAMEABLE] || stats.hp < stats.maxHp)
       ) {
         const entry = add(healthSprite, "hp", particleHeight + 0.01);
         entry.hidden = !visible;

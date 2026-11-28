@@ -384,6 +384,14 @@ describe("ground eggs", () => {
     expect(carrier.POSITION).toEqual(position);
   });
 
+  it("keeps the test menu's infinite egg supply from hatching", () => {
+    const { world, egg } = setupEgg(Infinity);
+    for (let tick = 0; tick < 5; tick++) decide(world, 0);
+    expect(world.getEntities(["NPC"]).some(entity => entity.NPC.type === "chick")).toBe(false);
+    expect(egg.ITEM.amount).toBe(Infinity);
+    expect(egg.SPRITE.id).toBe(getItemSprite(egg.ITEM).id);
+  });
+
   it("leaves the rest of a ground stack intact when one egg hatches", () => {
     const { world, egg } = setupEgg(2);
     decide(world, 0);

@@ -8,6 +8,10 @@ import {
 } from "../../engine/snapshot";
 import { ClassKey, getClassData } from "../balancing/classes";
 import { LevelName, LEVEL } from "../../engine/components/level";
+import { TAMEABLE } from "../../engine/components/tameable";
+import { BEHAVIOUR } from "../../engine/components/behaviour";
+import { iterateMatrixFromCenter } from "../math/matrix";
+import { isWalkable } from "../../engine/systems/movement";
 import { MOVABLE } from "../../engine/components/movable";
 import { REFERENCE } from "../../engine/components/reference";
 import { INVENTORY } from "../../engine/components/inventory";
@@ -102,9 +106,25 @@ function* generateArrival(
   const focusFrames = Object.values(
     (focusEntity[SEQUENCABLE].states || {}) as Sequencable["states"]
   ).map((state) => world.assertById(state.reference));
+  const pets = world
+    .getEntities([TAMEABLE, POSITION, MOVABLE, SEQUENCABLE, BEHAVIOUR, INVENTORY])
+    .filter((pet) => pet[TAMEABLE].owner === world.getEntityId(entity));
+  const petBelongings = pets.flatMap((pet) => {
+    for (const name of Object.keys(pet[SEQUENCABLE].states)) {
+      disposeSequence(world, pet, name as keyof Sequencable["states"]);
+    }
+    pet[BEHAVIOUR].patterns = [{ name: "pet", memory: {} }];
+    pet[MOVABLE].orientations = [];
+    delete pet[MOVABLE].pendingOrientation;
+    return [pet[MOVABLE].reference, ...pet[INVENTORY].items].map((id) =>
+      world.assertById(id)
+    );
+  });
   const transferredEntities = [
     entity,
     ...inventory,
+    ...pets,
+    ...petBelongings,
     inspectEntity,
     useEntity,
     spawnEntity,
@@ -138,6 +158,12 @@ function* generateArrival(
   transferredEntities.forEach((target) => {
     if (!target[POSITION]) return;
 
+    if (target[TAMEABLE]) {
+      const spawn = entity[POSITION];
+      target[POSITION] = iterateMatrixFromCenter(level[LEVEL].cells, spawn, (x, y) =>
+        (x !== spawn.x || y !== spawn.y) && isWalkable(world, { x, y })
+      ) ?? { ...spawn };
+    }
     registerEntity(world, target);
     rerenderEntity(world, target);
   });

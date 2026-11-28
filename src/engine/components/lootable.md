@@ -8,6 +8,7 @@ Marks an inventory that nearby units can loot.
 | ------------ | ---------------------------------------------------------- |
 | `disposable` | Remove this loot entity after its inventory becomes empty. |
 | `crack` | Current hatch frame of a loose egg. |
+| `droppedBy` | The player who dropped an item from their bag, or the pet that delivered it. |
 <!-- source-types -->
 
 ## Lootable
@@ -16,5 +17,6 @@ Marks an inventory that nearby units can loot.
 export type Lootable = {
   disposable: boolean;
   crack?: number;
+  droppedBy?: number;
 };
 ```

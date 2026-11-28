@@ -41,6 +41,7 @@ import { Spikable, SPIKABLE } from "./components/spikable";
 import { SpriteRef, SPRITE } from "./components/sprite";
 import { Stats, STATS } from "./components/stats";
 import { Swimmable, SWIMMABLE } from "./components/swimmable";
+import { Tameable, TAMEABLE } from "./components/tameable";
 import { Tooltip, TOOLTIP } from "./components/tooltip";
 import { Trackable, TRACKABLE } from "./components/trackable";
 import { Viewable, VIEWABLE } from "./components/viewable";
@@ -148,6 +149,7 @@ export type Entity = Record<LevelName, {}> & {
   [STRUCTURABLE]: Structurable;
   [SWIMMABLE]: Swimmable;
   [TEMPO]: Tempo;
+  [TAMEABLE]: Tameable;
   [TOOLTIP]: Tooltip;
   [TRACKABLE]: Trackable;
   [VANISHABLE]: Vanishable;

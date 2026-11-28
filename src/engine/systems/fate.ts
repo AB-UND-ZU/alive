@@ -1,5 +1,6 @@
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
+import { TAMEABLE } from "../components/tameable";
 import { REFERENCE } from "../components/reference";
 import { ATTACKABLE } from "../components/attackable";
 import { isDead } from "./damage";
@@ -109,6 +110,13 @@ export const reviveEntity = (world: World, entity: TypedEntity, target: TypedEnt
       compassId: spawn.compassId,
     }
   );
+};
+
+const transferPets = (world: World, previous: TypedEntity, next: TypedEntity) => {
+  const owner = world.getEntityId(previous);
+  for (const pet of world.getEntities([TAMEABLE])) {
+    if (pet[TAMEABLE].owner === owner) pet[TAMEABLE].owner = world.getEntityId(next);
+  }
 };
 
 export const createHero = (world: World, halo: TypedEntity<"BELONGABLE" | "POSITION" | "SPAWNABLE">) => {
@@ -372,6 +380,7 @@ export default function setupFate(world: World) {
             fast: defaultVision,
           }
         );
+        transferPets(world, entity, haloEntity);
         registerEntity(world, haloEntity);
       }
     }
@@ -392,6 +401,7 @@ export default function setupFate(world: World) {
 
       // spawn new hero
       const heroEntity = createHero(world, entity);
+      transferPets(world, entity, heroEntity);
 
       const heroId = world.getEntityId(heroEntity);
       const compassEntity = world.getEntityByIdAndComponents(

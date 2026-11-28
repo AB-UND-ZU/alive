@@ -1,3 +1,5 @@
+import { petLevels } from "./pets";
+import { createPetSprite } from "../assets/pets";
 import { namedSprite } from "../assets/spriteIds";
 import { Pattern } from "../../engine/components/behaviour";
 import {
@@ -46,6 +48,7 @@ import {
   chickFemale,
   hen,
   rooster,
+  pet,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { distribution } from "../math/std";
@@ -1601,6 +1604,15 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   chick: chicken(chick, colors.yellow, 1),
   hen: chicken(hen, colors.grey, 6),
   rooster: chicken(rooster, colors.white, 10),
+  pet: {
+    faction: "animal",
+    scratch: colors.grey,
+    stats: { ...petLevels[0], mp: 5 },
+    equipments: [],
+    drops: [],
+    patternNames: ["pet"],
+    sprite: pet,
+  },
   fairy: {
     faction: "wild",
     scratch: colors.grey,
@@ -2260,6 +2272,7 @@ export const generateUnitData = (unitKey: UnitKey): UnitData => {
     harvestable: getHarvestConfig(harvestable).harvestable,
     flying: false,
     ...unitDefinition,
+    sprite: unitKey === "pet" ? createPetSprite() : unitDefinition.sprite,
   };
 };
 

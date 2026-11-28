@@ -68,6 +68,17 @@ describe("Scene frame", () => {
     ).toEqual([]);
   });
 
+  it("keeps a pet visible in explored fog like a dormant rose", () => {
+    const world = createAreaWorld("| ♀PR |", { size: 32, legend: { P: "pet", R: "rose" } });
+    for (const creature of world.getEntities(["NPC", FOG, SPRITE])) {
+      creature[FOG].visibility = "fog";
+      const frame = getSceneFrame(world, 15, 11);
+      expect(frame.some(entry => entry.entity === creature &&
+        entry.sprite.id === creature[SPRITE].id && entry.fog && !entry.hidden)).toBe(true);
+    }
+    expect(world.getEntities(["TAMEABLE"])).toHaveLength(1);
+  });
+
   it("uses the active dialog camera without advancing game time", () => {
     const world = createAreaWorld(area, { size: 48 });
     releaseCameraMotion(world);

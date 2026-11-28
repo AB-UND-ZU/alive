@@ -24,11 +24,18 @@ class PathNode {
 export class SparseGraph {
   readonly grid: PathNode[][] = [];
 
-  constructor(private matrix: Matrix<number>) {}
+  constructor(
+    private matrix: Matrix<number>,
+    private cost?: (x: number, y: number) => number
+  ) {}
 
   node(x: number, y: number) {
     const column = (this.grid[x] ||= []);
-    return (column[y] ||= new PathNode(x, y, this.matrix[x][y]));
+    if (!column[y]) {
+      const terrain = this.matrix[x][y];
+      column[y] = new PathNode(x, y, terrain && this.cost ? this.cost(x, y) : terrain);
+    }
+    return column[y];
   }
 
   // javascript-astar calls these to reset reused graphs. This graph is single-use.

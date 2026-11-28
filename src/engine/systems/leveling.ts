@@ -126,6 +126,29 @@ export const getChangedClassStats = (
 export const hasLevelUp = (world: World, entity: TypedEntity<"STATS">) =>
   entity[STATS].level > 0 && entity[STATS].xp >= entity[STATS].maxXp;
 
+export function releaseXp(
+  world: World, entity: TypedEntity<"POSITION">, offering?: XpSequence["offering"]
+) {
+  const castableEntity = entities.createSpell(world, {
+    [BELONGABLE]: { faction: "nature" },
+    [CASTABLE]: getEmptyCastable(world, entity),
+    [ORIENTABLE]: {},
+    [POSITION]: copy(entity[POSITION]),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: none,
+  });
+  createSequence<"xp", XpSequence>(
+    world,
+    castableEntity,
+    "xp",
+    "acquireXp",
+    {
+      generation: 0, offering,
+    }
+  );
+}
+
 export default function setupLeveling(world: World) {
   let referencesGeneration = -1;
   let worldGeneration = -1;
@@ -236,24 +259,7 @@ export default function setupLeveling(world: World) {
       const xpEntity = world.assertByIdAndComponents(xpItem, [ITEM]);
       const amount = xpEntity[ITEM].amount;
 
-      const castableEntity = entities.createSpell(world, {
-        [BELONGABLE]: { faction: "nature" },
-        [CASTABLE]: getEmptyCastable(world, entity),
-        [ORIENTABLE]: {},
-        [POSITION]: copy(entity[POSITION]),
-        [RENDERABLE]: { generation: 0 },
-        [SEQUENCABLE]: { states: {} },
-        [SPRITE]: none,
-      });
-      createSequence<"xp", XpSequence>(
-        world,
-        castableEntity,
-        "xp",
-        "acquireXp",
-        {
-          generation: 0,
-        }
-      );
+      releaseXp(world, entity);
 
       if (amount <= 1) {
         disposeEntity(world, entity);

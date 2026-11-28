@@ -216,7 +216,10 @@ export type DialogSequence = {
   isEnemy: boolean;
   overridden: boolean;
 };
-export type XpSequence = { generation: number };
+export type XpSequence = {
+  generation: number;
+  offering?: { pet: number; owner: number; xp: number };
+};
 export type VortexSequence = { generation: number };
 export type FountainSequence = {
   generation: number;

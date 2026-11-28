@@ -1,3 +1,4 @@
+import { recordPetOpponent } from "./petSkills";
 import { spriteRef } from "../../game/assets/spriteIds";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
@@ -235,6 +236,7 @@ export default function setupBallistics(world: World) {
           targetEntity &&
           !isFriendlyFire(world, entity, targetEntity)
         ) {
+          recordPetOpponent(world, world.getEntityById(isFlying?.args.caster), getRoot(world, targetEntity));
           if (attemptBubbleAbsorb(world, targetEntity)) {
             bouncable = true;
             break;

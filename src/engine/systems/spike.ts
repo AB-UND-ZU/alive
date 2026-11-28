@@ -1,3 +1,4 @@
+import { recordPetOpponent } from "./petSkills";
 import { bumpEntity } from "../motion";
 import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { World } from "../ecs";
@@ -51,6 +52,8 @@ export const isStingable = (world: World, entity: TypedEntity) => hasComponent(e
 export const stingEntity = (world: World, entity: TypedEntity<"POSITION">, target: TypedEntity) => {
   if (isCooperating(world, entity, getRoot(world, target))) return;
   let displayedDamage = 0;
+
+  recordPetOpponent(world, entity, getRoot(world, target));
 
   // burst active bubble
   if (attemptBubbleAbsorb(world, target)) {

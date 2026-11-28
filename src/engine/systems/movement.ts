@@ -34,6 +34,7 @@ import { requireComponent, hasComponent, TypedEntity } from "../entities";
 import { TEMPO } from "../components/tempo";
 import { freezeMomentum, isFrozen } from "./freeze";
 import { isInPopup, isInTab } from "./popup";
+import { TAMEABLE } from "../components/tameable";
 import { PLAYER } from "../components/player";
 import { BEHAVIOUR } from "../components/behaviour";
 import { npcVariants, play } from "../../game/sound";
@@ -43,7 +44,7 @@ import { SPRITE } from "../components/sprite";
 import { getClickable } from "./click";
 import { CLICKABLE } from "../components/clickable";
 import { getSpikable } from "./spike";
-import { relativeOrientations } from "../../game/math/path";
+import { invertOrientation, relativeOrientations } from "../../game/math/path";
 import { getOverlappingCell, iterateMatrixFromCenter } from "../../game/math/matrix";
 import { STRUCTURABLE } from "../components/structurable";
 import { FRAGMENT } from "../components/fragment";
@@ -225,7 +226,8 @@ export const isLimbWalkable = (
       return true;
   }
 
-  return isWalkable(world, position);
+  const pet = entity[PLAYER] && getAttackable(world, position);
+  return isWalkable(world, position, pet && pet[TAMEABLE]?.owner === world.getEntityId(entity) ? pet : undefined);
 };
 
 export const isFlyable = (world: World, position: Position) => {
@@ -318,7 +320,7 @@ export default function setupMovement(world: World) {
 
       // skip if immovable or not sliding
       if (
-        isDead(world, entity) ||
+        (isDead(world, entity) && !entity[TAMEABLE]?.ghost) ||
         (hasComponent(entity, FRAGMENT) && isDead(world, getRoot(world, entity))) ||
         (isFrozen(world, entity) && !entity[MOVABLE].momentum)
       )
@@ -419,6 +421,9 @@ export default function setupMovement(world: World) {
         }
 
         if (entity[PLAYER]) {
+          const destination = getCellEntities(world, rootPosition);
+          const pet = destination.find(other => other[TAMEABLE]?.owner === entityId);
+          if (pet?.[MOVABLE]) pet[MOVABLE].pendingOrientation = invertOrientation(movedOrientation);
           const variant = isImmersible(world, rootPosition)
             ? 3
             : getTempo(world, rootPosition) < 0
@@ -427,7 +432,7 @@ export default function setupMovement(world: World) {
           play(world, entity, "move", {
             intensity: movableReference[REFERENCE].tick,
             variant,
-            volume: getCellEntities(world, rootPosition).some(
+            volume: destination.some(
               (cell) =>
                 cell[RENDERABLE] && resolveSprite(cell[SPRITE])?.layers.length
             )

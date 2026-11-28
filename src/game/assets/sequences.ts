@@ -1,3 +1,6 @@
+import { gainPetXp } from "../../engine/systems/petCare";
+import { inPetAuraRange } from "../../engine/systems/petSkills";
+import { TAMEABLE } from "../../engine/components/tameable";
 import { customSprite, resolveSprite, spriteRef } from "./spriteIds";
 import type { World } from "../../engine";
 import type { SequenceState } from "../../engine/components/sequencable";
@@ -2865,8 +2868,11 @@ export const totemAura: Sequence<AuraSequence, "POSITION" | "STATS"> = (world, e
   );
   const auraGeneration = Math.floor(state.elapsed / auraSpeed);
 
-  let finished = isDead(world, entity);
+  const pet = !!entity[TAMEABLE];
+  const finished = isDead(world, entity) || (pet && !inPetAuraRange(world, entity));
   let updated = false;
+
+  if (finished && !state.args.areas.length) return { finished, updated };
 
   // create effect areas
   if (state.args.areas.length === 0) {
@@ -2878,7 +2884,7 @@ export const totemAura: Sequence<AuraSequence, "POSITION" | "STATS"> = (world, e
     const areaPoints = pixelCircle(
       { x: 0, y: 0 },
       state.args.range,
-      undefined,
+      pet ? 1 : undefined,
       true
     );
 
@@ -2891,7 +2897,7 @@ export const totemAura: Sequence<AuraSequence, "POSITION" | "STATS"> = (world, e
       state.args.areas.push(world.getEntityId(aoeEntity));
     }
 
-    const circlePoints = pixelCircle({ x: 0, y: 0 }, state.args.range);
+    const circlePoints = pixelCircle({ x: 0, y: 0 }, state.args.range, pet ? 1 : undefined);
     const sortedPoints = circlePoints.sort(
       (left, right) =>
         pointToDegree({
@@ -2923,7 +2929,7 @@ export const totemAura: Sequence<AuraSequence, "POSITION" | "STATS"> = (world, e
   }
 
   // reduce hp each tick
-  if (state.args.progress !== generation) {
+  if (!pet && state.args.progress !== generation) {
     entity[STATS].hp = Math.max(entity[STATS].hp - 1, 0);
     rerenderEntity(world, entity);
     state.args.progress = generation;
@@ -2948,7 +2954,7 @@ export const totemAura: Sequence<AuraSequence, "POSITION" | "STATS"> = (world, e
   }
 
   // animate aura
-  if (state.args.memory.generation !== auraGeneration) {
+  if (!finished && state.args.memory.generation !== auraGeneration) {
     const points = state.args.memory.circle.length;
     for (let auraIndex = 0; auraIndex < points; auraIndex += 1) {
       const auraPoint = state.args.memory.circle[auraIndex];
@@ -2971,7 +2977,7 @@ export const totemAura: Sequence<AuraSequence, "POSITION" | "STATS"> = (world, e
 
     // swell along with the aura brightening
     if (
-      !finished &&
+      !pet &&
       Math.floor((auraGeneration - 2) / 15) >
         Math.floor((state.args.memory.generation - 2) / 15)
     ) {
@@ -3691,18 +3697,20 @@ export const bubbleSplash: Sequence<Record<string, never>, "LIQUID"> = (
   return { finished: false, updated };
 };
 
+const petProgress = recolorSprite(lightningSide, colors.lime);
 const progressParts = 17;
 const progressTime = 60;
 const ringTime = 600;
 
-export const levelUp: Sequence<ProgressSequence, "PLAYER" | "STATS"> = (world, entity, state) => {
+export const levelUp: Sequence<ProgressSequence, "STATS"> = (world, entity, state) => {
+  const sprite = entity[TAMEABLE] ? petProgress : levelProgress;
   let updated = false;
   const crossTime = progressParts * progressTime;
   // keep running until all stats are applied
   const finished =
     state.elapsed > crossTime * 4 + (state.args.level - 1) * ringTime &&
-    state.args.note >
-      1 + (state.args.maxHp ? 1 : 0) + (state.args.maxMp ? 1 : 0);
+    (!entity[PLAYER] || state.args.note >
+      1 + (state.args.maxHp ? 1 : 0) + (state.args.maxMp ? 1 : 0));
 
   // create orthogonal lines as cross
   if (state.args.note === 0) {
@@ -3723,7 +3731,7 @@ export const levelUp: Sequence<ProgressSequence, "PLAYER" | "STATS"> = (world, e
             animatedOrigin: { x: 0, y: 0 },
           },
           [RENDERABLE]: { generation: 1 },
-          [SPRITE]: levelProgress,
+          [SPRITE]: sprite,
         });
         state.particles[`progress-${i}-${orientation}`] =
           world.getEntityId(progressParticle);
@@ -3737,7 +3745,7 @@ export const levelUp: Sequence<ProgressSequence, "PLAYER" | "STATS"> = (world, e
             animatedOrigin: { x: 0, y: 0 },
           },
           [RENDERABLE]: { generation: 1 },
-          [SPRITE]: levelProgress,
+          [SPRITE]: sprite,
         });
         state.particles[`progress-${i}-${orientation}-inverse`] =
           world.getEntityId(inverseParticle);
@@ -3795,7 +3803,7 @@ export const levelUp: Sequence<ProgressSequence, "PLAYER" | "STATS"> = (world, e
                 animatedOrigin: origin,
               },
               [RENDERABLE]: { generation: 1 },
-              [SPRITE]: levelProgress,
+              [SPRITE]: sprite,
             });
             state.particles[`ring-${state.args.ring}-${name}`] =
               world.getEntityId(ringParticle);
@@ -3815,6 +3823,7 @@ export const levelUp: Sequence<ProgressSequence, "PLAYER" | "STATS"> = (world, e
   ];
   const statStep = state.args.note - 1;
   if (
+    entity[PLAYER] &&
     state.args.note > 0 &&
     statStep < statSteps.length &&
     state.elapsed >
@@ -3877,17 +3886,16 @@ const xpTime = 180;
 
 export const acquireXp: Sequence<XpSequence, "POSITION"> = (world, entity, state) => {
   const size = world.metadata.gameEntity[LEVEL].size;
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
-    PLAYER,
-    POSITION,
-    STATS,
-  ]);
+  const offering = state.args.offering;
+  const recipient = offering
+    ? world.getEntityByIdAndComponents(offering.pet, [POSITION, STATS])
+    : getIdentifierAndComponents(world, "hero", [PLAYER, POSITION, STATS]);
   const generation = Math.floor(state.elapsed / xpTime);
   const particleLength = Object.keys(state.particles).length;
 
   let updated = false;
   let finished =
-    !heroEntity || (state.args.generation > 0 && particleLength === 0);
+    !recipient || (state.args.generation > 0 && particleLength === 0);
 
   // create XP particles
   if (generation === 0 && particleLength === 0) {
@@ -3911,7 +3919,7 @@ export const acquireXp: Sequence<XpSequence, "POSITION"> = (world, entity, state
     updated = true;
   }
 
-  if (generation > 2 && generation > state.args.generation && heroEntity) {
+  if (generation > 2 && generation > state.args.generation && recipient) {
     for (const particleName in state.particles) {
       const xpParticle = world.assertByIdAndComponents(
         state.particles[particleName],
@@ -3922,20 +3930,21 @@ export const acquireXp: Sequence<XpSequence, "POSITION"> = (world, entity, state
         y: xpParticle[PARTICLE].offsetY,
       });
 
-      if (getDistance(heroEntity[POSITION], particlePosition, size) === 0) {
+      if (getDistance(recipient[POSITION], particlePosition, size) === 0) {
         // handle adding of XP
-        heroEntity[STATS].xp += 1 / 4;
-        rerenderEntity(world, heroEntity);
+        if (offering) gainPetXp(world, recipient, offering.owner, offering.xp / 4);
+        else recipient[STATS].xp += 1 / 4;
+        rerenderEntity(world, recipient);
 
         // play sound
-        play(world, undefined, "xp", { delay: random(0, (heroEntity[STATS].xp % 1) * 75 + 75) });
+        play(world, undefined, "xp", { delay: random(0, (recipient[STATS].xp % 1) * 75 + 75) });
 
         disposeEntity(world, xpParticle);
         delete state.particles[particleName];
       } else {
         // handle movement of particles
         const orientation = choice(
-          ...relativeOrientations(world, particlePosition, heroEntity[POSITION])
+          ...relativeOrientations(world, particlePosition, recipient[POSITION])
         );
         const delta = orientationPoints[orientation];
 
@@ -3949,8 +3958,8 @@ export const acquireXp: Sequence<XpSequence, "POSITION"> = (world, entity, state
     updated = true;
   }
 
-  if (finished && heroEntity) {
-    heroEntity[PLAYER].receivedStats.xp += 1;
+  if (finished && recipient?.[PLAYER]) {
+    recipient[PLAYER].receivedStats.xp += 1;
   }
 
   return { finished, updated };
@@ -8485,7 +8494,7 @@ export const itemCollect: Sequence<CollectSequence, "INVENTORY" | "LOOTABLE" | "
         entity[SPRITE] = spriteRef(shadow);
       }
       rerenderEntity(world, entity);
-    } else {
+    } else if (!entity[TAMEABLE]) {
       addToInventory(world, entity, itemEntity, state.args.amount);
     }
 
@@ -8509,7 +8518,7 @@ export const itemCollect: Sequence<CollectSequence, "INVENTORY" | "LOOTABLE" | "
         amount: state.args.amount,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: getItemSprite(itemEntity[ITEM]),
+      [SPRITE]: getItemSprite(entity[TAMEABLE] ? { ...itemEntity[ITEM], amount: state.args.amount } : itemEntity[ITEM]),
     });
     state.particles.loot = world.getEntityId(lootParticle);
     updated = true;
@@ -9213,8 +9222,9 @@ export const dialogText: Sequence<DialogSequence, "POSITION" | "SPRITE" | "TOOLT
     !!delta && Math.abs(delta.x) <= 1 && Math.abs(delta.y) <= 1;
   const changed = entity[TOOLTIP].changed;
   const totalLength = state.args.text.length;
+  const dead = isDead(world, entity) && !entity[TAMEABLE]?.ghost;
   const expired =
-    isDead(world, entity) ||
+    dead ||
     (!state.args.overridden &&
       !state.args.isIdle &&
       state.elapsed / charDelay > totalLength * 1.3 + 20);
@@ -9224,7 +9234,7 @@ export const dialogText: Sequence<DialogSequence, "POSITION" | "SPRITE" | "TOOLT
     !isDead(world, heroEntity) &&
     !isInPopup(world, heroEntity) &&
     !entity[TOOLTIP].override &&
-    !isDead(world, entity) &&
+    !dead &&
     !isEmpty(world, entity) &&
     !isUnlocked(world, entity);
   const active =

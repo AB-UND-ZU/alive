@@ -12,6 +12,7 @@ import { clamp } from "../../../game/math/std";
 import { PLAYER } from "../../../engine/components/player";
 import { getMaxCounter } from "../../../game/assets/ui";
 import { BUILDABLE } from "../../../engine/components/buildable";
+import { TAMEABLE } from "../../../engine/components/tameable";
 
 const neutralColor = colors.silver;
 const neutralBar = new THREE.Color(neutralColor).multiplyScalar(0.075);
@@ -58,7 +59,7 @@ export default function Bar({
     config: { duration: 75 },
   });
 
-  if (scale === 0 || (value === max && neutral)) return null;
+  if (scale === 0 || (value === max && neutral && !entity[TAMEABLE])) return null;
 
   return (
     <>

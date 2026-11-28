@@ -20,6 +20,7 @@ import { POSITION } from "../../engine/components/position";
 import { REVIVABLE } from "../../engine/components/revivable";
 import { SOUL } from "../../engine/components/soul";
 import { STATS } from "../../engine/components/stats";
+import { TAMEABLE } from "../../engine/components/tameable";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { TypedEntity } from "../../engine/entities";
 import { isGhost } from "../../engine/systems/fate";
@@ -145,6 +146,15 @@ describe("death and respawn", () => {
     expect(isGhost(world, revived)).toBe(false);
     expect(world.getEntities([PLAYER])).toEqual([revived]);
     expect(getTombstone(world)?.[REVIVABLE].available).toBe(false);
+  });
+
+  it("keeps the same pet when its owner respawns", () => {
+    const world = createAreaWorld(area.replace("|           |", "| P         |"), { legend: { P: "pet" } });
+    const pet = world.getEntities([TAMEABLE])[0];
+    pet[TAMEABLE].owner = world.getEntityId(assertUnit(world));
+    die(world);
+    const hero = respawn(world);
+    expect(pet[TAMEABLE].owner).toBe(world.getEntityId(hero));
   });
 
   it("keeps defeated units but drops carried items at the grave", () => {
