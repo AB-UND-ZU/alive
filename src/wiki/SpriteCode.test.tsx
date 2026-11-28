@@ -29,7 +29,7 @@ test("sprite code preserves character escapes and updates to the selected sprite
     <SpriteCode
       sprite={customSprite({
         name: "Sprite #2",
-        layers: [{ char: "A", color: colors.green }],
+        layers: [{ char: "\u011e", color: colors.green }],
       })}
     />
   );
@@ -37,7 +37,7 @@ test("sprite code preserves character escapes and updates to the selected sprite
     screen.getByLabelText(/^export const sprite:/).textContent
   ).not.toContain(JSON.stringify(first.name));
   expect(screen.getByLabelText(/name: "Sprite #2"/).textContent).toContain(
-    '{ char: "A", color: colors.green }'
+    '{ char: "\\u011e", color: colors.green }'
   );
 });
 

@@ -1,4 +1,5 @@
-import { customSprite } from "../game/assets/spriteIds";
+import { SpriteGallery } from "./SpriteGallery";
+import { customSprite, spriteDefinition } from "../game/assets/spriteIds";
 import { getWikiUnitSprite, getWikiUnitName, displayName } from "./catalog";
 import { PresetName } from "./presets";
 import { muteAudio, setAudioActive } from "../game/sound/resumable";
@@ -849,6 +850,7 @@ function Markdown({
   navigate: Navigate;
   source: string;
 }) {
+  const [spriteEdit, setSpriteEdit] = useState({ variant: "", revision: 0 });
   const parentPolicy = useContext(LinkPolicyContext);
   const pageRoute = manifest.pages.find(
     (page) => page.source === source
@@ -910,8 +912,9 @@ function Markdown({
       if (token.lang === "scene")
         return (
           <GamePreview
-            key={index}
+            key={token.text!.trim() === "sprites" ? `sprites-${spriteEdit.revision}` : index}
             name={token.text!.trim().split("/")[0] as SceneName}
+            variant={token.text!.trim() === "sprites" ? spriteEdit.variant : undefined}
             preset={
               token.text!.trim().split("/")[0] === "clients"
                 ? undefined
@@ -973,6 +976,17 @@ function Markdown({
                 | "bosses"
                 | undefined
             }
+          />
+        );
+      if (token.lang === "widget" && token.text!.trim() === "sprite-gallery")
+        return (
+          <SpriteGallery
+            key={index}
+            onEdit={(sprite, name) => {
+              const variant = spriteDefinition({ name, layers: sprite.layers });
+              setSpriteEdit(({ revision }) => ({ variant, revision: revision + 1 }));
+              document.getElementById("sprite-builder")?.scrollIntoView();
+            }}
           />
         );
       if (token.lang === "widget" && token.text!.trim() === "interface")

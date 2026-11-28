@@ -1,4 +1,4 @@
-import { spriteRef } from "../game/assets/spriteIds";
+import { parseSprite, spriteRef } from "../game/assets/spriteIds";
 import { openSpriteBuilder } from "../game/assets/spriteBuilder";
 import { rerenderEntity } from "../engine/systems/renderer";
 import { disposeSequence } from "../engine/systems/map";
@@ -519,6 +519,6 @@ export const createPreviewWorld = (name: SceneName, option = "") => {
   if (name === "interface" && hero.SEQUENCABLE?.states.message)
     disposeSequence(world, hero, "message");
   if (name === "chat") act(world, "chat");
-  if (name === "sprites") openSpriteBuilder(world, hero);
+  if (name === "sprites") openSpriteBuilder(world, hero, option ? parseSprite(option) : undefined);
   return world;
 };

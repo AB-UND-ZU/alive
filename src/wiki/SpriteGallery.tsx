@@ -54,7 +54,7 @@ export function spriteVariations() {
   return entries;
 }
 const pageSize = 64;
-export function SpriteGallery() {
+export function SpriteGallery({ onEdit }: { onEdit: (sprite: Sprite, key: string) => void }) {
   const all = useMemo(spriteVariations, []);
   const [query, setQuery] = useState(""),
     [page, setPage] = useState(0);
@@ -91,7 +91,7 @@ export function SpriteGallery() {
         </Button>
       </div>
       <PlainTable
-        headers={["Sprite", "Source"]}
+        headers={["Sprite", "Source", ""]}
         rows={matches
           .slice(page * pageSize, (page + 1) * pageSize)
           .map(({ key, sprite, sourceId }) => {
@@ -126,6 +126,7 @@ export function SpriteGallery() {
             return [
               reference ? link(reference.href, view, true) : view,
               <Text code>{key}</Text>,
+              <Button onClick={() => onEdit(sprite, key)}>EDIT</Button>,
             ];
           })}
       />

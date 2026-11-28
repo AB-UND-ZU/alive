@@ -34,13 +34,14 @@ test("links source sprites to their units when the portrait has different art", 
       { href: "#" + key, kind: "unit" as const },
     ])
   );
+  const onEdit = jest.fn();
   render(
     createElement(ReferenceContext.Provider, {
       value: {
         entries,
         link: (href, children) => createElement("a", { href }, children),
       },
-      children: createElement(SpriteGallery),
+      children: createElement(SpriteGallery, { onEdit }),
     })
   );
   for (const [source, unit] of [
@@ -56,6 +57,8 @@ test("links source sprites to their units when the portrait has different art", 
         .queryAllByRole("cell")
         .some((cell) => cell.textContent === source)
     )!;
+    fireEvent.click(within(row).getByRole("button", { name: "EDIT" }));
+    expect(onEdit).toHaveBeenLastCalledWith(expect.objectContaining({ layers: expect.any(Array) }), source);
     expect(within(row).getByRole("link")).toHaveAttribute("href", "#" + unit);
   }
   fireEvent.change(screen.getByRole("textbox"), {

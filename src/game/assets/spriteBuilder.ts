@@ -39,7 +39,11 @@ import { play } from "../sound";
 const windowHeight = 11;
 const innerHeight = windowHeight - 2;
 
-export const openSpriteBuilder = (world: World, hero: TypedEntity<"CONDITIONABLE" | "MOVABLE" | "PLAYER" | "POSITION">) => {
+export const openSpriteBuilder = (
+  world: World,
+  hero: TypedEntity<"CONDITIONABLE" | "MOVABLE" | "PLAYER" | "POSITION">,
+  source?: Sprite
+) => {
   const popup = createDialog(world, {
     POSITION: { ...hero["POSITION"] },
     RENDERABLE: { generation: 0 },
@@ -64,6 +68,17 @@ export const openSpriteBuilder = (world: World, hero: TypedEntity<"CONDITIONABLE
       colorMode: false,
     },
   });
+  if (source) {
+    const menu = requireComponent(popup, POPUP);
+    const editor = menu.sprite!;
+    editor.selected = editor.sprites.length;
+    editor.sprites = identifyPack([
+      ...editor.sprites,
+      { name: source.name, layers: source.layers.map((layer) => ({ ...layer })) },
+    ]);
+    menu.verticalIndezes[0] = editor.selected;
+    menu.horizontalIndex = 1;
+  }
   registerEntity(world, popup);
   openPopup(world, hero, popup);
 };

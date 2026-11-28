@@ -1,5 +1,4 @@
 import { customSprite } from "../game/assets/spriteIds";
-import { SpriteGallery } from "./SpriteGallery";
 import { getWikiUnitSprite, getWikiUnitName } from "./catalog";
 import { TownMap } from "./WorldMap";
 import { StructureOverview } from "./StructureOverview";
@@ -538,7 +537,6 @@ export function Widget({ name }: { name: string }) {
         ])}
       />
     );
-  if (name === "sprite-gallery") return <SpriteGallery />;
   if (name === "sprite-layers")
     return (
       <>

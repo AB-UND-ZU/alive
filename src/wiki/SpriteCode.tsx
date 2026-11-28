@@ -30,7 +30,9 @@ export function SpriteCode({ sprite }: { sprite?: Sprite }) {
             )?.[0];
             return [
               { text: "    { char: ", kind: "plain" },
-              { text: JSON.stringify(layer.char), kind: "string" },
+              { text: JSON.stringify(layer.char).replace(/[\u0100-\u011f]/g, (char) =>
+                "\\u" + char.charCodeAt(0).toString(16).padStart(4, "0")
+              ), kind: "string" },
               { text: ", color: ", kind: "plain" },
               {
                 text: color ? `colors.${color}` : JSON.stringify(layer.color),
