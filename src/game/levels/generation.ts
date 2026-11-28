@@ -8,6 +8,7 @@ import {
 } from "../../engine/snapshot";
 import { ClassKey, getClassData } from "../balancing/classes";
 import { LevelName, LEVEL } from "../../engine/components/level";
+import { landPets } from "../../engine/systems/vessel";
 import { TAMEABLE } from "../../engine/components/tameable";
 import { BEHAVIOUR } from "../../engine/components/behaviour";
 import { iterateMatrixFromCenter } from "../math/matrix";
@@ -106,6 +107,7 @@ function* generateArrival(
   const focusFrames = Object.values(
     (focusEntity[SEQUENCABLE].states || {}) as Sequencable["states"]
   ).map((state) => world.assertById(state.reference));
+  if (entity.PLAYER?.mount) landPets(world, entity, entity[POSITION]);
   const pets = world
     .getEntities([TAMEABLE, POSITION, MOVABLE, SEQUENCABLE, BEHAVIOUR, INVENTORY])
     .filter((pet) => pet[TAMEABLE].owner === world.getEntityId(entity));

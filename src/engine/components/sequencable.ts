@@ -218,7 +218,7 @@ export type DialogSequence = {
 };
 export type XpSequence = {
   generation: number;
-  offering?: { pet: number; owner: number; xp: number };
+  offering?: { pet: number; owner: number };
 };
 export type VortexSequence = { generation: number };
 export type FountainSequence = {

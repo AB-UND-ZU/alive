@@ -17,13 +17,13 @@ import {
   beach,
   soilWet,
 } from "../../game/assets/sprites";
-import { add, combine, copy, lerp, random } from "../../game/math/std";
+import { add, combine, copy, getDistance, lerp, random, sigmoid } from "../../game/math/std";
 import { play } from "../../game/sound";
 import { LEVEL } from "../components/level";
 import { getImmersible, hasWater, isImmersible, isSubmerged } from "./immersion";
 import { getEnterable } from "./enter";
 import { rerenderEntity } from "./renderer";
-import { SEQUENCABLE } from "../components/sequencable";
+import { WeatherSequence, SEQUENCABLE } from "../components/sequencable";
 import { IMMERSIBLE } from "../components/immersible";
 import { createCell } from "../../bindings/creation";
 import { ENTERABLE } from "../components/enterable";
@@ -72,6 +72,18 @@ export const calculateWeatherIntensity = (
 export const weatherIntensity: Record<Weather, number> = {
   rain: 10,
   snow: 2,
+};
+
+export const getPrecipitation = (world: World, weather: WeatherSequence, position: Position) => {
+  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+  if (generation < weather.start || generation >= weather.end) return 0;
+  const proximity = weather.intensity === 0 ? 1 : 1 - sigmoid(
+    getDistance(position, weather.position, world.metadata.gameEntity[LEVEL].size, weather.ratio),
+    weather.intensity, 0.25
+  );
+  return Math.round(proximity * calculateWeatherIntensity(
+    weather.end - weather.start, generation - weather.start, weatherIntensity[weather.type]
+  ));
 };
 
 export const bubbleSound = (

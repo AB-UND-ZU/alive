@@ -26,14 +26,14 @@ export class SparseGraph {
 
   constructor(
     private matrix: Matrix<number>,
-    private cost?: (x: number, y: number) => number
+    private cost?: (x: number, y: number, terrain: number) => number
   ) {}
 
   node(x: number, y: number) {
     const column = (this.grid[x] ||= []);
     if (!column[y]) {
       const terrain = this.matrix[x][y];
-      column[y] = new PathNode(x, y, terrain && this.cost ? this.cost(x, y) : terrain);
+      column[y] = new PathNode(x, y, this.cost ? this.cost(x, y, terrain) : terrain);
     }
     return column[y];
   }

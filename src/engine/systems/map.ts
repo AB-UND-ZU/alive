@@ -85,7 +85,7 @@ export const registerEntity = (world: World, entity: TypedEntity) => {
   updateWalkable(world, position);
 };
 
-const unregisterEntity = (world: World, entity: TypedEntity) => {
+export const unregisterEntity = (world: World, entity: TypedEntity) => {
   const position = entity[POSITION];
 
   if (!position) {
@@ -303,7 +303,7 @@ export default function setupMap(world: World) {
     for (let i = 0; i < removedEntities.count; i++) {
       const removedEntity = removedEntities.entries[i];
       if (
-        getCellEntities(world, removedEntity[POSITION]).indexOf(
+        removedEntity[POSITION] && getCellEntities(world, removedEntity[POSITION]).indexOf(
           removedEntity
         ) !== -1
       ) {

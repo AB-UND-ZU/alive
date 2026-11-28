@@ -1,5 +1,6 @@
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
+import { landPets } from "./vessel";
 import { TAMEABLE } from "../components/tameable";
 import { REFERENCE } from "../components/reference";
 import { ATTACKABLE } from "../components/attackable";
@@ -113,6 +114,7 @@ export const reviveEntity = (world: World, entity: TypedEntity, target: TypedEnt
 };
 
 const transferPets = (world: World, previous: TypedEntity, next: TypedEntity) => {
+  if (previous[PLAYER]?.mount && previous[POSITION]) landPets(world, previous, previous[POSITION]);
   const owner = world.getEntityId(previous);
   for (const pet of world.getEntities([TAMEABLE])) {
     if (pet[TAMEABLE].owner === owner) pet[TAMEABLE].owner = world.getEntityId(next);

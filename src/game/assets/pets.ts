@@ -1,4 +1,4 @@
-import { Layer } from "../../engine/components/sprite";
+import { Layer, Sprite } from "../../engine/components/sprite";
 import { choice } from "../math/std";
 import { colors } from "./colors";
 import { customSprite } from "./spriteIds";
@@ -21,6 +21,11 @@ const furColors = [
     [bright, bright], [dark, dark], [bright, dark], [dark, bright],
   ]),
 ];
+
+export function petHeartColor(sprite: Sprite) {
+  const body = sprite.layers.find(layer => layer.char === "\u0101")?.color;
+  return choice(...sprite.layers.filter(layer => layer.color !== colors.black && layer.color !== body)).color;
+}
 
 export function createPetSprite() {
   const [earColor, tailColor] = choice(...furColors);

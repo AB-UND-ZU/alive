@@ -1607,7 +1607,7 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   pet: {
     faction: "animal",
     scratch: colors.grey,
-    stats: { ...petLevels[0], mp: 5 },
+    stats: { ...petLevels[0], mp: 5, haste: 1, resist: 2 },
     equipments: [],
     drops: [],
     patternNames: ["pet"],

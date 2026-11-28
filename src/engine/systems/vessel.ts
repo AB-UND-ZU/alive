@@ -5,9 +5,11 @@ import { POSITION, Position } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
-import { getCellEntities, moveEntity } from "./map";
+import { disposeSequence, getCellEntities, moveEntity, registerEntity, unregisterEntity } from "./map";
 import { isControllable } from "./freeze";
 import { Orientation, orientationPoints } from "../components/orientable";
+import { SEQUENCABLE, Sequencable } from "../components/sequencable";
+import { TAMEABLE } from "../components/tameable";
 import { MOUNTABLE } from "../components/mountable";
 import { PLAYER } from "../components/player";
 import { invertOrientation } from "../../game/math/path";
@@ -77,6 +79,34 @@ export const mountVessel = (world: World, entity: TypedEntity<"MOVABLE">, vessel
   moveEntity(world, entity, requireComponent(vessel, POSITION));
 };
 
+export function boardPet(world: World, pet: TypedEntity<"POSITION">) {
+  const states = pet[SEQUENCABLE]?.states;
+  if (states?.collect || states?.progress || states?.aura) return;
+  const petId = world.getEntityId(pet);
+  if (world.getEntities(["LOOTABLE"]).some(drop => drop.LOOTABLE.offering?.pet === petId)) return;
+  if (world.getEntities(["CASTABLE", SEQUENCABLE]).some(spell =>
+    spell[SEQUENCABLE].states.xp?.args.offering?.pet === petId
+  )) return;
+  for (const name of Object.keys(states ?? {})) {
+    disposeSequence(world, pet, name as keyof Sequencable["states"]);
+  }
+  unregisterEntity(world, pet);
+  world.removeComponentFromEntity(pet, POSITION, false);
+  rerenderEntity(world, world.metadata.sequenceEntity);
+}
+
+export function landPets(world: World, owner: TypedEntity, position: Position) {
+  const ownerId = world.getEntityId(owner);
+  for (const pet of world.getEntities([TAMEABLE, MOVABLE, RENDERABLE])) {
+    if (pet[POSITION] || pet[TAMEABLE].owner !== ownerId) continue;
+    const pattern = pet.BEHAVIOUR?.patterns.find(pattern => pattern.name === "pet");
+    if (pattern) pattern.memory.landing = true;
+    world.addComponentToEntity(pet, POSITION, { ...position });
+    registerEntity(world, pet);
+    rerenderEntity(world, pet);
+  }
+}
+
 export const stopVessel = (world: World, vessel: TypedEntity<"MOVABLE">) => {
   const mount = requireComponent(vessel, MOUNTABLE);
   if (
@@ -97,6 +127,7 @@ export const unmountVessel = (world: World, entity: TypedEntity<"MOVABLE" | "PLA
     RENDERABLE,
   ]);
 
+  landPets(world, entity, requireComponent(vessel, POSITION));
   entity[PLAYER].mount = undefined;
   const vesselMount = requireComponent(vessel, MOUNTABLE);
   entity[MOVABLE].spring = vesselMount.spring;

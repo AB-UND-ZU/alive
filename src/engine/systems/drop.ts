@@ -514,6 +514,12 @@ export default function setupDrop(world: World) {
           petKnockout(world, entity);
           continue;
         }
+        if (heroEntity && entity[NPC] && getRoot(world, entity) === entity) rewardPetKill(world, heroEntity, entity);
+        if (entity[TAMEABLE] && entity[INVENTORY]) {
+          populateInventory(world, world.assertComponents(entity, [INVENTORY, POSITION]), [
+            { stackable: "resource", material: "wood", element: "air", amount: 1 },
+          ]);
+        }
         play(world, entity, "die", {
           variant: entity[NPC] ? 1 : 2,
           intensity: entity[STATS]?.maxHp,
@@ -547,6 +553,7 @@ export default function setupDrop(world: World) {
       const rootEntity = getRoot(world, entity);
 
       if (isDecaying(world, entity)) {
+        if (heroEntity && entity[NPC] && getRoot(world, entity) === entity) rewardPetKill(world, heroEntity, entity);
         play(world, entity, "die", {
           variant: entity[NPC] ? 1 : 2,
           intensity: entity[STATS]?.maxHp,
@@ -572,7 +579,6 @@ export default function setupDrop(world: World) {
           heroEntity[PLAYER].defeatedUnits[unitKey] =
             (heroEntity[PLAYER].defeatedUnits[unitKey] || 0) + 1;
           heroEntity[PLAYER].kills += 1;
-          rewardPetKill(world, heroEntity, entity);
         }
 
         // create spawns and remains for vanished units
@@ -702,7 +708,6 @@ export default function setupDrop(world: World) {
           heroEntity[PLAYER].defeatedUnits[unitKey] =
             (heroEntity[PLAYER].defeatedUnits[unitKey] || 0) + 1;
           heroEntity[PLAYER].kills += 1;
-          rewardPetKill(world, heroEntity, entity);
           if (unitKey === "tutorialBoss") checkUnlocks(world);
         }
       }

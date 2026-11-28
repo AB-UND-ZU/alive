@@ -129,7 +129,7 @@ export const findPath = (
   targetWalkable: boolean = false,
   mustReach = false,
   quadrant?: Position,
-  cost?: (x: number, y: number) => number
+  cost?: (x: number, y: number, terrain: number) => number
 ) => {
   const width = matrix.length / 2;
   const height = matrix[0].length / 2;

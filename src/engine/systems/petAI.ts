@@ -1,6 +1,11 @@
+import { getIdentifierAndComponents } from "../utils";
+import { boardPet } from "./vessel";
+import { getPrecipitation } from "./water";
 import { PLAYER } from "../components/player";
+import { getItemSprite } from "../../game/assets/utils";
 import { blocked, heart } from "../../game/assets/sprites";
 import {
+  createText,
   sleep1,
   sleep2,
 } from "../../game/assets/ui";
@@ -35,16 +40,19 @@ import { TOOLTIP } from "../components/tooltip";
 import { World } from "../ecs";
 import { TypedEntity } from "../entities";
 import { bumpEntity } from "../motion";
-import { isDead, isEnemy, isFightable, isNeutral } from "./damage";
+import { isDead, isEnemy, isFightable, isFriendlyFire, isNeutral } from "./damage";
 import { getEnterable, getFragment } from "./enter";
-import { getHarvestable, harvestResource } from "./harvest";
+import { getHarvestable, getRefillElement } from "./harvest";
 import { isImmersible } from "./immersion";
+import { getBurning } from "./burn";
+import { CASTABLE } from "../components/castable";
+import { SEQUENCABLE } from "../components/sequencable";
 import { getCellEntities } from "./map";
-import { isFlyable, isPathable, isWalkable } from "./movement";
-import { petFoodSprite, setPetDialog } from "./petCare";
-import { getPetCombatTarget, runPetForaging, shootPetDisc, startPetAura } from "./petSkills";
+import { canSwimToBoat, isFloatable, isFlyable, isPathable, isWalkable } from "./movement";
+import { ensurePetWeapon, petSkillSprite, setPetDialog } from "./petCare";
+import { getPetCombatTarget, runPetForaging, shootPetDisc, startPetAura, providePetSupplies } from "./petSkills";
 import { rerenderEntity } from "./renderer";
-import { getEntityVision } from "./visibility";
+import { getEntityVision, getSightCells } from "./visibility";
 
 type Pet = TypedEntity<
   "BEHAVIOUR" | "TAMEABLE" | "POSITION" | "MOVABLE" | "STATS" | "TOOLTIP" | "INVENTORY"
@@ -52,8 +60,10 @@ type Pet = TypedEntity<
 type Memory = {
   target?: number;
   attacker?: number;
+  hp?: number;
   fleeUntil?: number;
   heal?: number;
+  landing?: boolean;
   door?: Position;
   structure?: number;
   position?: Position;
@@ -63,7 +73,9 @@ type Memory = {
   nextRecovery?: number;
   circle?: number;
   refuseUntil?: number;
+  playSince?: number;
   nextSpeech?: number;
+  requested?: number;
   walkSpots?: Position[];
   nextWalk?: number;
 };
@@ -103,46 +115,60 @@ export function updatePet(
   const stats = pet[STATS];
   const near = orientations.map((side) => around(position, side));
   const waterShy = tame.attributes.water === false;
-  const outside = (p: Position) => !getEnterable(world, p);
-  const canStep = (p: Position) =>
-    outside(p) && (tame.ghost ? isFlyable(world, p) : isPathable(world, p));
-  const moveTo = (target: Position, following = false, mustReach = false) => {
+  const inside = hero?.[LAYER]?.structure;
+  const rain = inside && getIdentifierAndComponents(world, "storm", ["SEQUENCABLE"])?.SEQUENCABLE.states.weather?.args;
+  const shelter = hero && rain && rain.type === "rain" && getPrecipitation(world, rain, hero[POSITION]) > 0;
+  const allowedLayer = (p: Position) => {
+    const interior = getEnterable(world, p);
+    if (!interior) return true;
+    const structure = interior[FRAGMENT]?.structure;
+    return !!structure && (structure === pet[LAYER]?.structure || (!!shelter && structure === inside));
+  };
+  const swimmingToBoat = canSwimToBoat(world, pet);
+  const dry = (p: Position) => getRefillElement(world, p) !== "water";
+  const safe = (p: Position) => !getBurning(world, p) && allowedLayer(p);
+  const canTraverse = (p: Position, walkable: boolean) =>
+    tame.ghost ? isFlyable(world, p) : walkable || (swimmingToBoat && isFloatable(world, p));
+  const canStep = (p: Position) => safe(p) && canTraverse(p, isPathable(world, p));
+  const moveTo = (target: Position, following = false, mustReach = false, stopAt = 0) => {
     if (distance(position, target) === 0) return false;
     const directions = relativeOrientations(world, position, target, 1);
     const direct = directions.find((side) => {
       const next = around(position, side);
       return (
         distance(next, target) === 0 &&
-        outside(next) &&
-        (!waterShy || !isImmersible(world, next) || following) &&
+        safe(next) &&
+        (!waterShy || dry(next) || following) &&
         (!following || canStep(next))
       );
     });
-    if (direct || tame.ghost) {
-      pet[MOVABLE].orientations = direct
-        ? [direct]
-        : directions.filter((side) => canStep(around(position, side)));
-      return pet[MOVABLE].orientations.length > 0;
+    if (direct) {
+      if (stopAt >= 1) return false;
+      pet[MOVABLE].orientations = [direct];
+      return true;
     }
-    const next = findPath(
+    const path = findPath(
       walkable,
       position,
       target,
       true,
       mustReach,
       undefined,
-      (x, y) => {
+      (x, y, terrain) => {
         const p = { x, y };
-        if (!outside(p)) return 0;
-        if (waterShy && isImmersible(world, p))
+        if (!canTraverse(p, !!terrain) || !safe(p)) return 0;
+        if (tame.ghost && hero && !distance(p, hero[POSITION])) return 0;
+        if (!tame.ghost && waterShy && !dry(p))
           return following ? size * size : 0;
         return 1;
       }
-    )[0];
+    );
+    if (path.length <= stopAt) return false;
+    const next = path[0];
     if (
       next &&
       (canStep(next) ||
-        (!following && distance(next, target) === 0 && outside(next)))
+        (!following && distance(next, target) === 0 && safe(next)))
     ) {
       pet[MOVABLE].orientations = relativeOrientations(
         world,
@@ -154,20 +180,22 @@ export function updatePet(
     }
     return false;
   };
-  const preference = tame.attributes.distance === true
+  const preference = Number(!!tame.ghost) + (tame.attributes.distance === true
     ? 2
     : tame.attributes.distance === false
     ? 4
-    : 3;
+    : 3);
   const stepsBetween = (a: Position, b: Position) =>
     Math.abs(signedDistance(a.x, b.x, size)) + Math.abs(signedDistance(a.y, b.y, size));
   const follow = () => {
-    if (hero && stepsBetween(position, hero[POSITION]) > preference) moveTo(hero[POSITION], true);
+    if (!hero || (stepsBetween(position, hero[POSITION]) <= preference &&
+      getSightCells(hero).some(p => p.x === position.x && p.y === position.y))) return;
+    moveTo(hero[POSITION], true, false, preference);
   };
   const openStep = (side: Orientation) => {
     const next = around(position, side);
-    return outside(next) && (tame.ghost ? isFlyable(world, next) : isWalkable(world, next)) &&
-      (!waterShy || !isImmersible(world, next));
+    return safe(next) && (tame.ghost ? isFlyable(world, next) : isWalkable(world, next)) &&
+      (!waterShy || dry(next));
   };
   const sidestepOwner = () => {
     if (!hero) return false;
@@ -185,19 +213,62 @@ export function updatePet(
     if (step) pet[MOVABLE].orientations = [step];
     return !!step;
   };
-  const observer = hero ?? world.getEntity([PLAYER, POSITION, STATS]);
-  if (tame.owner === undefined || tame.ghost) {
-    if (!observer || distance(position, observer[POSITION]) > 1) {
-      delete memory.nextSpeech;
-      setPetDialog(world, pet);
-    } else if (tick >= (memory.nextSpeech ?? 0)) {
-      memory.nextSpeech = tick + random(15, 45);
-      setPetDialog(world, pet, random(1, 3) === 1 ? petFoodSprite(choice(...tame.favourites).item) : undefined);
+  const boat = world.getEntityByIdAndComponents(hero?.[PLAYER]?.mount, ["MOUNTABLE", POSITION]);
+  if (boat?.MOUNTABLE.medium === "water") {
+    if (stepsBetween(position, boat[POSITION]) <= 1) boardPet(world, pet);
+    else moveTo(boat[POSITION], true);
+    return;
+  }
+  if (hero && memory.landing) {
+    if (isImmersible(world, position)) {
+      const shore = [hero[POSITION], ...orientations.map(side => around(hero[POSITION], side))]
+        .filter(p => !isImmersible(world, p) && canStep(p))
+        .sort((a, b) => distance(position, a) - distance(position, b));
+      if (shore.some(p => moveTo(p, true, true))) return;
+    } else {
+      delete memory.landing;
     }
   }
+  const observer = hero ?? world.getEntity([PLAYER, POSITION, STATS]);
+  if (tame.expressionUntil !== undefined && tick >= tame.expressionUntil)
+    setPetDialog(world, pet);
+  const besideHero = observer && distance(position, observer[POSITION]) <= 1;
+  if ((tame.owner === undefined || tame.ghost) && tame.expressionUntil === undefined) {
+    if (!besideHero) {
+      delete memory.requested;
+      delete memory.nextSpeech;
+      setPetDialog(world, pet);
+    } else if (tame.ghost) {
+      if (memory.requested === undefined || tick >= (memory.nextSpeech ?? 0)) {
+        setPetDialog(world, pet, tame.favourites.map(({ item }) => getItemSprite(item)), 5);
+        memory.requested = 0;
+        memory.nextSpeech = tick + random(8, 12);
+      }
+    } else {
+      const favourite = tame.favourites[0];
+      const remaining = Math.ceil((stats.maxXp - stats.xp) / favourite.xp);
+      if (memory.requested !== remaining || !pet[TOOLTIP].dialogs.length) {
+        setPetDialog(world, pet, [
+          ...createText(String(remaining)),
+          getItemSprite(favourite.item),
+        ]);
+        pet[TOOLTIP].override = "visible";
+        memory.requested = remaining;
+      }
+    }
+  }
+  const showingExpression = tame.expressionUntil !== undefined ||
+    (tame.owner === undefined && besideHero);
   const waitOutside = () => {
     const structure = hero?.[LAYER]?.structure;
     if (structure) {
+      if (shelter) {
+        if (pet[LAYER]?.structure !== structure) {
+          moveTo(hero[POSITION], true);
+          return true;
+        }
+        return false;
+      }
       if (structure !== memory.structure) {
         memory.structure = structure;
         memory.door = world
@@ -214,7 +285,7 @@ export function updatePet(
           .map((x) => combine(size, door, { x, y: 1 }))
           .concat(orientations.map((side) => around(door, side)))
           .filter(
-            (p) => outside(p) && (canStep(p) || !distance(p, position))
+            (p) => !getEnterable(world, p) && (canStep(p) || !distance(p, position))
           )[0];
         if (waiting) moveTo(waiting, true);
       }
@@ -225,7 +296,7 @@ export function updatePet(
   };
   if (tame.ghost) {
     if (sidestepOwner()) return;
-    if (observer && runPetForaging(world, pet, observer, moveTo, true)) return;
+    if (observer && runPetForaging(world, pet, observer, moveTo, "resting")) return;
     if (!waitOutside()) follow();
     return;
   }
@@ -248,14 +319,16 @@ export function updatePet(
   memory.position = { ...position };
   memory.neighbors = neighbors;
   memory.idle = moved || stirred ? 0 : (memory.idle ?? 0) + 1;
-  if (hero && hero[STATS].hp >= hero[STATS].maxHp) delete tame.healingHits;
+  const needsHealing = hero && tame.healingHits && hero[STATS].hp < hero[STATS].maxHp;
+  const farFromOwner = hero && (!inside || shelter) &&
+    stepsBetween(position, hero[POSITION]) > preference + 2;
   const napAfter =
     (tame.attributes.movement === false ? 12 : 36) *
     (tame.attributes.moody === false ? 2 : 1);
   const vision = getEntityVision(world, pet).visibility;
   const visible = traceCircularVisiblity(world, position, vision);
-  const nearest = visible
-    .flatMap((cell) => getCellEntities(world, cell))
+  const inSight = visible.flatMap((cell) => getCellEntities(world, cell));
+  const enemies = inSight
     .filter(
       (unit) =>
         unit[NPC] &&
@@ -268,45 +341,74 @@ export function updatePet(
     .sort(
       (a, b) =>
         distance(position, a[POSITION]) - distance(position, b[POSITION])
-    )[0];
+    );
+  const nearest = enemies[0];
+  const fairy = enemies.find(unit => unit[NPC]?.type === "fairy");
   const combat = tame.skills.includes("attack") || tame.skills.includes("disc");
   const current = world.getEntityByIdAndComponents(memory.target, [POSITION]);
   const target =
-    combat && hero
+    fairy ?? (combat && hero
       ? current && isFightable(world, current)
         ? current
         : getPetCombatTarget(world, pet, hero) ??
           (tame.attributes.aggression === true ? nearest : undefined)
-      : undefined;
+      : undefined);
   memory.target = target && world.getEntityId(target);
-  if (tame.owner !== undefined || stats.hp >= stats.maxHp) delete memory.attacker;
+  const hit = stats.hp < (memory.hp ?? stats.hp);
+  memory.hp = stats.hp;
+  if (stats.hp >= stats.maxHp) delete memory.attacker;
   const attacker = world.getEntityByIdAndComponents(memory.attacker, [POSITION]);
+  if (tame.owner !== undefined) delete memory.attacker;
   const threat = attacker ?? target ?? nearest;
   const retreatAt = tame.attributes.survival === true
     ? 0
     : tame.attributes.survival === false
     ? 0.5
     : 0.25;
+  // Look at active spell origins; individual effect cells appear only when hit.
+  const incoming = world.getEntities([CASTABLE, SEQUENCABLE, POSITION]).filter(spell => {
+    const cast = spell[SEQUENCABLE].states.spell;
+    const { melee, magic, burn, freeze, knock } = spell[CASTABLE];
+    return (cast?.name === "castWave1" || cast?.name === "castBeam1") &&
+      (melee || magic || burn || freeze || knock || spell[CASTABLE].true) &&
+      !isFriendlyFire(world, spell, pet) && distance(position, spell[POSITION]) <= cast.args.range;
+  });
+  const exposure = (p: Position) => incoming.reduce((risk, spell) => {
+    const cast = spell[SEQUENCABLE].states.spell!;
+    const dx = signedDistance(spell[POSITION].x, p.x, size);
+    const dy = signedDistance(spell[POSITION].y, p.y, size);
+    if (cast.name === "castBeam1") {
+      const direction = orientationPoints[spell[ORIENTABLE]?.facing ?? "up"];
+      const ahead = dx * direction.x + dy * direction.y;
+      return risk + Number(dx * direction.y === dy * direction.x && ahead > 0 && ahead <= cast.args.range);
+    }
+    // Wave corners extend one cell beyond the diamond's sides.
+    const radius = Math.abs(dx) + Math.abs(dy) - Number(!!dx && !!dy);
+    return risk + Math.max(0, cast.args.range - radius);
+  }, 0);
+  const burning = !!getBurning(world, position);
+  const dodge = exposure(position) || burning || hit;
   const danger =
-    attacker || target || (nearest && distance(position, nearest[POSITION]) <= 3);
-  const offering = memory.sleeping !== undefined && !danger && observer &&
-    runPetForaging(world, pet, observer, moveTo, true);
-  if (memory.sleeping !== undefined && (stirred || moved || danger || offering || tame.healingHits)) {
+    dodge || attacker || target || (nearest && distance(position, nearest[POSITION]) <= 3);
+  const supporting = !dodge && hero && inside === pet[LAYER]?.structure && !isDead(world, hero) &&
+    (!danger || stats.hp > stats.maxHp * retreatAt) &&
+    ((needsHealing && moveTo(hero[POSITION])) || providePetSupplies(world, pet, hero, moveTo));
+  const offering = !supporting && memory.sleeping !== undefined && !danger && observer &&
+    runPetForaging(world, pet, observer, moveTo, "resting");
+  if (memory.sleeping !== undefined && (stirred || moved || farFromOwner || danger || offering || supporting || needsHealing)) {
     memory.idle = 0;
     memory.sleeping = undefined;
-    pet[TOOLTIP].idle = undefined;
-    pet[TOOLTIP].override = undefined;
-    pet[TOOLTIP].changed = true;
+    if (!showingExpression) setPetDialog(world, pet);
   }
-  if (offering) return;
-  if (memory.sleeping === undefined && !danger && !tame.healingHits && memory.idle >= napAfter) {
+  if (supporting || offering) return;
+  if (memory.sleeping === undefined && !farFromOwner && !danger && !needsHealing && memory.idle >= napAfter) {
     memory.sleeping = tick;
     memory.nextRecovery = tick + 3;
   }
   if (memory.sleeping !== undefined) {
     const elapsed = tick - memory.sleeping;
     const idle = elapsed % 2 ? sleep2 : sleep1;
-    if (pet[TOOLTIP].idle !== idle) {
+    if (!showingExpression && pet[TOOLTIP].idle !== idle) {
       pet[TOOLTIP].idle = idle;
       pet[TOOLTIP].override = "idle";
       pet[TOOLTIP].changed = true;
@@ -320,7 +422,18 @@ export function updatePet(
     return;
   }
   if (sidestepOwner()) return;
-  if (threat && (!target || stats.hp <= stats.maxHp * retreatAt)) {
+  if (dodge) {
+    const avoid = (p: Position) => attacker && hit ? getDistance(p, attacker[POSITION], size, 1) : 0;
+    const safer = [position, ...orientations.filter(openStep).map(side => around(position, side))]
+      .sort((a, b) => exposure(a) - exposure(b) || avoid(b) - avoid(a) ||
+        (burning || hit ? Number(a === position) - Number(b === position) : 0))[0];
+    if (safer !== position && moveTo(safer)) return;
+  }
+  if (!dodge && danger && hero && !isDead(world, hero) && inside === pet[LAYER]?.structure) {
+    const sight = stats.hp <= stats.maxHp * retreatAt ? [position, ...near] : getSightCells(hero);
+    if (runPetForaging(world, pet, hero, moveTo, "combat", sight)) return;
+  }
+  if (threat && !fairy && (!target || stats.hp <= stats.maxHp * retreatAt)) {
     if (target && tame.skills.includes("disc"))
       shootPetDisc(world, pet, target);
     if (distance(position, threat[POSITION]) <= 3 || (attacker && tick < (memory.fleeUntil ?? 0))) {
@@ -341,17 +454,19 @@ export function updatePet(
       return;
     }
     if (target || attacker) { follow(); return; }
-  } else if (hero && tame.healingHits && !hero[LAYER]?.structure && !isDead(world, hero)) {
-    moveTo(hero[POSITION]);
-    return;
   } else if (target) {
     memory.idle = 0;
+    if (fairy) {
+      ensurePetWeapon(world, pet);
+      moveTo(fairy[POSITION]);
+      return;
+    }
     if (
       tick >= (memory.refuseUntil ?? 0) &&
       tame.attributes.moody === true &&
       random(1, 32) === 1
     ) {
-      setPetDialog(world, pet, blocked);
+      if (!showingExpression) setPetDialog(world, pet, blocked, 4);
       memory.refuseUntil = tick + 3;
     }
     if (tick < (memory.refuseUntil ?? 0)) return;
@@ -365,6 +480,26 @@ export function updatePet(
     return;
   }
 
+  if (stats.hp < stats.maxHp && !hero?.[LAYER]?.structure) {
+    const fountain = inSight.find(unit => unit[SEQUENCABLE]?.states.fountain);
+    if (fountain) {
+      if (distance(position, fountain[POSITION]) <= 1) return;
+      if (moveTo(fountain[POSITION], true, true)) return;
+    }
+  }
+
+  // A pet will occasionally scratch a chick beside it, even before taming.
+  if (random(1, 1000) === 1) {
+    const chick = inSight.find(unit => unit[NPC]?.type === "chick" &&
+      unit[LAYER]?.structure === pet[LAYER]?.structure &&
+      stepsBetween(position, unit[POSITION]) === 1 && isFightable(world, unit));
+    if (chick && moveTo(chick[POSITION])) {
+      ensurePetWeapon(world, pet);
+      memory.target = world.getEntityId(chick);
+      return;
+    }
+  }
+
   if (!hero) {
     if (observer && runPetForaging(world, pet, observer, moveTo)) return;
     if (tame.owner !== undefined || (observer && distance(position, observer[POSITION]) <= 1)) return;
@@ -374,7 +509,7 @@ export function updatePet(
       const walk = patterns.findIndex(pattern => pattern.name === "move");
       if (walk !== -1) patterns.splice(walk, 1);
       const spots = memory.walkSpots.filter(p => distance(position, p) > 1 && canStep(p) &&
-        !(waterShy && isImmersible(world, p)));
+        (!waterShy || dry(p)));
       if (spots.length) patterns.push({ name: "move", memory: { targetPosition: choice(...spots) } });
       memory.nextWalk = tick + random(9, 20);
       return;
@@ -384,15 +519,16 @@ export function updatePet(
   if (waitOutside()) return;
 
   if (runPetForaging(world, pet, hero, moveTo)) return;
+  if (memory.refuseUntil !== undefined && tick < memory.refuseUntil) return;
   memory.nextSpeech ??= tick + random(15, 45);
-  if (tick >= memory.nextSpeech) {
+  if (!showingExpression && tick >= memory.nextSpeech) {
     const quiet = tame.attributes.vocal === false;
     const chatty = tame.attributes.vocal === true;
     memory.nextSpeech =
       tick +
       random(quiet ? 90 : chatty ? 28 : 55, quiet ? 180 : chatty ? 75 : 140);
     if (
-      (stats.hp < stats.maxHp * (quiet ? 0.25 : 0.5) ||
+      (tame.thirsty || stats.hp < stats.maxHp * (quiet ? 0.25 : 0.5) ||
         (!quiet && random(1, 5) === 1)) &&
       tame.favourites.length
     ) {
@@ -401,18 +537,30 @@ export function updatePet(
         : tame.attributes.thirst === false
         ? 9
         : 5;
-      tame.thirsty = random(1, thirst) === 1;
+      tame.thirsty ||= random(1, thirst) === 1;
+      if (tame.thirsty) memory.nextSpeech = tick + random(quiet ? 15 : 8, quiet ? 24 : 14);
       setPetDialog(
         world,
         pet,
-        petFoodSprite(
+        getItemSprite(
           tame.thirsty
             ? { consume: "bucket", material: "iron", element: "water" }
             : choice(...tame.favourites).item
         )
       );
+    } else if (memory.playSince !== undefined || random(1, 8) === 1) {
+      memory.playSince ??= tick;
+      if (tick - memory.playSince >= 120 && random(1, 4) === 1) {
+        memory.refuseUntil = tick + 5;
+        setPetDialog(world, pet, blocked, 5);
+        return;
+      }
+      setPetDialog(world, pet, getItemSprite({ stackable: "stick" }), 5);
     } else if (!quiet && random(1, chatty ? 2 : 5) === 1) {
-      setPetDialog(world, pet, choice<string | Sprite>(heart, "...", "!", "?"));
+      const skills = tame.skills.map(petSkillSprite);
+      setPetDialog(world, pet, choice<string | Sprite | Sprite[]>(
+        heart, "...", "!", "?", ...(skills.length ? [skills] : [])
+      ), 4);
     } else {
       setPetDialog(world, pet);
     }
@@ -438,12 +586,11 @@ export function updatePet(
     if (plant?.[POSITION] && pet[BUMPABLE]) {
       const side = relativeOrientations(world, position, plant[POSITION], 1)[0];
       bumpEntity(world, pet, side);
-      harvestResource(world, plant, 1);
       return;
     }
   }
   const surroundings = (p: Position) =>
-    Number(tame.attributes.water === true && isImmersible(world, p)) +
+    Number(tame.attributes.water === true && !dry(p)) +
     (tame.attributes.plants === true
       ? 1
       : tame.attributes.plants === false
@@ -459,7 +606,7 @@ export function updatePet(
       .filter(
         (p) =>
           canStep(p) &&
-          (!waterShy || !isImmersible(world, p)) &&
+          (!waterShy || dry(p)) &&
           Math.abs(stepsBetween(p, hero[POSITION]) - preference) <= 1
       )
       .sort((a, b) => surroundings(b) - surroundings(a))[0];
@@ -478,7 +625,7 @@ export function updatePet(
     const side = orientations[index];
     if (
       canStep(around(position, side)) &&
-      !(waterShy && isImmersible(world, around(position, side)))
+      (!waterShy || dry(around(position, side)))
     ) {
       pet[MOVABLE].orientations = [side];
       memory.circle = index === 3 ? undefined : index + 1;

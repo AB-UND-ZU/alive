@@ -31,6 +31,8 @@ export type Tameable = {
   stat: "hp" | "melee" | "armor" | "haste";
   attributes: Partial<Record<PetTrait, boolean>>;
   skills: PetSkill[];
+  heartColor?: string;
+  expressionUntil?: number;
   thirsty?: boolean;
   kills?: number;
   healingHits?: number;

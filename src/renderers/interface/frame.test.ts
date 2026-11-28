@@ -1,3 +1,4 @@
+import { gainPetXp } from "../../engine/systems/petCare";
 import { resolveSprite } from "../../game/assets/spriteIds";
 import { createCell } from "../../bindings/creation";
 import { HOMING } from "../../engine/components/homing";
@@ -68,15 +69,17 @@ describe("Scene frame", () => {
     ).toEqual([]);
   });
 
-  it("keeps a pet visible in explored fog like a dormant rose", () => {
+  it("shows a pet in explored fog only after taming", () => {
     const world = createAreaWorld("| ♀PR |", { size: 32, legend: { P: "pet", R: "rose" } });
-    for (const creature of world.getEntities(["NPC", FOG, SPRITE])) {
-      creature[FOG].visibility = "fog";
-      const frame = getSceneFrame(world, 15, 11);
-      expect(frame.some(entry => entry.entity === creature &&
-        entry.sprite.id === creature[SPRITE].id && entry.fog && !entry.hidden)).toBe(true);
-    }
-    expect(world.getEntities(["TAMEABLE"])).toHaveLength(1);
+    const pet = world.getEntities(["TAMEABLE", FOG, SPRITE])[0];
+    const rose = world.getEntities(["NPC", FOG, SPRITE]).find(entity => entity.NPC.type === "rose")!;
+    pet[FOG].visibility = rose[FOG].visibility = "fog";
+    const shown = (entity: typeof rose | typeof pet) => getSceneFrame(world, 15, 11)
+      .some(entry => entry.entity === entity && entry.sprite.id === entity[SPRITE].id && !entry.hidden);
+    expect(shown(rose)).toBe(true);
+    expect(shown(pet)).toBe(false);
+    gainPetXp(world, pet, world.getEntityId(getHero(world)!), 3);
+    expect(shown(pet)).toBe(true);
   });
 
   it("uses the active dialog camera without advancing game time", () => {

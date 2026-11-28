@@ -94,6 +94,21 @@ describe("hook", () => {
     expect(countItems(world, hero, { stackable: "worm" })).toBe(2);
   });
 
+  it.each(["held", "released"])("waits for a new casting direction after %s movement", (movement) => {
+    const { world, hero } = setupTools(lake, [woodHook, worms]);
+    holdMove(world, ["right"]);
+    if (movement === "released") holdMove(world, []);
+
+    act(world, "skill");
+    step(world, 45);
+    expect(hero[CONDITIONABLE].hook).toBeDefined();
+    expect(hero[CONDITIONABLE].hook?.orientation).toBeUndefined();
+    expect(getBait(world)).toBeUndefined();
+
+    holdUntil(world, "up", () => !!hero[CONDITIONABLE].hook?.orientation);
+    expect(hero[CONDITIONABLE].hook?.orientation).toBe("up");
+  });
+
   it("casts the bait in the pressed direction up to the hook range", () => {
     const { world, hero } = setupTools(lake, [woodHook, worms]);
     const { range } = getEquipmentStats(woodHook);

@@ -1,10 +1,20 @@
+import { feedPet } from "../../engine/systems/petCare";
+import { entities } from "../../engine";
+import { WeatherSequence } from "../../engine/components/sequencable";
+import { none } from "../../game/assets/sprites";
+import { mountVessel, unmountVessel } from "../../engine/systems/vessel";
+import { createCell, assignBuilding } from "../../bindings/creation";
+import { openDoor } from "../../engine/systems/trigger";
+import { createSequence } from "../../engine/systems/sequence";
+import { setIdentifier } from "../../engine/utils";
+import { moveEntity, registerEntity } from "../../engine/systems/map";
 import { POSITION } from "../../engine/components/position";
 import { TAMEABLE } from "../../engine/components/tameable";
 import { getSceneFrame } from "../../renderers/interface/frame";
 import { colors } from "../../game/assets/colors";
 import { advanceUntil, assertHero, countItems, giveItems, holdMove, step, walk } from "../../testing/harness";
 import { receiveGeneratedWorld, saveAndLoad } from "../../testing/saves";
-import { createCreatureWorld, distanceBetween } from "./helpers";
+import { advanceTicks, countDrops, createCreatureWorld, distanceBetween } from "./helpers";
 
 const room = "|███████|\n|█ ♀P P█|\n|███████|";
 
@@ -65,4 +75,110 @@ it("keeps owned pets and their inventory through a save and level change", () =>
   expect(countItems(world, companion, { stackable: "salmon" })).toBe(1);
   expect(distanceBetween(world, companion[POSITION], assertHero(world)[POSITION])).toBe(1);
   step(world, 40);
+});
+
+it("collects all feeding XP before boarding its owner’s boat", () => {
+  const { world, hero } = createCreatureWorld("| ♀P≈≈ |", { P: "pet" });
+  const pet = world.getEntities([TAMEABLE, POSITION, "STATS", "INVENTORY"])[0];
+  pet[TAMEABLE].owner = world.getEntityId(hero);
+  pet[TAMEABLE].favourites.push({ item: { stackable: "tuna" }, xp: 2 });
+  const [fish] = giveItems(world, pet, [{ stackable: "tuna", amount: 1 }]);
+  expect(feedPet(world, pet, hero, world.assertComponents(fish, ["ITEM"]))).toBe(true);
+  const boat = createCell(world, { x: pet.POSITION.x + 1, y: pet.POSITION.y }, "boat", "visible").cell!;
+  mountVessel(world, hero, boat);
+  advanceUntil(world, () => !pet.POSITION);
+  expect(pet.STATS.xp).toBe(2);
+  expect(hero.STATS.xp).toBe(0);
+});
+
+it("catches a departing boat, travels aboard through a save and walks ashore", () => {
+  const start = createCreatureWorld("|         ≈≈≈≈≈≈≈≈ |\n|  P      ♀≈≈≈≈≈≈≈ |\n|         ≈≈≈≈≈≈≈≈ |\n|                  |", { P: "pet" });
+  let world = start.world;
+  const pet = world.getEntities([TAMEABLE, POSITION])[0];
+  const id = world.getEntityId(pet);
+  pet[TAMEABLE].owner = world.getEntityId(start.hero);
+  const boat = createCell(world, { x: start.hero.POSITION.x + 1, y: 1 }, "boat", "visible").cell!;
+  const boatId = world.getEntityId(boat);
+  mountVessel(world, start.hero, boat);
+  const from = pet.POSITION.x;
+  advanceUntil(world, () => pet.POSITION.x > from);
+  moveEntity(world, boat, { x: 14, y: 1 });
+  moveEntity(world, start.hero, boat.POSITION!);
+  advanceUntil(world, () => !pet.POSITION);
+  expect(getSceneFrame(world, 21, 9).some(entry => entry.entity === pet)).toBe(false);
+  world = saveAndLoad(world);
+  const passenger = world.assertByIdAndComponents(id, [TAMEABLE]);
+  const vessel = world.assertByIdAndComponents(boatId, [POSITION]);
+  const hero = assertHero(world);
+  moveEntity(world, vessel, { x: 14, y: 2 });
+  moveEntity(world, hero, vessel.POSITION);
+  unmountVessel(world, hero, vessel);
+  expect(passenger.POSITION).toEqual(vessel.POSITION);
+  walk(world, "down");
+  advanceUntil(world, () => passenger.POSITION!.y !== vessel.POSITION.y);
+  expect(distanceBetween(world, passenger.POSITION!, hero.POSITION)).toBeLessThanOrEqual(3);
+});
+
+it("shelters in the owner's building during local rain and waits outside again when it clears", () => {
+  const { world, hero } = createCreatureWorld(
+    "|              |\n| ╒╦╦╕         |\n| ╠╬╬╣    P    |\n| ╞╪╪╡         |\n| └D┴┘         |\n|  ♀           |\n|              |", { P: "pet", D: "wood_door" }
+  );
+  const [pet] = world.getEntities([TAMEABLE, POSITION, "LAYER"]);
+  pet[TAMEABLE].owner = world.getEntityId(hero);
+  const { building, door } = assignBuilding(world, { x: 3, y: 2 });
+  openDoor(world, door!);
+  walk(world, "up", 3);
+  const storm = entities.createAnchor(world, { POSITION: { ...hero.POSITION }, SEQUENCABLE: { states: {} }, SPRITE: none, RENDERABLE: { generation: 0 } });
+  registerEntity(world, storm);
+  setIdentifier(world, storm, "storm");
+  createSequence<"weather", WeatherSequence>(world, storm, "weather", "weatherStorm", {
+    position: { ...hero.POSITION }, intensity: 0, drops: [], generation: 0, type: "rain", start: -500, end: Infinity,
+  });
+  advanceUntil(world, () => pet.LAYER.structure === world.getEntityId(building));
+  storm.SEQUENCABLE.states.weather!.args.end = world.metadata.gameEntity.RENDERABLE.generation;
+  advanceUntil(world, () => !pet.LAYER.structure && pet.POSITION.y > hero.POSITION.y);
+});
+
+it("drops one Air element when a wild pet dies", () => {
+  const { world } = createCreatureWorld("| ♀ P |", { P: "pet" });
+  const [pet] = world.getEntities([TAMEABLE, "STATS"]);
+  expect(pet.STATS.resist).toBe(2);
+  expect(pet.STATS.haste).toBeGreaterThanOrEqual(1);
+  pet.STATS.hp = 0;
+  advanceUntil(world, () => countDrops(world, { stackable: "resource", element: "air" }) > 0);
+  advanceTicks(world, 2);
+  expect(countDrops(world, { stackable: "resource", element: "air" })).toBe(1);
+});
+
+it("swaps on the owner's step when both movement clocks are ready", () => {
+  const { world, hero } = createCreatureWorld("|    ♀P    |", { P: "pet" });
+  const [pet] = world.getEntities([TAMEABLE, POSITION, "MOVABLE"]);
+  Object.assign(pet[TAMEABLE], { owner: world.getEntityId(hero), attributes: {} });
+  advanceTicks(world, 2);
+  const start = { ...hero.POSITION };
+  const next = { ...pet.POSITION };
+  holdMove(world, ["right"]);
+  for (const unit of [pet, hero]) {
+    const clock = world.assertByIdAndComponents(unit.MOVABLE.reference, ["REFERENCE"]).REFERENCE;
+    clock.delta = clock.tick;
+  }
+  advanceUntil(world, () => hero.POSITION.x === next.x);
+  expect(pet.POSITION).toEqual(start);
+});
+
+it("revives from damage over time without a zero hit and takes the next damage tick normally", () => {
+  const { world, hero } = createCreatureWorld("| ♀ P |", { P: "pet" });
+  const [pet] = world.getEntities([TAMEABLE, POSITION, "STATS", "AFFECTABLE", "SEQUENCABLE", "INVENTORY"]);
+  pet[TAMEABLE].owner = world.getEntityId(hero);
+  pet.STATS.hp = 2;
+  pet.AFFECTABLE.dot += 2;
+  advanceUntil(world, () => !!pet[TAMEABLE].ghost);
+  advanceUntil(world, () => !pet.SEQUENCABLE.states.marker);
+  const [food] = giveItems(world, pet, [{ ...pet[TAMEABLE].favourites[0].item, amount: 1 }]);
+  expect(feedPet(world, pet, hero, world.assertComponents(food, ["ITEM"]))).toBe(true);
+  advanceTicks(world, 1);
+  expect(pet.STATS.hp).toBe(pet.STATS.maxHp);
+  expect(pet.SEQUENCABLE.states.marker).toBeUndefined();
+  pet.AFFECTABLE.dot++;
+  advanceUntil(world, () => pet.STATS.hp === pet.STATS.maxHp - 1);
 });

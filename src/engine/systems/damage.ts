@@ -885,7 +885,8 @@ export default function setupDamage(world: World) {
         if (hasComponent(entity, TAMEABLE) && !canPetStrike(world, entity, getRoot(world, targetEntity))) continue;
 
         // skip if not damaging enemy or healing ally
-        const friendly = isFriendlyFire(world, entity, targetEntity);
+        const friendly = isFriendlyFire(world, entity, targetEntity) &&
+          !(entity[TAMEABLE] && targetEntity[NPC]?.type === "chick");
         const healing =
           weaponStats.heal > 0 && (friendly || !weaponStats.melee);
 

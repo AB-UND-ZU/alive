@@ -126,7 +126,7 @@ export const getChangedClassStats = (
 export const hasLevelUp = (world: World, entity: TypedEntity<"STATS">) =>
   entity[STATS].level > 0 && entity[STATS].xp >= entity[STATS].maxXp;
 
-export function releaseXp(
+function releaseXp(
   world: World, entity: TypedEntity<"POSITION">, offering?: XpSequence["offering"]
 ) {
   const castableEntity = entities.createSpell(world, {
@@ -242,11 +242,12 @@ export default function setupLeveling(world: World) {
       LOOTABLE,
       POSITION,
     ])) {
-      // skip if not visible or not in range
-      if (
+      // Feeding XP is already earned and follows the pet even outside the hero's sight.
+      const offering = entity[LOOTABLE].offering;
+      if (!offering && (
         entity[FOG].visibility !== "visible" ||
         getDistance(hero[POSITION], entity[POSITION], size, 1) > 4
-      )
+      ))
         continue;
 
       // skip if not XP drop
@@ -259,7 +260,7 @@ export default function setupLeveling(world: World) {
       const xpEntity = world.assertByIdAndComponents(xpItem, [ITEM]);
       const amount = xpEntity[ITEM].amount;
 
-      releaseXp(world, entity);
+      releaseXp(world, entity, offering);
 
       if (amount <= 1) {
         disposeEntity(world, entity);

@@ -11,6 +11,7 @@ import {
   trigger,
   walk,
 } from "../../testing/harness";
+import { resolveSprite } from "../../game/assets/spriteIds";
 import { RESTORABLE } from "../components/restorable";
 import { closePopup } from "./popup";
 import { POPUP } from "../components/popup";
@@ -33,6 +34,7 @@ import { playedSounds, resetPlayedSounds } from "../../testing/env";
 import {
   createSave,
   getSaveSummaries,
+  getSummary,
   saveVersion,
   SaveSummary,
   setSaveSummaries,
@@ -120,6 +122,24 @@ describe("continue portal", () => {
     trigger(world, "down");
     step(world, 15);
     expect(getVerticalIndex(world, popup)).toBe(1);
+  });
+
+  it("shows the saved hero's tamed pet with its own markings", () => {
+    const savedWorld = createAreaWorld("| ♀P |", { legend: { P: "pet" } });
+    const pet = savedWorld.getEntities(["TAMEABLE", "SPRITE"])[0];
+    const save = () => getSummary(createSave(savedWorld));
+    expect(save().pet).toBeUndefined();
+
+    pet.TAMEABLE.owner = savedWorld.getEntityId(assertHero(savedWorld));
+    const summary = save();
+    expect(summary.pet).toEqual(pet.SPRITE);
+    setSaveSummaries([summary]);
+    const { world } = openSaves();
+    const markings = resolveSprite(pet.SPRITE).layers;
+    const visible = world.getEntities(["PARTICLE", "SPRITE"]).map(particle =>
+      resolveSprite(particle.SPRITE).layers.slice(-markings.length)
+    );
+    expect(visible).toContainEqual(markings);
   });
 
   it("stores load state in Restorable and preserves the confirmed ID in snapshots", () => {

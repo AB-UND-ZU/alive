@@ -56,6 +56,7 @@ import { assignQuickItem } from "./popup";
 
 export const isLootable = (world: World, entity: TypedEntity) =>
   hasComponent(entity, LOOTABLE) &&
+  !entity[LOOTABLE].offering &&
   hasComponent(entity, INVENTORY) &&
   entity[INVENTORY].items.length > 0;
 

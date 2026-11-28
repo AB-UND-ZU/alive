@@ -3,6 +3,7 @@ import { submitChat } from "../../engine/systems/popup";
 import { getDistance } from "../../game/math/std";
 import { sleep1, sleep2 } from "../../game/assets/ui";
 import { getHarvestable } from "../../engine/systems/harvest";
+import { gainPetXp } from "../../engine/systems/petCare";
 import { getSequence } from "../../engine/systems/sequence";
 import { INVENTORY } from "../../engine/components/inventory";
 import { SPRITE } from "../../engine/components/sprite";
@@ -20,7 +21,7 @@ import { ITEM } from "../../engine/components/item";
 import { LOOTABLE } from "../../engine/components/lootable";
 import { POSITION } from "../../engine/components/position";
 import { STATS } from "../../engine/components/stats";
-import { PetSkill, TAMEABLE } from "../../engine/components/tameable";
+import { PetSkill, petSkills, TAMEABLE } from "../../engine/components/tameable";
 import { collectItem, getLootable } from "../../engine/systems/collect";
 import {
   advanceUntil,
@@ -179,18 +180,21 @@ it("heals its injured owner with melee hits and delivers one mana drop for two k
   expect(getMessages(world, hero)).not.toContain("+0.25");
 });
 
-it("keeps healing hits for injuries sustained before a kill", () => {
+it("banks a healing hit at full health and spends it when the hero is injured", () => {
   const { world, hero, pet } = setup("| ♀P  E  |", ["disc", "heal"]);
   pet[TAMEABLE].attributes.aggression = true;
   const prism = getCreature(world, "prism");
   prism[BEHAVIOUR].patterns = [];
   prism[STATS].hp = 2;
   prism[STATS].resist = 0;
+  hero[STATS].hp = hero[STATS].maxHp = 20;
   advanceUntil(world, () => !!hero.PLAYER?.defeatedUnits.prism);
-  hero[STATS].hp -= 1;
   advanceTicks(world, 10);
-  expect(hero[STATS].hp).toBe(hero[STATS].maxHp - 1);
   expect(pet.MELEE!.hits).toBe(0);
+  hero[STATS].hp -= 1;
+  advanceUntil(world, () => hero[STATS].hp === 20);
+  expect(pet.MELEE!.hits).toBe(1);
+  expect(getMessages(world, hero)).toContain("+1");
 });
 
 it("joins the owner's melee attack with its natural weapon", () => {
@@ -229,6 +233,24 @@ it("eats nearby food when injured without learning to collect or becoming tamed"
   advanceUntil(world, () => pet[STATS].hp === 5);
   expect(getLootable(world, { x: 5, y: 0 })).toBeUndefined();
   expect(pet[TAMEABLE].owner).toBeUndefined();
+});
+
+it("lets a newly tamed healer scratch grass without digging up grain", () => {
+  const { world, hero } = createCreatureWorld("| ♀P, |", { P: "pet" });
+  const pet = world.assertComponents(getCreature(world, "pet"), [TAMEABLE, "BUMPABLE"]);
+  pet[TAMEABLE].attributes = { aggression: true };
+  const grass = getHarvestable(world, { x: 3, y: 0 })!;
+  const healRoll = (petSkills.indexOf("heal") + 0.5) / petSkills.length;
+  const random = jest.spyOn(Math, "random").mockReturnValue(0).mockReturnValueOnce(healRoll);
+  try {
+    gainPetXp(world, pet, world.getEntityId(hero), 3);
+    expect(pet[TAMEABLE].skills).toEqual(["heal"]);
+    advanceUntil(world, () => pet.BUMPABLE.orientation === "right");
+    expect(grass.HARVESTABLE.amount).toBe(grass.HARVESTABLE.maximum);
+    expect(world.getEntities([ITEM]).some(entity => entity[ITEM].stackable === "grain")).toBe(false);
+  } finally {
+    random.mockRestore();
+  }
 });
 
 it("digs out a stump and brings its stick even without the collecting skill", () => {
@@ -554,4 +576,108 @@ it("delivers a merged stack above 99 after saving during the second pickup", () 
   advanceUntil(loaded, () => gifts().length > 0);
   expect(gifts()).toHaveLength(1);
   expect(countItems(loaded, gifts()[0], { stackable: "arrow" })).toBe(160);
+});
+
+it("keeps spare hearts and mana without Collect, eats a heart, and offers one pickup at a time", () => {
+  const { world, hero, pet } = setup("\n|       |\n| ♀P    |\n|       |", []);
+  hero[STATS].hp = hero[STATS].maxHp = 20;
+  hero[STATS].mp = hero[STATS].maxMp = 10;
+  pet[STATS].hp--;
+  for (const stat of ["hp", "mp"] as const) {
+    const item = { stat, amount: 3 };
+    createItemAsDrop(world, { x: stat === "hp" ? 3 : 4, y: 1 }, entities.createItem, {
+      [ITEM]: item, [SPRITE]: getItemSprite(item),
+    });
+  }
+  const held = (stat: "hp" | "mp") => countItems(world, pet, { stat });
+  const offered = (stat: "hp" | "mp") =>
+    world.getEntities([LOOTABLE, INVENTORY]).filter(drop =>
+      drop[LOOTABLE].droppedBy === world.getEntityId(pet) && countItems(world, drop, { stat }) > 0
+    );
+  advanceUntil(world, () => held("hp") === 2 && held("mp") === 3 && pet[STATS].hp === pet[STATS].maxHp);
+  advanceTicks(world, 4);
+  expect(offered("hp")).toHaveLength(0);
+  expect(offered("mp")).toHaveLength(0);
+  hero[STATS].hp -= 2;
+  advanceUntil(world, () => offered("hp").length === 1);
+  advanceTicks(world, 5);
+  expect(held("hp")).toBe(1);
+  const first = offered("hp")[0];
+  expect(countItems(world, first, { stat: "hp" })).toBe(1);
+  collectItem(world, hero, first);
+  advanceUntil(world, () => hero[STATS].hp === 19 && offered("hp").length === 1);
+  collectItem(world, hero, offered("hp")[0]);
+  advanceUntil(world, () => hero[STATS].hp === 20);
+  expect(held("hp")).toBe(0);
+
+  hero[STATS].mp--;
+  advanceUntil(world, () => offered("mp").length === 1);
+  expect(held("mp")).toBe(2);
+  hero[STATS].mp = hero[STATS].maxMp;
+  advanceUntil(world, () => held("mp") === 3);
+  expect(offered("mp")).toHaveLength(0);
+});
+
+it("eats and stores hearts while its opponent is still alive, then offers the spare heart", () => {
+  const { world, pet, hero } = setup("|          |\n| ♀ P  E   |\n|          |", ["attack"]);
+  const enemy = getCreature(world, "prism");
+  enemy[BEHAVIOUR].patterns = [];
+  enemy[STATS].maxHp = enemy[STATS].hp = 100;
+  hero[STATS].maxHp = hero[STATS].hp = 20;
+  pet[TAMEABLE].attributes.aggression = true;
+  pet[STATS].hp--;
+  advanceUntil(world, () => enemy[STATS].hp < 100);
+  const heart = { stat: "hp", amount: 1 } as const;
+  const dropHeart = () => createItemAsDrop(world, { x: pet[POSITION].x - 2, y: pet[POSITION].y }, entities.createItem, {
+    [ITEM]: heart, [SPRITE]: getItemSprite(heart),
+  });
+  dropHeart();
+  advanceUntil(world, () => pet[STATS].hp === pet[STATS].maxHp);
+  dropHeart();
+  advanceUntil(world, () => countItems(world, pet, heart) === 1);
+  expect(hero[STATS].hp).toBe(hero[STATS].maxHp);
+  expect(enemy[STATS].hp).toBeGreaterThan(0);
+  hero[STATS].hp--;
+  const offered = () => world.getEntities([LOOTABLE, INVENTORY]).find(drop =>
+    drop[LOOTABLE].droppedBy === world.getEntityId(pet) && countItems(world, drop, heart) === 1
+  );
+  advanceUntil(world, () => !!offered());
+  expect(collectItem(world, hero, offered()!)).toBe(true);
+  advanceUntil(world, () => hero[STATS].hp === hero[STATS].maxHp);
+  expect(enemy[STATS].hp).toBeGreaterThan(0);
+});
+
+it("earns healing and mana when the enemy falls, before its death animation finishes", () => {
+  const { world, hero, pet } = setup("\n|      |\n| P♀E  |\n|      |", ["heal", "mana"]);
+  const enemy = getCreature(world, "prism");
+  enemy[BEHAVIOUR].patterns = [];
+  enemy[STATS].hp = 1;
+  enemy[STATS].armor = 0;
+  hero[STATS].maxHp = 20;
+  hero[STATS].hp = 19;
+  hero[STATS].mp = hero[STATS].maxMp = 10;
+  pet[TAMEABLE].kills = 1;
+  giveItems(world, hero, [{ weapon: "sword", material: "iron", amount: 1 }]);
+  holdMove(world, ["right"]);
+  advanceUntil(world, () => !!getSequence(world, enemy, "decay"));
+  holdMove(world, []);
+  expect(countItems(world, pet, { stat: "mp" })).toBe(1);
+  expect(pet[TAMEABLE].healingHits).toBe(1);
+  advanceUntil(world, () => pet.MELEE!.hits > 0);
+  expect(hero[STATS].hp).toBe(hero[STATS].maxHp);
+  expect(getMessages(world, hero)).toContain("+1");
+  expect(countItems(world, pet, { stat: "mp" })).toBe(1);
+});
+
+it("leaves permanent stat pickups in single units", () => {
+  const { world, pet } = setup("| ♀P    |", ["collect"]);
+  const item = { stat: "power", amount: 3 } as const;
+  createItemAsDrop(world, { x: 4, y: 0 }, entities.createItem, {
+    [ITEM]: item, [SPRITE]: getItemSprite(item),
+  });
+  const drops = () => world.getEntities([LOOTABLE, INVENTORY]).filter(drop =>
+    drop[LOOTABLE].droppedBy === world.getEntityId(pet) && countItems(world, drop, { stat: "power" }) > 0
+  );
+  advanceUntil(world, () => drops().length === 3);
+  expect(drops().map(drop => countItems(world, drop, { stat: "power" }))).toEqual([1, 1, 1]);
 });

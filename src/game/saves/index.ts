@@ -7,6 +7,8 @@ import { Item, ITEM } from "../../engine/components/item";
 import { PLAYER } from "../../engine/components/player";
 import { SOUL } from "../../engine/components/soul";
 import { SPAWNABLE } from "../../engine/components/spawnable";
+import { SPRITE, SpriteRef } from "../../engine/components/sprite";
+import { TAMEABLE } from "../../engine/components/tameable";
 import { STATS } from "../../engine/components/stats";
 import { createSnapshot, restoreSnapshot, WorldSnapshot } from "../../engine/snapshot";
 import { ClassKey } from "../balancing/classes";
@@ -28,6 +30,7 @@ export type SaveSummary = {
   classKey: ClassKey;
   hairColor: string;
   heroLevel: number;
+  pet?: SpriteRef;
   // equipped gear, then accessories
   items: SaveItem[];
   playtime: number;
@@ -96,6 +99,8 @@ export const createSave = (
   if (!player) throw new Error("Unable to save without a player!");
 
   const name = getSaveName(date);
+  const owner = world.getEntityId(player);
+  const pet = world.getEntities([TAMEABLE, SPRITE]).find(entity => entity[TAMEABLE].owner === owner);
 
   return {
     id:
@@ -106,6 +111,7 @@ export const createSave = (
     classKey: player[SPAWNABLE].classKey,
     hairColor: player[SPAWNABLE].hairColor,
     heroLevel: player[STATS]?.level ?? player[SOUL]?.stats.level ?? 1,
+    pet: pet?.[SPRITE],
     items: getEquippedItems(world, player),
     playtime: world.metadata.playtime,
     kills: player[PLAYER].kills,

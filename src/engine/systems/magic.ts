@@ -780,10 +780,10 @@ export default function setupMagic(world: World) {
       const dot = entity[AFFECTABLE].dot;
       const delta = dot - (entityDots[entityId] || 0);
 
-      if (delta === 0) continue;
+      entityDots[entityId] = dot;
+      if (delta <= 0) continue;
 
       // burst bubble on dot
-      entityDots[entityId] = dot;
       if (attemptBubbleAbsorb(world, entity)) continue;
 
       const { damage, hp } = calculateDamage(

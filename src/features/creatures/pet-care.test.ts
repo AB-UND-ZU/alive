@@ -5,7 +5,8 @@ import { REFERENCE } from "../../engine/components/reference";
 import { POSITION } from "../../engine/components/position";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { getEquipmentStats } from "../../game/balancing/equipment";
-import { none } from "../../game/assets/sprites";
+import { none, xpDot } from "../../game/assets/sprites";
+import { dropBagItem } from "../../engine/systems/drop";
 import { ITEM } from "../../engine/components/item";
 import { MOVABLE } from "../../engine/components/movable";
 import { SPRITE } from "../../engine/components/sprite";
@@ -21,6 +22,7 @@ import {
   face,
   advanceUntil,
   countItems,
+  getMessages,
   giveItems,
   holdMove,
 } from "../../testing/harness";
@@ -46,13 +48,15 @@ const setup = () => {
 };
 
 describe("pet care", () => {
-  it.each(["salmon", "pike"] as const)("tames a wild pet with three %s dropped from the Bag", (stackable) => {
+  it("tames a wild pet with three of the fish it requests dropped from the Bag", () => {
     const { world, hero, pet } = setup();
-    const favourite = { stackable };
+    const [wanted] = pet[TAMEABLE].favourites;
+    const favourite = wanted.item;
     expect(pet[STATS].level).toBe(0);
     expect(pet[TAMEABLE].skills).toEqual([]);
     expect(pet[EQUIPPABLE]?.weapon).toBeUndefined();
-    expect(pet[TAMEABLE].favourites.map(({ item }) => item.stackable)).toEqual(["salmon", "pike"]);
+    expect(pet[TAMEABLE].favourites).toHaveLength(1);
+    expect(["salmon", "pike"]).toContain(favourite.stackable);
     expect(pet[BELONGABLE].faction).toBe("animal");
     giveItems(world, hero, [{ ...favourite, amount: 3 }]);
     const heroXp = hero[STATS].xp;
@@ -77,9 +81,9 @@ describe("pet care", () => {
     expect(pet[TAMEABLE].owner).toBe(world.getEntityId(hero));
     expect(pet[BELONGABLE].faction).toBe(hero[BELONGABLE]?.faction);
     expect(pet[STATS]).toMatchObject({ level: 1, maxXp: 10, xp: 0 });
-    expect(pet[TAMEABLE].favourites).toHaveLength(3);
+    expect(pet[TAMEABLE].favourites).toHaveLength(2);
     expect(["tuna", "cod"]).toContain(
-      pet[TAMEABLE].favourites[2].item.stackable
+      pet[TAMEABLE].favourites[1].item.stackable
     );
     expect(new Set(pet[TAMEABLE].skills).size).toBe(1);
   });
@@ -105,7 +109,7 @@ describe("pet care", () => {
       expect(new Set(state.skills).size).toBe(level);
       expect(
         new Set(state.favourites.map(({ item }) => JSON.stringify(item))).size
-      ).toBe(level + 2);
+      ).toBe(level + 1);
     };
     checkLevel(0, 20);
     for (const [level, count] of [
@@ -126,11 +130,38 @@ describe("pet care", () => {
       checkLevel(level, 20 + level * 10);
       if (level === 2) intervalAtTwo = clock.tick;
     }
-    const learned = state.favourites[3].item;
+    const learned = state.favourites[2].item;
     expect(["soup", "toast", "curry", "juice", "tea", "granola", "gold hp potion", "gold mp potion"])
       .toContain(learned.stackable ?? [learned.material, learned.stat, learned.consume].join(" "));
     expect(intervalAtTwo).toBeLessThan(startingInterval);
     expect(clock.tick).toBe(intervalAtTwo);
+  });
+
+  it.each(["cod", "tuna"] as const)("gets two feeding XP from its newly learned %s", (fish) => {
+    const { world, hero, pet } = setup();
+    const fishRoll = fish === "tuna" ? 0 : 0.99;
+    const rolls = jest.spyOn(Math, "random").mockReturnValueOnce(0).mockReturnValueOnce(fishRoll);
+    try {
+      gainPetXp(world, pet, world.getEntityId(hero), 3);
+    } finally {
+      rolls.mockRestore();
+    }
+    const favourite = pet[TAMEABLE].favourites[1];
+    expect(favourite).toEqual({ item: { stackable: fish }, xp: 2 });
+    const [offering] = giveItems(world, hero, [{ stackable: fish, amount: 1 }]);
+    dropBagItem(world, hero, world.assertComponents(offering, [ITEM, SPRITE]));
+    const dots = new Set<number>();
+    const heroXp = hero[STATS].xp;
+    const seeDots = () => {
+      for (const particle of world.getEntities(["PARTICLE", SPRITE])) {
+        if (particle[SPRITE].id === xpDot.id) dots.add(world.getEntityId(particle));
+      }
+      return dots.size;
+    };
+    advanceUntil(world, () => seeDots() === 4);
+    advanceUntil(world, () => seeDots() === 8);
+    advanceUntil(world, () => pet[STATS].xp === 2);
+    expect(hero[STATS].xp).toBe(heroXp);
   });
 
   it("equips an invisible claw when it learns Attack and sends out single-line level rings", () => {
@@ -168,7 +199,12 @@ describe("pet care", () => {
     );
     expect(glyph.facing?.up?.[0].char).toBe("│");
     expect(glyph.facing?.right?.[0].char).toBe("─");
+    advanceUntil(world, () => getMessages(world, pet).some(line => line.endsWith("Max HP")), 5000);
+    expect(pet[TOOLTIP].override).not.toBe("visible");
     advanceUntil(world, () => !getSequence(world, pet, "progress"), 5000);
+    expect(pet[TOOLTIP].dialogs[0][1].name).toBe("Melee");
+    expect(pet[TOOLTIP].override).toBe("visible");
+    advanceUntil(world, () => !pet[TOOLTIP].override, 8000);
     expect(pet[STATS].xp).toBe(0);
     expect(pet[STATS].level).toBe(1);
   });
@@ -203,6 +239,14 @@ describe("pet care", () => {
     pet[STATS].hp = 1;
     expect(feedPet(world, pet, pet, food)).toBe(true);
     expect(pet[STATS].hp).toBe(11);
+    expect(pet[TOOLTIP].override).toBe("idle");
+    const heart = pet[TOOLTIP].idle!;
+    expect(heart.name).toBe("HP");
+    const fur = resolveSprite(pet[SPRITE]).layers;
+    const body = fur.find(layer => layer.char === "\u0101")!.color;
+    expect(fur.filter(layer => layer.color !== body).map(layer => layer.color))
+      .toContain(heart.layers[0].color);
+    expect(heart.layers[0].color).toBe(pet[TAMEABLE].heartColor);
     expect(pet[STATS].xp).toBe(0);
     pet[TAMEABLE].owner = world.getEntityId(hero);
     expect(feedPet(world, pet, pet, food)).toBe(true);
@@ -308,13 +352,20 @@ describe("pet care", () => {
     const { world, hero, pet } = setup();
     pet[TAMEABLE].owner = world.getEntityId(hero);
     const original = pet[SPRITE];
+    pet[TAMEABLE].favourites.push({ item: { stackable: "cod" }, xp: 2 });
     pet[STATS].hp = 0;
     advanceTicks(world, 5);
     expect(pet[TAMEABLE].ghost).toEqual(original);
+    expect(resolveSprite(pet[SPRITE]).name).toBe("Pet");
     expect(resolveSprite(pet[SPRITE]).layers.at(-1)).toMatchObject({
       char: "°",
     });
     expect(pet[MOVABLE].flying).toBe(true);
+    advanceUntil(world, () => pet[TOOLTIP].dialogs[0]?.length === 4);
+    const options = pet[TOOLTIP].dialogs[0].slice(1, -1);
+    expect(options.map(sprite => sprite.name?.toLowerCase())).toEqual(
+      pet[TAMEABLE].favourites.map(({ item }) => item.stackable)
+    );
     const favourite = pet[TAMEABLE].favourites[0].item;
     giveItems(world, hero, [
       { stackable: "apple", amount: 1 },

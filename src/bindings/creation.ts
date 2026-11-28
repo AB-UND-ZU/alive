@@ -3509,7 +3509,7 @@ export const createCell = (
       addHarvestable(world, mobEntity, mobUnit.harvestable);
     }
 
-    if (mobUnit.faction === "unit" || cell === "pet") {
+    if (mobUnit.faction === "unit") {
       mobEntity[FOG].type = "object";
     }
     if (cell === "banditPriest") {

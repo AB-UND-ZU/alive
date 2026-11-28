@@ -6,7 +6,7 @@
 
 The World component saves when the game pauses, on the pause screen's **SAVE** button and before **MENU** returns to the main menu. The pause screen keeps an odd number of rows so it stays centered on the cell grid. Switching browser tabs pauses and therefore saves too. `canSave` refuses the main menu, the loading screen and worlds where the player can't move, such as while stepping through a portal.
 
-A save is a summary plus a [world snapshot](../../engine/snapshot.md). The summary holds the package version, level, class, hair color, hero level, equipped items, playtime, kills and deaths for the saves dialog. Its name is the local time in `YYYYMMDD-HHMMSS` format, 15 characters that fill a popup row next to the hero sprite.
+A save is a summary plus a [world snapshot](../../engine/snapshot.md). The summary holds the package version, level, class, hair color, hero level, equipped items, the tamed pet’s sprite, playtime, kills and deaths for the saves dialog. Its name is the local time in `YYYYMMDD-HHMMSS` format, 15 characters that fill a popup row next to the hero sprite.
 
 World metadata keeps the ID of the loaded or last saved game, so saving again replaces that save instead of adding one. A new game from the menu starts without an ID and therefore adds a save.
 
@@ -55,6 +55,7 @@ export type SaveSummary = {
   classKey: ClassKey;
   hairColor: string;
   heroLevel: number;
+  pet?: SpriteRef;
   // equipped gear, then accessories
   items: SaveItem[];
   playtime: number;

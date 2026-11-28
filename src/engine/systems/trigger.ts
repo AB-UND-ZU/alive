@@ -476,7 +476,7 @@ export const spendItem = (
   item: Omit<Item, "bound" | "carrier">,
   selected?: TypedEntity
 ) => {
-  if (item.stat && !item.material) {
+  if (item.stat && !item.material && !selected) {
     if (!entity[STATS] || entity[STATS][item.stat] < item.amount) {
       console.warn("Unable to spend stat", item, "for entity", entity, "!");
       throw Error("Unable to spend stat!");
@@ -719,6 +719,10 @@ export const castConditionable = (
     spendItem(world, entity, { stackable: "charge", amount: 1 });
   } else if (condition === "hook") {
     spendItem(world, entity, { stackable: "worm", amount: 1 });
+    // Choose a cast direction after readying the hook.
+    const movable = requireComponent(entity, MOVABLE);
+    movable.orientations = [];
+    delete movable.pendingOrientation;
   }
 
   const modifierStat = conditionConfig[condition].modifier;

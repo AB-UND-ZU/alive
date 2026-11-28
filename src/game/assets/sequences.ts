@@ -1,4 +1,4 @@
-import { gainPetXp } from "../../engine/systems/petCare";
+import { gainPetXp, petSkillSprite, setPetDialog } from "../../engine/systems/petCare";
 import { inPetAuraRange } from "../../engine/systems/petSkills";
 import { TAMEABLE } from "../../engine/components/tameable";
 import { customSprite, resolveSprite, spriteRef } from "./spriteIds";
@@ -106,7 +106,6 @@ import {
   repeat,
   reversed,
   shuffle,
-  sigmoid,
   signedDistance,
 } from "../math/std";
 import {
@@ -323,6 +322,7 @@ import {
 import {
   decayTime,
   renderPopup,
+  queueMessage,
   displayPopupView,
   frameHeight,
   frameWidth,
@@ -383,7 +383,7 @@ import {
   visibleStats,
 } from "../../engine/systems/popup";
 import { getIdentifierAndComponents, TEST_MODE } from "../../engine/utils";
-import { play } from "../sound";
+import { pickupOptions, play } from "../sound";
 import { extinguishEntity } from "../../engine/systems/burn";
 import {
   alienPixels,
@@ -443,10 +443,9 @@ import { ClassKey } from "../balancing/classes";
 import { levelConfig } from "../levels";
 import { getActiveViewable } from "../../renderers/interface/hooks";
 import {
-  calculateWeatherIntensity,
+  getPrecipitation,
   createBubble,
   Weather,
-  weatherIntensity,
 } from "../../engine/systems/water";
 import { LIQUID } from "../../engine/components/liquid";
 import {
@@ -3581,32 +3580,10 @@ export const weatherStorm: Sequence<WeatherSequence, "POSITION"> = (
     moveEntity(world, entity, copy(viewable[POSITION]));
 
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
-  const duration = state.args.end - state.args.start;
-
   // create drops
   if (generation !== state.args.generation && generation < state.args.end) {
     const { sprite } = weatherConfigs[state.args.type];
-    const position = state.args.position;
-    const proximity =
-      state.args.intensity === 0
-        ? 1
-        : 1 -
-          sigmoid(
-            getDistance(
-              viewable[POSITION],
-              position,
-              size,
-              state.args.ratio || aspectRatio
-            ),
-            state.args.intensity,
-            0.25
-          );
-    const intensity = calculateWeatherIntensity(
-      duration,
-      generation - state.args.start,
-      weatherIntensity[state.args.type]
-    );
-    const precipitation = Math.round(intensity * proximity);
+    const precipitation = getPrecipitation(world, state.args, viewable[POSITION]);
 
     for (let index = 0; index < precipitation; index += 1) {
       const offset = {
@@ -3707,7 +3684,7 @@ export const levelUp: Sequence<ProgressSequence, "STATS"> = (world, entity, stat
   let updated = false;
   const crossTime = progressParts * progressTime;
   // keep running until all stats are applied
-  const finished =
+  let finished =
     state.elapsed > crossTime * 4 + (state.args.level - 1) * ringTime &&
     (!entity[PLAYER] || state.args.note >
       1 + (state.args.maxHp ? 1 : 0) + (state.args.maxMp ? 1 : 0));
@@ -3862,6 +3839,27 @@ export const levelUp: Sequence<ProgressSequence, "STATS"> = (world, entity, stat
     updated = true;
   }
 
+  const pet = entity[TAMEABLE];
+  if (pet) {
+    const bonuses: ["maxHp" | "power" | "haste", number][] = [["maxHp", state.args.maxHp]];
+    if (state.args.level >= 2) bonuses.push(["power", 1]);
+    if (state.args.level === 2) bonuses.push(["haste", 1]);
+    const bonus = bonuses[statStep];
+    if (bonus) finished = false;
+    if (bonus && state.elapsed > crossTime + (state.args.level - 1) * ringTime + 1500 + statStep * 500) {
+      const [stat, amount] = bonus;
+      queueMessage(world, entity, {
+        line: createText(`+${amount} ${getStatSprite(stat).name}`, colors.black, brighten(getStatColor(stat))),
+        orientation: "up", fast: false, delay: 0,
+      });
+      play(world, entity, "pickup", pickupOptions.maxHp);
+      state.args.note++;
+    }
+    if (finished && !pet.ghost && pet.skills.length) {
+      setPetDialog(world, entity, petSkillSprite(pet.skills[pet.skills.length - 1]), 8);
+    }
+  }
+
   // remove each ring once it has swept out
   for (let ring = 1; ring <= state.args.ring; ring += 1) {
     const prefix = ring === 1 ? "progress-" : `ring-${ring}-`;
@@ -3932,7 +3930,7 @@ export const acquireXp: Sequence<XpSequence, "POSITION"> = (world, entity, state
 
       if (getDistance(recipient[POSITION], particlePosition, size) === 0) {
         // handle adding of XP
-        if (offering) gainPetXp(world, recipient, offering.owner, offering.xp / 4);
+        if (offering) gainPetXp(world, recipient, offering.owner, 1 / 4);
         else recipient[STATS].xp += 1 / 4;
         rerenderEntity(world, recipient);
 
@@ -5850,9 +5848,10 @@ export const displayCredits = displayPopupView((world, entity, state) => {
 });
 
 // align two texts to both sides of a details line
-const spreadText = (left: Sprite[], right: Sprite[]) => [
+const spreadText = (left: Sprite[], right: Sprite[], besideLeft = none) => [
   ...left,
-  ...repeat(none, Math.max(1, frameWidth - 2 - left.length - right.length)),
+  besideLeft,
+  ...repeat(none, Math.max(0, frameWidth - 3 - left.length - right.length)),
   ...right,
 ];
 
@@ -5945,7 +5944,8 @@ export const displayLoad: Sequence<PopupSequence, "POPUP"> = (world, entity, sta
         details = [
           spreadText(
             className,
-            itemSprites.slice(0, frameWidth - 3 - className.length)
+            itemSprites.slice(0, frameWidth - 3 - className.length),
+            resolveSprite(selectedSave.pet)
           ),
           spreadText(
             createText(`Level#${selectedSave.heroLevel}`, colors.lime),
@@ -9743,11 +9743,6 @@ export const fountainSplash: Sequence<FountainSequence, "POSITION"> = (
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
-
-  const distance = heroEntity
-    ? getDistance(heroEntity[POSITION], entity[POSITION], size, 1, false)
-    : Infinity;
   let updated = false;
   const finished = false;
 
@@ -9766,17 +9761,15 @@ export const fountainSplash: Sequence<FountainSequence, "POSITION"> = (
   }
 
   if (generation > state.args.generation) {
-    // reset timer when entering
-    const previousEntered = state.args.entered;
-    if (distance <= 1 && !previousEntered) {
+    const bathers = [-1, 0, 1].flatMap(x => [-1, 0, 1].flatMap(y =>
+      getCellEntities(world, combine(size, entity[POSITION], { x, y }))
+        .filter(unit => (unit[PLAYER] || unit[TAMEABLE]) && unit[STATS] && !isDead(world, unit))
+    ));
+    if (bathers.length && !state.args.entered) {
       state.args.entered = generation;
-    } else if (distance > 1 && previousEntered) {
+    } else if (!bathers.length && state.args.entered) {
       state.args.entered = undefined;
     }
-
-    const healingAmount = heroEntity?.[STATS]
-      ? Math.floor(heroEntity[STATS].maxHp / fountainSteps)
-      : 0;
 
     // create and move drop particles
     for (const particleName in state.particles) {
@@ -9802,18 +9795,16 @@ export const fountainSplash: Sequence<FountainSequence, "POSITION"> = (
           if (
             particleName.endsWith("-left") &&
             generation >= (state.args.healed || 0) + fountainTicks &&
-            state.args.entered &&
-            heroEntity &&
-            heroEntity[PLAYER] &&
-            heroEntity[STATS] &&
-            heroEntity[STATS].hp < heroEntity[STATS].maxHp
+            state.args.entered
           ) {
-            const { hp, healing } = calculateHealing(
-              heroEntity[STATS],
-              healingAmount
-            );
-            heroEntity[STATS].hp = hp;
-            heroEntity[PLAYER].receivedStats.hp += healing;
+            for (const bather of bathers) {
+              const stats = requireComponent(bather, STATS);
+              if (stats.hp >= stats.maxHp) continue;
+              const { hp, healing } = calculateHealing(stats, Math.floor(stats.maxHp / fountainSteps));
+              stats.hp = hp;
+              if (bather[PLAYER]) bather[PLAYER].receivedStats.hp += healing;
+              rerenderEntity(world, bather);
+            }
             state.args.healed = generation;
           }
         }
@@ -9825,20 +9816,13 @@ export const fountainSplash: Sequence<FountainSequence, "POSITION"> = (
       }
     }
 
-    // extinguish player
-    if (heroEntity?.[AFFECTABLE]?.burn && distance <= 1) {
-      extinguishEntity(world, heroEntity);
+    for (const bather of bathers) {
+      if (bather[AFFECTABLE]?.burn) extinguishEntity(world, bather);
     }
-
-    const emitHealing =
-      heroEntity &&
-      distance <= 1 &&
-      heroEntity[STATS] &&
-      heroEntity[STATS].hp < heroEntity[STATS].maxHp &&
-      !(
-        previousEntered &&
-        heroEntity[STATS].hp >= heroEntity[STATS].maxHp - healingAmount
-      );
+    const emitHealing = bathers.some(bather => {
+      const { hp, maxHp } = requireComponent(bather, STATS);
+      return hp < maxHp;
+    });
 
     if (emitHealing && (generation - state.args.entered!) % fountainTicks === 0) {
       play(world, entity, "fountain", { notes: 2 });

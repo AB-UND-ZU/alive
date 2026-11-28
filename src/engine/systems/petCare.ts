@@ -7,15 +7,18 @@ import {
 import { populateItems } from "../../bindings/creation";
 import { choice, shuffle } from "../../game/math/std";
 import { colors } from "../../game/assets/colors";
-import { halo } from "../../game/assets/sprites";
-import { resolveSprite, spriteRef } from "../../game/assets/spriteIds";
+import { petHeartColor } from "../../game/assets/pets";
+import { disc } from "../../game/assets/templates/particles";
+import { shovel, totem } from "../../game/assets/templates/equipments";
+import { halo, heart, mana, none, woodChest } from "../../game/assets/sprites";
+import { customSprite, resolveSprite, spriteRef } from "../../game/assets/spriteIds";
 import {
   addBackground,
   createDialog,
   mergeSprites,
+  getStatSprite,
   recolorSprite,
 } from "../../game/assets/ui";
-import { getItemSprite } from "../../game/assets/utils";
 import { World } from "../ecs";
 import { entities } from "..";
 import { REFERENCE } from "../components/reference";
@@ -28,12 +31,14 @@ import { BELONGABLE } from "../components/belongable";
 import { INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
 import { EQUIPPABLE } from "../components/equippable";
+import { FOG } from "../components/fog";
 import { MOVABLE } from "../components/movable";
 import { PLAYER } from "../components/player";
 import { Sprite, SPRITE } from "../components/sprite";
 import { STATS, Stats } from "../components/stats";
 import {
   PetFood,
+  PetSkill,
   petSkills,
   petTraits,
   Tameable,
@@ -49,16 +54,22 @@ import {
 import { matchesItem } from "./popup";
 import { rerenderEntity } from "./renderer";
 import { spendItem } from "./trigger";
-import { releaseXp } from "./leveling";
+import { createItemAsDrop } from "./drop";
 import { disposeSequence } from "./map";
 import { replaceSequence } from "./sequence";
 import { ProgressSequence } from "../components/sequencable";
 
-export const petFoodSprite = (item: PetFood) =>
-  recolorSprite(getItemSprite(item), {
-    [colors.black]: colors.white,
-    [colors.white]: colors.black,
-  });
+export function petSkillSprite(skill: PetSkill): Sprite {
+  switch (skill) {
+    case "collect": return woodChest;
+    case "attack": return getStatSprite("melee");
+    case "heal": return heart;
+    case "mana": return mana;
+    case "harvest": return shovel.iron.default;
+    case "disc": return disc.gold.default;
+    case "aura": return totem.wood.default;
+  }
+}
 
 function maxPetHp(state: Tameable, level: number) {
   const bonus =
@@ -67,13 +78,25 @@ function maxPetHp(state: Tameable, level: number) {
   return Math.round((petLevels[level].hp * (100 + bonus)) / 100);
 }
 
-export function setPetDialog(world: World, pet: TypedEntity, message?: string | Sprite) {
+export function setPetDialog(
+  world: World, pet: TypedEntity, message?: string | Sprite | Sprite[], ticks?: number
+) {
   const tooltip = requireComponent(pet, TOOLTIP);
-  if (!message && !tooltip.dialogs.length) return;
+  const state = requireComponent(pet, TAMEABLE);
+  if (!message && !tooltip.dialogs.length && !tooltip.override && state.expressionUntil === undefined) return;
+  tooltip.idle = undefined;
+  tooltip.override = ticks ? "visible" : undefined;
+  state.expressionUntil = ticks ? world.metadata.gameEntity[RENDERABLE].generation + ticks : undefined;
   disposeSequence(world, pet, "dialog");
   if (message) delete tooltip.lastTooltip;
   tooltip.dialogs = message
-    ? [createDialog(typeof message === "string" ? message : addBackground([message]))]
+    ? [createDialog(typeof message === "string" ? message : addBackground(
+        (Array.isArray(message) ? message : [message]).map(sprite => recolorSprite(sprite, {
+          [colors.black]: colors.white,
+          [colors.white]: colors.black,
+          [colors.yellow]: colors.olive,
+        }))
+      ))]
     : [];
   tooltip.changed = true;
 }
@@ -89,7 +112,8 @@ export function initializePet(world: World, pet: TypedEntity) {
   const stats = requireComponent(pet, STATS);
   const traits = shuffle([...petTraits]);
   const state: Tameable = {
-    favourites: [...startingFavourites],
+    favourites: [choice(...startingFavourites)],
+    heartColor: petHeartColor(resolveSprite(requireComponent(pet, SPRITE))),
     stat: choice("hp", "melee", "armor", "haste"),
     attributes: {
       [traits[0]]: true,
@@ -121,6 +145,14 @@ export function initializePet(world: World, pet: TypedEntity) {
   world.addComponentToEntity(pet, TAMEABLE, state);
 }
 
+export function ensurePetWeapon(world: World, pet: TypedEntity) {
+  if (!pet[EQUIPPABLE]?.weapon) {
+    populateItems(world, world.assertComponents(pet, [INVENTORY, "POSITION"]), [
+      { weapon: "sword", material: "iron", amount: 0, bound: true },
+    ]);
+  }
+}
+
 function learnPetLevel(
   world: World,
   pet: TypedEntity,
@@ -142,17 +174,14 @@ function learnPetLevel(
   }
   stats.maxXp = petLevels[stats.level].maxXp;
   const maxHp = maxPetHp(state, stats.level);
-  stats.hp += maxHp - stats.maxHp;
+  const hpGain = maxHp - stats.maxHp;
+  stats.hp += hpGain;
   stats.maxHp = maxHp;
   const skill = choice(
     ...petSkills.filter((skill) => !state.skills.includes(skill))
   );
   state.skills.push(skill);
-  if ((skill === "attack" || skill === "heal") && !pet[EQUIPPABLE]?.weapon) {
-    populateItems(world, world.assertComponents(pet, [INVENTORY, "POSITION"]), [
-      { weapon: "sword", material: "iron", amount: 0, bound: true },
-    ]);
-  }
+  if (skill === "attack" || skill === "heal") ensurePetWeapon(world, pet);
   replaceSequence<"progress", ProgressSequence>(
     world,
     pet,
@@ -163,7 +192,7 @@ function learnPetLevel(
       ring: 0,
       note: 0,
       xp: 0,
-      maxHp: 0,
+      maxHp: hpGain,
       maxMp: 0,
       maxXp: stats.maxXp,
     }
@@ -180,12 +209,13 @@ export function petKnockout(world: World, pet: TypedEntity) {
   const state = requireComponent(pet, TAMEABLE);
   if (state.ghost) return;
   state.ghost = requireComponent(pet, SPRITE);
-  pet[SPRITE] = spriteRef(
-    mergeSprites(recolorSprite(resolveSprite(state.ghost), colors.grey), halo)
-  );
+  const sprite = resolveSprite(state.ghost);
+  pet[SPRITE] = spriteRef(customSprite({
+    ...mergeSprites(recolorSprite(sprite, colors.grey), halo),
+    name: sprite.name,
+  }));
+  requireComponent(pet, FOG).type = "float";
   requireComponent(pet, MOVABLE).flying = true;
-  requireComponent(pet, TOOLTIP).override = undefined;
-  requireComponent(pet, TOOLTIP).idle = undefined;
   setPetDialog(world, pet);
   if (hasComponent(pet, ATTACKABLE))
     world.removeComponentFromEntity(pet, ATTACKABLE);
@@ -202,6 +232,7 @@ export function getPetConsumption(
   food: TypedEntity<"ITEM">
 ): StackableConsumption | undefined {
   const item = food[ITEM];
+  if (item.stat === "hp" && !item.material) return { countable: "hp", amount: 1 };
   return item.consume === "potion" && item.material && item.stat
     ? consumptionConfigs.potion?.[item.material]?.[item.stat]
     : getItemConsumption(food);
@@ -255,6 +286,7 @@ export function gainPetXp(
   learnPetLevel(world, pet, state, stats);
   if (state.owner === undefined) {
     state.owner = owner;
+    requireComponent(pet, FOG).type = "object";
     requireComponent(pet, BELONGABLE).faction = "settler";
     setPetDialog(world, pet);
   }
@@ -308,6 +340,7 @@ export function feedPet(
   } else if (state.ghost) {
     pet[SPRITE] = state.ghost;
     delete state.ghost;
+    requireComponent(pet, FOG).type = "object";
     requireComponent(pet, MOVABLE).flying = false;
     world.addComponentToEntity(pet, ATTACKABLE, { scratchColor: colors.grey });
     world.addComponentToEntity(pet, AFFECTABLE, getEmptyAffectable());
@@ -326,13 +359,26 @@ export function feedPet(
       (!self || state.owner !== undefined) &&
       stats.level < petLevels.length - 1
     ) {
-      releaseXp(world, world.assertComponents(pet, ["POSITION"]), {
-        pet: world.getEntityId(pet),
-        owner: state.owner ?? world.getEntityId(giver),
-        xp: favourite.xp,
-      });
+      const xp = createItemAsDrop(world, requireComponent(pet, "POSITION"), entities.createItem, {
+        [ITEM]: { stat: "xp", amount: favourite.xp },
+        [SPRITE]: none,
+      }, false);
+      const drop = world.assertByIdAndComponents(xp[ITEM].carrier, ["LOOTABLE", "HOOKABLE"]);
+      drop.LOOTABLE.offering = { pet: world.getEntityId(pet), owner: state.owner ?? world.getEntityId(giver) };
+      world.removeComponentFromEntity(drop, "HOOKABLE");
     }
   }
-  rerenderEntity(world, pet);
+  showPetHeart(world, pet);
   return true;
+}
+
+export function showPetHeart(world: World, pet: TypedEntity) {
+  const state = requireComponent(pet, TAMEABLE);
+  setPetDialog(world, pet);
+  const tooltip = requireComponent(pet, TOOLTIP);
+  tooltip.idle = recolorSprite(heart, state.heartColor ?? colors.red);
+  tooltip.override = "idle";
+  tooltip.changed = true;
+  state.expressionUntil = world.metadata.gameEntity[RENDERABLE].generation + 2;
+  rerenderEntity(world, pet);
 }

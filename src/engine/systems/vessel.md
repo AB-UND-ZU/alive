@@ -7,3 +7,5 @@ Mounted movement runs once per player reference generation. It updates passenger
 Runs before normal [Movement](movement.md), which skips movement already consumed by the vessel action.
 
 Water vessels play a soft wash while moving. Starting, turning and stopping can play a bubble sound; the visual bubble trail stays silent during steady sailing.
+
+An owned pet approaches the boat and leaves the map while aboard. Its inventory and skills stay on its entity. Disembarking puts it back at the boat so it can walk ashore.

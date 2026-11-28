@@ -211,6 +211,13 @@ export const isRoamable = (
   return true;
 };
 
+// A companion can catch a departing boat and swim back to shore if the owner lands first.
+export const canSwimToBoat = (world: World, pet: TypedEntity) => {
+  const owner = world.getEntityById(pet[TAMEABLE]?.owner);
+  return !!owner && (world.getEntityById(owner[PLAYER]?.mount)?.[MOUNTABLE]?.medium === "water" ||
+    (!!pet[POSITION] && isSubmerged(world, pet[POSITION])));
+};
+
 export const isLimbWalkable = (
   world: World,
   entity: TypedEntity,
@@ -227,7 +234,8 @@ export const isLimbWalkable = (
   }
 
   const pet = entity[PLAYER] && getAttackable(world, position);
-  return isWalkable(world, position, pet && pet[TAMEABLE]?.owner === world.getEntityId(entity) ? pet : undefined);
+  return isWalkable(world, position, pet && pet[TAMEABLE]?.owner === world.getEntityId(entity) ? pet : undefined) ||
+    (!!entity[TAMEABLE]?.owner && isFloatable(world, position) && canSwimToBoat(world, entity));
 };
 
 export const isFlyable = (world: World, position: Position) => {
@@ -290,15 +298,16 @@ export default function setupMovement(world: World) {
     referenceGenerations = generation;
 
     // let displacable units and mobs take precendence over player movements
-    const orderedEntities = [
-      ...(world.getEntities([
-        POSITION,
-        MOVABLE,
-        RENDERABLE,
-        `!${PLAYER}` as unknown as typeof PLAYER,
-      ]) as TypedEntity<"POSITION" | "MOVABLE" | "RENDERABLE">[]),
-      ...world.getEntities([POSITION, MOVABLE, RENDERABLE, PLAYER]),
-    ];
+    const orderedEntities: TypedEntity<"POSITION" | "MOVABLE" | "RENDERABLE">[] = [];
+    const waitingPets: typeof orderedEntities = [];
+    for (const entity of world.getEntities([POSITION, MOVABLE, RENDERABLE])) {
+      if (entity[PLAYER]) continue;
+      if (entity[TAMEABLE]?.owner && !entity[MOVABLE].orientations.length && !entity[MOVABLE].momentum) {
+        waitingPets.push(entity);
+      } else orderedEntities.push(entity);
+    }
+    // An idle companion can take the square its owner just vacated on this tick.
+    orderedEntities.push(...world.getEntities([POSITION, MOVABLE, RENDERABLE, PLAYER]), ...waitingPets);
 
     for (const entity of orderedEntities) {
       const entityId = world.getEntityId(entity);

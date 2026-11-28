@@ -27,7 +27,7 @@ The main menu's Continue portal opens when a save exists. Select a save and conf
 | Save list | Shows |
 | --- | --- |
 | Order | Most recently saved first |
-| Hero | Class, equipped gear and level |
+| Hero | Class, tamed [pet](animals.md#pet), equipped gear and level |
 | World | Current level |
 | Totals | Deaths, kills and time played |
 | Dark red entry | Saved by a newer game version; cannot load |

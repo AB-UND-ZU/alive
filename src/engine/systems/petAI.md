@@ -1,6 +1,6 @@
 # Pet AI
 
-Chooses a pet’s next move on its movement clock. Sleep recovery uses the world clock. The pet waits outside buildings, steps aside when its owner stops on it, and retreats toward its owner when hurt.
+Chooses a pet’s next move on its movement clock. Sleep recovery uses the world clock. Pets avoid fire, dodge hostile spells and seek fountains when hurt. A halo follows one cell farther away.
 <!-- source-types -->
 
 ## Pet
@@ -17,8 +17,10 @@ type Pet = TypedEntity<
 type Memory = {
   target?: number;
   attacker?: number;
+  hp?: number;
   fleeUntil?: number;
   heal?: number;
+  landing?: boolean;
   door?: Position;
   structure?: number;
   position?: Position;
@@ -28,7 +30,9 @@ type Memory = {
   nextRecovery?: number;
   circle?: number;
   refuseUntil?: number;
+  playSince?: number;
   nextSpeech?: number;
+  requested?: number;
   walkSpots?: Position[];
   nextWalk?: number;
 };

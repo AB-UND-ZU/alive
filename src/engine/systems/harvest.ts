@@ -350,7 +350,7 @@ export const getFarmable = (world: World, position: Position) =>
     | TypedEntity<"POSITION" | "FARMABLE">
     | undefined;
 
-const getRefillElement = (world: World, position: Position) => {
+export const getRefillElement = (world: World, position: Position) => {
   for (const cell of getCellEntities(world, position)) {
     if (cell[IMMERSIBLE]) return cell[IMMERSIBLE].type;
     if (cell[REFILLABLE] && !cell[FREEZABLE]?.frozen)

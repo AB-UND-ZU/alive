@@ -177,7 +177,7 @@ import {
   createDialog,
 } from "../../game/assets/ui";
 import { chickenFeed, consumeChickenFeed, getLootable, getStackable } from "./collect";
-import { getFarmable, getHarvestable, harvestResource } from "./harvest";
+import { getFarmable, getHarvestable, getRefillElement, harvestResource } from "./harvest";
 import { wormRadius, wormSize } from "../../game/levels/island/areas";
 import { PARTICLE } from "../components/particle";
 import { REFERENCE } from "../components/reference";
@@ -2099,7 +2099,8 @@ export default function setupAi(world: World) {
 
           // recalculate path if route changed or path obstructed
           let pathObstructed =
-            attemptedPosition && !isPathable(world, attemptedPosition);
+            attemptedPosition && (!isPathable(world, attemptedPosition) ||
+              (!!entity[TAMEABLE] && !!getBurning(world, attemptedPosition)));
           const remainingPath =
             !uninitialized && !hasArrived && memory.path.length === 0;
           const originChanged =
@@ -2119,9 +2120,9 @@ export default function setupAi(world: World) {
               memory.originPosition,
               memory.targetPosition,
               false, false, undefined,
-              entity[TAMEABLE] ? (x, y) => Number(
-                !getEnterable(world, { x, y }) &&
-                !(entity[TAMEABLE]!.attributes.water === false && isImmersible(world, { x, y }))
+              entity[TAMEABLE] ? (x, y, terrain) => terrain && Number(
+                !getBurning(world, { x, y }) && !getEnterable(world, { x, y }) &&
+                !(entity[TAMEABLE]!.attributes.water === false && getRefillElement(world, { x, y }) === "water")
               ) : undefined
             );
             if (path.length > 0) {

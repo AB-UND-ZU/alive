@@ -393,7 +393,7 @@ export type DialogSequence = {
 ```ts src/engine/components/sequencable.ts
 export type XpSequence = {
   generation: number;
-  offering?: { pet: number; owner: number; xp: number };
+  offering?: { pet: number; owner: number };
 };
 ```
 
