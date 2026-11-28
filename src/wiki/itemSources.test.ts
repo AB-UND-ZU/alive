@@ -24,7 +24,7 @@ describe("item acquisition", () => {
     ).toContainEqual({ kind: "quest", key: "earthChief" });
     expect(obtainedFrom({ stackable: "egg" })).toContainEqual({
       kind: "naturalUnit",
-      key: "chick",
+      key: "hen",
     });
     expect(obtainedFrom({ stackable: "apple" })).toContainEqual({
       kind: "natural",

@@ -56,6 +56,12 @@ describe.each(levels)("level %s", (level) => {
   });
 });
 
+it("places one random chick in the tutorial", () => {
+  const world = createTestWorld({ level: "LEVEL_TUTORIAL" });
+  expect(world.metadata.gameEntity[LEVEL].cells.flat().filter((cell) => cell === "chick")).toHaveLength(1);
+  expect(world.getEntities(["NPC"]).filter((unit) => unit.NPC.type === "chick")).toHaveLength(1);
+});
+
 describe("determinism", () => {
   const run = (seed: number) => {
     seedRandom(seed);

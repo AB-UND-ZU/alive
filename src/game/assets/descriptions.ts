@@ -144,7 +144,9 @@ import {
   wood,
   repair,
   egg,
-  chick,
+  hen,
+  raw,
+  meat,
 } from "./sprites";
 import {
   createCountable,
@@ -493,13 +495,29 @@ export const entitySprites: Record<
       createCountable(stats, "hp", "display"),
     ],
   },
+  raw: {
+    sprite: raw,
+    getDescription: (stats) => [
+      createText("Uncooked meat"),
+      createText("from an animal."),
+      createCountable(stats, "hp", "display"),
+    ],
+  },
+  meat: {
+    sprite: meat,
+    getDescription: (stats) => [
+      createText("Chewy chunk of"),
+      createText("cooked meat."),
+      createCountable(stats, "hp", "display"),
+    ],
+  },
   egg: {
     sprite: egg,
     getDescription: (stats) => [
       [
         ...createText("From a "),
-        chick,
-        ...createText("Chick", colors.grey),
+        hen,
+        ...createText("Hen", colors.grey),
         ...createText(","),
       ],
       createText("handle with care."),

@@ -10,7 +10,7 @@ import { pixelCircle } from "../game/math/tracing";
 import { aspectRatio } from "../renderers/interface/dimensions";
 import { wormRadius } from "../game/levels/island/areas";
 import { islandNpcDistribution } from "../game/levels/island/units";
-import { grass } from "../game/assets/sprites";
+import { chickFemale, grass } from "../game/assets/sprites";
 import { unitDefinitions } from "../game/balancing/units";
 import { World } from "../engine";
 import { LEVEL } from "../engine/components/level";
@@ -129,6 +129,20 @@ export const describeIslandSeeds = (seeds: number[]) =>
 
     it("generates within the allowed attempts", () => {
       expect(failedAttempts).toBeLessThan(islandTries);
+    });
+
+    it("places two female and two male chicks around the earth town fountain", () => {
+      const level = world.metadata.gameEntity[LEVEL];
+      const chief = assertIdentifierAndComponents(world, "earthChief", [POSITION]);
+      const fountain = level.cellPositions.fountain.find(
+        (p) => getDistance(p, chief[POSITION], level.size, 1) < 3
+      )!;
+      const chicks = Object.values(orientationPoints).map((offset) =>
+        getCellEntities(world, combine(level.size, fountain, offset))
+          .find((unit) => unit.NPC?.type === "chick")?.SPRITE?.id
+      );
+      const male = unitDefinitions.chick.sprite.id;
+      expect(chicks.sort()).toEqual([chickFemale.id, chickFemale.id, male, male].sort());
     });
 
     it("places a one-cell gate and a free jetty between the water guards and a boat site at the jetty", () => {

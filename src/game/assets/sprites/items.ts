@@ -44,6 +44,28 @@ export const shroom: Sprite = {
   ],
 };
 
+const drumstick = (color: string): Sprite["layers"] => [
+  { char: "\u0117", color },
+  { char: "=", color },
+  { char: "\u0108", color },
+  { char: "\u0115", color: colors.black },
+  { char: "\u0106", color },
+  { char: ",", color: colors.silver },
+  { char: ".", color: colors.white },
+];
+
+export const raw: Sprite = {
+  id: "raw",
+  name: "Raw",
+  layers: [...drumstick(colors.fuchsia), { char: "\u0106", color: colors.fuchsia }],
+};
+
+export const meat: Sprite = {
+  id: "meat",
+  name: "Meat",
+  layers: drumstick(colors.maroon),
+};
+
 export const appleDrop: Sprite = {
   id: "apple_drop",
   name: "Apple",

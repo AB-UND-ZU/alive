@@ -401,7 +401,7 @@ const foodFamilies = [
   {
     name: "food",
     title: "Food",
-    keys: ["bread", "egg", "apple", "shroom", "banana", "coconut"],
+    keys: ["bread", "egg", "raw", "meat", "apple", "shroom", "banana", "coconut"],
   },
   {
     name: "forage",

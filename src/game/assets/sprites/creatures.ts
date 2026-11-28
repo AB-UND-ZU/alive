@@ -414,10 +414,10 @@ export const chestBoss: Sprite = {
   ],
 };
 
-export const chick: Sprite = {
-  id: "chick",
+const chickBody = (id: string, color: string): Sprite => ({
+  id,
   name: "Chick",
-  terminal: { layers: [{ char: "\u0103", color: colors.yellow }] },
+  terminal: { layers: [{ char: "\u0103", color }] },
   layers: [
     { char: "v", color: colors.red },
     { char: "═", color: colors.black },
@@ -427,14 +427,57 @@ export const chick: Sprite = {
     { char: "-", color: colors.black },
     { char: "\u0116", color: colors.red },
     { char: "\u0111", color: colors.black },
-    { char: "\u0108", color: colors.yellow },
+    { char: "\u0108", color },
     { char: "¡", color: colors.red },
     { char: "|", color: colors.black },
-    { char: "\u0106", color: colors.yellow },
+    { char: "\u0106", color },
     { char: "+", color: colors.black },
-    { char: "÷", color: colors.yellow },
-    { char: "∙", color: colors.yellow },
+    { char: "÷", color },
+    { char: "∙", color },
     { char: ".", color: colors.black },
+  ],
+});
+export const chick = chickBody("chick", colors.yellow);
+export const chickFemale = chickBody("chick_female", colors.silver);
+
+export const hen: Sprite = {
+  id: "hen",
+  name: "Hen",
+  terminal: { layers: [{ char: "\u011e", color: colors.white }] },
+  layers: [
+    { char: "\u03a9", color: colors.olive },
+    { char: "\u011e", color: colors.white },
+    { char: "\u010b", color: colors.black },
+    { char: "~", color: colors.red },
+    { char: "|", color: colors.black },
+    { char: "\u00bb", color: colors.white },
+    { char: "*", color: colors.olive },
+    { char: "\u00ab", color: colors.white },
+    { char: "\u011b", color: colors.white },
+    { char: "\u00ba", color: colors.white },
+    { char: "\u0106", color: colors.white },
+    { char: "=", color: colors.white },
+  ],
+};
+
+export const rooster: Sprite = {
+  id: "rooster",
+  name: "Rooster",
+  terminal: { layers: [{ char: "\u011e", color: colors.maroon }] },
+  layers: [
+    { char: "\u00b2", color: colors.red },
+    { char: "\u03a9", color: colors.olive },
+    { char: "\u011e", color: colors.maroon },
+    { char: "\u010b", color: colors.black },
+    { char: "~", color: colors.red },
+    { char: "|", color: colors.black },
+    { char: "\u00bb", color: colors.maroon },
+    { char: "*", color: colors.olive },
+    { char: "\u00ba", color: colors.maroon },
+    { char: "=", color: colors.maroon },
+    { char: "\u011b", color: colors.maroon },
+    { char: "\u00ab", color: colors.maroon },
+    { char: "\u0106", color: colors.maroon },
   ],
 };
 

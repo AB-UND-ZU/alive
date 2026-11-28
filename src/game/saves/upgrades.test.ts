@@ -34,6 +34,8 @@ import { INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
 import { FOG } from "../../engine/components/fog";
 import { createNpc } from "../../bindings/creation";
+import { brewingRecipes } from "../balancing/brewing";
+import { countItems, giveItems } from "../../testing/harness";
 import { getTraderDeal } from "../balancing/trading";
 import { createPopup } from "../../engine/systems/popup";
 import { CASTABLE } from "../../engine/components/castable";
@@ -117,6 +119,36 @@ describe("legacy save upgrades", () => {
     const popup = loaded.assertById(id).POPUP;
     expect(popup.lines[0][0][0].id).toBe(stackable === "crystal" ? rock2.id : rock1.id);
     expect(popup.deals).toEqual([deal]);
+  });
+
+  it("upgrades a 0.9 chick and kettle without losing feed or the selected ingredient option", () => {
+    const world = createAreaWorld("|♀cK |", { legend: { K: "kettle" } });
+    const bird = world.getEntities(["NPC", INVENTORY, POSITION]).find((e) => e.NPC.type === "chick")!;
+    const rawId = bird.INVENTORY.items.find((id) => world.assertByIdAndComponents(id, [ITEM]).ITEM.stackable === "raw")!;
+    bird.INVENTORY.items.splice(bird.INVENTORY.items.indexOf(rawId), 1);
+    world.removeEntity(world.assertById(rawId));
+    bird.SPRITE = { id: "unit_chick" };
+    const [grain] = giveItems(world, bird, [{ stackable: "grain", amount: 3 }]);
+    const kettle = world.getEntity(["BREWABLE", "POPUP"])!;
+    const recipes = brewingRecipes.filter((r) => r.item.stackable !== "meat").map((r) => ({
+      ...r, options: r.options.filter((parts) => parts.every((p) => p.stackable !== "meat")),
+    }));
+    const toast = recipes.findIndex((r) => r.item.stackable === "toast");
+    kettle.POPUP.recipes = recipes;
+    kettle.POPUP.selections[0] = [0, toast];
+    kettle.POPUP.verticalIndezes[0] = 2;
+    const save = { ...createSave(world), version: "0.9.0" };
+    const next = saveUpgrades.find((step) => step.version === "0.10.0")!;
+    const upgraded = upgradeSave(save, next, new Set());
+    const loaded = restoreSnapshot(deserialize(serialize(upgraded.snapshot)));
+    const restored = loaded.assertByIdAndComponents(world.getEntityId(bird), [INVENTORY]);
+    expect(restored.INVENTORY.items).toContain(world.getEntityId(grain));
+    expect(countItems(loaded, restored, { stackable: "grain" })).toBe(3);
+    expect(countItems(loaded, restored, { stackable: "raw" })).toBe(1);
+    const { POPUP } = loaded.assertByIdAndComponents(world.getEntityId(kettle), ["POPUP"]);
+    expect(POPUP.recipes).toEqual(brewingRecipes);
+    expect(POPUP.selections[0]).toEqual([0, toast]);
+    expect(POPUP.recipes[toast].options[POPUP.verticalIndezes[0]]).toEqual(recipes[toast].options[2]);
   });
 
   it("only converts the old movement modifier when upgrading a save", () => {

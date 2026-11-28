@@ -115,70 +115,9 @@ export function extractNpcItemSources(text) {
   return { items, unresolved };
 }
 
-export function extractPatternItemSources(text) {
-  const source = ts.createSourceFile(
-    "ai.ts",
-    text,
-    ts.ScriptTarget.Latest,
-    true
-  );
-  const items = [];
-  function visit(node) {
-    if (
-      ts.isVariableDeclaration(node) &&
-      key(node.name)?.endsWith("Data") &&
-      node.initializer
-    ) {
-      const expression = ts.isAsExpression(node.initializer)
-        ? node.initializer.expression
-        : node.initializer;
-      if (ts.isObjectLiteralExpression(expression)) {
-        const item = Object.fromEntries(
-          expression.properties
-            .filter(ts.isPropertyAssignment)
-            .map((property) => [
-              key(property.name),
-              literal(property.initializer),
-            ])
-            .filter(
-              ([name, value]) => itemKeys.has(name) && value !== undefined
-            )
-        );
-        if (kindKeys.some((name) => item[name])) {
-          let parent = node.parent,
-            pattern;
-          while (parent && !pattern) {
-            if (
-              ts.isIfStatement(parent) &&
-              ts.isBinaryExpression(parent.expression) &&
-              parent.expression.left.getText(source) === "pattern.name" &&
-              ts.isStringLiteral(parent.expression.right)
-            )
-              pattern = parent.expression.right.text;
-            parent = parent.parent;
-          }
-          if (pattern)
-            items.push({
-              unit: pattern,
-              item,
-              source: "src/engine/systems/ai.ts",
-              line: source.getLineAndCharacterOfPosition(node.pos).line + 1,
-            });
-        }
-      }
-    }
-    ts.forEachChild(node, visit);
-  }
-  visit(source);
-  return items;
-}
-
 export async function generateItemSources(root) {
   const result = extractNpcItemSources(
     await readFile(path.join(root, "src/game/assets/npcs.ts"), "utf8")
-  );
-  result.natural = extractPatternItemSources(
-    await readFile(path.join(root, "src/engine/systems/ai.ts"), "utf8")
   );
   const destination = path.join(root, "src/wiki/item-sources.json");
   const text = JSON.stringify(result, null, 2) + "\n";

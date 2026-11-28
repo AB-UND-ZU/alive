@@ -43,6 +43,9 @@ import {
   shadow,
   emptySlot,
   chick,
+  chickFemale,
+  hen,
+  rooster,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { distribution } from "../math/std";
@@ -277,6 +280,22 @@ const townChief = (
   }),
   remains: "tombstone2",
   evaporate: { sprite: ghost, fast: false },
+});
+
+export const henEgg = { stackable: "egg", amount: 1, bound: false } as const;
+
+export const rawDrumstick = { stackable: "raw", amount: 1 } as const;
+
+const chicken = (sprite: Sprite, scratch: string, hp: number): UnitDefinition => ({
+  faction: "animal",
+  scratch,
+  stats: hp === 1 ? { hp } : { hp, armor: 1, resist: 2 },
+  equipments: [],
+  drops: [{ chance: 100, items: [
+    { stat: "xp", amount: 1 }, rawDrumstick, ...(hp > 1 ? [rawDrumstick] : []),
+  ] }],
+  patternNames: ["chick"],
+  sprite: namedSprite("unit_" + sprite.id, { ...sprite, name: "" }),
 });
 
 export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
@@ -1579,22 +1598,9 @@ export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     spring: { duration: 300 },
     evaporate: { sprite: evaporate.diamond.default, fast: true },
   },
-  chick: {
-    faction: "animal",
-    scratch: colors.yellow,
-    stats: {
-      hp: 1,
-    },
-    equipments: [],
-    drops: [
-      {
-        chance: 100,
-        items: [{ stat: "xp", amount: 1 }],
-      },
-    ],
-    patternNames: ["chick"],
-    sprite: namedSprite("unit_chick", { ...chick, name: "" }),
-  },
+  chick: chicken(chick, colors.yellow, 1),
+  hen: chicken(hen, colors.grey, 6),
+  rooster: chicken(rooster, colors.white, 10),
   fairy: {
     faction: "wild",
     scratch: colors.grey,
@@ -2257,9 +2263,12 @@ export const generateUnitData = (unitKey: UnitKey): UnitData => {
   };
 };
 
+export const getChickSprite = () => Math.random() < 0.5 ? chickFemale : unitDefinitions.chick.sprite;
+
 export const generateNpcData = (npcKey: NpcType): NpcData => ({
   type: npcKey,
   ...generateUnitData(npcKey),
+  ...(npcKey === "chick" ? { sprite: getChickSprite() } : {}),
 });
 
 export const unitBackdrops: Partial<

@@ -18,7 +18,7 @@ import { checkUnlocks } from "../../game/unlocks";
 import { INVENTORY } from "../components/inventory";
 import { Item, ITEM } from "../components/item";
 import { getEntityGeneration, rerenderEntity } from "./renderer";
-import { resetConditionables, removeFromInventory } from "./trigger";
+import { resetConditionables, removeFromInventory, spendItem } from "./trigger";
 import { COLLECTABLE } from "../components/collectable";
 import { times } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
@@ -85,6 +85,17 @@ export const getStackable = (world: World, entity: TypedEntity, item: Item) => {
   });
 
   return world.getEntityByIdAndComponents(stackId, [ITEM]);
+};
+
+export const chickenFeed = (world: World, bird: TypedEntity) =>
+  (bird[INVENTORY]?.items ?? [])
+    .map((id) => world.assertByIdAndComponents(id, [ITEM]))
+    .filter(({ ITEM }) => ITEM.stackable === "grain" || ITEM.stackable === "worm");
+
+export const consumeChickenFeed = (world: World, bird: TypedEntity) => {
+  const feed = chickenFeed(world, bird);
+  for (const item of feed) spendItem(world, bird, item[ITEM], item);
+  return feed.length > 0;
 };
 
 export const isEmpty = (world: World, entity: TypedEntity) =>
@@ -431,6 +442,15 @@ export const addToInventory = (
     ) {
       entity[PLAYER].receivedStats[targetStat] += displayAmount;
     }
+  } else if (
+    (targetStackable === "grain" || targetStackable === "worm") &&
+    (entity.NPC?.type === "hen" || entity.NPC?.type === "rooster") &&
+    entity[STATS] && (entity[STATS].hp < entity[STATS].maxHp || entity.BELONGABLE?.faction === "hostile")
+  ) {
+    consumeChickenFeed(world, entity);
+    entity[STATS].hp = entity[STATS].maxHp;
+    if (entity.BELONGABLE) entity.BELONGABLE.faction = "animal";
+    rerenderEntity(world, entity);
   } else if (targetStackable || targetConsume) {
     // add to existing stack if available
     let targetStack = getStackable(world, entity, itemEntity[ITEM]);

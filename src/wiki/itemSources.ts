@@ -3,7 +3,7 @@ import { refillWater } from "../engine/systems/harvest";
 import { addToInventory } from "../engine/systems/collect";
 import { createTestWorld } from "../testing/harness";
 import { Item } from "../engine/components/item";
-import { unitDefinitions } from "../game/balancing/units";
+import { henEgg, unitDefinitions } from "../game/balancing/units";
 import { craftingIngredients } from "../game/balancing/crafting";
 import { brewingRecipes } from "../game/balancing/brewing";
 import {
@@ -168,12 +168,7 @@ function buildSources() {
           kind: "natural",
           key: family.cells[index],
         });
-  for (const source of questSources.natural)
-    if (source.unit in unitDefinitions)
-      add(source.item as Partial<Item>, {
-        kind: "naturalUnit",
-        key: source.unit,
-      });
+  add(henEgg, { kind: "naturalUnit", key: "hen" });
   const dungeon = createTestWorld({ level: "LEVEL_TUTORIAL" });
   for (const entity of dungeon.getEntities(["ITEM"])) {
     const item = entity.ITEM;

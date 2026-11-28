@@ -88,6 +88,22 @@ const openRecipe = (world: World, row: number) => {
 };
 
 describe("brewing in a kettle", () => {
+  it("cooks one Raw with one stick and accepts Meat in every tuna recipe", () => {
+    const { world, hero } = setup();
+    const { row, recipe } = findRecipe(({ item }) => item.stackable === "meat");
+    giveItems(world, hero, [{ stackable: "raw", amount: 1 }, { stackable: "stick", amount: 1 }]);
+    openRecipe(world, row);
+    act(world, "right");
+    expect(countItems(world, hero, { stackable: "raw" })).toBe(0);
+    expect(countItems(world, hero, { stackable: "stick" })).toBe(0);
+    advance(world, getBrewingTime(world, recipe) + 1000);
+    expect(countItems(world, getKettle(world), { stackable: "meat" })).toBe(1);
+    for (const { options } of brewingRecipes) {
+      for (const option of options.filter((parts) => parts.some((p) => p.stackable === "tuna"))) {
+        expect(options).toContainEqual(option.map((p) => p.stackable === "tuna" ? { ...p, stackable: "meat" } : p));
+      }
+    }
+  });
   it("opens the kettle and browses recipes and their options", () => {
     const { world, hero } = setup();
     const popup = openStation(world);

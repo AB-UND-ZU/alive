@@ -124,6 +124,11 @@ export const brewingRecipes: Recipe[] = [
         { stackable: "plank", amount: 1 },
         { stackable: "ore", amount: 1 },
       ],
+      [
+        { stackable: "meat", amount: 1 },
+        { stackable: "plank", amount: 1 },
+        { stackable: "ore", amount: 1 },
+      ],
     ],
   },
   {
@@ -261,6 +266,11 @@ export const brewingRecipes: Recipe[] = [
         { stackable: "egg", amount: 2 },
         { stackable: "leaf", amount: 2 },
       ],
+      [
+        { stackable: "bread", amount: 1 },
+        { stackable: "meat", amount: 1 },
+        { stackable: "leaf", amount: 2 },
+      ],
     ],
   },
 
@@ -306,6 +316,11 @@ export const brewingRecipes: Recipe[] = [
         { stackable: "eel", amount: 1 },
       ],
     ],
+  },
+  {
+    item: { stackable: "meat", amount: 1 },
+    duration: 10,
+    options: [[{ stackable: "raw", amount: 1 }, { stackable: "stick", amount: 1 }]],
   },
 ];
 

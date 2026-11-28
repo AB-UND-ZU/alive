@@ -1,10 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import {
-  extractNpcItemSources,
-  extractPatternItemSources,
-} from "./item-sources.mjs";
+import { extractNpcItemSources } from "./item-sources.mjs";
 
 test("NPC acquisition metadata reads rewards and choices, never request prices or description icons", () => {
   const result =
@@ -51,26 +48,13 @@ test("all current literal NPC reward choices resolve", async () => {
   );
 });
 
-test("natural sources use the item's actual owning AI pattern", () => {
-  const result = extractPatternItemSources(`if (pattern.name === "chick") {
-    const eggData = {stackable:"egg", amount:1, bound:false} as Item;
-  }`);
-  assert.deepEqual(
-    result.map(({ unit, item }) => ({ unit, item })),
-    [{ unit: "chick", item: { stackable: "egg", amount: 1, bound: false } }]
-  );
-});
-
-test("committed acquisition metadata matches native rewards and patterns", async () => {
+test("committed acquisition metadata matches native rewards", async () => {
   const expected = extractNpcItemSources(
     await readFile("src/game/assets/npcs.ts", "utf8")
-  );
-  expected.natural = extractPatternItemSources(
-    await readFile("src/engine/systems/ai.ts", "utf8")
   );
   assert.deepEqual(
     JSON.parse(await readFile("src/wiki/item-sources.json", "utf8")),
     expected,
-    "Run npm run wiki:sources after changing native rewards or item-producing patterns"
+    "Run npm run wiki:sources after changing native rewards"
   );
 });

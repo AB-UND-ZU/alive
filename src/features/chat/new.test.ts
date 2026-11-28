@@ -7,6 +7,8 @@ import {
   step,
 } from "../../testing/harness";
 import { LEVEL } from "../../engine/components/level";
+import { chickFemale } from "../../game/assets/sprites";
+import { unitDefinitions } from "../../game/balancing/units";
 import { NPC } from "../../engine/components/npc";
 import { POSITION } from "../../engine/components/position";
 import { getDialog, say, setupHero } from "./helpers";
@@ -59,6 +61,31 @@ describe("new command", () => {
     expect(findEntityAt(world, { x: 1, y: 2 }, [NPC])?.[NPC].type).toBe(
       "dummy"
     );
+  });
+
+  it.each([["chick_female", chickFemale.id], ["chick_male", unitDefinitions.chick.sprite.id]])(
+    "spawns the selected chick with /new %s", (cell, sprite) => {
+      const { world } = setup();
+      say(world, "/new " + cell + " 1 right");
+      const bird = world.getEntity([NPC, "SPRITE", "COLLECTABLE"]);
+      expect(bird?.NPC.type).toBe("chick");
+      expect(bird?.SPRITE.id).toBe(sprite);
+    }
+  );
+
+  it("spawns either adult with /new chicken", () => {
+    const { world } = setup();
+    const adults = new Set<string>();
+    for (let index = 0; index < 2; index++) {
+      const roll = jest.spyOn(Math, "random").mockReturnValue(index * 0.9);
+      try {
+        say(world, "/new chicken 1 right");
+      } finally {
+        roll.mockRestore();
+      }
+      adults.add(findEntityAt(world, { x: 2, y: 1 }, [NPC])![NPC].type);
+    }
+    expect(adults).toEqual(new Set(["hen", "rooster"]));
   });
 
   it("places loose ore in its positioned drop container", () => {

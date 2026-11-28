@@ -27,6 +27,8 @@ export const npcVariants: Partial<Record<NpcType, SoundVariant<"slide">>> = {
   goldEye: 3,
   fairy: 18,
   chick: 18,
+  hen: 18,
+  rooster: 18,
 };
 
 export const pickupOptions: Partial<

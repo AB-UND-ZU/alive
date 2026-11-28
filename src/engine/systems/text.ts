@@ -20,7 +20,7 @@ import { SPAWNABLE } from "../components/spawnable";
 import { isInPopup, isShowingPopup } from "./popup";
 import { play } from "../../game/sound";
 import { createTooltip } from "./damage";
-import { BELONGABLE } from "../components/belongable";
+import { NPC } from "../components/npc";
 
 export const getTooltip = (world: World, position: Position) =>
   getCellEntities(world, position).find((entity) => hasComponent(entity, TOOLTIP)) as
@@ -258,7 +258,7 @@ export default function setupText(world: World) {
           play(world, tooltipEntity, "talk", {
             variant: tooltipEntity[TOOLTIP].enemy
               ? 2
-              : tooltipEntity[BELONGABLE]?.faction === "animal"
+              : tooltipEntity[NPC]?.type === "chick"
               ? 0.5
               : 1,
           });

@@ -307,6 +307,7 @@ export const gearStats: Partial<
       default: { earth: { heal: 1 } },
     },
   },
+  rooster: { sword: { wood: { default: { melee: 1 } } } },
   golem: {
     sword: {
       gold: { default: { melee: 4 } },

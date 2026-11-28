@@ -10,7 +10,7 @@ Use food and potions to restore stats. Select an item and confirm to consume it.
 
 [[key:B]] Open the Bag.
 
-Percentage effects use the maximum stat. [[item:thorn]] hurts when consumed.
+Percentage effects use the maximum stat. Eating [[item:raw]] or [[item:thorn]] costs one HP.
 
 ## Potions
 

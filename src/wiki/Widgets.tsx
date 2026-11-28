@@ -558,14 +558,10 @@ export function Widget({ name }: { name: string }) {
       <div>
         <CatalogIndex
           entries={[
-            {
-              key: "chick",
-              kind: "unit",
-              sprite: customSprite({
-                ...getWikiUnitSprite("chick"),
-                name: "Chick",
-              }),
-            },
+            ...(["chick", "hen", "rooster"] as const).map((key) => ({
+              key, kind: "unit" as const,
+              sprite: customSprite({ ...getWikiUnitSprite(key), name: displayName(key) }),
+            })),
             {
               key: "worm",
               kind: "item",
@@ -580,7 +576,7 @@ export function Widget({ name }: { name: string }) {
             },
           ]}
         />
-        <UnitCatalogEntry keys={["chick"]} />
+        <UnitCatalogEntry keys={["chick", "hen", "rooster"]} />
         <ItemCatalogEntry name="worm" definition={commandItems.worm} />
         <ItemCatalogEntry
           name="fish"

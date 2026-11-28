@@ -163,6 +163,7 @@ import {
   soilWet,
   soil,
   shadow,
+  chickFemale,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -252,6 +253,7 @@ import { craft, getOrientedSprite, shop } from "../game/assets/ui";
 import {
   generateNpcData,
   generateUnitData,
+  unitDefinitions,
   UnitKey,
 } from "../game/balancing/units";
 import {
@@ -447,6 +449,9 @@ export const cellNames = [
   "footing",
   "tombstone1",
   "tombstone2",
+  "chicken",
+  "chick_male",
+  "chick_female",
   ...npcTypes,
 ] as const;
 export type CellType = (typeof cellNames)[number];
@@ -3383,8 +3388,12 @@ export const createCell = (
     }
 
     return { cell: eliteEntity, all };
-  } else if (npcTypes.includes(cell as NpcType)) {
-    const mobUnit = generateNpcData(cell as NpcType);
+  } else if (cell === "chicken" || cell === "chick_male" || cell === "chick_female" || npcTypes.includes(cell as NpcType)) {
+    const type = cell === "chicken" ? choice("hen", "rooster") :
+      cell === "chick_male" || cell === "chick_female" ? "chick" : cell as NpcType;
+    const mobUnit = generateNpcData(type);
+    if (cell === "chick_female") mobUnit.sprite = chickFemale;
+    if (cell === "chick_male") mobUnit.sprite = unitDefinitions.chick.sprite;
 
     let mobEntity: TypedEntity<"FOG" | "INVENTORY" | "POSITION" | "TOOLTIP">;
 
@@ -3507,7 +3516,7 @@ export const createCell = (
     }
     if (cell === "dummy" || cell === "ilexTulip") {
       setIdentifier(world, mobEntity, cell);
-    } else if (cell === "chick") {
+    } else if (type === "chick" || type === "hen" || type === "rooster") {
       world.addComponentToEntity(mobEntity, COLLECTABLE, {});
     }
 

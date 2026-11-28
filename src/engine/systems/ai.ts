@@ -64,10 +64,11 @@ import { ACTIONABLE } from "../components/actionable";
 import { castableSpell, getLockable, isLocked, isUnlocked } from "./action";
 import { ITEM } from "../components/item";
 import { castSpell, lockDoor, spendItem } from "./trigger";
-import { createItemAsDrop, dropEntity, findAdjacentDroppable } from "./drop";
+import { createItemAsDrop, dropEntity } from "./drop";
 import {
   chestBoss,
   golem,
+  chickFemale,
   golemArm,
   golemBody,
   golemFist,
@@ -121,7 +122,7 @@ import {
 } from "../utils";
 import { SPRITE } from "../components/sprite";
 import { IDENTIFIABLE } from "../components/identifiable";
-import { createCell } from "../../bindings/creation";
+import { createCell, populateInventory, populateItems } from "../../bindings/creation";
 import addAttackable, { ATTACKABLE } from "../components/attackable";
 import { RECHARGABLE } from "../components/rechargable";
 import { addAffectable, addCollidable, addShootable } from "../components";
@@ -145,7 +146,7 @@ import {
   SlashSequence,
   SEQUENCABLE,
 } from "../components/sequencable";
-import { generateNpcData, UnitDefinition } from "../../game/balancing/units";
+import { generateNpcData, henEgg, rawDrumstick, UnitDefinition, unitDefinitions } from "../../game/balancing/units";
 import { entities } from "..";
 import { FRAGMENT } from "../components/fragment";
 import { LAYER } from "../components/layer";
@@ -175,7 +176,7 @@ import {
   rage2,
   createDialog,
 } from "../../game/assets/ui";
-import { getLootable } from "./collect";
+import { chickenFeed, consumeChickenFeed, getLootable, getStackable } from "./collect";
 import { getFarmable, getHarvestable, harvestResource } from "./harvest";
 import { wormRadius, wormSize } from "../../game/levels/island/areas";
 import { PARTICLE } from "../components/particle";
@@ -240,6 +241,15 @@ function playRage(world: World, entity: TypedEntity<"POSITION">, charged = false
     intensity: charged || type.toLowerCase().includes("boss") ? 2 : 1,
   });
 }
+
+const chickenHeart = (bird: TypedEntity, memory: Pattern["memory"], until: number) => {
+  memory.noise = until;
+  const tooltip = requireComponent(bird, TOOLTIP);
+  tooltip.idle = heart;
+  tooltip.dialogs = [];
+  tooltip.override = undefined;
+  tooltip.changed = true;
+};
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -821,6 +831,124 @@ export default function setupAi(world: World) {
             continue;
           }
 
+          const memory = pattern.memory;
+          const bird = requireComponent(entity, NPC);
+          const stats = requireComponent(entity, STATS);
+          const faction = requireComponent(entity, BELONGABLE);
+          const carrier = world.assertComponents(entity, [INVENTORY, POSITION]);
+          let pursuit: Position | undefined;
+          let movement: Orientation | undefined;
+
+          if (bird.type === "chick") {
+            if (Math.random() < 0.003 && consumeChickenFeed(world, entity)) {
+              bird.type = entity[SPRITE]?.id === chickFemale.id ? "hen" : "rooster";
+              const adult = unitDefinitions[bird.type];
+              entity[SPRITE] = spriteRef(adult.sprite);
+              Object.assign(stats, adult.stats, { maxHp: adult.stats.hp });
+              requireComponent(entity, ATTACKABLE).scratchColor = adult.scratch;
+              populateInventory(world, carrier, getStackable(world, carrier, rawDrumstick)
+                ? [rawDrumstick] : [rawDrumstick, rawDrumstick]);
+              rerenderEntity(world, entity);
+            }
+          } else if (bird.type === "rooster") {
+            const origin: Position = memory.pursuitOrigin ?? entity[POSITION];
+            const wounded = stats.hp < stats.maxHp;
+            const away = entity[POSITION].x !== origin.x || entity[POSITION].y !== origin.y;
+            const player = wounded && (memory.target || !away)
+              ? world.getEntities([PLAYER, POSITION, STATS]).find((target) => {
+                  if (isDead(world, target)) return false;
+                  const distance = getDistance(entity[POSITION], target[POSITION], size, 1, false);
+                  return memory.target
+                    ? world.getEntityId(target) === memory.target && distance <= 10 &&
+                        inPursuitRange(origin, target[POSITION], size)
+                    : distance <= 5;
+                })
+              : undefined;
+
+            if (player && !memory.target) {
+              memory.target = world.getEntityId(player);
+              memory.pursuitOrigin = copy(entity[POSITION]);
+              faction.faction = "hostile";
+              delete memory.noise;
+              delete memory.courtUntil;
+              delete memory.mate;
+              Object.assign(entity[TOOLTIP], { idle: rage, dialogs: [], enemy: true, override: undefined, changed: true });
+              playRage(world, entity);
+              populateItems(world, carrier, [{ weapon: "sword", material: "wood", bound: true, amount: 0 }]);
+            } else if (!player && memory.target) {
+              delete memory.target;
+              const weapon = world.getEntityByIdAndComponents(entity[EQUIPPABLE]?.weapon, [ITEM]);
+              if (weapon) spendItem(world, entity, weapon[ITEM], weapon);
+              Object.assign(entity[TOOLTIP], { idle: undefined, enemy: undefined, changed: true });
+            }
+
+            if (!player && (!wounded || !away)) {
+              delete memory.pursuitOrigin;
+            }
+            pursuit = player?.[POSITION] ?? memory.pursuitOrigin;
+          }
+
+          if (bird.type !== "chick" && stats.hp === stats.maxHp) {
+            if (generation < memory.restUntil) continue;
+            if (memory.courtUntil && (generation >= memory.courtUntil || !chickenFeed(world, entity).length)) {
+              memory.noise = generation - 1;
+              delete memory.courtUntil;
+              delete memory.mate;
+            }
+            if (!memory.courtUntil && Math.random() < 0.005 && chickenFeed(world, entity).length) {
+              memory.courtUntil = generation + 90;
+              chickenHeart(entity, memory, memory.courtUntil);
+            }
+            if (memory.courtUntil) {
+              const opposite = bird.type === "hen" ? "rooster" : "hen";
+              const candidates = memory.mate
+                ? [world.getEntityByIdAndComponents(memory.mate, [NPC, BEHAVIOUR, POSITION, STATS])]
+                : world.getEntities([NPC, BEHAVIOUR, POSITION, STATS]);
+              const mate = candidates.find((other) => {
+                if (!other || other[NPC].type !== opposite ||
+                    other[STATS].hp !== other[STATS].maxHp ||
+                    other[BELONGABLE]?.faction !== "animal" ||
+                    getDistance(entity[POSITION], other[POSITION], size, 1) > 5) return false;
+                const partner = other[BEHAVIOUR].patterns.find((p) => p.name === "chick")?.memory;
+                return partner && (!partner.mate || partner.mate === entityId) &&
+                  generation >= (partner.restUntil ?? 0) && chickenFeed(world, other).length > 0;
+              });
+              if (mate) {
+                const partner = mate[BEHAVIOUR].patterns.find((p) => p.name === "chick")!.memory;
+                if (memory.mate !== world.getEntityId(mate)) {
+                  memory.mate = world.getEntityId(mate);
+                  partner.mate = entityId;
+                  partner.courtUntil = memory.courtUntil;
+                  chickenHeart(mate, partner, memory.courtUntil);
+                }
+                if (getDistance(entity[POSITION], mate[POSITION], size, 1) === 1) {
+                  const facing = relativeOrientations(world, entity[POSITION], mate[POSITION], 1)[0];
+                  bumpEntity(world, entity, facing, generation);
+                  bumpEntity(world, mate, invertOrientation(facing), generation);
+                  consumeChickenFeed(world, entity);
+                  const hen = bird.type === "hen" ? carrier : world.assertComponents(mate, [INVENTORY, POSITION]);
+                  const [egg] = populateItems(world, hen, [henEgg], false);
+                  dropEntity(world, { [INVENTORY]: { items: [world.getEntityId(egg)] } }, hen[POSITION], false);
+                  for (const state of [memory, partner]) {
+                    delete state.courtUntil;
+                    delete state.mate;
+                    state.restUntil = generation + 3;
+                    state.noise = state.restUntil;
+                  }
+                  requireComponent(mate, MOVABLE).orientations = [];
+                  continue;
+                }
+                // The hen holds the meeting point while the rooster approaches.
+                if (bird.type === "rooster") {
+                  const next = findPath(world.metadata.gameEntity[LEVEL].walkable, entity[POSITION], mate[POSITION], true, true)[0];
+                  if (next) entity[MOVABLE].orientations = relativeOrientations(world, entity[POSITION], next, 1);
+                }
+                continue;
+              }
+              delete memory.mate;
+            }
+          }
+
           const lootStackables = ["grain", "worm"];
           // pick up grains and worms
           let lootEntity = world.getEntityByIdAndComponents(
@@ -831,7 +959,7 @@ export default function setupAi(world: World) {
             pattern.memory.loot = undefined;
           }
 
-          if (!pattern.memory.loot) {
+          if (!movement && !pattern.memory.loot) {
             const lootDistance = 5;
             for (
               let offsetX = -lootDistance;
@@ -859,25 +987,28 @@ export default function setupAi(world: World) {
                 ) {
                   lootEntity = lootable as TypedEntity<"POSITION">;
                   pattern.memory.loot = world.getEntityId(lootable);
-                  pattern.memory.noise = generation + 4;
-                  entity[TOOLTIP].idle = heart;
-                  entity[TOOLTIP].dialogs = [];
-                  entity[TOOLTIP].override = undefined;
-                  entity[TOOLTIP].changed = true;
+                  if (!pursuit && !memory.courtUntil) chickenHeart(entity, pattern.memory, generation + 4);
                   break;
                 }
               }
             }
           }
 
-          let movement: Orientation | undefined;
-          if (lootEntity) {
+          if (!movement && lootEntity) {
             movement = relativeOrientations(
               world,
               entity[POSITION],
               lootEntity[POSITION],
               1
             )[0];
+          }
+
+          if (pursuit && !movement) {
+            const next = findPath(world.metadata.gameEntity[LEVEL].walkable, entity[POSITION], pursuit, true, true)[0];
+            if (next && (!memory.target || inPursuitRange(memory.pursuitOrigin, next, size))) {
+              entity[MOVABLE].orientations = relativeOrientations(world, entity[POSITION], next, 1);
+            }
+            continue;
           }
 
           // flee from hero
@@ -911,26 +1042,11 @@ export default function setupAi(world: World) {
               Math.random() < 0.01 &&
               !pattern.memory.noise
             ) {
-              entity[TOOLTIP].dialogs = [createDialog("Chirp")];
+              const call = bird.type === "hen" ? "Bok bok bok" : bird.type === "rooster" ? "\u010d" : "Chirp";
+              entity[TOOLTIP].dialogs = [createDialog(call)];
               entity[TOOLTIP].override = "visible";
               entity[TOOLTIP].changed = true;
               pattern.memory.noise = generation + 2;
-            }
-          }
-
-          if (entity[INVENTORY]?.items.length && Math.random() < 0.005) {
-            const food = entity[INVENTORY].items
-              .map((id) => world.assertByIdAndComponents(id, [ITEM]))
-              .filter((item) => lootStackables.includes(item[ITEM].stackable!));
-            if (food.length) {
-              for (const item of food) spendItem(world, entity, item[ITEM], item);
-              const egg = { stackable: "egg", amount: 1, bound: false } as const;
-              createItemAsDrop(
-                world,
-                findAdjacentDroppable(world, entity[POSITION]),
-                entities.createItem,
-                { [ITEM]: egg, [SPRITE]: getItemSprite(egg) }
-              );
             }
           }
 
@@ -944,7 +1060,7 @@ export default function setupAi(world: World) {
               ].resource;
               if (soil || resource === "grass" || resource === "bush") {
                 bumpEntity(world, entity, "right", generation);
-                if (soil?.[FARMABLE].planted && Math.random() < 0.25) {
+                if (soil?.[FARMABLE].planted && Math.random() < (bird.type === "chick" ? 0.2 : 0.4)) {
                   const sapling = world.getEntityByIdAndComponents(
                     soil[FARMABLE].sapling,
                     [HARVESTABLE]

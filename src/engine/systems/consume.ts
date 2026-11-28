@@ -107,6 +107,8 @@ export const stackableConsumptions: Partial<
 
   bread: { countable: "hp", amount: 5 },
   egg: { countable: "hp", amount: 5 },
+  raw: { countable: "hp", amount: -1 },
+  meat: { countable: "hp", amount: 8 },
 
   salmon: { countable: "hp", amount: 5 },
   pike: { countable: "mp", amount: 2 },

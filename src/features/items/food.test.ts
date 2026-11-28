@@ -107,6 +107,10 @@ describe("food effects", () => {
     expect(other[STATS].mp).toBe(10 + stackableConsumptions.coconut!.amount);
   });
 
+  it.each([["raw", -1], ["meat", 8]] as const)("eating %s changes health by %i", (food, amount) => {
+    expect(consume(food).hero[STATS].hp).toBe(10 + amount);
+  });
+
   it("restores a percentage of maximum health", () => {
     const { hero } = consume("toast");
 

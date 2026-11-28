@@ -41,7 +41,6 @@ import {
   ORIENTABLE,
   Orientation,
   orientationPoints,
-  orientations,
 } from "../../../engine/components/orientable";
 import {
   giantSize,
@@ -1949,10 +1948,11 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         spawn: combine(size, inn, { x: 0, y: 2 }),
       });
 
-      // add chicken around fountain
-      for (const orientation of orientations) {
-        const target = combine(size, inn, orientationPoints[orientation]);
-        createCell(world, target, "chick", "hidden");
+      // Place two chicks of each sex around the fountain.
+      for (const offset of Object.values(orientationPoints)) {
+        const target = combine(size, inn, offset);
+        const chick = offset.x === 0 ? "chick_female" : "chick_male";
+        createCell(world, target, chick, "hidden");
       }
 
       // place guards at exits

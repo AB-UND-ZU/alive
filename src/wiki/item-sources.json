@@ -577,17 +577,5 @@
       "line": 2926
     }
   ],
-  "unresolved": [],
-  "natural": [
-    {
-      "unit": "chick",
-      "item": {
-        "stackable": "egg",
-        "amount": 1,
-        "bound": false
-      },
-      "source": "src/engine/systems/ai.ts",
-      "line": 947
-    }
-  ]
+  "unresolved": []
 }
