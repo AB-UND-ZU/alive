@@ -7,7 +7,11 @@ const { gunzipSync } = require("node:zlib");
 const currentVersion = require("../../../package.json").version;
 const futureVersion = `${Number(currentVersion.split(".")[0]) + 1}.0.0`;
 
-let bundle;
+let bundle, upgradeVersions;
+const expectedUpgradeWrites = () => upgradeVersions.flatMap((version) => [
+  { store: "saves", version },
+  { store: "summaries", version },
+]);
 const fixture = deserialize(
   gunzipSync(
     fs.readFileSync(
@@ -16,6 +20,7 @@ const fixture = deserialize(
   )
 );
 const entry = `
+export {pendingUpgrades} from "./src/game/saves/upgrades";
 export {loadSaveSummaries,restoreGame,storeGame,eraseGame} from "./src/game/saves/storage";
 export {getSaveSummaries,setSaveSummaries,getSummary,isLoadable,saveVersion} from "./src/game/saves";
 export {createSystems,preloadLevel} from "./src/engine/ecs";
@@ -53,6 +58,9 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/save-migration-test.html");
   await page.addScriptTag({ content: bundle });
   expect(await page.evaluate(() => SaveMigration.saveVersion)).toBe(currentVersion);
+  upgradeVersions = await page.evaluate(() =>
+    SaveMigration.pendingUpgrades().map(({ version }) => version)
+  );
   // Playwright passes the native decoded object, including Infinity and aliases.
   await page.evaluate(async (save) => {
     window.originalSave = save;
@@ -212,11 +220,8 @@ test("loading the save list upgrades a genuine 0.4 world before opening its nati
     lightAlias: true,
     dialog: { tab: "load", movable: true },
   });
-  expect(result.trace.reads).toEqual(["saves"]);
-  expect(result.trace.writes.map((x) => x.store).sort()).toEqual([
-    "saves",
-    "summaries",
-  ]);
+  expect(result.trace.reads).toEqual(upgradeVersions.map(() => "saves"));
+  expect(result.trace.writes).toEqual(expectedUpgradeWrites());
 });
 
 test("an upgraded save list reads summaries only and writes nothing", async ({
@@ -242,8 +247,8 @@ test("two simultaneous menu loads upgrade the world once", async ({ page }) => {
     await Promise.all([SaveMigration.loadSaveSummaries(), SaveMigration.loadSaveSummaries()]);
     return saveTest.trace;
   });
-  expect(trace.reads).toEqual(["saves"]);
-  expect(trace.writes.map(({ store }) => store)).toEqual(["saves", "summaries"]);
+  expect(trace.reads).toEqual(upgradeVersions.map(() => "saves"));
+  expect(trace.writes).toEqual(expectedUpgradeWrites());
 });
 
 test("a migrated historical world restores and accepts native movement", async ({
@@ -299,11 +304,8 @@ test("the first launch upgrades a released world even when it already has the cu
     version: currentVersion,
     playtime: 12345,
   });
-  expect(result.trace.reads).toEqual(["saves"]);
-  expect(result.trace.writes).toEqual([
-    { store: "saves", version: currentVersion },
-    { store: "summaries", version: currentVersion },
-  ]);
+  expect(result.trace.reads).toEqual(upgradeVersions.map(() => "saves"));
+  expect(result.trace.writes).toEqual(expectedUpgradeWrites());
 });
 
 test("a future world behind an old summary is untouched and denied by the native dialog", async ({
