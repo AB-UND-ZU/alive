@@ -244,13 +244,12 @@ const deliverItem = (
   }, 1);
 };
 
-const fetchRing = iterations.flatMap(({ direction, normal }) => [direction, add(direction, normal)]);
-
 function returnThrownStick(
   world: World, pet: Pet, hero: TypedEntity<"POSITION">, stick: TypedEntity<"ITEM" | "SPRITE">,
   moveTo: MoveTo, fetch: { step: number; playing: boolean; waitUntil?: number }
 ) {
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
+  const fetchRing = iterations.flatMap(({ direction, normal }) => [direction, add(direction, normal)]);
   const last = fetch.playing ? 2 * fetchRing.length : 3;
   while (fetch.step <= last) {
     const offset = fetchRing[fetch.step % fetchRing.length];
