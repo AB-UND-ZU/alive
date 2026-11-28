@@ -7,6 +7,11 @@ import { getChickSprite } from "../../balancing/units";
 import { NPC } from "../../../engine/components/npc";
 import { POPUP } from "../../../engine/components/popup";
 import { getStackable } from "../../../engine/systems/collect";
+import { placeTownPet } from "../../../engine/systems/petCare";
+import { isWalkable } from "../../../engine/systems/movement";
+import { getIdentifierAndComponents } from "../../../engine/utils";
+import { townSize } from "../../levels/island/areas";
+import { signedDistance } from "../../math/std";
 import { createSnapshot } from "../../../engine/snapshot";
 import { rock1, rock2 } from "../../assets/sprites";
 import type { SaveGame } from "..";
@@ -33,6 +38,16 @@ export default function upgrade(save: SaveGame): SaveGame {
       const index = line.findIndex((sprite) => sprite.id === rock1.id);
       if (index >= 0) line[index] = rock2;
     }
+  }
+  const level = world.metadata.gameEntity.LEVEL;
+  const town = getIdentifierAndComponents(world, "earth_town", [POSITION]);
+  if (town && !level.cellPositions.pet?.length && !world.getEntity(["TAMEABLE"])) {
+    const streets = (level.cellPositions.path || []).filter(p =>
+      Math.abs(signedDistance(town.POSITION.x, p.x, level.size)) < townSize.x / 2 &&
+      Math.abs(signedDistance(town.POSITION.y, p.y, level.size)) < townSize.y / 2 &&
+      level.cells[p.x][p.y] === "path" && isWalkable(world, p)
+    );
+    placeTownPet(world, streets);
   }
   return { ...save, snapshot: createSnapshot(world) };
 }

@@ -4,7 +4,7 @@ import {
   petLevels,
   startingFavourites,
 } from "../../game/balancing/pets";
-import { populateItems } from "../../bindings/creation";
+import { createCell, populateItems } from "../../bindings/creation";
 import { choice, shuffle } from "../../game/math/std";
 import { colors } from "../../game/assets/colors";
 import { petHeartColor } from "../../game/assets/pets";
@@ -20,6 +20,7 @@ import {
   recolorSprite,
 } from "../../game/assets/ui";
 import { World } from "../ecs";
+import { Position } from "../components/position";
 import { entities } from "..";
 import { REFERENCE } from "../components/reference";
 import { RENDERABLE } from "../components/renderable";
@@ -106,6 +107,13 @@ function petInterval(world: World, stats: Stats, state: Tameable) {
     getHasteInterval(world, stats.haste) *
     (state.attributes.moody === false ? 1.1 : 1)
   );
+}
+
+export function placeTownPet(world: World, streets: Position[]) {
+  const walkSpots = shuffle(streets).slice(0, 6);
+  if (!walkSpots.length) return;
+  const pet = createCell(world, walkSpots[0], "pet", "hidden", false).cell;
+  pet.BEHAVIOUR!.patterns.find(pattern => pattern.name === "pet")!.memory.walkSpots = walkSpots;
 }
 
 export function initializePet(world: World, pet: TypedEntity) {

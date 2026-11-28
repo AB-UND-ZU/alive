@@ -65,7 +65,6 @@ import {
   normalize,
   random,
   range,
-  shuffle,
   sigmoid,
   signedDistance,
 } from "../../math/std";
@@ -121,6 +120,7 @@ import {
 import { createIglooClearing, generateIglooVillage, iglooRadius } from "./igloos";
 import { islandNpcDistribution } from "./units";
 import { snowFill } from "../../../engine/systems/freeze";
+import { placeTownPet } from "../../../engine/systems/petCare";
 import { BEHAVIOUR } from "../../../engine/components/behaviour";
 import { initializeArea } from "../../../engine/systems/initialize";
 import { createSequence } from "../../../engine/systems/sequence";
@@ -1951,10 +1951,7 @@ function* generateIslandSteps(world: World): Generator<IslandPass | number> {
         spawn: combine(size, inn, { x: 0, y: 2 }),
       });
 
-      const walkSpots = shuffle(streets.filter(p => getDistance(p, inn, size, 1, false) > 2)).slice(0, 6);
-      const townPet = createCell(world, walkSpots[0], "pet", "hidden", false).cell;
-      const petPattern = townPet[BEHAVIOUR]!.patterns.find(pattern => pattern.name === "pet")!;
-      petPattern.memory.walkSpots = walkSpots;
+      placeTownPet(world, streets.filter(p => getDistance(p, inn, size, 1, false) > 2));
 
       // Place two chicks of each sex around the fountain.
       for (const offset of Object.values(orientationPoints)) {

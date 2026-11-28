@@ -25,6 +25,7 @@ import { STATS } from "../../engine/components/stats";
 import { LEVEL } from "../../engine/components/level";
 import { moveEntity, registerEntity } from "../../engine/systems/map";
 import { World } from "../../engine/ecs";
+import { setIdentifier } from "../../engine/utils";
 import { entities } from "../../engine";
 import {
   createItemAsDrop,
@@ -66,6 +67,26 @@ const storeAndLoad = (world: World) => {
 };
 
 describe("legacy save upgrades", () => {
+  it("places one wild pet on a saved Earth Town street and preserves the hero", () => {
+    const world = createAreaWorld("|♀▒▒▒|", { level: "LEVEL_ISLAND" });
+    const town = entities.createProcessor(world, {
+      [POSITION]: { x: 1, y: 0 }, [SEQUENCABLE]: { states: {} }, [RENDERABLE]: { generation: 0 },
+    });
+    setIdentifier(world, town, "earth_town");
+    const save = { ...createSave(world), version: "0.9.0" };
+    const step = saveUpgrades.find(entry => entry.version === "0.10.0")!;
+    const upgraded = upgradeSave(save, step, new Set());
+    const restored = restoreSnapshot(upgraded.snapshot);
+    const companions = restored.getEntities(["TAMEABLE", POSITION, "BEHAVIOUR"]);
+    expect(companions).toHaveLength(1);
+    expect(companions[0].TAMEABLE.owner).toBeUndefined();
+    expect(world.metadata.gameEntity.LEVEL.cellPositions.path).toContainEqual(companions[0].POSITION);
+    expect(companions[0].BEHAVIOUR.patterns.find(pattern => pattern.name === "pet")!.memory.walkSpots).toContainEqual(companions[0].POSITION);
+    expect(assertHero(restored).POSITION).toEqual(assertHero(world).POSITION);
+    const retried = restoreSnapshot(upgradeSave(upgraded, step, new Set()).snapshot);
+    expect(retried.getEntities(["TAMEABLE"])).toHaveLength(1);
+  });
+
   it("upgrades released 0.9 custom references and nested artwork with the same label", () => {
     const world = createAreaWorld("|♀|");
     const hero = assertHero(world);
